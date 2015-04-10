@@ -18,6 +18,12 @@ GTEST_DIR = ../../gtest-1.7.0
 
 # Where to find user code.
 USER_DIR = .
+SRC_DIR = src/
+INC_DIR = include/
+TEST_DIR = src/test/
+TEST_INC_DIR = include/test/
+
+BIN = bin
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -29,7 +35,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = hello_unittest
+TESTS = bin/hello_unittest
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -41,6 +47,7 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 all : $(TESTS)
 
 clean :
+	rm -f bin/*
 	rm -f $(TESTS) gtest.a gtest_main.a *.o
 
 # Builds gtest.a and gtest_main.a.
@@ -71,12 +78,12 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-hello.o : $(USER_DIR)/hello.cpp $(USER_DIR)/hello.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/hello.cpp
+src/obj/hello.o : $(SRC_DIR)/hello.cpp $(INC_DIR)/hello.h $(GTEST_HEADERS)
+	mkdir -p src/obj/; $(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(SRC_DIR)/hello.cpp -o $@
 
-hello_unittest.o : $(USER_DIR)/hello_unittest.cpp \
-                     $(USER_DIR)/hello.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/hello_unittest.cpp
+src/obj/hello_unittest.o : $(TEST_DIR)/hello_unittest.cpp \
+                     $(INC_DIR)/hello.h $(GTEST_HEADERS)
+	mkdir -p src/obj; $(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(TEST_DIR)/hello_unittest.cpp  -o$@
 
-hello_unittest : hello.o hello_unittest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+bin/hello_unittest : src/obj/hello.o src/obj/hello_unittest.o gtest_main.a
+	mkdir -p bin; $(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@

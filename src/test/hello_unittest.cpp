@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "hello.h"
+#include "../../include/hello.h"
 #include <sstream>
 
 TEST(TestHello, hello) 
