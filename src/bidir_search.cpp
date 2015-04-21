@@ -21,12 +21,12 @@ uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa,
   assert(l < r); assert(r <= csa.size());
 
 
-  // the beginning position of char c in the First column <<< ZAM says - what?
+  // the beginning position of char c in the First column <<< First column of the conceptual matrix of sorted string suffixes that is used to compute the BWT (BWT is the last column of this matrix); because the suffixes are alphabetically ordered, the position at which c appears for the first time in this First column is equal to the numebr of times characters smaller than c appear in text 
   uint32_t c_begin = csa.C[csa.char2comp[c]];//total number of occurences of chars smaller than c in text;  << ????????????????
 
 
 
-  //r_s_-b is a tuple??<<<<<<
+  //r_s_-b is a tuple??<<<<<< yes, that's how it comes out of the sdsl fcn
   auto r_s_b =  csa.wavelet_tree.lex_count(l, r, c);// tuple (r,s,b)
   uint32_t rank_l = std::get<0>(r_s_b);// r is number of times c occurs in BWT[l,r]
   uint32_t s = std::get<1>(r_s_b); // s is total number of times chars smaller than c occur in BWT[l,r]
