@@ -1,5 +1,5 @@
 # gramtools
 
-
-Using a compressed suffix array to encode both coordinates and known 
-genetic variation: mapping and variant calling with a graph
+Mapping and variant calling with a reference graph of genetic variation, based on a vBWT.
+A vBWT is a compressed suffix array used to encode both coordinates and known 
+genetic variatio
