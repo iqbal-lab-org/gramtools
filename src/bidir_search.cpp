@@ -35,11 +35,18 @@ uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa,
   //s for characters Smaller than c, b for characters Bigger than c
   //r_s_b is a tuple (r,s,b)
 
-  uint32_t rank_l = std::get<0>(r_s_b);   //rank_l is the number of times c occurs in BWT[0,left]
-  uint32_t s = std::get<1>(r_s_b); // s is total number of times chars smaller than c occur in BWT[left,right]
-  uint32_t b = std::get<2>(r_s_b);// b is total number of times chars bigger than c occur in BWT[left,right] 
+  //rank_l is the number of times c occurs in BWT[0,left]
+  uint32_t rank_l = std::get<0>(r_s_b);   
+  // s is total number of times chars smaller than c occur in BWT[left,right]
+  uint32_t s = std::get<1>(r_s_b);
+  // b is total number of times chars bigger than c occur in BWT[left,right]  
+  uint32_t b = std::get<2>(r_s_b);
+
+  //rank_r is the number of times c occurs in BWT[0,right]
   uint32_t rank_r = right - left - s - b + rank_l;
-  left = c_begin + rank_l;
+
+  //get new interval, after appending c
+  left  = c_begin + rank_l;
   right = c_begin + rank_r+1;
   assert(right >=left);
   left_rev = left_rev + s;
