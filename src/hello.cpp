@@ -2,6 +2,7 @@
 #include<ostream>
 #include<sstream>
 
-void helloworld(std::ostream &os){
+void helloworld(){
+  std::ostringstream os;
   os<<"Hello World";
 }
