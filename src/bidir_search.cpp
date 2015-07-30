@@ -18,14 +18,16 @@
 //              (don't need the actual reverse text csa, 
 //              just these indices) 
 //char c for extending the current pattern     
+using namespace sdsl;
 
 uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa, 
 		      uint32_t& left, uint32_t& right, 
 		      uint32_t& left_rev, uint32_t& right_rev, 
 		      uint32_t c)
 {
-  assert(left < right); assert(right <= csa.size());
-
+  assert(left < right); 
+  assert(right <= csa.size());
+  assert((c>0) & (c<5));
 
   // c_begin (below) is the first occurrence/posn 
   //          of char c in the far left column 
@@ -54,16 +56,17 @@ uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa,
   uint32_t b = std::get<2>(r_s_b);
 
   //rank_r is the number of times c occurs in BWT[0,right]
-  uint32_t rank_r = right - left - s - b + rank_l;
+  uint32_t rank_r = right - left - s - b + rank_l - 1;
 
   //get new interval, after appending c
   left  = c_begin + rank_l;
-  right = c_begin + rank_r+1;
-  assert(right >=left);
+  right = c_begin + rank_r + 1;
+  assert(right>=left);
 
   //now same in reverse csa
   left_rev  = left_rev + s;
-  right_rev = right_rev - b+1;
+  right_rev = right_rev - b + 1;
   assert(right_rev-left_rev == right-left);
+
   return right-left;
 }
