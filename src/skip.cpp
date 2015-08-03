@@ -1,0 +1,72 @@
+#include "sdsl/suffix_arrays.hpp"
+#include "sdsl/wavelet_trees.hpp"
+#include <cassert>
+#include "bwt_search.h"
+#include <tuple>
+#include <cstdint>
+#include <algorithm>
+
+using namespace sdsl;
+
+uint32_t skip(csa_wt<wt_int<rrr_vector<63>>> csa,
+                      uint32_t& left, uint32_t& right,
+                      uint32_t& left_rev, uint32_t& right_rev,
+                      uint32_t num)
+{
+  uint32_t site_end,site_start;
+  bool first;
+
+  assert(left < right);
+  assert(right <= csa.size());
+  assert(num > 4);
+
+  if (num%2==1) {
+    uint32_t num_begin = csa.C[csa.char2comp[num]];
+
+    site_end=max(csa[num_begin],csa[num_begin+1]); 
+    site_start=min(csa[num_begin],csa[num_begin+1]);
+
+    if (right-left==1) {
+      if (csa[i]==csa[site_end]+1) {
+	left=num_begin;
+	right=csa.C[csa.char2comp[num+2]];
+
+	left_rev=left;
+	right_rev=right;
+      }
+      else {
+	left=site_start;
+	right=site_start+1;
+
+	left_rev=right;
+	right_rev=left;
+	first=T;
+      }
+    }
+    else {
+      left=num_begin;
+      right=csa.C[csa.char2comp[num+2]];      
+
+      left_rev=left;
+      right_rev=right;
+      first=T;
+    }
+  }
+  else {
+    uint32_t num_begin = csa.C[csa.char2comp[num-1]];
+    
+    site_start=min(csa[num_begin],csa[num_begin+1]);
+    site_end=max(csa[num_begin],csa[num_begin+1]);
+
+    left=site_start;
+    right=site_start+1;
+
+    left_rev=site_end;
+    right_rev=site_end+1;
+  }
+
+  assert(right>=left);
+  assert(right_rev-left_rev == right-left);
+
+  return right-left;
+}
