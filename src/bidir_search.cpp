@@ -20,9 +20,9 @@
 //char c for extending the current pattern     
 using namespace sdsl;
 
-uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa, 
-		      uint32_t& left, uint32_t& right, 
-		      uint32_t& left_rev, uint32_t& right_rev, 
+uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, 
+		      uint64_t& left, uint64_t& right, 
+		      uint64_t& left_rev, uint64_t& right_rev, 
 		      uint32_t c)
 {
   assert(left < right); 
@@ -32,7 +32,7 @@ uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa,
   // c_begin (below) is the first occurrence/posn 
   //          of char c in the far left column 
   //          of the BW matrix 
-  uint32_t c_begin = csa.C[csa.char2comp[c]];
+  uint64_t c_begin = csa.C[csa.char2comp[c]];
 
   // [ NB Since the suffixes are alphabetically ordered, 
   // the position at which c appears for the first time 
@@ -47,16 +47,16 @@ uint32_t bidir_search(csa_wt<wt_int<rrr_vector<63>>> csa,
 
 
   //rank_l is the number of times c occurs in BWT[0,left]
-  uint32_t rank_l = std::get<0>(r_s_b);   
+  uint64_t rank_l = std::get<0>(r_s_b);   
   // s is total number of times 
   //      chars smaller than c occur in BWT[left,right]
-  uint32_t s = std::get<1>(r_s_b);
+  uint64_t s = std::get<1>(r_s_b);
   // b is total number of times 
   //      chars bigger than c occur in BWT[left,right]  
-  uint32_t b = std::get<2>(r_s_b);
+  uint64_t b = std::get<2>(r_s_b);
 
   //rank_r is the number of times c occurs in BWT[0,right]
-  uint32_t rank_r = right - left - s - b + rank_l - 1;
+  uint64_t rank_r = right - left - s - b + rank_l - 1;
 
   //get new interval, after appending c
   left  = c_begin + rank_l;
