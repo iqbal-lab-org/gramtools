@@ -23,7 +23,7 @@ using namespace sdsl;
 uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, 
 		      uint64_t& left, uint64_t& right, 
 		      uint64_t& left_rev, uint64_t& right_rev, 
-		      uint32_t c)
+		      uint8_t c)
 {
   assert(left < right); 
   assert(right <= csa.size());

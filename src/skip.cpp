@@ -8,13 +8,13 @@
 
 using namespace sdsl;
 
-uint64_t skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
+bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
                       uint64_t& left, uint64_t& right,
                       uint64_t& left_rev, uint64_t& right_rev,
                       uint32_t num)
 {
   uint64_t site_end,site_start;
-  bool first;
+  bool last=F;
 
   assert(left < right);
   assert(right <= csa.size());
@@ -28,7 +28,7 @@ uint64_t skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
 
     if (right-left==1) {
       if (csa[i]==csa[site_end]+1) {
-	last=T
+	last=T;
 
 	left=num_begin;
 	right=csa.C[csa.char2comp[num+2]];
