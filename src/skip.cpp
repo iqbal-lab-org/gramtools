@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <algorithm>
 
+//need to skip chromosome separators as well
+
 using namespace sdsl;
 
 bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
@@ -14,7 +16,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
                       uint32_t num)
 {
   uint64_t site_end,site_start;
-  bool last=F;
+  bool last=false;
 
   assert(left < right);
   assert(right <= csa.size());
@@ -23,12 +25,12 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
   if (num%2==1) {
     uint64_t num_begin = csa.C[csa.char2comp[num]];
 
-    site_end=max(csa[num_begin],csa[num_begin+1]); 
-    site_start=min(csa[num_begin],csa[num_begin+1]);
+    site_end=std::max(csa[num_begin],csa[num_begin+1]); 
+    site_start=std::min(csa[num_begin],csa[num_begin+1]);
 
     if (right-left==1) {
       if (csa[i]==csa[site_end]+1) {
-	last=T;
+	last=true;
 
 	left=num_begin;
 	right=csa.C[csa.char2comp[num+2]];
@@ -63,8 +65,8 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
   else {
     uint64_t num_begin = csa.C[csa.char2comp[num-1]];
     
-    site_start=min(csa[num_begin],csa[num_begin+1]);
-    site_end=max(csa[num_begin],csa[num_begin+1]);
+    site_start=std::min(csa[num_begin],csa[num_begin+1]);
+    site_end=std::max(csa[num_begin],csa[num_begin+1]);
     /*
     if (right-left==1) {
       site=num-1;
