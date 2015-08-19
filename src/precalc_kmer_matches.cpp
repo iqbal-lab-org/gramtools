@@ -1,7 +1,7 @@
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
 #include <cassert>
-//#include "bwt_search.h"
+#include "bwt_search.h"
 #include <tuple>
 #include <cstdint>
 #include <string>
@@ -13,26 +13,20 @@ using namespace sdsl;
 void generate_all_kmers(std::vector<std::string> letters, std::string substr, int k, int n, std::vector<std::string>& kmers);
 
 void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int k,   
-			   std::vector<std::vector<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
-			   std::vector<std::vector<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev) 
+			   std::vector<std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
+			   std::vector<std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev) 
 {
   std::vector<std::string> letters={"1","2","3","4"}; // add N/other symbols?
   std::vector<std::string> kmers;
 
   generate_all_kmers(letters, "",k, letters.size(),kmers);
+  
   for (std::vector<std::string>::iterator it=kmers.begin();  it!=kmers.end(); ++it) {
-    auto res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end);
-    //need to return sa_intervals from bidir_search_bwd
-    if (res_it==(*it).end) {
-      kmer_idx.push_back(sa_intervals);
-      kmer_idx_rev.push_back(sa_intervals_rev);
-    }
-    else {
-      kmer_idx.push_back(empty_vector);
-      kmer_idx_rev.push_back(empty_vector);
-    }
-  }
+    kmer_idx.push_back(  std::list<std::pair<uint64_t,uint64_t>> ());
+    kmer_idx_rev.push_back(  std::list<std::pair<uint64_t,uint64_t>> ());
+    auto res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end,kmer_idx.back(),kmer_idx_rev.back());
     //add locations of kmer matches here
+  }
 }  
 
 

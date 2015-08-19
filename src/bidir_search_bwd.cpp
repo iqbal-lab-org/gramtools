@@ -8,16 +8,19 @@
 using namespace sdsl;
 
 std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
-                      uint64_t& left, uint64_t& right,
-		      uint64_t& left_rev, uint64_t& right_rev,
-                      std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end)
+                      uint64_t left, uint64_t right,
+		      uint64_t left_rev, uint64_t right_rev,
+		      std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
+		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev)
 {
-  std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev; 
   std::vector<uint8_t>::iterator pat_it=pat_end;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
   uint8_t c=*pat_it;
   bool last, first_del=false;
   uint64_t left_new, right_new, left_rev_new, right_rev_new;
+
+  assert(left<right);
+  assert(right<=csa.size());
 
   sa_intervals.push_back(std::make_pair(left,right));
   sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
@@ -66,6 +69,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
       }
       else {
 	if (it==sa_intervals.begin()) first_del=true;
+	//might need to see first_del from top fcns to check if there are matches in the reference
 	it=sa_intervals.erase(it);
 	it_rev=sa_intervals_rev.erase(it);
       }
