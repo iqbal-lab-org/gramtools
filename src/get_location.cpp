@@ -23,7 +23,10 @@ uint32_t get_location(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
   return (site);    
 }  
 
+//removed left and right args because they only form a proper interval is when last is true; but then they can't help with location because allele is unknown and we're just addin site
+//when allele is added, the non-last markers are encountered from the left and at that point the interval is either of length 1 (if we're comeng from the left of the last num), or we need to split it in 1-length subintervals to add each allele; might be worth looking whether avoiding this splitting can make things more efficient
+
   //problems:
   //avoid mask_s
   //when have matches to the right of both odd numbers
-  //when result is an interval, each element needs to have location saved
+  //when result is an interval, each element needs to have location saved - in current framework, result is never going to be an interval because res splits it
