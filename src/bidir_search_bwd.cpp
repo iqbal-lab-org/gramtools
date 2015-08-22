@@ -11,9 +11,10 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
                       uint64_t left, uint64_t right,
 		      uint64_t left_rev, uint64_t right_rev,
 		      std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
-		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev)
+		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
+		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
+		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites)
 {
-  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
   std::vector<uint8_t>::iterator pat_it=pat_end;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
@@ -61,8 +62,6 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 
 	last=skip(csa,left_new,right_new,left_rev_new,right_rev_new,num);
 	
-	
-	//call location here
 	// how to alternate between forward and backward?
 	if (it==sa_intervals.begin() && first_del==false && !ignore) {
 	  sa_intervals.push_back(std::make_pair(left_new,right_new));
