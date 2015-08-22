@@ -80,6 +80,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	}
 	prev_num=num;  
       }
+     }
     }
 
     assert(sa_intervals.size()==sa_intervals_rev.size());
@@ -111,4 +112,4 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     if (!sa_intervals.empty()) return(pat_end);
     else return(pat_begin); //where it got stuck
   }
-			     }			     			     			          
+}			     			     			          
