@@ -27,7 +27,6 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int
     kmer_idx_rev.push_back(  std::list<std::pair<uint64_t,uint64_t>> ());
     kmer_sites.push_back(std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> ());
     auto res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end,kmer_idx.back(),kmer_idx_rev.back(),kmer_sites.back());
-    //add locations of kmer matches here
   }
 }  
 

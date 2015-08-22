@@ -68,6 +68,8 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	  sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
 	  sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>>(get_location(csa,i,num,last,allele_empty,mask_a)));
 	}
+	    //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
+	    //can delete them here or in top a fcn when calculating coverages
 	else {
 	  if (ignore) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
 	  else {
@@ -88,7 +90,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     it_s=sites.begin();
 		  
     while (it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end()) {	
-      //calculate sum to return
+      //calculate sum to return- can do this in top fcns
       if (bidir_search(csa,(*it).first,(*it).second,(*it_rev).first,(*it_rev).second,c)>0) {
 	++it;
 	++it_rev;
