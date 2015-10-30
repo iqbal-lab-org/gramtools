@@ -1,6 +1,7 @@
 #!/bin/bash
 
-git clone --recursive git@github.com:simongog/sdsl-lite.git
+git clone --recursive https://github.com/simongog/sdsl-lite.git
 cd sdsl-lite
 ./install.sh 
 
+git clone --recursive https://github.com/google/googletest.git
