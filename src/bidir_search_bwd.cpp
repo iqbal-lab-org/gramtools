@@ -13,7 +13,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 		      std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
 		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
 		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
-		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites
+		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
 		      std::vector<int> mask_a, uint64_t maxx)
 {
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
@@ -68,7 +68,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	if (it==sa_intervals.begin() && first_del==false && !ignore) {
 	  sa_intervals.push_back(std::make_pair(left_new,right_new));
 	  sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
-	  sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>>(get_location(csa,i,num,last,allele_empty,mask_a)));
+	  sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>> (1,get_location(csa,i,num,last,allele_empty,mask_a)));
 	}
 	    //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
 	    //can delete them here or in top a fcn when calculating coverages
@@ -83,7 +83,6 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	prev_num=num;  
       }
      }
-    }
 
     assert(sa_intervals.size()==sa_intervals_rev.size());
     assert(sa_intervals.size()==sites.size());
