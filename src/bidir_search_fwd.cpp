@@ -13,7 +13,8 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 		      std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
 		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
 		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
-		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites)
+		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
+		      std::vector<int> mask_a, uint64_t maxx)
 
 //need to swap * with *_rev everywhere
 {
@@ -25,6 +26,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
   uint64_t left_new, right_new, left_rev_new, right_rev_new;
   std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
   std::vector<int> allele_empty;
+  std::vector<std::pair<uint64_t,uint64_t>> res;  
 
   assert(left<right);
   assert(right<=csa_rev.size());
@@ -43,7 +45,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     it_s=sites.begin();
 
     for(;it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end(); ++it, ++it_rev, ++it_s) {
-      auto res= csa_rev.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
+      res= csa_rev.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
       //might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
       uint32_t prev_num=0;
       for (auto z : res) {
@@ -67,7 +69,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	if (it==sa_intervals.begin() && first_del==false && !ignore) {
 	  sa_intervals.push_back(std::make_pair(left_new,right_new));
 	  sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
-	  sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>>(get_location(csa_rev,i,num,last,allele_empty,mask_a)));
+	  sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>>(1,get_location(csa_rev,i,num,last,allele_empty,mask_a)));
 	}
 	    //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
 	    //can delete them here or in top a fcn when calculating coverages
@@ -82,7 +84,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	prev_num=num;  
       }
      }
-    }
+    
 
     assert(sa_intervals.size()==sa_intervals_rev.size());
     assert(sa_intervals.size()==sites.size());
