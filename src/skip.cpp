@@ -29,7 +29,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
     site_start=std::min(csa[num_begin],csa[num_begin+1]);
 
     if (right-left==1) {
-      if (csa[i]==csa[site_end]+1) {
+      if (csa[left]==csa[site_end]+1) {
 	last=true;
 
 	left=num_begin;
