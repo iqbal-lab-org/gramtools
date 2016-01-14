@@ -23,4 +23,13 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
                       uint64_t& left_rev, uint64_t& right_rev,
 	              uint32_t num);
 
+std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
+						uint64_t left, uint64_t right,
+						uint64_t left_rev, uint64_t right_rev,
+						std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals,
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
+						std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
+						std::vector<int> mask_a, uint64_t maxx);
+
 #endif

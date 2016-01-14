@@ -15,7 +15,8 @@ void generate_all_kmers(std::vector<std::string> letters, std::string substr, in
 void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int k,   
 			   std::unordered_map<std::string, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
 			   std::unordered_map<std::string, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,
-			   std::unordered_map<std::string, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites) 
+			   std::unordered_map<std::string, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
+			   std::vector<int> mask_a, uint64_t maxx) 
 {
   std::vector<std::string> letters={"1","2","3","4"}; // add N/other symbols?
   std::vector<std::string> kmers;
@@ -26,7 +27,7 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int
     kmer_idx[*it]=std::list<std::pair<uint64_t,uint64_t>> ();
     kmer_idx_rev[*it]=std::list<std::pair<uint64_t,uint64_t>> ();
     kmer_sites[*it]=std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> ();
-    auto res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end,kmer_idx[*it],kmer_idx_rev[*it],kmer_sites[*it]);
+    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end(),kmer_idx[(*it)],kmer_idx_rev[(*it)],kmer_sites[(*it)],mask_a,maxx);
   }
 }  
 
