@@ -9,6 +9,8 @@
 using namespace sdsl;
 using namespace std;
 
+//make SA sampling density and ISA sampling density customizable
+
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname, char* memory_log_fname, char* csa_file) {
    std::ifstream f(fname);
    std::string prg;
@@ -38,10 +40,10 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, s
 	 prg_int[ii]=l;
        }
        else {
-	 if (prg[i]=='A') prg_int[ii]=1;
-	 if (prg[i]=='C') prg_int[ii]=2;
-	 if (prg[i]=='G') prg_int[ii]=3;
-	 if (prg[i]=='T') prg_int[ii]=4;
+	 if (prg[i]=='A' or prg[i]=='a') prg_int[ii]=1;
+	 if (prg[i]=='C' or prg[i]=='c') prg_int[ii]=2;
+	 if (prg[i]=='G' or prg[i]=='g') prg_int[ii]=3;
+	 if (prg[i]=='T' or prg[i]=='t') prg_int[ii]=4;
        }
        i++;
        ii++;
