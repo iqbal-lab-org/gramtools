@@ -9,10 +9,10 @@
 using namespace sdsl;
 using namespace std;
 
- csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname) {
+csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname, char* memory_log_fname, char* csa_file) {
    std::ifstream f(fname);
    std::string prg;
-   std::ofstream out("csa-mem.html");
+   std::ofstream out(memory_log_fname);
    std::streambuf *coutbuf = std::cout.rdbuf();
    FILE* fp;
 
@@ -59,6 +59,6 @@ using namespace std;
    memory_monitor::write_memory_log<HTML_FORMAT>(cout);
  
    std::cout.rdbuf(coutbuf);
-  //  store_to_file(csa,"CSA_file");
+   store_to_file(csa,csa_file);
    return(csa);
 }
