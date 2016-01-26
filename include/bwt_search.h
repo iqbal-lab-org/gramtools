@@ -6,6 +6,8 @@
 
 using namespace sdsl;
 
+csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname, char* memory_log_fname, char* csa_file);
+
 uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, 
 		      uint64_t& left, uint64_t& right, 
 		      uint64_t& left_rev, uint64_t& right_rev, 
