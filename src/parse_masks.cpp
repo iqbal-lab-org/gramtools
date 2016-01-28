@@ -9,7 +9,7 @@ using namespace sdsl;
 
 //need to add assertions
 
-void parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, string sites_fname, string alleles_fname, std::vector<std::vector<int>>& covgs) {
+uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, string sites_fname, string alleles_fname, std::vector<std::vector<int>>& covgs) {
   int no_alleles,a;
   uint64_t d,no_sites;
   std::ifstream h1(sites_fname);
@@ -29,6 +29,7 @@ void parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, string
 
   no_alleles=0;
   int i=0;
+  //assert at least 2 alleles at each site
   while (h2>>a)
     { 
       if (a>no_alleles) no_alleles=a;
@@ -45,4 +46,5 @@ void parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, string
     covgs[covgs.size()-1].assign(no_alleles,0);
   }
 
+  return(no_sites);
 }
