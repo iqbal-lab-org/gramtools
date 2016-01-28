@@ -17,20 +17,6 @@ using namespace sdsl;
 
 void generate_all_kmers(std::vector<uint8_t> letters, std::vector<uint8_t>& substr, int k, int n, std::vector<std::vector<uint8_t>>& kmers);
 
-
-template < typename SEQUENCE > struct seq_hash
-{
-  std::size_t operator() ( const SEQUENCE& seq ) const
-  {
-    std::size_t hash = 0 ;
-    boost::hash_range( hash, seq.begin(), seq.end() ) ;
-    return hash ;
-  }
-};
-
-template < typename SEQUENCE, typename T >
-using sequence_map = std::unordered_map< SEQUENCE, T, seq_hash<SEQUENCE> > ;
-
 void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int k,   
 			   sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
 			   sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,

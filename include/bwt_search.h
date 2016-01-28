@@ -3,12 +3,27 @@
 
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
+#include <boost/functional/hash.hpp> 
 
 using namespace sdsl;
 
+template < typename SEQUENCE > struct seq_hash
+			       {
+				 std::size_t operator() ( const SEQUENCE& seq ) const
+				 {
+				   std::size_t hash = 0 ;
+				   boost::hash_range( hash, seq.begin(), seq.end() ) ;
+				   return hash ;
+				 }
+};
+
+template < typename SEQUENCE, typename T >
+
+using sequence_map = std::unordered_map< SEQUENCE, T, seq_hash<SEQUENCE> > ;
+
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname, char* memory_log_fname, char* csa_file);
 
-void parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, string sites_fname, string alleles_fname, std::vector<std::vector<int>>& covgs);
+void parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, std::string sites_fname, std::string alleles_fname, std::vector<std::vector<int>>& covgs);
 
 uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, 
 		      uint64_t& left, uint64_t& right, 
