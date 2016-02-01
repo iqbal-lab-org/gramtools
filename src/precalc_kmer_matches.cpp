@@ -28,7 +28,7 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int
   std::vector<uint8_t> substr;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> temp2;		  
   std::list<std::pair<uint64_t,uint64_t>> temp;
-
+  bool first_del;
 
   for (uint8_t i=1;i<=4;i++) letters.push_back(i);
   generate_all_kmers(letters, substr,k, letters.size(),kmers);
@@ -37,7 +37,8 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa, int
     kmer_idx[(*it)]=temp;
     kmer_idx_rev[(*it)]=temp;
     kmer_sites[(*it)]=temp2;
-    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end(),kmer_idx[(*it)],kmer_idx_rev[(*it)],kmer_sites[(*it)],mask_a,maxx);
+    first_del=false;
+    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(*it).begin(),(*it).end(),kmer_idx[(*it)],kmer_idx_rev[(*it)],kmer_sites[(*it)],mask_a,maxx,first_del);
   }
 }  
 
