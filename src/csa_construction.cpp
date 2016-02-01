@@ -10,43 +10,52 @@ using namespace sdsl;
 using namespace std;
 
 //make SA sampling density and ISA sampling density customizable
+// what is this fname - the binary file we create of the CSA?
+csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
+   std::vector<std::vector<int>>& covgs, 
+   char* int_al_fname, //what is this?
+   char* memory_log_fname, //what is this?
+   char* csa_file) //what is this?
 
-csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname, char* memory_log_fname, char* csa_file) {
+{
    std::ifstream f(fname);
-   std::string prg;
+   std::string prg;//ok, so here we declare a string but do not allocate it? certainly not initialise? but check std::string
    std::ofstream out(memory_log_fname);
    std::streambuf *coutbuf = std::cout.rdbuf();
    FILE* fp;
 
-   uint64_t *prg_int=(uint64_t*)malloc(prg.length()*sizeof(uint64_t));
-  //always check if the malloc has succeeded
+   uint64_t *prg_int=(uint64_t*)malloc(prg.length()*sizeof(uint64_t));//so this is an array, whose size you alloc based on an uninitialised thing
+                                                                      //ie prg? ?????????? how is it this works? 
+ //always check if the malloc has succeeded
    if (prg_int==NULL)
      {
-      //die
+      //die - WHY NOR DYING HERE?
      }
    int i=0;
    int ii=0;
    while (i<prg.length()) {
        if (isdigit(prg[i])) {
-	 int j=1;
-	 while(isdigit(prg[i+1])) {
-	   j++;
-	   i++;
-	 }
-	 auto al_ind=prg.substr(i-j+1,j);
+      	 int j=1;
+	       while(isdigit(prg[i+1])) {
+	         j++;
+	         i++;
+	       }
+          //what is al ind meant to mean? alignment index? but its a substring?
+	     auto al_ind=prg.substr(i-j+1,j);
 	 //uint64_t l=(uint64_t) stoull(al_ind,NULL,0);
-	 auto l=stoull(al_ind,NULL,0);
+	     auto l=stoull(al_ind,NULL,0);
 	 //uint64_t l=boost::lexical_cast<uint64_t>(al_ind); 
-	 prg_int[ii]=l;
+	     prg_int[ii]=l;
        }
-       else {
-	 if (prg[i]=='A' or prg[i]=='a') prg_int[ii]=1;
-	 if (prg[i]=='C' or prg[i]=='c') prg_int[ii]=2;
-	 if (prg[i]=='G' or prg[i]=='g') prg_int[ii]=3;
-	 if (prg[i]=='T' or prg[i]=='t') prg_int[ii]=4;
-       }
+       else 
+       {
+        	 if (prg[i]=='A' or prg[i]=='a') prg_int[ii]=1;
+	         if (prg[i]=='C' or prg[i]=='c') prg_int[ii]=2;
+	         if (prg[i]=='G' or prg[i]=='g') prg_int[ii]=3;
+	         if (prg[i]=='T' or prg[i]=='t') prg_int[ii]=4;
+        }
        i++;
-       ii++;
+       ii++;// so ii keeps track of actual base position - ie ignores numbers?
    }
 
    fp=fopen(int_al_fname,"wb");
