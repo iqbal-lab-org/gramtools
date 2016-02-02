@@ -4,6 +4,7 @@
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
 #include <boost/functional/hash.hpp> 
+#include <cstdlib>
 
 using namespace sdsl;
 

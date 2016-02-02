@@ -34,7 +34,7 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
     { 
       if (a>no_alleles) no_alleles=a;
       if (a<no_alleles && a!=0) {
-	covgs[mask_s[i]-6].assign(no_alleles,0);
+	covgs[mask_s[i]-6].assign(no_alleles,0); //should have -5? might change anyway if I don't end up using mask_s
 	no_alleles=a;
       }
       i++;

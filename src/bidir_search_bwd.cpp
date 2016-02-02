@@ -17,7 +17,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
 		      std::vector<int> mask_a, uint64_t maxx, bool& first_del)
 {
-  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;//you have it, it_s , it_rev - maybe nice to comment what they are?
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;//you have it, it_s , it_rev - maybe nice to comment what they are / change their names to be more readable
   std::vector<uint8_t>::iterator pat_it=pat_end;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
   uint8_t c=*pat_it;
@@ -38,9 +38,9 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     --pat_it;
     
     assert(sa_intervals.size()==sa_intervals_rev.size());
-    assert(sa_intervals.size()==sites.size());//why must this be true?
+    assert(sa_intervals.size()==sites.size());//each interval has a corresponding vector of sites/alleles crossed; what about the first interval? (corresp to matches in the ref)
 
-    it=sa_intervals.begin();//can't find where it is declared/defined
+    it=sa_intervals.begin();
     it_rev=sa_intervals_rev.begin();
     it_s=sites.begin();
 
@@ -48,7 +48,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
       res= csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
       //might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
       uint32_t prev_num=0;
-      for (auto z : res) { //whatis this?!?!!!!!!!!
+      for (auto z : res) { 
 	uint64_t i=z.first;
 	uint32_t num=z.second;
 

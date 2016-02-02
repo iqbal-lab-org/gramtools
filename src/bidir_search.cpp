@@ -27,7 +27,7 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
 {
   assert(left < right); 
   assert(right <= csa.size());
-  assert((c>0) & (c<5));  //would be nice to replace 5 with a constant set at compile-time (so one day can do with amino)
+  assert((c>0) & (c<5));  //would be nice to replace 5 with a constant set at compile-time (so one day can do with amino); the n parameter in precalc_kmer_matches
 
   // c_begin (below) is the first occurrence/posn 
   //          of char c in the far left column 
@@ -40,8 +40,8 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
   // times characters smaller than c appear in text  ]
 
   //r_s_b is a tuple  - (rank_l,s,b)
-  auto r_s_b =  csa.wavelet_tree.lex_count(left, right, c);//why does lex_count need left and right? is indep of this interval, no?
-  
+  auto r_s_b =  csa.wavelet_tree.lex_count(left, right, c);
+
   // r stands for rank
   // s - characters Smaller than c, 
   // b - characters Bigger than c

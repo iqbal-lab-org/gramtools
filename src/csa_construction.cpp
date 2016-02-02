@@ -13,23 +13,26 @@ using namespace std;
 // what is this fname - the binary file we create of the CSA?
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
    std::vector<std::vector<int>>& covgs, 
-   char* int_al_fname, //what is this?
-   char* memory_log_fname, //what is this?
-   char* csa_file) //what is this?
+   char* int_al_fname, 
+   char* memory_log_fname, 
+   char* csa_file) 
 
 {
    std::ifstream f(fname);
-   std::string prg;//ok, so here we declare a string but do not allocate it? certainly not initialise? but check std::string
+   std::string prg;
    std::ofstream out(memory_log_fname);
    std::streambuf *coutbuf = std::cout.rdbuf();
    FILE* fp;
 
-   uint64_t *prg_int=(uint64_t*)malloc(prg.length()*sizeof(uint64_t));//so this is an array, whose size you alloc based on an uninitialised thing
-                                                                      //ie prg? ?????????? how is it this works? 
+   f>>prg;
+   f.close();
+
+   uint64_t *prg_int=(uint64_t*)malloc(prg.length()*sizeof(uint64_t));
+
  //always check if the malloc has succeeded
    if (prg_int==NULL)
      {
-      //die - WHY NOR DYING HERE?
+       exit(1);
      }
    int i=0;
    int ii=0;
@@ -40,7 +43,6 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
 	         j++;
 	         i++;
 	       }
-          //what is al ind meant to mean? alignment index? but its a substring?
 	     auto al_ind=prg.substr(i-j+1,j);
 	 //uint64_t l=(uint64_t) stoull(al_ind,NULL,0);
 	     auto l=stoull(al_ind,NULL,0);
@@ -55,7 +57,7 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
 	         if (prg[i]=='T' or prg[i]=='t') prg_int[ii]=4;
         }
        i++;
-       ii++;// so ii keeps track of actual base position - ie ignores numbers?
+       ii++;// so ii keeps track of actual base position - it's aware of numbers with more than one digit
    }
 
    fp=fopen(int_al_fname,"wb");
