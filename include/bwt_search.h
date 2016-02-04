@@ -5,6 +5,8 @@
 #include "sdsl/wavelet_trees.hpp"
 #include <boost/functional/hash.hpp> 
 #include <cstdlib>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace sdsl;
 
@@ -21,6 +23,10 @@ template < typename SEQUENCE > struct seq_hash
 template < typename SEQUENCE, typename T >
 
 using sequence_map = std::unordered_map< SEQUENCE, T, seq_hash<SEQUENCE> > ;
+
+template < typename SEQUENCE >
+
+using sequence_set = std::unordered_set< SEQUENCE, seq_hash<SEQUENCE> > ;
 
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, std::vector<std::vector<int>>& covgs, char* int_al_fname, char* memory_log_fname, char* csa_file);
 
