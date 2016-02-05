@@ -11,7 +11,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
                       uint64_t left, uint64_t right,
 		      uint64_t left_rev, uint64_t right_rev,
 		      std::vector<uint8_t>::iterator pat_begin, 
-          std::vector<uint8_t>::iterator pat_end,
+		      std::vector<uint8_t>::iterator pat_end,
 		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
 		      std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
 		      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
@@ -27,12 +27,14 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
   std::vector<int> allele_empty;
   std::vector<std::pair<uint64_t,uint64_t>> res;   
 
-  assert(left<right);
+  if (left!=-1) assert(left<right);
   assert(right<=csa.size());
 
-  sa_intervals.push_back(std::make_pair(left,right));
-  sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
-  sites.push_back(empty_pair_vector);
+  if (left!=-1) {
+    sa_intervals.push_back(std::make_pair(left,right));
+    sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
+    sites.push_back(empty_pair_vector);
+  }
 
   while (pat_it>pat_begin && !sa_intervals.empty()) {
     --pat_it;
