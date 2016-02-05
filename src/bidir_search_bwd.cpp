@@ -7,7 +7,8 @@
 
 using namespace sdsl;
 
-std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>> csa,
+// should make csa template to have control from cmd line over SA sampling density
+std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
                       uint64_t left, uint64_t right,
 		      uint64_t left_rev, uint64_t right_rev,
 		      std::vector<uint8_t>::iterator pat_begin, 
