@@ -1,5 +1,6 @@
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
+#include <algorithm>
 #include <vector>
 #include <cstdint>
 #include <iostream>
@@ -10,12 +11,13 @@ using namespace sdsl;
 using namespace std;
 
 //make SA sampling density and ISA sampling density customizable
-// what is this fname - the binary file we create of the CSA?
+
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
    std::vector<std::vector<int>>& covgs, 
    char* int_al_fname, 
-   char* memory_log_fname, 
-   char* csa_file) 
+   char* memory_log_fname,
+   char* csa_file,
+   bool fwd)				        
 
 {
    std::ifstream f(fname);
@@ -60,18 +62,33 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
        ii++;// so ii keeps track of actual base position - it's aware of numbers with more than one digit
    }
 
-   fp=fopen(int_al_fname,"wb");
-   fwrite(prg_int,sizeof(uint64_t),ii,fp);
-   fclose(fp);
-   std::cout.rdbuf(out.rdbuf());   
- 
-   memory_monitor::start();
    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa;
-   construct(csa,int_al_fname,8);  
-   memory_monitor::stop();
-   memory_monitor::write_memory_log<HTML_FORMAT>(cout);
+   
+   if (fwd==false) {
+     char* int_al_fname_rev=int_al_fname;
+     strcat(int_al_fname_rev,"_rev");
+     uint64_t prg_int_rev[ii];
+     std::reverse_copy(prg_int,prg_int+ii,prg_int_rev);
+     
+     fp=fopen(int_al_fname_rev,"wb");
+     fwrite(prg_int_rev,sizeof(uint64_t),ii,fp);
+     fclose(fp);
+     construct(csa,int_al_fname_rev,8);
+   }
+   else {
+     fp=fopen(int_al_fname,"wb");
+     fwrite(prg_int,sizeof(uint64_t),ii,fp);
+     fclose(fp);
+     std::cout.rdbuf(out.rdbuf());   
  
-   std::cout.rdbuf(coutbuf);
-   store_to_file(csa,csa_file);
+     memory_monitor::start();
+     construct(csa,int_al_fname,8);  
+     memory_monitor::stop();
+     memory_monitor::write_memory_log<HTML_FORMAT>(cout);
+ 
+     std::cout.rdbuf(coutbuf);
+     store_to_file(csa,csa_file);
+   }
+
    return(csa);
 }
