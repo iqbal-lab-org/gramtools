@@ -65,11 +65,12 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa;
    
    if (fwd==false) {
-     char* int_al_fname_rev=int_al_fname;
+     char int_al_fname_rev[50];
+     strcpy(int_al_fname_rev,int_al_fname);
      strcat(int_al_fname_rev,"_rev");
      uint64_t prg_int_rev[ii];
      std::reverse_copy(prg_int,prg_int+ii,prg_int_rev);
-     
+
      fp=fopen(int_al_fname_rev,"wb");
      fwrite(prg_int_rev,sizeof(uint64_t),ii,fp);
      fclose(fp);
