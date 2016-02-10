@@ -21,7 +21,7 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
   std::vector<uint8_t>::iterator pat_it=pat_begin;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
-  uint8_t c;
+  uint8_t c=pat_begin;
   bool last,ignore;
   uint64_t left_new, right_new, left_rev_new, right_rev_new;
   std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
