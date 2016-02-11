@@ -7,8 +7,10 @@
 #include <cstdlib>
 #include <unordered_set>
 #include <unordered_map>
+#include <iostream>
 
 using namespace sdsl;
+using namespace std;
 
 template < typename SEQUENCE > struct seq_hash
 			       {
