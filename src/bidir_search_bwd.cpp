@@ -47,7 +47,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     it=sa_intervals.begin();
     it_rev=sa_intervals_rev.begin();
     it_s=sites.begin();
-    
+
     for(;it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end(); ++it, ++it_rev, ++it_s) {
       res= csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
       //might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
@@ -95,7 +95,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     it=sa_intervals.begin();
     it_rev=sa_intervals_rev.begin();	
     it_s=sites.begin();
-    		  
+		  
     while (it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end()) {	
       //calculate sum to return- can do this in top fcns
       if (bidir_search(csa,(*it).first,(*it).second,(*it_rev).first,(*it_rev).second,c)>0) {
