@@ -115,5 +115,5 @@ vBWT: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o
 unittest_bidir_search_bwd.o : $(USER_DIR)/unittest_bidir_search_bwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/unittest_bidir_search_bwd.cpp
 
-unittest_bidir_search_bwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o unittest_bidir_search_bwd.o 
+unittest_bidir_search_bwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o unittest_bidir_search_bwd.o 
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L$(GTEST_DIR) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
