@@ -30,8 +30,7 @@ EXTRAFLAGS += -O3
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = unittest_bidir_search_bwd
-#TESTS=vBWT
+TESTS = unittest_bidir_search_bwd vBWT
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -112,8 +111,8 @@ vBWT: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o
 #bwt_search.o : $(USER_DIR)/bwt_search.cpp $(USER_DIR)/bwt_search.h libsdsl.a $(GTEST_HEADERS)
 #	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) -c $(USER_DIR)/bwt_search.cpp -lsdsl -ldivsufsort -ldivsufsort64
 
-unittest_bidir_search_bwd.o : $(USER_DIR)/unittest_bidir_search_bwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/unittest_bidir_search_bwd.cpp
+unittest_bidir_search_bwd.o : $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp
 
 unittest_bidir_search_bwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o unittest_bidir_search_bwd.o 
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L$(GTEST_DIR) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
