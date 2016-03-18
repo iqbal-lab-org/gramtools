@@ -15,7 +15,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
                       uint64_t& left_rev, uint64_t& right_rev,
                       uint32_t num)
 {
-  uint64_t site_end,site_start;
+  uint64_t site_end,site_start,ind_start,ind_end;
   bool last=false;
 
   assert(left < right);
@@ -28,8 +28,17 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
     site_end=std::max(csa[num_begin],csa[num_begin+1]); 
     site_start=std::min(csa[num_begin],csa[num_begin+1]);
 
+    if (csa[num_begin]>csa[num_begin+1]) {
+      ind_end=num_begin;
+      ind_start=num_begin+1;
+    }
+    else {
+      ind_end=num_begin+1;
+      ind_start=num_begin;
+    }
+
     if (right-left==1) {
-      if (csa[left]==csa[site_end]+1) {
+      if (csa[left]==site_end+1) {
 	last=true;
 
 	left=num_begin;
@@ -42,8 +51,8 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
 	//site=num;
 	//allele.push_back(1);
 
-	left=site_start;
-	right=site_start+1;
+	left=ind_start;
+	right=ind_start+1;
 
 	left_rev=right;
 	right_rev=left;
@@ -64,9 +73,10 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
   }
   else {
     uint64_t num_begin = csa.C[csa.char2comp[num-1]];
-    
+
     site_start=std::min(csa[num_begin],csa[num_begin+1]);
     site_end=std::max(csa[num_begin],csa[num_begin+1]);
+
     /*
     if (right-left==1) {
       site=num-1;
@@ -78,11 +88,24 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
 	allele.push_back(mask_a[csa[i]]);
     }
     */
-    left=site_start;
-    right=site_start+1;
-
-    left_rev=site_end;
-    right_rev=site_end+1;
+    if (csa[num_begin]<csa[num_begin+1]) {
+      left=num_begin;
+      right=num_begin+1;
+    
+      //left_rev=site_end;
+      //right_rev=site_end+1;
+      left_rev=num_begin+1;
+      right_rev=num_begin+2;
+    }
+    else {
+      left=num_begin+1;
+      right=num_begin+2;
+      
+      //left_rev=site_end;
+      //right_rev=site_end+1;
+      left_rev=num_begin;
+      right_rev=num_begin+1;
+    }
   }
 
   assert(right>left);
