@@ -50,7 +50,7 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
     it_rev_end=sa_intervals_rev.end();
     it_s_end=sites.end();
   
-    if (pat_it!=pat_end-1) {
+    if (pat_it!=pat_begin) {
       for(;it!=it_end && it_rev!=it_rev_end && it_s!=it_s_end; ++it, ++it_rev, ++it_s) {
 	res= csa_rev.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
       //might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
