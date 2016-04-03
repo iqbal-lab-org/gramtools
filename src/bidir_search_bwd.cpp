@@ -36,11 +36,12 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
     sites.push_back(empty_pair_vector);
   }
-
-
+  int k=0;
   while (pat_it>pat_begin && !sa_intervals.empty()) {
     --pat_it;
     c=*pat_it;
+    //k++;
+    //cout<<k<<" "<<unsigned(c)<<endl;
     
     assert(sa_intervals.size()==sa_intervals_rev.size());
     assert(sa_intervals.size()==sites.size());//each interval has a corresponding vector of sites/alleles crossed; what about the first interval? (corresp to matches in the ref)
@@ -59,10 +60,10 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	res= csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
 	//might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
 	uint32_t prev_num=0;
-	for (auto z : res) { 
-	  uint64_t i=z.first;
-	  uint32_t num=z.second;
-	  if (num==prev_num && num%2==0) ignore=true;
+	for (auto z=res.begin();z!=res.end();++z) { 
+	  uint64_t i=(*z).first;
+	  uint32_t num=(*z).second;
+	  if (num==prev_num) ignore=true;
 	  else ignore=false;
 
 	  left_new=(*it).first;
@@ -73,6 +74,17 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	  left_rev_new=(*it_rev).first;
 	  right_rev_new=(*it_rev).second;
        
+	  if (num!=prev_num && num%2==1) {
+	    if (num==(*(z+1)).second) {
+	      left_new=csa.C[csa.char2comp[num]]; //need to modify left_rev_new as well?
+	      right_new=left_new+2;
+	    }
+	    else {
+	      left_new=i;
+	      right_new=i+1;
+	    }
+	  }
+
 	  last=skip(csa,left_new,right_new,left_rev_new,right_rev_new,num);
 	
 	  // how to alternate between forward and backward?
@@ -85,7 +97,10 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	    //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
 	    //can delete them here or in top a fcn when calculating coverages
 	  else {
-	    if (ignore) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
+	    if (ignore) {
+	      if (num%2==0) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
+	      //else ?
+	    }
 	    else {
 	      *it=std::make_pair(left_new,right_new);
 	      *it_rev=std::make_pair(left_rev_new,right_rev_new);
@@ -106,6 +121,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     it=sa_intervals.begin();
     it_rev=sa_intervals_rev.begin();	
     it_s=sites.begin();
+    
     while (it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end()) {	
       //calculate sum to return- can do this in top fcns
       if (bidir_search(csa,(*it).first,(*it).second,(*it_rev).first,(*it_rev).second,c)>0) {
