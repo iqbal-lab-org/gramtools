@@ -1,5 +1,8 @@
 import re
 from Bio import SeqIO
+import argparse
+import array
+import sys
 
 class Chain:
         '''Chain of Variantblocks, container  class, contains all genome split into VBlocks, like a linked list'''
@@ -56,15 +59,15 @@ class Chain:
 	    stringsEnd=set()
 
 	    for i in fb.getStringsUntil(block):
-		stringsStart.add(i[-k+1:])
+		stringsStart.add(i[-k+1:].tostring())
 	    if block.next: 
 		for i in block.next.getStringsUntil(lb):
-		    stringsEnd.add(i[:k-1])
+		    stringsEnd.add(i[:k-1].tostring())
 
 	    for s in stringsStart:
 		for c in block:
 		    for e in stringsEnd:
-			yield s+c+e
+			yield s+c.tostring()+e
 
 	def kmersForVariant(self,bid,k):
                 '''Given a string, retirns all it's kmers'''
@@ -72,31 +75,74 @@ class Chain:
 			for i in xrange (0,len(s)-k+1):
 				yield s[i:i+k]
 
-	def getKmerDict(self,k):
+
+	def getKmerDict(self,k,nonVariants=False):
             '''Returns a dictionary containing a map kmer->set(variants) for all variants''' 
-	    res={}
+            s=set()
 	    for i in self.blcks:
 		for j in self.kmersForVariant(i,k):
-		    res.setdefault(j,set()).add(i)
+                    if j not in s:
+                       yield j
+                       s.add(j)
 
-	    return res
+            if nonVariants:
+                q=self.firstBlock
+                while q:
+                    if not q.bid:
+                        c=q.cads[0]
+                        for i in xrange (0,len(c)-k+1):
+                            j=c[i:i+k].tostring()
+                            if j not in s:
+                                yield j
+                                s.add(j)
+                    q=q.next
+
+	 #   return res
 
         def parseString(self,cad):
                 '''Feeds that chain with a fasta String'''
                 start=0
                 out=True
-                for i in re.finditer("[^0-9][0-9]*[13579][^0-9]",cad):
-                	if out:
-                		self.addVariantBlock( VariantBlock([cad[start:i.start()+1]]))
-                		out=False
-                		start=i.start()+1
-                	else:
-                		endpos=i.span()[1]-1
-                		self.addVariantBlock(VariantBlock(re.findall("[^0-9]+",cad[start:endpos]),int(cad[i.span()[0]+1:i.span()[1]-1])))
-                		start=endpos
-                		out=True
+            #    for i in re.finditer("[^0-9][0-9]*[13579][^0-9]",cad):
+            #    	if out:
+            #    		self.addVariantBlock( VariantBlock([cad[start:i.start()+1]]))
+            #    		out=False
+            #    		start=i.start()+1
+            #    	else:
+            #    		endpos=i.span()[1]-1
+            #    		self.addVariantBlock(VariantBlock(re.findall("[^0-9]+",cad[start:endpos]),int(cad[i.span()[0]+1:i.span()[1]-1])))
+            #    		start=endpos
+            #    		out=True
+            #    self.addVariantBlock(VariantBlock([cad[start:]]))
+                i=0
+                lastblock=0
+                while i<len(cad):
+                    if cad[i] not in "0123456789": 
+                        i+=1
+                        continue
+                    lastsequence=cad[lastblock:i]
+                    if lastsequence: self.addVariantBlock(VariantBlock([lastsequence],0))
+
+                    ns=""
+                    blockini=i
+                    while cad[i] in "0123456789":
+                        ns+=cad[i]
+                        i+=1
+                    # We look for the end of the block (end of the marker)
+                    nextn=cad.find(ns,i)
+                    # we jump the marker (the odd number)
+                    lastblock=i=nextn+len(ns)
+                    blockend=i
+                    self.addVariantBlock(VariantBlock(re.findall("[^0-9]+",cad[blockini:blockend]),int(ns)))
+                        
+
+                lastsequence=cad[lastblock:]
+                if lastsequence: self.addVariantBlock(VariantBlock([lastsequence],0))
+
+
+            
+
                 
-                self.addVariantBlock(VariantBlock([cad[start:]]))
 
         def parseFasta(self,f):
                 '''Feeds that chain with a fasta file'''
@@ -105,7 +151,7 @@ class Chain:
 
 class VariantBlock:
 	def __init__(self,cads=[],bid=0):
-		self.cads=cads
+		self.cads=[array.array('c',i) for i in cads]
 		self.next=None
 		self.prev=None
 		self.bid=bid
@@ -139,22 +185,17 @@ class VariantBlock:
 
 
 if __name__=="__main__":
-        bls=Chain()
-        
-        cad="ACTGACTATCAG1ACTGT2ATTT2T1ATGCATTCGCTA3ATAGATAG4AT3AGCATTCAGT5ACTAG6T5ATGAGATAGTAGATAT7ATTAT8GGGA7GATATGAGATATATAGAGTAAGGATATAGAGT"
-        cad="HAAAAAAAAAAA1X2XX2XXX1AA3O4OO4OOO3AAA5I6II6III5ZZZZZZZZH"
-        
-        bls.parseString(cad)
-        
-        for bl in bls:
-        	print bl
-        
-        for s in bls.stringsForVariant(3,15):
-        	print s
-        
-        #for  i in bls.kmersForVariant(5,15):
-        #    print i
-        
-        for i,j in  bls.getKmerDict(31).items():
-            print i," ".join([str(k) for k in j])
+        aparser = argparse.ArgumentParser(description='PRG kmer generator') 
+        aparser.add_argument("-f", dest="fasta",  help="Fasta file", required=True) 
+        aparser.add_argument("-n", dest="nonvariant", default=False, help="Print kmers from intervariant regions", action='store_true') 
+#        aparser.add_argument("-v", dest="vnumber",help="output variant numbers associated",default=False, action='store_true') 
+        aparser.add_argument("-k", dest="ksize",help="kmer size [31]", type=int, default=31) 
+        options = aparser.parse_args()
 
+        bls=Chain()
+
+
+        bls.parseFasta(options.fasta)
+        
+        for i in  bls.getKmerDict(options.ksize,options.nonvariant):
+            print i
