@@ -256,7 +256,6 @@ TEST(BackwardSearchTest, Two_long_sites){
   sites.clear();
   p.clear();
 }
-*/
 
 TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 
@@ -306,6 +305,105 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   sites.clear();
   p.clear();
 }
+
+
+TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",true);
+
+  std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
+  std::list<std::pair<uint64_t,uint64_t>>::iterator it;
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+  bool first_del=false;
+
+  q=query;
+  for (int i=0;i<q.length();i++) {
+       if (q[i]=='A' or q[i]=='a') p.push_back(1);
+       if (q[i]=='C' or q[i]=='c') p.push_back(2);
+       if (q[i]=='G' or q[i]=='g') p.push_back(3);
+       if (q[i]=='T' or q[i]=='t') p.push_back(4);
+  }
+
+  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del);
+  uint64_t no_occ=0;
+  for (it=sa_intervals.begin();it!=sa_intervals.end();++it) 
+    no_occ+=(*it).second-(*it).first;
+
+  EXPECT_EQ(true,first_del);
+  EXPECT_EQ(1,sa_intervals.size());
+  EXPECT_EQ(no_occ,1);
+
+  sa_intervals.clear();
+  sa_intervals_rev.clear();
+  sites.clear();
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_rev=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",false);
+  first_del=false;
+  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del);  
+
+  no_occ=0;
+  for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+    no_occ+=(*it).second-(*it).first;
+
+  EXPECT_EQ(true,first_del);
+  EXPECT_EQ(1,sa_intervals.size());
+  EXPECT_EQ(no_occ,1);
+
+  sa_intervals.clear();
+  sa_intervals_rev.clear();
+  sites.clear();
+  p.clear();
+}
+*/
+
+TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",true);
+
+  std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
+  std::list<std::pair<uint64_t,uint64_t>>::iterator it;
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+  bool first_del=false;
+
+  q=query;
+  for (int i=0;i<q.length();i++) {
+       if (q[i]=='A' or q[i]=='a') p.push_back(1);
+       if (q[i]=='C' or q[i]=='c') p.push_back(2);
+       if (q[i]=='G' or q[i]=='g') p.push_back(3);
+       if (q[i]=='T' or q[i]=='t') p.push_back(4);
+  }
+
+  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del);
+  uint64_t no_occ=0;
+  for (it=sa_intervals.begin();it!=sa_intervals.end();++it) 
+    no_occ+=(*it).second-(*it).first;
+
+  EXPECT_EQ(false,first_del);
+  EXPECT_EQ(3,sa_intervals.size());
+  EXPECT_EQ(no_occ,3);
+
+  sa_intervals.clear();
+  sa_intervals_rev.clear();
+  sites.clear();
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_rev=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",false);
+  first_del=false;
+  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del);  
+
+  no_occ=0;
+  for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+    no_occ+=(*it).second-(*it).first;
+
+  EXPECT_EQ(false,first_del);
+  EXPECT_EQ(3,sa_intervals.size());
+  EXPECT_EQ(no_occ,3);
+
+  sa_intervals.clear();
+  sa_intervals_rev.clear();
+  sites.clear();
+  p.clear();
+}
+
 
 
 vector<string> generate_all_substrings(string q) {
