@@ -5,7 +5,8 @@ use Getopt::Long;
 
 
 my %vars = ( "vcf" => "",
-	     "ref" => "");
+	     "ref" => "",
+              "min_freq" =>0);
 
 
 
@@ -14,8 +15,9 @@ my %vars = ( "vcf" => "",
 ## For human ref genome my  /Net/birch/data/zam/ref/hs/fasta/grc37/Homo_sapiens.GRCh37.60.dna.WHOLE_GENOME.fa";
 &GetOptions(
     ##mandatory args
-    'vcf:s' =>\$vars{"vcf"},#string
-    'ref:s' =>\$vars{"ref"},#string
+    'vcf:s' =>\$vars{"vcf"},
+    'ref:s' =>\$vars{"ref"},
+    'min_freq:i' => \$vars{"min_freq"},
     );
 
 check_args(\%vars);
@@ -58,6 +60,20 @@ sub print_linearised_poa_for_one_chr
 	    {
 		##excluding lines which do not properly specify the alternate allele.
 		next;
+	    }
+
+
+	    my $info = $sp[7];
+	    if ($vars{"min_freq")>0)
+	    {
+		if ($info =~ /;AF=([^;]+)/)
+		{
+		    my $freq = $1;
+		    if ($freq<$vars{"min_freq"))
+		    {
+			next; #ignore this variant if too rare
+		    }
+		}
 	    }
 
 	    if ($sp[0] eq $chrom)
@@ -178,19 +194,26 @@ sub check_args
 {
     my ($href) = $_;
 
-    if (!(-e $vars{"vcf"}))
+    if (!(-e $href->{"vcf"}))
     {
 	print "Specified VCF file ";
-	print $vars{"vcf"};
+	print $href->{"vcf"};
 	die(" does not exist");
     }
 
 
-    if (!(-e $vars{"ref"}))
+    if (!(-e $href->{"ref"}))
     {
 	print "Specified reference fasta file ";
-	print $vars{"ref"};
+	print $href->{"ref"};
 	die(" does not exist");
     }
+
+    ##let's just avoid any mess with tiny numbers
+    if ($href->{"min_freq"}<0.0001)
+    {
+	($href->{"min_freq"}=0;
+    }
+
 }
 
