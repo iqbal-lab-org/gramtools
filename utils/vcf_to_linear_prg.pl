@@ -139,7 +139,7 @@ sub print_linearised_poa_for_one_chr
 	    }
 	    else
 	    {
-		print " barabaric ".$sp[2];
+		#ignore
 	    }
 	}
     }
@@ -164,6 +164,7 @@ sub print_linearised_poa
     my $next_var_number = 5;
     foreach my $chr (@chrs)
     {
+	## so this is not ideal - parse the VCF once for each chromosome
 	$next_var_number = 
 	    print_linearised_poa_for_one_chr($href_refseq, $reference, 
 					     $vcf, $chr, 
