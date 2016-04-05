@@ -17,7 +17,7 @@ my %vars = ( "vcf" => "zam",
     ##mandatory args
     'vcf:s' =>\$vars{"vcf"},
     'ref:s' =>\$vars{"ref"},
-    'min_freq:i' => \$vars{"min_freq"},
+    'min_freq:s' => \$vars{"min_freq"},
     'help'  =>\$vars{"help"},
     );
 
@@ -25,19 +25,22 @@ my %vars = ( "vcf" => "zam",
 check_args(\%vars);
 
 
-
 ## load the reference into memory:
-my %refseq = ();
-get_ref_seq($vars{"ref"}, \%refseq); #chr--> long string
+my %refseq = ();#chr--> long string
+my @chroms=();#collect list of chromosomes
+get_ref_seq($vars{"ref"}, \%refseq, \@chroms); 
 
 ## parse the VCF and print a linearised PRG in gramtools format
-print_linearised_poa(\%refseq, $vars{"ref"}, $vars{"vcf"}, $vars{"min_freq"});
+print_linearised_poa(\%refseq, $vars{"ref"}, 
+		     $vars{"vcf"}, $vars{"min_freq"},
+		     \@chroms);
 
 
 sub print_linearised_poa_for_one_chr
 {
     my ($href_refsequence, $reff, $vcf_file, $chrom, $nextvar, $min_freq)= @_;
-    
+
+
     if (!exists $href_refsequence->{$chrom})
     {
 	die("Cannot find sequence for chromosome $chrom");
@@ -51,6 +54,7 @@ sub print_linearised_poa_for_one_chr
     {
 	my $lyne  = $_;
 	chomp $lyne;
+
 	if ($lyne !~ /^\#/)
 	{
 	    ## I will work entirely in 1-based coordinates, except at the point of extracting substrings.
@@ -58,7 +62,7 @@ sub print_linearised_poa_for_one_chr
 
 	    my @sp = split(/\t/, $lyne);
 
-	    if ($sp[4] !~ /[^ACGTacgt]/)
+	    if ($sp[4] !~ /^[ACGTacgt]+$/)
 	    {
 		##excluding lines which do not properly specify the alternate allele.
 		next;
@@ -68,18 +72,26 @@ sub print_linearised_poa_for_one_chr
 	    my $info = $sp[7];
 	    if ($min_freq>0)
 	    {
-		if ($info =~ /\;AF=([^;]+)/)
+
+		if ($info =~ /\;AF=([0123456789\.]+)/)
 		{
 		    my $freq = $1;
+
 		    if ($freq<$min_freq)
 		    {
 			next; #ignore this variant if too rare
 		    }
 		}
+		else
+		{
+		    #if no allele frequency annotation, do not filter by frequency
+		    
+		}
 	    }
 
 	    if ($sp[0] eq $chrom)
 	    {
+
 		if ($curr_pos < $sp[1] )
 		{
 		    my $len = $sp[1]-$curr_pos;
@@ -90,9 +102,10 @@ sub print_linearised_poa_for_one_chr
 		#replace N with C
 		$sp[3]=~ s/[^ACGTacgt]/C/g;
 
-		##print the ref allele first
-		print $sp[3];
 
+
+		print $nextvar;#left marker before the site starts
+		print $sp[3];		##print the ref allele first
 		print $nextvar+1;#even numbers between alleles
 
 		##Now work our way through the alternate alleles
@@ -124,6 +137,10 @@ sub print_linearised_poa_for_one_chr
 		$nextvar+=2;
 		$curr_pos=$sp[1]+length($sp[3]);
 	    }
+	    else
+	    {
+		print " barabaric ".$sp[2];
+	    }
 	}
     }
     close(VCF);
@@ -140,8 +157,9 @@ sub print_linearised_poa_for_one_chr
 }
 sub print_linearised_poa
 {
-    my ($href_refseq, $reference, $vcf, $min_f) = @_;
-    my @chrs = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,"X","Y");
+    my ($href_refseq, $reference, $vcf, $min_f, $aref_chroms) = @_;
+
+    my @chrs = @$aref_chroms; #(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,"X","Y");
 
     my $next_var_number = 5;
     foreach my $chr (@chrs)
@@ -155,7 +173,7 @@ sub print_linearised_poa
 }
 sub get_ref_seq
 {
-    my ($fasta, $href) = @_;
+    my ($fasta, $href, $aref_chroms) = @_;
 
     my $chr = "";
     my $seq = "";
@@ -167,7 +185,7 @@ sub get_ref_seq
 	my $line = $_;
 	chomp $line;
 
-	if ($line =~ /^>(\S+)\s+/)
+	if ($line =~ /^>(\S+)/)
 	{
 	    if ($first !=1)
 	    {
@@ -176,6 +194,7 @@ sub get_ref_seq
 	    }
 	    $first=0;
 	    $chr = $1;
+	    push @$aref_chroms, $chr;
 	    $seq="";
 	}
 	else
