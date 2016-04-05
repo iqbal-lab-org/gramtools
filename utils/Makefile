@@ -2,7 +2,7 @@ CC=g++
 
 CPPFLAGS=-std=c++11 -g 
 INCL=-I./htslib -I. 
-LDFLAGS=-lz
+LDFLAGS=-L./htslib -lz -lhts
 HTSINC=-I./htslib -L./htslib -lz -lpthread
 
 
