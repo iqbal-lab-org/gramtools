@@ -231,6 +231,7 @@ sub get_clusters
     while (<VCFF>)
     {
 	my $vcfline = $_;
+	print "Parse $vcfline\n";
 	chomp $vcfline;
 	
 	if ($vcfline !~ /^\#/)
@@ -257,17 +258,20 @@ sub get_clusters
 		    }
 		    if ($pos==$last_end+1)
 		    {
-			#abutting variants.
+			#abutting variants - cluster started at prev variant or even earlier
+			print "\nFound abutting variants\n";
 			if ($currently_in_cluster==0)
 			{
 			    $currently_in_cluster=1;
-			    $current_cluster_start=$pos;
+			    $current_cluster_start=$last_start;
+			    print "Cluster start is $last_start and this var is at $pos\n";
 			}
 			else
 			{
 			    #another record in an ongoing cluster
-			    $href_cluster->{$pos}=0; 
 			}
+			$href_cluster->{$pos}=0;
+
 			my @v = ();
 			push @v, $ref;
 			if ($alt =~ /,/)
@@ -290,25 +294,25 @@ sub get_clusters
                       # there is a gap between current 
 		      # variant and previous one. No cluster any more
 		    {
-			@alleles=();
-
 			if ($currently_in_cluster==1)
 			{
 			    #we have just got to the end of 
 			    #a cluster. Update the hash
 			    #with a list of all possible haplotypes.
-			    
-			    
 			    $href_cluster->{$current_cluster_start}
-			    =recursive_get_haplos(\@alleles);
+			    =recursive_get_haplotypes(\@alleles);
 			}
+			$currently_in_cluster=0;
+
+			print "Reset cluster allele list at pos $pos\n";
+			@alleles=();
+
+
 		    }
-		    $last_start = $pos;
-		    $last_end = $pos+length($ref)-1;
-		    $not_first_var_on_chrom=1;
-
 		}
-
+		$last_start = $pos;
+		$last_end = $pos+length($ref)-1;
+		$not_first_var_on_chrom=1
 	    }
 	}
 	
@@ -326,7 +330,9 @@ sub get_clusters
 sub recursive_get_haplotypes
 {
     my ($array_ref) = @_;
-
+    print "Call recurs with array of length ";
+    print scalar @$array_ref;
+    print "\n";
     if (scalar (@$array_ref)==1)
     {
 	#then the alleles themselves are the haplotypes
