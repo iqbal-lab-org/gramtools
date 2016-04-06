@@ -7,6 +7,7 @@ use Getopt::Long;
 my %vars = ( "vcf" => "zam",
 	     "ref" => "",
              "min_freq" =>0,
+	     "outfile"=>"",
              "help"=>'');
 
 
@@ -17,6 +18,7 @@ my %vars = ( "vcf" => "zam",
     ##mandatory args
     'vcf:s' =>\$vars{"vcf"},
     'ref:s' =>\$vars{"ref"},
+    'outfile:s' =>\$vars{"outfile"},
     'min_freq:s' => \$vars{"min_freq"},
     'help'  =>\$vars{"help"},
     );
@@ -31,10 +33,16 @@ my %refseq = ();#chr--> long string
 my @chroms=();#collect list of chromosomes
 get_ref_seq($vars{"ref"}, \%refseq, \@chroms); 
 
+my $output_fh;
+open($output_fh, ">".$vars{"outfile"})||die("Unable to open output file\n");
+
 ## parse the VCF and print a linearised PRG in gramtools format
-print_linearised_poa(\%refseq, $vars{"ref"}, 
-		     $vars{"vcf"}, $vars{"min_freq"},
-		     \@chroms);
+my $last_varnumber = print_linearised_poa(\%refseq, $vars{"ref"}, 
+					  $vars{"vcf"}, $vars{"min_freq"},
+					  \@chroms, $output_fh);
+close($output_fh);
+
+print "Finished printing linear PRG. Final number in alphabet is  $last_varnumber\n";
 
 sub test_cluster_func
 {
@@ -52,7 +60,7 @@ sub test_cluster_func
 sub print_linearised_poa_for_one_chr
 {
     my ($href_refsequence, $reff, $vcf_file, 
-	$chrom, $nextvar, $min_freq)= @_;
+	$chrom, $nextvar, $min_freq, $o_fh)= @_;
 
 
     ## Assume the VCF is  sorted. There are two reasons
@@ -129,7 +137,7 @@ sub print_linearised_poa_for_one_chr
 		if ($curr_pos < $sp[1] )
 		{
 		    my $len = $sp[1]-$curr_pos;
-		    print substr($seq, $curr_pos-1, $len);
+		    print $o_fh substr($seq, $curr_pos-1, $len);
 		    #$curr_pos=$sp[1];
 		}
 
@@ -168,9 +176,9 @@ sub print_linearised_poa_for_one_chr
 		}
 
 
-		print $nextvar;#left marker before the site starts
-		print $sp[3];		##print the ref allele first
-		print $nextvar+1;#even numbers between alleles
+		print $o_fh $nextvar;#left marker before the site starts
+		print $o_fh $sp[3];		##print the ref allele first
+		print $o_fh $nextvar+1;#even numbers between alleles
 
 		##Now work our way through the alternate alleles
 		if ($sp[4]=~ /,/)
@@ -181,22 +189,22 @@ sub print_linearised_poa_for_one_chr
 		    {
 			my $allele = $sp2[$i];
 			$allele =~ s/[^ACGTacgt]/C/g;
-			print $allele;
+			print $o_fh $allele;
 			if ($i<scalar(@sp2)-1)
 			{
-			    print $nextvar+1;#even number between alleles
+			    print $o_fh $nextvar+1;#even number between alleles
 			}
 			else
 			{
-			    print $nextvar;#last one goes back to nextvar (odd)
+			    print $o_fh $nextvar;#last one goes back to nextvar (odd)
 			}
 		    }
 		}
 		else #we have just one alternate allele
 		{
 		    $sp[4]=~ s/[^ACGTacgt]/C/g;
-		    print $sp[4];
-		    print $nextvar;
+		    print $o_fh $sp[4];
+		    print $o_fh $nextvar;
 		}
 		$nextvar+=2;
 		$curr_pos=$sp[1]+length($sp[3]);
@@ -211,7 +219,7 @@ sub print_linearised_poa_for_one_chr
 
     if ($curr_pos<length($seq)+1)
     {
-	print substr($seq, $curr_pos, length($seq)-$curr_pos-1);
+	print $o_fh substr($seq, $curr_pos, length($seq)-$curr_pos-1);
     }
 
 
@@ -415,7 +423,7 @@ sub recursive_get_haplotypes
 
 sub print_linearised_poa
 {
-    my ($href_refseq, $reference, $vcf, $min_f, $aref_chroms) = @_;
+    my ($href_refseq, $reference, $vcf, $min_f, $aref_chroms, $out_fh) = @_;
 
     my @chrs = @$aref_chroms; #(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,"X","Y");
 
@@ -426,9 +434,10 @@ sub print_linearised_poa
 	$next_var_number = 
 	    print_linearised_poa_for_one_chr($href_refseq, $reference, 
 					     $vcf, $chr, 
-					     $next_var_number, $min_f);
+					     $next_var_number, $min_f, $out_fh);
     }
 
+    return $next_var_number-1;##will have auto-incremented
 }
 sub get_ref_seq
 {
@@ -490,6 +499,11 @@ sub check_args
     if ($href->{"vcf"} eq "")
     {
 	die("You must specify a VCF file with --vcf \n");
+    }
+
+    if ($href->{"outfile"} eq "")
+    {
+	die("You must specify an output file with --outfile \n");
     }
 
     if ($href->{"ref"} eq "")
