@@ -24,6 +24,8 @@ my %vars = ( "vcf" => "zam",
 
 check_args(\%vars);
 
+#test_cluster_func();
+
 
 ## load the reference into memory:
 my %refseq = ();#chr--> long string
@@ -35,10 +37,41 @@ print_linearised_poa(\%refseq, $vars{"ref"},
 		     $vars{"vcf"}, $vars{"min_freq"},
 		     \@chroms);
 
+sub test_cluster_func
+{
+    my @arr1 = (1,2);
+    my @arr2=(3,4,5);
+    my @arr3=(6,7);
+    my @arr=(\@arr1, \@arr2, \@arr3);
+    my $res = recursive_get_haplotypes(\@arr);
+    foreach my $c (@$res)
+    {
+	print "$c\n";
+    }
+}
 
 sub print_linearised_poa_for_one_chr
 {
-    my ($href_refsequence, $reff, $vcf_file, $chrom, $nextvar, $min_freq)= @_;
+    my ($href_refsequence, $reff, $vcf_file, 
+	$chrom, $nextvar, $min_freq)= @_;
+
+
+    ## Assume the VCF is  sorted. There are two reasons
+    ## that prevent us from treating all records independently
+    ## 1. variants with no space between - we combine
+    ##    and print all possile haplotypes
+    ## 2. long deletions on top of SNPs - here we ignore the SNPs
+
+
+    my %clusters=();# if a variant is in a cluster, 
+                    # if is first in cluster, have
+                    # pos->ref,alt1,alt2,... (all possible haplos)
+                    # if is a later one, have
+                    # pos->0 (which will tell us to ignore it)
+
+
+    ##this function dies if a later record is underneath a prior
+    get_clusters($chrom, $vcf_file, \%clusters, $min_freq);
 
 
     if (!exists $href_refsequence->{$chrom})
@@ -57,14 +90,16 @@ sub print_linearised_poa_for_one_chr
 
 	if ($lyne !~ /^\#/)
 	{
-	    ## I will work entirely in 1-based coordinates, except at the point of extracting substrings.
+	    ## I will work entirely in 1-based coordinates, 
+	    ## except at the point of extracting substrings.
 
 
 	    my @sp = split(/\t/, $lyne);
 
 	    if ($sp[4] !~ /^[ACGTacgt]+$/)
 	    {
-		##excluding lines which do not properly specify the alternate allele.
+		## excluding lines which do not 
+		## properly specify the alternate allele.
 		next;
 	    }
 
@@ -102,6 +137,23 @@ sub print_linearised_poa_for_one_chr
 		#replace N with C
 		$sp[3]=~ s/[^ACGTacgt]/C/g;
 
+
+		if (exists $clusters{$sp[1]})
+		{
+		    if ($clusters{$sp[1]} eq "0")
+		    {
+			next;
+		    }
+		    else
+		    {
+			if ($clusters{$sp[1]} =~ /^([^,]+),(\S+)$/)
+			{
+			    ##modify the ref/alt alleles to represent all possible haplotypes in the cluster
+			    $sp[3]=$1;
+			    $sp[4]=$2;
+			}
+		    }
+		}
 
 
 		print $nextvar;#left marker before the site starts
@@ -155,6 +207,161 @@ sub print_linearised_poa_for_one_chr
 
     return $nextvar;
 }
+
+
+sub get_clusters
+{
+
+    my ($chr, $vcf_f, $href_cluster, $min_frequency)=@_;
+
+    # Read through the file once. At a given record, notice the start/end coords on the ref
+    # Move to next record - if there is >=1 bp between them, forget the previous one.
+    # However, if they overlap, or abut, then collect them - we are going to make all possible haplotypes.
+    # Complicated cases are a) long things with stuff under
+
+    my @alleles=();
+    my $last_start=-1;#start/end of ref allele 
+    my $last_end=-1;
+    my $not_first_var_on_chrom=0;
+    my $currently_in_cluster=0;
+    my $current_cluster_start=0;
+
+
+    open(VCFF, $vcf_f)||die("Cannot open $vcf_f");
+    while (<VCFF>)
+    {
+	my $vcfline = $_;
+	chomp $vcfline;
+	
+	if ($vcfline !~ /^\#/)
+	{
+	    my @fields = split(/\t/, $vcfline);
+	    if ($fields[6] ne "PASS")
+	    {
+		next;
+	    }
+	    if ($fields[0] eq $chr)
+	    {
+		my $pos = $fields[1];
+		my $ref = $fields[3];
+		my $alt = $fields[4];
+		if ($not_first_var_on_chrom==1)
+		{
+		    if ($pos<$last_start)
+		    {
+			die("Badly srted VCF. chr $chr, pos $pos we have a variant BEFORE the previous line\n");
+		    }
+		    if ($pos<=$last_end)
+		    {
+			die("Badly formatted VCF. Subsequent record overlaps the interior of a previous one.");
+		    }
+		    if ($pos==$last_end+1)
+		    {
+			#abutting variants.
+			if ($currently_in_cluster==0)
+			{
+			    $currently_in_cluster=1;
+			    $current_cluster_start=$pos;
+			}
+			else
+			{
+			    #another record in an ongoing cluster
+			    $href_cluster->{$pos}=0; 
+			}
+			my @v = ();
+			push @v, $ref;
+			if ($alt =~ /,/)
+			{
+			    my @all = split(/,/, $alt);
+			    my $i;
+			    for ($i=0; $i<scalar(@all); $i++)
+			    {
+				push @v, $all[$i];
+			    }
+			}
+			else
+			{
+			    push @v, $alt;
+			}
+
+			push @alleles, \@v; 
+		    }
+		    else 
+                      # there is a gap between current 
+		      # variant and previous one. No cluster any more
+		    {
+			@alleles=();
+
+			if ($currently_in_cluster==1)
+			{
+			    #we have just got to the end of 
+			    #a cluster. Update the hash
+			    #with a list of all possible haplotypes.
+			    
+			    
+			    $href_cluster->{$current_cluster_start}
+			    =recursive_get_haplos(\@alleles);
+			}
+		    }
+		    $last_start = $pos;
+		    $last_end = $pos+length($ref)-1;
+		    $not_first_var_on_chrom=1;
+
+		}
+
+	    }
+	}
+	
+    }
+    close(VCFF);
+
+
+
+
+}
+
+
+# pass in an array ref. Every element on that array
+# is itself an array(ref) of ref and then alt alleles.
+sub recursive_get_haplotypes
+{
+    my ($array_ref) = @_;
+
+    if (scalar (@$array_ref)==1)
+    {
+	#then the alleles themselves are the haplotypes
+	return $array_ref->[0];
+    }
+
+    
+
+    ##take last variant off array, and call everything before
+    ## that "prev"; will recurse
+
+    my @arr = @$array_ref;
+    my $last_aref = pop @arr;
+    my $results_for_prev = recursive_get_haplotypes(\@arr);
+
+    my $i;
+    my $j;
+    my @results=();
+    for ($i=0; $i<scalar(@$results_for_prev); $i++)
+    {
+	for($j=0; $j<scalar(@$last_aref); $j++)
+	{
+	    #take each allele in the last variant
+	    my $seq=$last_aref->[$j];
+	    #create a new haplotype by extending the current 
+	    #one with this allele
+	    my $new_haplo = ($results_for_prev->[$i]).$seq;
+	    push @results, $new_haplo;
+	}
+    }
+    return \@results;
+}
+
+
+
 sub print_linearised_poa
 {
     my ($href_refseq, $reference, $vcf, $min_f, $aref_chroms) = @_;
