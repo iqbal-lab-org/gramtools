@@ -161,19 +161,19 @@ class SeqRead
 
 
 
-int main (int argc, const char **argv)
-{
-	int a;
-	SeqRead sq = SeqRead(argv[1]);
-	for (auto rd: sq)
-	{
-		std::cout << (*rd) << std::endl;
-		for (auto kmer : rd->kmers(16))
-		{
-			std::cout << kmer << std::endl;
-		}
-//		delete rd;
-	}
-//	std::cout << "enter a\n";
-//	std::cin >> a;
-}
+//int main (int argc, const char **argv)
+//{
+//	int a;
+//	SeqRead sq = SeqRead(argv[1]);
+//	for (auto rd: sq)
+//	{
+//		std::cout << (*rd) << std::endl;
+//		for (auto kmer : rd->kmers(16))
+//		{
+//			std::cout << kmer << std::endl;
+//		}
+////		delete rd;
+//	}
+////	std::cout << "enter a\n";
+////	std::cin >> a;
+//}
