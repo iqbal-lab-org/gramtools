@@ -90,6 +90,8 @@ sub print_linearised_poa_for_one_chr
     open(VCF, $vcf_file)||die("Cannot open VCF file $vcf_file");
     my $curr_pos=1; ## 1-based
 
+    my $last_varpos=0;
+
     while (<VCF>)
     {
 	my $lyne  = $_;
@@ -109,7 +111,10 @@ sub print_linearised_poa_for_one_chr
 		## properly specify the alternate allele.
 		next;
 	    }
-
+	    elsif ($sp[6] ne "PASS")
+	    {
+		next;
+	    }
 
 	    my $info = $sp[7];
 	    if ($min_freq>0)
@@ -133,6 +138,10 @@ sub print_linearised_poa_for_one_chr
 
 	    if ($sp[0] eq $chrom)
 	    {
+		if ($sp[1]==$last_varpos)
+		{
+		    next; #ignore records which start at same place as previous
+		}
 
 		if ($curr_pos < $sp[1] )
 		{
@@ -149,9 +158,6 @@ sub print_linearised_poa_for_one_chr
 		{
 		    if ($clusters{$sp[1]} eq "0")
 		    {
-			#print "SKIP THIS GUY ";
-			#print $sp[1];
-			#print "\n";
 			next;## either this is a late record in a cluster (so ignore)
 			     ## or it is a line in the VCF that overlaps a previous one
 		    }
@@ -208,6 +214,7 @@ sub print_linearised_poa_for_one_chr
 		}
 		$nextvar+=2;
 		$curr_pos=$sp[1]+length($sp[3]);
+		$last_varpos=$sp[1];
 	    }
 	    else
 	    {
@@ -258,14 +265,22 @@ sub get_clusters
 	if ($vcfline !~ /^\#/)
 	{
 	    my @fields = split(/\t/, $vcfline);
-	    if ($fields[6] ne "PASS")
-	    {
-		next;
-	    }
 
 	    if ($fields[0] eq $chr)
 	    {
 
+		
+		if ($fields[4] !~ /^[ACGTacgt]+$/)
+		{
+		    ## excluding lines which do not 
+		    ## properly specify the alternate allele.
+		    next;
+		}
+		elsif ($fields[6] ne "PASS")
+		{
+		    next;
+		}
+		
 		if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
 		{
 		    my $freq = $1;
@@ -286,7 +301,8 @@ sub get_clusters
 		    }
 		    elsif ($pos==$last_start)
 		    {
-			die("Multiple records in this VCF starting at same line\n");
+			#die("Multiple records in this VCF starting at same line\n$vcfline\n");
+			next;
 		    }
 
 		    if ($pos<=$last_end)
