@@ -253,8 +253,19 @@ sub get_clusters
 	    {
 		next;
 	    }
+
 	    if ($fields[0] eq $chr)
 	    {
+
+		if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
+		{
+		    my $freq = $1;
+		    if ($freq<$min_frequency)
+		    {
+			next; #ignore this variant if too rare
+		    }
+		}
+
 		my $pos = $fields[1];
 		my $ref = $fields[3];
 		my $alt = $fields[4];
