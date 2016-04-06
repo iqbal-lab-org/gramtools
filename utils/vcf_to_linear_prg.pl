@@ -26,7 +26,6 @@ check_args(\%vars);
 
 #test_cluster_func();
 
-
 ## load the reference into memory:
 my %refseq = ();#chr--> long string
 my @chroms=();#collect list of chromosomes
@@ -142,16 +141,28 @@ sub print_linearised_poa_for_one_chr
 		{
 		    if ($clusters{$sp[1]} eq "0")
 		    {
+			#print "SKIP THIS GUY ";
+			#print $sp[1];
+			#print "\n";
 			next;
 		    }
 		    else
 		    {
-			if ($clusters{$sp[1]} =~ /^([^,]+),(\S+)$/)
+			
+			##modify the ref/alt alleles to represent all possible haplotypes in the cluster
+			$sp[3]=$clusters{$sp[1]}->[0];
+			my $str="";
+			my $k;
+			for ($k=1; $k<scalar(@{$clusters{$sp[1]}}); $k++)
 			{
-			    ##modify the ref/alt alleles to represent all possible haplotypes in the cluster
-			    $sp[3]=$1;
-			    $sp[4]=$2;
+			    $str=$str.($clusters{$sp[1]}->[$k]);
+			    if ($k<scalar(@{$clusters{$sp[1]}})-1)
+			    {
+				$str=$str.",";
+			    }
 			}
+			$sp[4]=$str;
+
 		    }
 		}
 
@@ -222,6 +233,8 @@ sub get_clusters
     my @alleles=();
     my $last_start=-1;#start/end of ref allele 
     my $last_end=-1;
+    my $last_ref="";
+    my $last_alt="";
     my $not_first_var_on_chrom=0;
     my $currently_in_cluster=0;
     my $current_cluster_start=0;
@@ -231,7 +244,6 @@ sub get_clusters
     while (<VCFF>)
     {
 	my $vcfline = $_;
-	print "Parse $vcfline\n";
 	chomp $vcfline;
 	
 	if ($vcfline !~ /^\#/)
@@ -259,36 +271,21 @@ sub get_clusters
 		    if ($pos==$last_end+1)
 		    {
 			#abutting variants - cluster started at prev variant or even earlier
-			print "\nFound abutting variants\n";
+
 			if ($currently_in_cluster==0)
 			{
+			    ##cluster started at previous record
 			    $currently_in_cluster=1;
 			    $current_cluster_start=$last_start;
-			    print "Cluster start is $last_start and this var is at $pos\n";
+			    push @alleles, get_haplo_array($last_ref, $last_alt); 			
 			}
 			else
 			{
 			    #another record in an ongoing cluster
 			}
 			$href_cluster->{$pos}=0;
-
-			my @v = ();
-			push @v, $ref;
-			if ($alt =~ /,/)
-			{
-			    my @all = split(/,/, $alt);
-			    my $i;
-			    for ($i=0; $i<scalar(@all); $i++)
-			    {
-				push @v, $all[$i];
-			    }
-			}
-			else
-			{
-			    push @v, $alt;
-			}
-
-			push @alleles, \@v; 
+			push @alleles, get_haplo_array($ref, $alt); 			
+			$currently_in_cluster=1;
 		    }
 		    else 
                       # there is a gap between current 
@@ -299,12 +296,14 @@ sub get_clusters
 			    #we have just got to the end of 
 			    #a cluster. Update the hash
 			    #with a list of all possible haplotypes.
-			    $href_cluster->{$current_cluster_start}
+			    my $temp
 			    =recursive_get_haplotypes(\@alleles);
+
+			    $href_cluster->{$current_cluster_start}=$temp;
+
 			}
 			$currently_in_cluster=0;
 
-			print "Reset cluster allele list at pos $pos\n";
 			@alleles=();
 
 
@@ -312,6 +311,9 @@ sub get_clusters
 		}
 		$last_start = $pos;
 		$last_end = $pos+length($ref)-1;
+		$last_ref=$fields[3];
+		$last_alt=$fields[4];
+	
 		$not_first_var_on_chrom=1
 	    }
 	}
@@ -325,14 +327,37 @@ sub get_clusters
 }
 
 
+
+
+sub get_haplo_array
+{
+    my ($refall, $altall) = @_;
+    my @v = ();
+    push @v, $refall;
+    if ($altall =~ /,/)
+    {
+	my @all = split(/,/, $altall);
+	my $i;
+	for ($i=0; $i<scalar(@all); $i++)
+	{
+	    push @v, $all[$i];
+	}
+    }
+    else
+    {
+	push @v, $altall;
+    }
+    
+    return \@v;
+}
+
+
 # pass in an array ref. Every element on that array
 # is itself an array(ref) of ref and then alt alleles.
 sub recursive_get_haplotypes
 {
     my ($array_ref) = @_;
-    print "Call recurs with array of length ";
-    print scalar @$array_ref;
-    print "\n";
+
     if (scalar (@$array_ref)==1)
     {
 	#then the alleles themselves are the haplotypes
@@ -363,6 +388,7 @@ sub recursive_get_haplotypes
 	    push @results, $new_haplo;
 	}
     }
+
     return \@results;
 }
 
