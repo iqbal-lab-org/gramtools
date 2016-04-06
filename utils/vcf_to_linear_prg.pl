@@ -144,7 +144,8 @@ sub print_linearised_poa_for_one_chr
 			#print "SKIP THIS GUY ";
 			#print $sp[1];
 			#print "\n";
-			next;
+			next;## either this is a late record in a cluster (so ignore)
+			     ## or it is a line in the VCF that overlaps a previous one
 		    }
 		    else
 		    {
@@ -275,9 +276,16 @@ sub get_clusters
 		    {
 			die("Badly srted VCF. chr $chr, pos $pos we have a variant BEFORE the previous line\n");
 		    }
+		    elsif ($pos==$last_start)
+		    {
+			die("Multiple records in this VCF starting at same line\n");
+		    }
+
 		    if ($pos<=$last_end)
 		    {
-			die("Badly formatted VCF. Subsequent record overlaps the interior of a previous one.");
+			## this is a case of overlapping variants.
+			$href_cluster->{$pos}=0; ##basically tell downstream stuff to ignore this variant
+			next;
 		    }
 		    if ($pos==$last_end+1)
 		    {
