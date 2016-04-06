@@ -18,11 +18,13 @@ GTEST_DIR = /home/sm0179/gtest-1.7.0
 
 # Where to find user code.
 USER_DIR = .
+UTILS_DIR=../utils
+UTILS_INC=-I../utils -I ../utils/htslib
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem $(GTEST_DIR)/include $(UTILS_INC)
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -DNDEBUG 
@@ -41,6 +43,7 @@ VBWT_HEADERS= /home/sm0179/gramtools/include/
 BOOST_HEADERS= /data2/apps/boost_1_60_0/
 
 LIBS=/home/sm0179/lib/
+
 
 # House-keeping build targets.
 
