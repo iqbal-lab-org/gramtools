@@ -28,10 +28,10 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
   std::vector<int> allele_empty;
   std::vector<std::pair<uint64_t,uint64_t>> res;  
 
-  if (left!=-1) assert(left<right);
+  assert(left<right);
   assert(right<=csa_rev.size());
 
-  if (left!=-1) {
+  if (sa_intervals.empty()) {
     sa_intervals.push_back(std::make_pair(left,right));
     sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
     sites.push_back(empty_pair_vector);

@@ -28,10 +28,10 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
   std::vector<int> allele_empty;
   std::vector<std::pair<uint64_t,uint64_t>> res;   
 
-  if (left!=-1) assert(left<right);
+  assert(left<right);
   assert(right<=csa.size());
 
-  if (left!=-1) {
+  if (sa_intervals.empty()) {
     sa_intervals.push_back(std::make_pair(left,right));
     sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
     sites.push_back(empty_pair_vector);
@@ -40,8 +40,8 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
   while (pat_it>pat_begin && !sa_intervals.empty()) {
     --pat_it;
     c=*pat_it;
-    //k++;
-    //cout<<k<<" "<<unsigned(c)<<endl;
+    // k++;
+    //if (sa_intervals.size()==0) cout<<k<<" "<<unsigned(c)<<endl;
     
     assert(sa_intervals.size()==sa_intervals_rev.size());
     assert(sa_intervals.size()==sites.size());//each interval has a corresponding vector of sites/alleles crossed; what about the first interval? (corresp to matches in the ref)
