@@ -40,6 +40,8 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 SDSL_HEADERS= /home/sm0179/include/
 VBWT_HEADERS= /home/sm0179/gramtools/include/
+#SDSL_HEADERS= /home/zam/include/
+#VBWT_HEADERS= /home/zam/dev/git/gramtools/include/
 BOOST_HEADERS= /data2/apps/boost_1_60_0/
 
 LIBS=/home/sm0179/lib/ 
