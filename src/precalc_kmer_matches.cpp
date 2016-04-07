@@ -56,8 +56,8 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa,
 		kmer_idx_rev[kmer]=temp;
 		kmer_sites[kmer]=temp2;
 		first_del=false;
-		std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size()-1,0,csa.size()-1,(kmer).begin(),(kmer).end(),kmer_idx[kmer],kmer_idx_rev[kmer],kmer_sites[kmer],mask_a,maxx,first_del);
-		if (first_del) kmers_in_ref.insert(kmer);
+		std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),(kmer).begin(),(kmer).end(),kmer_idx[kmer],kmer_idx_rev[kmer],kmer_sites[kmer],mask_a,maxx,first_del);
+		if (!first_del) kmers_in_ref.insert(kmer);
 	}
 }
 
