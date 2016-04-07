@@ -19,7 +19,7 @@ GTEST_DIR = /home/sm0179/gtest-1.7.0
 # Where to find user code.
 USER_DIR = .
 UTILS_DIR=../utils
-UTILS_INC=-I../utils -I ../utils/htslib
+UTILS_INC=-I../utils -I /data2/apps/htslib -I /data2/apps
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -42,7 +42,8 @@ SDSL_HEADERS= /home/sm0179/include/
 VBWT_HEADERS= /home/sm0179/gramtools/include/
 BOOST_HEADERS= /data2/apps/boost_1_60_0/
 
-LIBS=/home/sm0179/lib/
+LIBS=/home/sm0179/lib/ 
+LIBS2=/data2/apps/htslib/
 
 
 # House-keeping build targets.
@@ -109,9 +110,9 @@ map.o: $(USER_DIR)/map.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) -c $(USER_DIR)/map.cpp -lsdsl -ldivsufsort -ldivsufsort64
 
 vBWT: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o precalc_kmer_matches.o parse_masks.o csa_construction.o map.o 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64  
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) -L $(LIBS2) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lhts -lz
 
-#bwt_search.o : $(USER_DIR)/bwt_search.cpp $(USER_DIR)/bwt_search.h libsdsl.a $(GTEST_HEADERS)
+#Bwt_search.o : $(USER_DIR)/bwt_search.cpp $(USER_DIR)/bwt_search.h libsdsl.a $(GTEST_HEADERS)
 #	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) -c $(USER_DIR)/bwt_search.cpp -lsdsl -ldivsufsort -ldivsufsort64
 
 unittest_bidir_search_bwd_fwd.o : $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
