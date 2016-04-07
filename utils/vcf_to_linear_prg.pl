@@ -120,7 +120,7 @@ sub print_linearised_poa_in_one_sweep
 		{
 		    if ($curr_pos<length($seq)+1)
 		    {
-			print substr($seq, $curr_pos, length($seq)-$curr_pos-1);
+			print $o_fh substr($seq, $curr_pos, length($seq)-$curr_pos-1);
 		    }
 		}
 		$chrom = $sp[0];
