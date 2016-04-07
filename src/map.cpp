@@ -56,12 +56,14 @@ int main(int argc, char* argv[]) {
 
 	int k=atoi(argv[10]); //verify input
 	precalc_kmer_matches(csa,k,kmer_idx,kmer_idx_rev,kmer_sites,mask_a,maxx,kmers_in_ref,argv[11]);
+	timestamp();
 
 	std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
 	std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator res_it;
+	cout<<kmer_idx.size()<<kmers_in_ref.size()<<endl;
 
 	for (auto q: inputReads)
 	{
@@ -69,7 +71,7 @@ int main(int argc, char* argv[]) {
 		std::vector<uint8_t> p;
 
 		//logging
-		if (!(inc++%1000)) { out2<<no_reads<<endl; }
+		if (!(inc++%10)) { out2<<no_reads<<endl; }
 
 		//add N's
 
@@ -85,12 +87,31 @@ int main(int argc, char* argv[]) {
 		sa_intervals_rev=kmer_idx_rev[kmer];
 		sites=kmer_sites[kmer];
 
+		for (auto vit=p.begin();vit!=p.end();++vit) cout<<unsigned(*vit);
+		cout<<endl;
+
 		it=sa_intervals.begin();
 		it_rev=sa_intervals_rev.begin();
-		if (kmers_in_ref.find(kmer)!=kmers_in_ref.end())  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k-1, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
-		else res_it=bidir_search_bwd(csa, -1, -1, -1, -1, p.begin(),p.begin()+p.size()-k-1, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
+		if (kmers_in_ref.find(kmer)!=kmers_in_ref.end())  {
+		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
+		  cout<<"ref"<<endl;
+		}
+		else {
+		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
+		  cout<<"no"<<endl;
+		}
 
+		int no_occ=0;
+		for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+		  no_occ+=(*it).second-(*it).first;
+	   
+		cout<<no_occ<<" ";
 		//clear p, sa_intervals etc
+		sa_intervals.clear();
+		sa_intervals_rev.clear();
+		sites.clear();
+		p.clear();
+
 		no_reads++;
 	}
 
