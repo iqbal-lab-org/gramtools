@@ -35,6 +35,9 @@ get_ref_seq($vars{"ref"}, \%refseq, \@chroms);
 
 my $output_fh;
 open($output_fh, ">".$vars{"outfile"})||die("Unable to open output file\n");
+my $outvcf = $vars{"outfile"}.".vcf";
+my $output_vcf_fh;
+open($output_vcf_fh, ">".$outvcf)||die("Cannot open $outvcf to write output\n");
 
 ## parse the VCF and print a linearised PRG in gramtools format
 #my $last_varnumber = print_linearised_poa(\%refseq, $vars{"ref"}, 
@@ -43,10 +46,11 @@ open($output_fh, ">".$vars{"outfile"})||die("Unable to open output file\n");
 
 my $last_varnumber = print_linearised_poa_in_one_sweep(\%refseq, $vars{"ref"}, 
 						       $vars{"vcf"}, $vars{"min_freq"},
-						       $output_fh);
+						       $output_fh, $output_vcf_fh);
 
 
 close($output_fh);
+close($output_vcf_fh);
 
 print "Finished printing linear PRG. Final number in alphabet is  $last_varnumber\n";
 
@@ -67,7 +71,7 @@ sub test_cluster_func
 sub print_linearised_poa_in_one_sweep
 {
     my ($href_refsequence, $reff, $vcf_file, 
-	$min_freq, $o_fh)= @_;
+	$min_freq, $o_fh, $ovcf_fh)= @_;
 
     my $nextvar=5;
     ## Assume the VCF is  sorted. There are two reasons
@@ -105,7 +109,11 @@ sub print_linearised_poa_in_one_sweep
 	my $lyne  = $_;
 	chomp $lyne;
 
-	if ($lyne !~ /^\#/)
+	if ($lyne =~ /^\#/)
+	{
+	    print $ovcf_fh $lyne."\n";
+	}
+	else
 	{
 	    ## I will work entirely in 1-based coordinates, 
 	    ## except at the point of extracting substrings.
@@ -185,12 +193,22 @@ sub print_linearised_poa_in_one_sweep
 	    {
 		if ($clusters{$chrom}{$sp[1]} eq "0")
 		{
-		    next;## either this is a late record in a cluster (so ignore)
-		    ## or it is a line in the VCF that overlaps a previous one
+		    print $ovcf_fh $lyne."\n";
+		    next;## this is a late record in a cluster 
+		         ##so it is handled by merging seq into a haplotype
+		         ##starting at first variant in cluster
+
+		}
+		elsif ($clusters{$chrom}{$sp[1]} eq "1")
+		{
+
+		    next;
+		    ## this is a line in the VCF that overlaps a previous one
+		    #ignore for PRG and dont print to VCF
 		}
 		else
 		{
-		    
+		    print $ovcf_fh $lyne."\n";
 		    ##modify the ref/alt alleles to represent all possible haplotypes in the cluster
 		    $sp[3]=$clusters{$chrom}{$sp[1]}->[0];
 		    my $str="";
@@ -206,6 +224,10 @@ sub print_linearised_poa_in_one_sweep
 		    $sp[4]=$str;
 		    
 		}
+	    }
+	    else
+	    {
+		print $ovcf_fh $lyne."\n";
 	    }
 	    
 
@@ -515,7 +537,7 @@ sub get_clusters
 		    if ($pos<=$last_end)
 		    {
 			## this is a case of overlapping variants.
-			$href_cluster->{$pos}=0; ##basically tell downstream stuff to ignore this variant
+			$href_cluster->{$pos}=1; ##basically tell downstream stuff to ignore this variant
 			next;
 		    }
 		    if ($pos==$last_end+1)
