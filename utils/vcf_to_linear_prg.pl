@@ -120,8 +120,10 @@ sub print_linearised_poa_in_one_sweep
 		{
 		    if ($curr_pos<length($seq)+1)
 		    {
-			print $o_fh substr($seq, $curr_pos, length($seq)-$curr_pos-1);
+			##substr is 0-based and chromosomal pos is 1-based
+			print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
 		    }
+
 		}
 		$chrom = $sp[0];
 		$curr_pos=1; ## 1-based
@@ -247,7 +249,8 @@ sub print_linearised_poa_in_one_sweep
     
     if ($curr_pos<length($seq)+1)
     {
-	print $o_fh substr($seq, $curr_pos, length($seq)-$curr_pos-1);
+	##substr is 0-based and chr position is 10based
+	print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
     }
     print $o_fh "\n";
     return $nextvar-1;
@@ -284,9 +287,10 @@ sub print_linearised_poa_for_one_chr
     }
 
     my $seq = $href_refsequence->{$chrom};
+    print "Start vcf\n";
     open(VCF, $vcf_file)||die("Cannot open VCF file $vcf_file");
     my $curr_pos=1; ## 1-based
-
+    print "Start with curr pos 1\n";
     my $last_varpos=0;
 
     while (<VCF>)
@@ -338,11 +342,17 @@ sub print_linearised_poa_for_one_chr
 		{
 		    next; #ignore records which start at same place as previous
 		}
-
+		
 		if ($curr_pos < $sp[1] )
 		{
+		    print  "Var is at ";
+		    print $sp[1];
+		    print " and curr pos is $curr_pos ";
+		    print " so add intermed sequence: ";
 		    my $len = $sp[1]-$curr_pos;
 		    print $o_fh substr($seq, $curr_pos-1, $len);
+		    print substr($seq, $curr_pos-1, $len);
+		    print "but not updating current pos here?\n";
 		    #$curr_pos=$sp[1];
 		}
 
@@ -410,6 +420,7 @@ sub print_linearised_poa_for_one_chr
 		}
 		$nextvar+=2;
 		$curr_pos=$sp[1]+length($sp[3]);
+		print "Just printed ref and alt, now curr pos is $curr_pos\n";
 		$last_varpos=$sp[1];
 	    }
 	    else
@@ -811,6 +822,9 @@ sub get_ref_seq
 	{
 	    if ($first !=1)
 	    {
+		## comment out following line in debug, if you like
+		## can put nonstandard chars at end and start of chromosomes
+		## to check they are transferred correctly
 		$seq =~ s/[^ACGTacgt]/C/g;
 		$href->{$chr}=$seq;
 	    }
@@ -829,6 +843,9 @@ sub get_ref_seq
 
     ##now do the final chromosome in the file
     ##replacing N with C
+		## comment out following line in debug, if you like
+		## can put nonstandard chars at end and start of chromosomes
+		## to check they are transferred correctly
     $seq =~ s/[^ACGTacgt]/C/g;
     $href->{$chr}=$seq;
 }
