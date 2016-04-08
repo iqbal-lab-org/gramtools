@@ -52,6 +52,7 @@ int main(int argc, char* argv[]) {
 	int no_reads=0;
 	uint64_t no_mapped=0;
 	int inc=0;
+	int no_occ=0;
 	bool first_del=false;
 
 	int k=atoi(argv[10]); //verify input
@@ -63,7 +64,6 @@ int main(int argc, char* argv[]) {
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator res_it;
-	cout<<kmer_idx.size()<<kmers_in_ref.size()<<endl;
 
 	for (auto q: inputReads)
 	{
@@ -83,38 +83,36 @@ int main(int argc, char* argv[]) {
 		}
 
 		std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
-		sa_intervals=kmer_idx[kmer];
-		sa_intervals_rev=kmer_idx_rev[kmer];
-		sites=kmer_sites[kmer];
+		if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
+		  sa_intervals=kmer_idx[kmer];
+		  sa_intervals_rev=kmer_idx_rev[kmer];
+		  sites=kmer_sites[kmer];	
+		  
+		  it=sa_intervals.begin();
+		  it_rev=sa_intervals_rev.begin();
 
-		for (auto vit=p.begin();vit!=p.end();++vit) cout<<unsigned(*vit);
-		cout<<endl;
+		  if (kmers_in_ref.find(kmer)!=kmers_in_ref.end()) first_del=false;
+		  else first_del=true;
 
-		it=sa_intervals.begin();
-		it_rev=sa_intervals_rev.begin();
-		if (kmers_in_ref.find(kmer)!=kmers_in_ref.end())  {
 		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
-		  cout<<"ref"<<endl;
-		}
-		else {
-		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
-		  cout<<"no"<<endl;
-		}
 
-		int no_occ=0;
-		for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
-		  no_occ+=(*it).second-(*it).first;
+		  no_occ=0;
+		  for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+		    no_occ+=(*it).second-(*it).first;
+
+		  sa_intervals.clear();
+		  sa_intervals_rev.clear();
+		  sites.clear();
+		}
+		else no_occ=0;
 	   
-		cout<<no_occ<<" ";
+		out<<no_occ<<" ";
 		//clear p, sa_intervals etc
-		sa_intervals.clear();
-		sa_intervals_rev.clear();
-		sites.clear();
 		p.clear();
 
 		no_reads++;
 	}
-
+	/*
 	for (int i=0;i<covgs.size();i++) {
 		for (int j=0;j<covgs[i].size();j++)
 			out<<covgs[i][j]<<" ";
@@ -127,7 +125,7 @@ int main(int argc, char* argv[]) {
 		for (int j=0;j<site_reads[i].size();j++)
 			fsite<<site_reads[i][j]<<endl;
 		fsite.close();
-	}
+		}*/
 	timestamp();
 
 	out.close();
