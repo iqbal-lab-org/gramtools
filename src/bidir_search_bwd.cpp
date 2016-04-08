@@ -27,6 +27,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
   std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
   std::vector<int> allele_empty;
   std::vector<std::pair<uint64_t,uint64_t>> res;   
+  uint64_t init_list_size,j;
 
   assert(left<right);
   assert(right<=csa.size());
@@ -42,7 +43,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     c=*pat_it;
     // k++;
     //if (sa_intervals.size()==0) cout<<k<<" "<<unsigned(c)<<endl;
-    
+
     assert(sa_intervals.size()==sa_intervals_rev.size());
     assert(sa_intervals.size()==sites.size());//each interval has a corresponding vector of sites/alleles crossed; what about the first interval? (corresp to matches in the ref)
 
@@ -50,12 +51,14 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     it_rev=sa_intervals_rev.begin();
     it_s=sites.begin();
 
-    it_end=sa_intervals.end(); // make these constant iterators
-    it_rev_end=sa_intervals_rev.end();
-    it_s_end=sites.end();
+    //it_end=sa_intervals.end(); // make these constant iterators
+    //it_rev_end=sa_intervals_rev.end();
+    //it_s_end=sites.end();
+    init_list_size=sa_intervals.size();
+    j=0;
 
     if (pat_it!=pat_end-1) {
-      for(;it!=it_end && it_rev!=it_rev_end && it_s!=it_s_end; ++it, ++it_rev, ++it_s) {
+      while(j<init_list_size) {
 	//don't do this for first letter searched
 	res= csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
 	//might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
@@ -63,6 +66,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	for (auto z=res.begin();z!=res.end();++z) { 
 	  uint64_t i=(*z).first;
 	  uint32_t num=(*z).second;
+
 	  if (num==prev_num) ignore=true;
 	  else ignore=false;
 
@@ -112,6 +116,10 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	  }
 	  prev_num=num;  
 	}
+	  j++;
+	  ++it;
+	  ++it_rev;
+	  ++it_s;
       }
     }
     
