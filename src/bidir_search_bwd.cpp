@@ -95,20 +95,21 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	  if (it==sa_intervals.begin() && first_del==false && !ignore) {
 	    sa_intervals.push_back(std::make_pair(left_new,right_new));
 	    sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
-	    std::pair<uint32_t, std::vector<int>> sal=get_location(csa,i,num,last,allele_empty,mask_a);
-	    sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>> (1,sal));
+	    sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>> (1, get_location(csa,i,num,last,allele_empty,mask_a)));
+	    allele_empty.clear();
 	  }
 	    //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
 	    //can delete them here or in top a fcn when calculating coverages
 	  else {
 	    if (ignore) {
 	      if (num%2==0) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
-	      //else ?
+	      //else ?, assert sites.first=num
 	    }
 	    else {
 	      *it=std::make_pair(left_new,right_new);
 	      *it_rev=std::make_pair(left_rev_new,right_rev_new);
 	      (*it_s).push_back(get_location(csa,i,num,last,allele_empty,mask_a));
+	      allele_empty.clear();
 	      //++it;
 	      //++it_rev;
 	      //++it_s;
