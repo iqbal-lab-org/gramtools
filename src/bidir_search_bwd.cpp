@@ -37,6 +37,9 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
     sa_intervals_rev.push_back(std::make_pair(left_rev,right_rev));
     sites.push_back(empty_pair_vector);
   }
+
+  allele_empty.reserve(3500);
+
   int k=0;
   while (pat_it>pat_begin && !sa_intervals.empty()) {
     --pat_it;
@@ -96,7 +99,9 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	    sa_intervals.push_back(std::make_pair(left_new,right_new));
 	    sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
 	    sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>> (1, get_location(csa,i,num,last,allele_empty,mask_a)));
+	    sites.back().reserve(100);
 	    allele_empty.clear();
+	    allele_empty.reserve(3500);
 	  }
 	    //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
 	    //can delete them here or in top a fcn when calculating coverages
@@ -110,6 +115,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	      *it_rev=std::make_pair(left_rev_new,right_rev_new);
 	      (*it_s).push_back(get_location(csa,i,num,last,allele_empty,mask_a));
 	      allele_empty.clear();
+	      allele_empty.reserve(3500);
 	      //++it;
 	      //++it_rev;
 	      //++it_s;
