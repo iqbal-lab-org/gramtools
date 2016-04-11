@@ -64,6 +64,8 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
 
    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa;
    
+   cout<<"PRG size: "<<ii<<endl<<"Alphabet size: "<<l<<endl;
+
    if (fwd==false) {
      char int_al_fname_rev[50];
      strcpy(int_al_fname_rev,int_al_fname);
