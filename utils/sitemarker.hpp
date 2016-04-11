@@ -22,6 +22,7 @@ public:
   void set_these_alleles(std::vector<int> v); //to set 5th allele, do    alleles[5]=1;
   int get_num_alleles(); // this returns alleles.size();
   int get_allele_bit(uint32_t i);
+  void print_all_info();
 
 private:
   boost::dynamic_bitset<> alleles;  
@@ -43,7 +44,7 @@ public:
   //and at the same time set alleles 1,5,6 to 1 (meaning this read overlaps alleles 1,5,6:
   //note this will zero all other bits.
   SiteMarker* get_site_and_set_allele(int site_id, int allele);
-  
+  int get_num_sites();
   
 private:
   std::vector<SiteMarker*> sites;

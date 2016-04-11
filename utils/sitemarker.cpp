@@ -43,6 +43,18 @@ int SiteMarker::get_allele_bit(uint32_t i)
   return alleles[i];
 }
 
+void SiteMarker::print_all_info()
+{
+  printf("Marker, site id %d, odd-id %d:\n", site_index, int_alphabet_odd_id);
+  printf("Bits are: \n");
+  uint32_t i;
+  for (i=0; i<alleles.size(); i++)
+    {
+      printf("%d", int(alleles[i]));
+    }
+  printf("\n");
+}
+
 //pass in a file which has one column
 //the i-th row = number of alleles in i-th site.
 SiteMarkerArray::SiteMarkerArray(std::string sitefile)
@@ -52,7 +64,7 @@ SiteMarkerArray::SiteMarkerArray(std::string sitefile)
   num_sites = std::count(std::istreambuf_iterator<char>(inFile), 
 			 std::istreambuf_iterator<char>(), '\n');
   inFile.close();
-
+  printf("Found %d sites\n", num_sites);
   //collect info on how many alleles in each site from input file
   std::vector<int> num_alleles_in_each_site;
   num_alleles_in_each_site.reserve(num_sites);
@@ -62,7 +74,6 @@ SiteMarkerArray::SiteMarkerArray(std::string sitefile)
   for(std::string line; std::getline(fs, line); )
     {
       num_alleles_in_each_site.push_back(stoi(line));
-      printf("Got %d alleles for site %d\n", num_alleles_in_each_site[i], i);
       i++;
     }
   
@@ -102,6 +113,14 @@ SiteMarker* SiteMarkerArray::get_site_and_set_allele(int site_id, int allele)
   return s;
 }
 
+int SiteMarkerArray::get_num_sites()
+{
+  return num_sites;
+}
+
+
+
+
 SiteOverlapTracker::SiteOverlapTracker(SiteMarkerArray* SMA): sma(SMA)
 {
   vec.reserve(100);
@@ -119,62 +138,50 @@ void SiteOverlapTracker::clear()
 
 int main()
 {
+  // compile thus:
+  // g++ -g -O0 -std=c++11 -I /data2/apps/boost_1_60_0/ -Wall -o zam sitemarker.cpp
+
+
+
   //set up the structure that mirrors the PRG sites:
-  SiteMarkerArray* sma = new SiteMarkerArray(std::string("testmarkers"));
-  
-  SiteOverlapTracker* sot = new SiteOverlapTracker(sma);
+  SiteMarkerArray* sma = new SiteMarkerArray(std::string("test/testmarkers"));
+
+  SiteOverlapTracker* tracker = new SiteOverlapTracker(sma);
 
   //fake some data
-  sot->push(0,1);
-  sot->push(1,2);
-  sot->push(2,1);
-  sot->push(3,4);
-  sot->push(4,21);
+  tracker->push(0,1);
+  tracker->push(1,2);
+  tracker->push(2,1);
+  tracker->push(3,4);
+  tracker->push(4,21);
   
 
   //now let's take a look.
-  printf("Start with site 0 - allele bits are\n");
-  int j;
-  for (j=0; j<sot->vec[0]->get_num_alleles(); j++)
+  
+  for (SiteMarker* v : tracker->vec)
     {
-      printf("%d ", sot->vec[0]->get_allele_bit(j));
+      v->print_all_info();
     }
-  printf("\n");
+  
+  /* this is what you see 
 
-  printf("Site 1 - allele bits are\n");
+  Marker, site id 0, odd-id 5:
+  Bits are: 
+  01
+  Marker, site id 1, odd-id 7:
+  Bits are: 
+  001
+  Marker, site id 2, odd-id 9:
+  Bits are: 
+  0100
+  Marker, site id 3, odd-id 11:
+  Bits are: 
+  00001
+  Marker, site id 4, odd-id 13:
+  Bits are: 
+  000000000000000000000100000000
 
-  for (j=0; j<sot->vec[1]->get_num_alleles(); j++)
-    {
-      printf("%d ", sot->vec[1]->get_allele_bit(j));
-    }
-  printf("\n");
-
-
-  printf("Site 2 - allele bits are\n");
-  for (j=0; j<sot->vec[2]->get_num_alleles(); j++)
-    {
-      printf("%d ", sot->vec[2]->get_allele_bit(j));
-    }
-  printf("\n");
-
-
-  printf("Site 3 - allele bits are\n");
-  for (j=0; j<sot->vec[3]->get_num_alleles(); j++)
-    {
-      printf("%d ", sot->vec[3]->get_allele_bit(j));
-    }
-  printf("\n");
-
-
-
-  printf("Site 4 - allele bits are\n");
-  for (j=0; j<sot->vec[4]->get_num_alleles(); j++)
-    {
-      printf("%d ", sot->vec[4]->get_allele_bit(j));
-    }
-  printf("\n");
-
-
+  */
 
 
 
