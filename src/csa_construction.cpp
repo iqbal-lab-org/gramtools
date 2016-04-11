@@ -48,7 +48,7 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
 	       }
 	     auto al_ind=prg.substr(i-j+1,j);
 	 //uint64_t l=(uint64_t) stoull(al_ind,NULL,0);
-	     uint64_t l=stoull(al_ind,NULL,0);
+	     l=stoull(al_ind,NULL,0);
 	 //uint64_t l=boost::lexical_cast<uint64_t>(al_ind); 
 	     prg_int[ii]=l;
        }
@@ -65,7 +65,7 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
 
    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa;
    
-   cout<<"PRG size: "<<ii<<endl<<"Alphabet size: "<<unsigned(l)<<endl;
+   cout<<"PRG size: "<<ii<<endl<<"Alphabet size: "<<l<<endl;
 
    if (fwd==false) {
      char int_al_fname_rev[50];
