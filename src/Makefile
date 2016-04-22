@@ -28,7 +28,7 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include $(UTILS_INC)
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -DNDEBUG 
-EXTRAFLAGS += -O3 
+EXTRAFLAGS += -O0 
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
@@ -39,7 +39,7 @@ TESTS = unittest_bidir_search_bwd_fwd vBWT
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 SDSL_HEADERS= /home/sm0179/include/
-VBWT_HEADERS= /home/sm0179/gramtools/include/
+VBWT_HEADERS= ../include/
 #SDSL_HEADERS= /home/zam/include/
 #VBWT_HEADERS= /home/zam/dev/git/gramtools/include/
 BOOST_HEADERS= /data2/apps/boost_1_60_0/
