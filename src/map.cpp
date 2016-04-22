@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
 	timestamp();
 	cout<<"CSA construction"<<endl;
-	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(argv[1],covgs,argv[8],argv[9],argv[2],true);
+	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(argv[1],argv[8],argv[9],argv[2],true);
 	timestamp();
 
 	std::vector<std::vector<string> > site_reads(covgs.size(),std::vector<string>(1));
