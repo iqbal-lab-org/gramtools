@@ -11,7 +11,7 @@ std::pair<uint32_t, std::vector<int>> get_location(csa_wt<wt_int<bit_vector,rank
 		      uint64_t num_idx,
 		      uint32_t num, bool last,
 		      std::vector<int>& allele,
-		      std::vector<int> mask_a)
+		      std::vector<int>& mask_a)
 {
   uint32_t site;
 
