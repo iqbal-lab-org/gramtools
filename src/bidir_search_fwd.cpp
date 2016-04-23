@@ -71,7 +71,7 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
 	  right_rev_new=(*it_rev).second;
 
 	  if (num!=prev_num && num%2==1) {
-	    if (num==(*(z+1)).second) {
+	    if ( (z!= res.end()) && (z+1 != res.end()) &&  (num==(*(z+1)).second)){
 	      left_new=csa_rev.C[csa_rev.char2comp[num]]; //need to modify left_rev_new as well?
 	      right_new=left_new+2;
 	    }
