@@ -18,39 +18,19 @@ using namespace sdsl;
 //void generate_all_kmers(std::vector<uint8_t> letters, std::vector<uint8_t>& substr, int k, int n, std::vector<std::vector<uint8_t>>& kmers);
 //void get_kmers(char *kmerfile, std::vector<std::vector<uint8_t>>& kmers);
 
-void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2>& csa, int k,   
+void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> &csa, int k,   
 		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
 		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,
 		sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
-		std::vector<int>& mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>>& kmers_in_ref, char * kmerfile) 
+		std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>>& kmers_in_ref, std::vector<std::vector<uint8_t>> &kmers) 
 {
-//	std::vector<uint8_t> letters; // add N/other symbols?
-//	std::vector<std::vector<uint8_t>> kmers;
-//	std::vector<uint8_t> substr;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> temp2;		  
 	std::list<std::pair<uint64_t,uint64_t>> temp;
 	bool first_del;
 
-	ifstream kfile;
-	string line;
-	kfile.open(kmerfile);
 
-//	for (uint8_t i=1;i<=4;i++) letters.push_back(i);
-
-//	generate_all_kmers(letters, substr,k, letters.size(),kmers);
-
-//	for (std::vector<std::vector<uint8_t>>::iterator it=kmers.begin();  it!=kmers.end(); ++it) {
-	while (std::getline(kfile,line))
+    for (auto kmer: kmers)
 	{
-		std::vector<uint8_t> kmer;
-		for (auto c: line)
-			switch (c)
-			{
-				case 'A': case 'a': kmer.push_back(1);break;
-				case 'C': case 'c': kmer.push_back(2);break;
-				case 'G': case 'g': kmer.push_back(3);break;
-				case 'T': case 't': kmer.push_back(4);break;
-			}
 
 		kmer_idx[kmer]=temp;
 		kmer_idx_rev[kmer]=temp;
@@ -60,18 +40,3 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2>& csa
 		if (!first_del) kmers_in_ref.insert(kmer);
 	}
 }
-
-
-//void generate_all_kmers(std::vector<uint8_t> letters, std::vector<uint8_t>& substr, int k, int n, std::vector<std::vector<uint8_t>>& kmers)
-//{
-//  if (k==1) {
-//    for (int j = 0; j < n; j++)
-//      substr.push_back(letters[j]);
-//      kmers.push_back(substr);
-//  }
-//  else {
-//    for (int jj = 0; jj < n; jj++)
-//      substr.push_back(letters[jj]);
-//      generate_all_kmers(letters, substr, k-1, n,kmers);
-//  }
-//}
