@@ -7,6 +7,7 @@
 #include <vector>  
 #include "bwt_search.h"
 #include <seqread.hpp>
+#include "precalc_gen.hpp"
 
 using namespace std;  
 using namespace sdsl;
@@ -56,7 +57,9 @@ int main(int argc, char* argv[]) {
 	bool first_del=false;
 
 	int k=atoi(argv[10]); //verify input
-	precalc_kmer_matches(csa,k,kmer_idx,kmer_idx_rev,kmer_sites,mask_a,maxx,kmers_in_ref,argv[11]);
+	get_precalc_kmers(csa,kmer_idx,kmer_idx_rev,kmer_sites,kmers_in_ref,mask_a,argv[11],maxx,k);
+
+	//precalc_kmer_matches(csa,k,kmer_idx,kmer_idx_rev,kmer_sites,mask_a,maxx,kmers_in_ref,argv[11]);
 	timestamp();
 
 	std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
