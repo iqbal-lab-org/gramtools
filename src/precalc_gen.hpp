@@ -183,11 +183,11 @@ void gen_precalc_kmers(
 }
 
 void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>, 
-				std::list<std::pair<uint64_t,uint64_t>>> &kmer_idx, 
-				sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>> &kmer_idx_rev, 
-				sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, 
-				std::vector<int>>>>> &kmer_sites,
-				sequence_set<std::vector<uint8_t>>&kmers_in_ref
+			std::list<std::pair<uint64_t,uint64_t>>> &kmer_idx, 
+			sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>> &kmer_idx_rev, 
+			sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, 
+			std::vector<int>>>>> &kmer_sites,
+			sequence_set<std::vector<uint8_t>>&kmers_in_ref
 	)
 {
 	std::ifstream kfile;
@@ -210,32 +210,44 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 		std::vector<std::string> idx_rev_str=split(parts[3]," ");
 		for (int i=0;i<idx_str.size()/2;i++) idx.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_str[i*2]),std::stoi(idx_str[i*2+1])));
 		for (int i=0;i<idx_rev_str.size()/2;i++) idx_rev.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_rev_str[i*2]),std::stoi(idx_rev_str[i*2+1])));
-		kmer_idx[kmer]=idx;
-		kmer_idx_rev[kmer]=idx_rev;
 
+		int flag=0;
+		if (! idx.empty())
+		  {
+		    kmer_idx[kmer]=idx;
+		    flag=1;
+		  }
+		if (! idx_rev.empty() )
+		  {
+		    kmer_idx_rev[kmer]=idx_rev;
+		  }
 		// 3 1 1 3 1 1 1 1 4 | 1809810 1809950 2244456 2244457 2244471 2244472 |2278258 2278407 3409934 3409934 3410007 3410009 ||9 @9 1 @7 @7 1 @5 @5 1 @|53 4 @51 @|
 
-		for (int i=4;i<parts.size();i++)
-		{
+		if (flag==1)
+		  {
+		    for (int i=4;i<parts.size();i++)
+		      {
 			std::vector<std::pair<uint32_t, std::vector<int>>> v;
 			for (auto pair_i_v: split(parts[i],"@")){
-				std::vector<std::string> strvec=split(pair_i_v," ");
-				if (strvec.size())
-				{
-					int first=std::stoi(strvec[0]);
-
-					std::vector<int> rest;
-					for (int i=1;i<strvec.size();i++)
-						if (strvec[i].size())
-							rest.push_back(std::stoi(strvec[i]));
-
-					v.push_back(std::pair<uint32_t, std::vector<int>>(first,rest));
-				}
+			  std::vector<std::string> strvec=split(pair_i_v," ");
+			  if (strvec.size())
+			    {
+			      int first=std::stoi(strvec[0]);
+			      
+			      std::vector<int> rest;
+			      for (int i=1;i<strvec.size();i++)
+				if (strvec[i].size())
+				  rest.push_back(std::stoi(strvec[i]));
+			      
+			      v.push_back(std::pair<uint32_t, std::vector<int>>(first,rest));
+			    }
 			}
 			sites.push_back(v);
-		}
-		kmer_sites[kmer]=sites;
+		      }
+		    kmer_sites[kmer]=sites;
+		  }
 	}
+
 
 //		for (auto items : kmer_idx)
 //		{
@@ -281,8 +293,7 @@ void get_precalc_kmers(
 		std::vector<int> &mask_a,
 		char *kmer_fname,
 		uint64_t maxx,
-		int k
-)
+		int k)
 {
 	if (!fexists(std::string(kmer_fname)+".precalc"))
 	{
