@@ -139,6 +139,7 @@ void gen_precalc_kmers(
 		td[i].kmers_in_ref=&kmers_in_ref[i];
 		td[i].kmers=&kmers[i];
 		pthread_create(&threads[i], NULL, worker, &td[i] );
+       // worker(&td[i]);
 	}
 
 	std::ofstream precalc_file;
@@ -149,6 +150,7 @@ void gen_precalc_kmers(
 		pthread_join(threads[i],&status);
 		for (auto k: kmers[i])
 		{
+			if (kmer_idx[i][k].size()==0) continue;
 			for (auto n: k) precalc_file<<(int) n << ' ';
 			precalc_file << '|';
 
