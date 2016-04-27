@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  26 APR 2016 14:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  27 APR 2016 02:16
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -177,11 +177,7 @@ Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
 (/usr/local/texlive/2015/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip10
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
-) (./wabi-draft.aux
-
-LaTeX Warning: Label `fig:example' multiply defined.
-
-)
+) (./wabi-draft.aux)
 \openout1 = `wabi-draft.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 32.
@@ -196,7 +192,8 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 32.
 LaTeX Font Info:    ... okay on input line 32.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 32.
 LaTeX Font Info:    ... okay on input line 32.
- (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
+
+(/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count117
 \scratchdimen=\dimen127
@@ -297,60 +294,35 @@ File: linPRG.png Graphic file (type png)
  <use linPRG.png>
 Package pdftex.def Info: linPRG.png used on input line 138.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
- [6 <./linPRG.png>] [7]
-Package epstopdf Info: Source file: <eijkel2.eps>
-(epstopdf)                    date: 2016-04-26 13:30:44
-(epstopdf)                    size: 13532 bytes
-(epstopdf)             Output file: <eijkel2-eps-converted-to.pdf>
-(epstopdf)                    date: 2016-04-26 13:30:44
-(epstopdf)                    size: 8521 bytes
-(epstopdf)             Command: <repstopdf --outfile=eijkel2-eps-converted-to.p
-df eijkel2.eps>
-(epstopdf)             \includegraphics on input line 203.
-Package epstopdf Info: Output file is already uptodate.
- <eijkel2-eps-converted-to.pdf, id=41, 491.8375pt x 399.4925pt>
-File: eijkel2-eps-converted-to.pdf Graphic file (type pdf)
-
-<use eijkel2-eps-converted-to.pdf>
-Package pdftex.def Info: eijkel2-eps-converted-to.pdf used on input line 203.
-(pdftex.def)             Requested size: 217.18216pt x 176.407pt.
- [8] [9 <./eijkel2-eps-converted-to.pdf>]
-[10] [11] [12] (./wabi-draft.aux)
-
-LaTeX Warning: There were multiply-defined labels.
-
- ) 
+ [6 <./linPRG.png>] [7] [8] [9] [10] [11] (./wabi-draft.aux) ) 
 Here is how much of TeX's memory you used:
- 2329 strings out of 493089
- 31284 string characters out of 6134842
- 98902 words of memory out of 5000000
- 5767 multiletter control sequences out of 15000+600000
- 12540 words of font info for 49 fonts, out of 8000000 for 9000
+ 2311 strings out of 493089
+ 31079 string characters out of 6134842
+ 98854 words of memory out of 5000000
+ 5763 multiletter control sequences out of 15000+600000
+ 12194 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,9n,26p,1833b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
-></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></u
-sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></us
-r/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/
-local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/lo
-cal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/loca
-l/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/
-texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/tex
-live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texliv
-e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2
-015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/20
-15/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/2015/texmf
--dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (12 pages, 396050 bytes).
+ 37i,8n,26p,1833b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texli
+ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texliv
+e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive
+/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2
+015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/20
+15/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2015/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2015/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dist/font
+s/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/2015/texmf-dist/fonts/
+type1/public/amsfonts/symbols/msam10.pfb>
+Output written on wabi-draft.pdf (11 pages, 344256 bytes).
 PDF statistics:
- 130 PDF objects out of 1000 (max. 8388607)
- 91 compressed objects within 1 object stream
+ 104 PDF objects out of 1000 (max. 8388607)
+ 72 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

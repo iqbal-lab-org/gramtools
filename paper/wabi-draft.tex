@@ -154,128 +154,41 @@ If the variation marker found is an even number, the read is about to cross an a
 
 Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2.
 
-\subsubsection{Headings.}
+\section{Performance}
+\subsection{Construction cost : the human genome}
+One natural test of scalability of this data structure is to see how expensive it is to construct a PRG of the human genome. For comparison, GCSA took over 1Tb of RAM for the reference plus an intermediate release of 1000 genomes SNPs. GCSA2 reduces the memory footprint to 96Gb RAM at the cost of over 1Tb of I/O. 
 
-Headings should be capitalized
-(i.e., nouns, verbs, and all other words
-except articles, prepositions, and conjunctions should be set with an
-initial capital) and should,
-with the exception of the title, be aligned to the left.
-Words joined by a hyphen are subject to a special rule. If the first
-word can stand alone, the second word should be capitalized.
+We therefore constructed four different PRGs from the human reference genome (GRC37 without ``alt" contigs) plus the 1000 genomes final VCF [Auton], as described below. We first  excluded structural variants which did not have precisely specified alleles, and variants with allele frequency below a threshold $f$. If two variants occurred at consecutive bases, they were merged into one, and all possible haplotypes enumerated. If the VCF contained two consecutive records which overlapped, the second was discarded. Using values 0, 0.001, 0.01 and 0.05 for $f$, we produced four PRGs. As can be seen from this table, the construction costs are reasonable, especially compared with GCSA.
 
-Here are some examples of headings: ``Criteria to Disprove
-Context-Freeness of Collage Language", ``On Correcting the Intrusion of
-Tracing Non-deterministic Programs by Software", ``A User-Friendly and
-Extendable Data Distribution System", ``Multi-flip Networks:
-Parallelizing GenSAT", ``Self-determinations of Man".
-
-\subsection{Figures}
-
-For \LaTeX\ users, we recommend using the \emph{graphics} or \emph{graphicx}
-package and the \verb+\includegraphics+ command.
-
-Please check that the lines in line drawings are not
-interrupted and are of a constant width. Grids and details within the
-figures must be clearly legible and may not be written one on top of
-the other. Line drawings should have a resolution of at least 800 dpi
-(preferably 1200 dpi). The lettering in figures should have a height of
-2~mm (10-point type). Figures should be numbered and should have a
-caption which should always be positioned \emph{under} the figures, in
-contrast to the caption belonging to a table, which should always appear
-\emph{above} the table; this is simply achieved as matter of sequence in
-your source.
-
-Please center the figures or your tabular material by using the \verb+\centering+
-declaration. Short captions are centered by default between the margins
-and typeset in 9-point type (Fig.~\ref{fig:example} shows an example).
-The distance between text and figure is preset to be about 8~mm, the
-distance between figure and caption about 6~mm.
-
-To ensure that the reproduction of your illustrations is of a reasonable
-quality, we advise against the use of shading. The contrast should be as
-pronounced as possible.
-
-If screenshots are necessary, please make sure that you are happy with
-the print quality before you send the files.
-\begin{figure}
+\begin{table}
+\caption{Human genome index construction costs. MemFM refers to peak memory use by vBWT and associated structures, and MemNaive refers to our simple C++ std::vectors used to make two integer ``masks", giving the site/allele at each position in the PRG} 
 \centering
-\includegraphics[height=6.2cm]{eijkel2}
-\caption{One kernel at $x_s$ (\emph{dotted kernel}) or two kernels at
-$x_i$ and $x_j$ (\textit{left and right}) lead to the same summed estimate
-at $x_s$. This shows a figure consisting of different types of
-lines. Elements of the figure described in the caption should be set in
-italics, in parentheses, as shown in this sample caption.}
-\label{fig:example}
-\end{figure}
+\begin{tabular}{c c c c c c}
+\hline
+Software & Data & NumVars(mill) & MemFM(Gb) & MemNaive(Gb) & Time/hrs \\
+\hline
+vBWT & f$>$0.05  & 8.2 &15 &  30 & 5 \\
+vBWT & f$>$0.01  & 13.8  & ? & ? & ? \\
+vBWT & f$>$0.001& 28.8 & ? & ? & ? \\
+vBWT & f$>$0l    & 79.2 & 11 & ? & 1.3 \\
+Bwbble & f$>$0.05 & 8.2 & 60 & - & 1.1 \\ 
+\end{tabular}
+\end{table}
 
-Please define figures (and tables) as floating objects. Please avoid
-using optional location parameters like ``\verb+[h]+" for ``here".
+\subsection{Inferring a Closer Reference Genome}
+P. falciparum is a haploid parasite that causes malaria. The genome is repetitive, and unlike most studied species, the genome contains more indels than SNPs. There are several regions that present challenges to mapping, not due to repeats, but because samples often diverge strongly from the reference, For example, for many samples, no reads map to the central region  of the merozoite surface protein gene MSP3.4, and a ``pileup" of mapped reads simply shows a hole (see Figure ?). The architecture of the gene is as follows: around ? bases where there are ? clustered SNPS, around 500 bases where recombination is not known to occur, and there are only two highly diverged lineages which differ by about 3 SNPs every 10 bases, followed finally by reasonably spaced SNPs and indels. We chose this as a good candidate to display the value of PRGs. We therefore constructed a catalog of variation from Cortex [] and GATK [] variant calls from 700 P. falciparum samples from the Ghana, Laos and Cambodia. We aligned Illumina (how long?) reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search, and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method as outlined by [Valenzuela] to choose the path through the graph which best supported the data. We then mapped the reads (using bwa\_mem) to the inferred genome. As can be seen in Figure ?,  this gives dramatically better results. For haploid species, this is the most natural use of a PRG - find the closest reference and then map to it. 
+
+
+\section{Discussion}
+New methods for representing and querying ``pan-genomes" are of great interest to a variety of biological communities. In human genetics the Global Alliance for Genomics and Health is trying to develop a new approach that would obviate the need forchanging coordinates with every new "reference genome version", and would allow better access to medically important regions such as MHC and KIR. In pathogen genomics, levels of diversity are much higher than in humans, and graph complexity is therefore different to that in humans,
+
+Dilthey et al outlined a general approach for diploids and provided a  proof-of-concept implementation for the MHC only. First "pre-map" reads to the graph, storing enough information to run an HMM and infer the most likely genotypes (at the PRG sites) to have generated the data (i.e.. this set of reads). Second, if possible, phase the variants. Third, full mapping and alignment to the graph to discover novel variants. There are a number of challenges in scaling this up - the size of the human genome, regions of structural divergence or of clustered variation. By extending the alphabet, we are able to ensure that alternate alleles sort together in the BWT matrix, allowing mapping across sites and recombination. Our memory footprint is very modest even for the human genome and 80 million variants (11Gb RAM for the vBWT and 30Gb RAM for naive arrays for site/allele masks), and could drop further by replacing the mask  arrays with succinct ones. The major concern with extending to an alphabet of millions of characters is the impact on performance,  even with the benefit of the wavelet tree, which reduces rank operation complexity from O(n) to O(log(n)). Although we have not yet implemented inexact matching, we can get a ballpark estimate from measuring the speed of exact-matching.
+
+\subsubsection{Software}
+We have implemented the vBWT twice. First as a simple prototype, which provided the results on P.falciparum above. Secondly  a more careful implementation that provided all other results, and which is available here: http://github.com/iqbal-lab/gramtools. We make the prototype available here purely for sake of reproducibility <...>, but recommend users use the new implementation.
 
 
 
-\subsection{Formulas}
-
-Displayed equations or formulas are centered and set on a separate
-line (with an extra line or halfline space above and below). Displayed
-expressions should be numbered for reference. The numbers should be
-consecutive within each section or within the contribution,
-with numbers enclosed in parentheses and set on the right margin --
-which is the default if you use the \emph{equation} environment, e.g.,
-\begin{equation}
-  \psi (u) = \int_{o}^{T} \left[\frac{1}{2}
-  \left(\Lambda_{o}^{-1} u,u\right) + N^{\ast} (-u)\right] dt \;  .
-\end{equation}
-
-Equations should be punctuated in the same way as ordinary
-text but with a small space before the end punctuation mark.
-
-\subsection{Footnotes}
-
-The superscript numeral used to refer to a footnote appears in the text
-either directly after the word to be discussed or -- in relation to a
-phrase or a sentence -- following the punctuation sign (comma,
-semicolon, or period). Footnotes should appear at the bottom of
-the
-normal text area, with a line of about 2~cm set
-immediately above them.\footnote{The footnote numeral is set flush left
-and the text follows with the usual word spacing.}
-
-\subsection{Program Code}
-
-Program listings or program commands in the text are normally set in
-typewriter font, e.g., CMTT10 or Courier.
-
-\medskip
-
-\noindent
-{\it Example of a Computer Program}
-\begin{verbatim}
-program Inflation (Output)
-  {Assuming annual inflation rates of 7%, 8%, and 10%,...
-   years};
-   const
-     MaxYears = 10;
-   var
-     Year: 0..MaxYears;
-     Factor1, Factor2, Factor3: Real;
-   begin
-     Year := 0;
-     Factor1 := 1.0; Factor2 := 1.0; Factor3 := 1.0;
-     WriteLn('Year  7% 8% 10%'); WriteLn;
-     repeat
-       Year := Year + 1;
-       Factor1 := Factor1 * 1.07;
-       Factor2 := Factor2 * 1.08;
-       Factor3 := Factor3 * 1.10;
-       WriteLn(Year:5,Factor1:7:3,Factor2:7:3,Factor3:7:3)
-     until Year = MaxYears
-end.
-\end{verbatim}
-%
-\noindent
-{\small (Example from Jensen K., Wirth N. (1991) Pascal user manual and
-report. Springer, New York)}
 
 \subsection{Citations}
 
@@ -290,15 +203,6 @@ There is no need to include page numbers. If your paper title is too
 long to serve as a running head, it will be shortened. Your suggestion
 as to how to shorten it would be most welcome.
 
-\section{LNCS Online}
-
-The online version of the volume will be available in LNCS Online.
-Members of institutes subscribing to the Lecture Notes in Computer
-Science series have access to all the pdfs of all the online
-publications. Non-subscribers can only read as far as the abstracts. If
-they try to go beyond this point, they are automatically asked, whether
-they would like to order the pdf, and are given instructions as to how
-to do so.
 
 Please note that, if your email address is given in your paper,
 it will also be included in the meta data of the online version.
@@ -310,27 +214,9 @@ volumes can be found at the following Website shortly after the
 publication of the book:
 \url{http://www.informatik.uni-trier.de/~ley/db/journals/lncs.html}
 
-\subsubsection*{Acknowledgments.} The heading should be treated as a
-subsubsection heading and should not be assigned a number.
+\subsubsection*{Acknowledgments.} We would like to thank Jerome Kelleher, Heng Li, Jouni Siren for discussions. Above all we would like to thank Simon Gog and the SDSL developers for providing a valuable and well-maintained resource. <FUNDING>
 
-\section{The References Section}\label{references}
 
-In order to permit cross referencing within LNCS-Online, and eventually
-between different publishers and their online databases, LNCS will,
-from now on, be standardizing the format of the references. This new
-feature will increase the visibility of publications and facilitate
-academic research considerably. Please base your references on the
-examples below. References that don't adhere to this style will be
-reformatted by Springer. You should therefore check your references
-thoroughly when you receive the final pdf of your paper.
-The reference section must be complete. You may not omit references.
-Instructions as to where to find a fuller version of the references are
-not permissible.
-
-We only accept references written using the latin alphabet. If the title
-of the book you are referring to is in Russian or Chinese, then please write
-(in Russian) or (in Chinese) at the end of the transcript or translation
-of the title.
 
 The following section shows a sample reference list with entries for
 journal articles \cite{jour}, an LNCS chapter \cite{lncschap}, a book
@@ -365,15 +251,6 @@ Integration. Technical report, Global Grid Forum (2002)
 
 \end{thebibliography}
 
-
-\section*{Appendix: Springer-Author Discount}
-
-LNCS authors are entitled to a 33.3\% discount off all Springer
-publications. Before placing an order, the author should send an email, 
-giving full details of his or her Springer publication,
-to \url{orders-HD-individuals@springer.com} to obtain a so-called token. This token is a
-number, which must be entered when placing an order via the Internet, in
-order to obtain the discount.
 
 \section{Checklist of Items to be Sent to Volume Editors}
 Here is a checklist of everything the volume editor requires from you:
