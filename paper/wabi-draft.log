@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  27 APR 2016 02:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  27 APR 2016 12:32
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -276,9 +276,7 @@ Overfull \hbox (3.19661pt too wide) in paragraph at lines 84--85
 Underfull \vbox (badness 5105) has occurred while \output is active []
 
  [2]
-Underfull \vbox (badness 1496) has occurred while \output is active []
-
- [3]
+[3]
 Underfull \hbox (badness 10000) in paragraph at lines 98--100
 
  []
@@ -294,32 +292,44 @@ File: linPRG.png Graphic file (type png)
  <use linPRG.png>
 Package pdftex.def Info: linPRG.png used on input line 138.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
- [6 <./linPRG.png>] [7] [8] [9] [10] [11] (./wabi-draft.aux) ) 
+ [6 <./linPRG.png>] [7] [8] [9]
+Underfull \hbox (badness 1406) in paragraph at lines 212--213
+[]\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
+m-pres-sion al-
+ []
+
+
+Underfull \hbox (badness 2158) in paragraph at lines 212--213
+\OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
+994. Avail-able:
+ []
+
+[10] [11] (./wabi-draft.aux) ) 
 Here is how much of TeX's memory you used:
- 2311 strings out of 493089
- 31079 string characters out of 6134842
- 98854 words of memory out of 5000000
- 5763 multiletter control sequences out of 15000+600000
- 12194 words of font info for 48 fonts, out of 8000000 for 9000
+ 2323 strings out of 493089
+ 31167 string characters out of 6134842
+ 98899 words of memory out of 5000000
+ 5775 multiletter control sequences out of 15000+600000
+ 12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,8n,26p,1833b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texli
-ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texliv
-e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive
-/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2
-015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/20
-15/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2015/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2015/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2015/texmf-dist/font
-s/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/2015/texmf-dist/fonts/
-type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (11 pages, 344256 bytes).
+ 37i,8n,26p,1861b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2015/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmmi9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmsy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+ti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
+i9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9
+.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/ms
+am10.pfb>
+Output written on wabi-draft.pdf (11 pages, 338851 bytes).
 PDF statistics:
  104 PDF objects out of 1000 (max. 8388607)
  72 compressed objects within 1 object stream
