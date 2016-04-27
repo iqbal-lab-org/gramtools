@@ -123,12 +123,12 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 						}
 					}
 					prev_num=num;  
-				}
+					}
 				j++;
 				++it;
 				++it_rev;
 				++it_s;
-			}
+				}
 		}
 
 		assert(sa_intervals.size()==sa_intervals_rev.size());

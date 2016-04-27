@@ -37,6 +37,16 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> &csa
 		kmer_sites[kmer]=temp2;
 		first_del=false;
 		std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),(kmer).begin(),(kmer).end(),kmer_idx[kmer],kmer_idx_rev[kmer],kmer_sites[kmer],mask_a,maxx,first_del);
+		if  ((kmer_idx[kmer]).empty())
+		  {
+		    kmer_idx.erase(kmer);
+		  }
+		if  ((kmer_idx_rev[kmer]).empty())
+		  {
+		    kmer_idx_rev.erase(kmer);
+		  }
+		
 		if (!first_del) kmers_in_ref.insert(kmer);
+		
 	}
 }

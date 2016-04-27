@@ -13,7 +13,6 @@ using namespace std;
 //make SA sampling density and ISA sampling density customizable
 
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
-   std::vector<std::vector<int>>& covgs, 
    char* int_al_fname, 
    char* memory_log_fname,
    char* csa_file,

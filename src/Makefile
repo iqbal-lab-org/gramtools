@@ -27,8 +27,8 @@ UTILS_INC=-I../utils -I /data2/apps/htslib -I /data2/apps
 CPPFLAGS += -isystem $(GTEST_DIR)/include $(UTILS_INC)
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -DNDEBUG 
-EXTRAFLAGS += -O3 
+CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread 
+EXTRAFLAGS += -O0 
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.

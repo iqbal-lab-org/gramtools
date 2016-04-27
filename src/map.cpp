@@ -42,12 +42,13 @@ int main(int argc, char* argv[]) {
 	sequence_set<std::vector<uint8_t>> kmers_in_ref;
 
 	//not using mask_s anymore?
-	uint64_t maxx=parse_masks(mask_s,mask_a,argv[4],argv[5],covgs);
 
 	timestamp();
 	cout<<"CSA construction"<<endl;
-	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(argv[1],covgs,argv[8],argv[9],argv[2],true);
+	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(argv[1],argv[8],argv[9],argv[2],true);
 	timestamp();
+
+	uint64_t maxx=parse_masks(mask_s,mask_a,argv[4],argv[5],covgs);
 
 	std::vector<std::vector<string> > site_reads(covgs.size(),std::vector<string>(1));
 	int no_reads=0;

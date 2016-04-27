@@ -407,7 +407,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 
 TEST(BackwardSearchTest, One_match_many_sites){
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
@@ -435,7 +435,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_rev=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_rev=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,16,first_del);  
 
