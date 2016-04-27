@@ -6,48 +6,48 @@ import sys
 import  random
 
 class Chain:
-        '''Chain of Variantblocks, container  class, contains all genome split into VBlocks, like a linked list'''
+	'''Chain of Variantblocks, container  class, contains all genome split into VBlocks, like a linked list'''
 	def __init__(self):
 		self.blcks={}          # Map to address each block by id (id are odd numbers)
 		self.firstBlock=None   # Pointer to first block
 		self.lastBlock=None    # Pointer to last block
 
 	def addVariantBlock(self,b):   # Adding  a block to the linked list
-	    if not self.firstBlock:
-		self.firstBlock=self.lastBlock=b
-	    else:
-		self.lastBlock.next=b
-		b.prev=self.lastBlock
-		self.lastBlock=b
+		if not self.firstBlock:
+			self.firstBlock=self.lastBlock=b
+		else:
+			self.lastBlock.next=b
+			b.prev=self.lastBlock
+			self.lastBlock=b
 
-	    if b.bid!=0:
-		self.blcks[b.bid]=b
+		if b.bid!=0:
+			self.blcks[b.bid]=b
 
 	def __getitem__(self,bid):       # Getting a Vblock by id
-	    return self.blcks[bid]
+		return self.blcks[bid]
 
 	def __iter__(self):             # Iterating over all blocks
-	    a=self.firstBlock
-	    while a:
-		yield a
+		a=self.firstBlock
+		while a:
+			yield a
 		a=a.next
 
 	def blocksAtKDistance(self,bl,k):  
-            '''given a distance (k:kmer-length) which is the further block in each direction from a given block?
-               this method answers that question'''
-	    first=bl
-	    dist=k-1
-	    while dist>0 and first.prev:
-		first=first.prev
-		dist-=len(first)
+		'''given a distance (k:kmer-length) which is the further block in each direction from a given block?
+			this method answers that question'''
+		first=bl
+		dist=k-1
+		while dist>0 and first.prev:
+			first=first.prev
+			dist-=len(first)
 
-	    last=bl
-	    dist=k-1
-	    while dist>0 and last.next:
-		last=last.next
-		dist-=len(last)
+		last=bl
+		dist=k-1
+		while dist>0 and last.next:
+			last=last.next
+			dist-=len(last)
 
-	    return first,last
+		return first,last
 
 	def stringsForVariant(self,bid,k): 
             '''Given a block, and the two farther blocks in each direction, computes all possible strings in volving variants
@@ -227,7 +227,8 @@ if __name__=="__main__":
             for i in xrange(options.nreads):
                 posic=random.randint(0,len(rgen)-150)
                 if random.randint(0,1):
-                    a.write("@{0}\n{1}\n+\n{2}\n".format(i,str(Seq.Seq(rgen[posic:posic+150]).reverse_complement()),'H'*150))
+                    #a.write("@{0}\n{1}\n+\n{2}\n".format(i,str(Seq.Seq(rgen[posic:posic+150]).reverse_complement()),'H'*150))
+                    a.write("@{0}\n{1}\n+\n{2}\n".format(i,rgen[posic:posic+150],'H'*150))
                 else:
                     a.write("@{0}\n{1}\n+\n{2}\n".format(i,rgen[posic:posic+150],'H'*150))
 
