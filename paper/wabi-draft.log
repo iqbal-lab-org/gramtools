@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  28 APR 2016 10:10
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  28 APR 2016 10:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -303,13 +303,13 @@ ence genome (GRC37
  []
 
 [8] [9]
-Underfull \hbox (badness 1406) in paragraph at lines 223--224
+Underfull \hbox (badness 1406) in paragraph at lines 219--220
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 223--224
+Underfull \hbox (badness 2158) in paragraph at lines 219--220
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
@@ -339,7 +339,7 @@ ti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
 i9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9
 .pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/ms
 am10.pfb>
-Output written on wabi-draft.pdf (11 pages, 346494 bytes).
+Output written on wabi-draft.pdf (11 pages, 346426 bytes).
 PDF statistics:
  104 PDF objects out of 1000 (max. 8388607)
  72 compressed objects within 1 object stream
