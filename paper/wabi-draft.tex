@@ -129,7 +129,7 @@ We propose a linear PRG conceptually equivalent to a directed, acyclic, partial 
 \item Second, for any locus between two anchor regions, the set of possible haplotypes must be determined from the input genomes, but they do not need to be aligned. Indels are naturally supported by haplotypes of different lengths.
 \item Each variation locus is assigned two unique numeric identifiers, one even and one odd. The odd identifiers will mark locus boundaries and the even identifiers will mark alternative allele boundaries.
 \item For each variation locus, its left anchor is added to the linear PRG, followed by its odd identifier. Then each sequence coming from that locus, starting with the reference sequence, is successively added to the linear PRG, followed by the even locus identifier, except the last sequence, which is followed by the odd identifier.
-\item Convert the linear PRG to integer alphabet (A->1,C->2,G->3,T->4, variation locus identifiers->5,6,...)
+\item Convert the linear PRG to integer alphabet ($A\rightarrow 1$, $C\rightarrow2$, $G\rightarrow3$, $T\rightarrow4$, variation locus identifiers $\rightarrow$ 5,6,...)
 \item The FM-index (suffix array, BWT, wavelet tree over BWT) of the linear PRG is constructed and we will call this the vBWT.
 \end{enumerate}
 
@@ -138,8 +138,8 @@ An illustration of these steps on a toy example is given in Figure.
 \begin{figure}
 \centering
 \includegraphics[height=1.5cm]{linPRG}
-\caption{Bla}
-\label{fig:example}
+\caption{A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. This example will be used in subsequent figures.}
+\label{lab}
 \end{figure}
 
 
@@ -147,8 +147,15 @@ This vBWT construction allows variation-aware mapping through a modified backwar
 
 The linear PRG preserves information about the variant locations, so its coordinates can be projected back onto the primary reference sequence, enabling the integration with functional annotations and standard file formats. A path through the linear PRG is a string obtained by traversing the linear PRG and concatenating the non-variable segments with one sequence from each site that contains variation. If the first sequence is chosen from all variation sites, then the standard reference genome is obtained. For a haploid organism, selecting the best supported allele at each site produces the reference genome that is as close as possible to the sample, which can then be used with usual software for downstream variant calling analysis. For diploids and mixtures, not covered in this paper, our goal is to use the linear PRG mapping to genotype each of the variation sites, then use the link information from reads spanning multiple sites to phase adjacent variants and, infer a set of haplotypes that best explain the data (as in \cite{dilthey1}), and finally only do full graph alignment to the graph of these haplotypes. <Zam comment - we may have said this many times overall in the text>. 
 
-\section{Exact mapping}
-In this section, we present a modified backward search algorithm for exact matching against the vBWT that is aware of alteternative sequence paths. When reads align to the non-variable part of of the linear PRG or when a variant locus is long enough to enclose the entire read, the usual backward search algorithm can be used. Otherwise, when the read must cross variation site junctions in order to align, site identifiers and some alternative alleles must be ignored by the search. This means a read can align to multiple substrings of the linear PRG that may not be adjacent in the BWM, so the search can return multiple SA-intervals. This is illustrated in figure. 
+\section{Variation aware backward search in vBWT}
+In this section, we present a modified backward search algorithm for exact matching against the vBWT that is aware of alteternative sequence paths. When reads align to the non-variable part of of the linear PRG or when a variant locus is long enough to enclose the entire read, the usual backward search algorithm can be used. Otherwise, when the read must cross variation site junctions in order to align, site identifiers and some alternative alleles must be ignored by the search. This means a read can align to multiple substrings of the linear PRG that may not be adjacent in the BWM, so the search can return multiple SA-intervals. This is illustrated in figure 2.
+
+\begin{figure}
+\centering
+\includegraphics[height=7cm]{BWT.pdf}
+\caption{Backward search across vBWT.  We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}
+\label{fig:example}
+\end{figure}
 
 At each step in backward search, before extending to the next character, we need to check whether the current matched read substring is preceded by a variation marker anywhere in the linear PRG. A scan for symbols larger than 4 must be performed in the BWT within the range given by the current SA-interval (need to explain range search 2d in a wavelet tree). If a variation marker is found and it is an odd number, the read is about cross a site boundary, i.e. is about to walk in or walk out of a site. The suffix array can be queried to find the position of the two odd numbers in the liner PRG: the number occurring at a smaller position will mark the beginning of site and the other one will mark the end of site. If the search cursor is next to the start of the site, it is just the site marker that needs to be skipped so the SA-interval (size 1) of the suffix starting with that marker needs to be added to the set of intervals that will be extended with the next character in the read. If the search cursor is next to the end of a site, all alternative alleles from that site need to be queried. Their ends are sorted together in the BWM because of the markers, so they can be queried concurrently by adding the SA-interval of suffixes starting with all numbers marking that site (even and odd). 
 
@@ -181,7 +188,42 @@ Bwbble & f$>$0 & 81 & 70 & 1.75 \\
 
 
 \subsection{Inferring a Closer Reference Genome}
-\textit{P. falciparum} is a haploid parasite that undergoes recombination when inside a mosquito. It has an unusually  repetitive genome that contains more indels than SNPs \cite{miles}. There are several regions that present challenges to mapping because samples often diverge strongly from the reference. For example, the merozoite surface protein gene MSP3.4 is known to have two highly diverged lineages at a 500bp region (the DBL domain), which differ by around 1 SNP every 3 bases. Thus for many samples a ``pileup" of mapped reads simply shows a hole (see Figure ?). We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from the Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We aligned Illumina (how long?) reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method similar to that outlined by Valenzuela et al \cite{valen} to choose the path through the graph which best supported the data. This was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) to the inferred genome. As can be seen in Figure ?,  this gives dramatically better results.
+\textit{P. falciparum} is a haploid parasite that undergoes recombination when inside a mosquito. It has an unusually  repetitive genome that contains more indels than SNPs \cite{miles}. There are several regions that present challenges to mapping because samples often diverge strongly from the reference. For example, the merozoite surface protein gene MSP3.4 is known to have two highly diverged lineages at a 500bp region (the DBL domain), which differ by around 1 SNP every 3 bases.
+
+
+\begin{figure}
+\centering
+\includegraphics[height=4cm]{PRG.png}
+\caption{Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate}
+\label{fig:example}
+\end{figure}
+
+
+Thus for many samples a ``pileup" of mapped reads simply shows a hole (see Figure ?). 
+
+
+\begin{figure}
+\centering
+\includegraphics[height=4cm]{7G8_to_3D7_pileup.png}
+\caption{Mapping reads from sample 7G8 to \textit{P. falciparum} 3D7 reference genome results in a gap}
+\label{fig:example}
+\end{figure}
+
+
+
+We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from the Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We aligned Illumina (how long?) reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method similar to that outlined by Valenzuela et al \cite{valen} to choose the path through the graph which best supported the data. This was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) to the inferred genome. As can be seen in Figure ?,  this gives dramatically better results.
+
+
+
+\begin{figure}
+\centering
+\includegraphics[height=4cm]{7G8_to_inf_ref_pileup.png}
+\caption{Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}
+\label{fig:example}
+\end{figure}
+
+
+
 
 \subsection{Performance cost of large alphabet}
 We chose this encoding because it provided a natural way to distinguish mapping uncertainty due to distant repeats, and that due to similar alleles, as well as naturally allowing mapping across multiple variants. However in doing so we need to work with an alphabet of size $4+2n$ where $n$ is the number of variant sites. The intention is that we only need to incorporate enough variation to ensure that, with high probability, a read will differ from the graph by at most one isolated SNP - in fact most of the value will come from incorporating the more divergent and structural changes. Thus for the human genome we expect only to need to incorporate variants with frequency $>5\%$, resulting in an alphabet of size 16,397,638. Since rank operations over a wavelet tree scale with log(alphabet size), this is $log_2(16397638/4)=22$ times slower than for a standard FM index over the DNA alphabet.  To get an estimate of how this impacts performance in practise, we measure speed of exact matching of simulated perfect reads from Pf chromosome 10 with the MSP3.4 variation inserted. To avoid unnecessarily repeatedly shrinking the same BWT intervals, we store  in a hash the  BWT intervals corresponding to all 9mers in the PRG. This results in read-matching at a rate of 277/second.

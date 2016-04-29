@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 16:09
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 16:40
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -177,7 +177,17 @@ Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
 (/usr/local/texlive/2015/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip10
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
-) (./wabi-draft.aux)
+) (./wabi-draft.aux
+
+LaTeX Warning: Label `fig:example' multiply defined.
+
+
+LaTeX Warning: Label `fig:example' multiply defined.
+
+
+LaTeX Warning: Label `fig:example' multiply defined.
+
+)
 \openout1 = `wabi-draft.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 32.
@@ -192,8 +202,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 32.
 LaTeX Font Info:    ... okay on input line 32.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 32.
 LaTeX Font Info:    ... okay on input line 32.
-
-(/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
+ (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count117
 \scratchdimen=\dimen127
@@ -286,57 +295,90 @@ File: linPRG.png Graphic file (type png)
  <use linPRG.png>
 Package pdftex.def Info: linPRG.png used on input line 140.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
+ [6 <./linPRG.png>]
 
+LaTeX Warning: Citation `dilthey1' on page 7 undefined on input line 148.
 
-LaTeX Warning: Citation `dilthey1' on page 6 undefined on input line 148.
+<BWT.pdf, id=38, 1991.69093pt x 845.0471pt>
+File: BWT.pdf Graphic file (type pdf)
+ <use BWT.pdf>
+Package pdftex.def Info: BWT.pdf used on input line 155.
+(pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
 
-[6 <./linPRG.png>] [7]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 163--164
+Overfull \hbox (122.29149pt too wide) in paragraph at lines 155--156
+ [][] 
+ []
+
+[7] [8 <./BWT.pdf>]
+Overfull \hbox (5.37695pt too wide) in paragraph at lines 170--171
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
 
-[8] [9] [10]
-Underfull \hbox (badness 1406) in paragraph at lines 216--217
+<PRG.png, id=75, 387.3672pt x 239.9364pt>
+File: PRG.png Graphic file (type png)
+ <use PRG.png>
+Package pdftex.def Info: PRG.png used on input line 196.
+(pdftex.def)             Requested size: 183.74716pt x 113.81102pt.
+
+<7G8_to_3D7_pileup.png, id=76, 1284.8pt x 682.55pt>
+File: 7G8_to_3D7_pileup.png Graphic file (type png)
+
+<use 7G8_to_3D7_pileup.png>
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 207.
+(pdftex.def)             Requested size: 214.21776pt x 113.81102pt.
+
+<7G8_to_inf_ref_pileup.png, id=77, 1282.7925pt x 614.295pt>
+File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
+
+<use 7G8_to_inf_ref_pileup.png>
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 220.
+(pdftex.def)             Requested size: 237.66522pt x 113.81102pt.
+ [9] [10 <./PRG.png> <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [
+11]
+Underfull \hbox (badness 1406) in paragraph at lines 258--259
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 216--217
+Underfull \hbox (badness 2158) in paragraph at lines 258--259
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
 
-[11] [12] (./wabi-draft.aux) ) 
+[12] [13] (./wabi-draft.aux)
+
+LaTeX Warning: There were multiply-defined labels.
+
+ ) 
 Here is how much of TeX's memory you used:
- 2325 strings out of 493089
- 31181 string characters out of 6134842
- 99903 words of memory out of 5000000
- 5777 multiletter control sequences out of 15000+600000
+ 2346 strings out of 493089
+ 31562 string characters out of 6134842
+ 99951 words of memory out of 5000000
+ 5794 multiletter control sequences out of 15000+600000
  12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  37i,8n,26p,1993b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2015/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmmi9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmsy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-ti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
-i9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9
-.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/ms
-am10.pfb>
-Output written on wabi-draft.pdf (12 pages, 348652 bytes).
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
+usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/
+texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/tex
+live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
+ive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texliv
+e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
+/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2
+015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/201
+5/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
+Output written on wabi-draft.pdf (13 pages, 793139 bytes).
 PDF statistics:
- 107 PDF objects out of 1000 (max. 8388607)
- 74 compressed objects within 1 object stream
+ 145 PDF objects out of 1000 (max. 8388607)
+ 88 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
