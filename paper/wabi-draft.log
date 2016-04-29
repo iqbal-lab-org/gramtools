@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  28 APR 2016 10:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 14:06
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -267,62 +267,56 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 
 {/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (3.19661pt too wide) in paragraph at lines 85--86
-[]\OT1/cmr/m/n/10 Our method is mo-ti-vated by a bi-o-log-i-cal ob-ser-va-tion.
- Genomes evolve (broadly
- []
-
-
 Underfull \vbox (badness 2158) has occurred while \output is active []
 
  [2]
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 101--103
+Underfull \hbox (badness 10000) in paragraph at lines 100--102
 
  []
 
 [4] <wt.png, id=28, 439.6425pt x 271.0125pt>
 File: wt.png Graphic file (type png)
  <use wt.png>
-Package pdftex.def Info: wt.png used on input line 118.
+Package pdftex.def Info: wt.png used on input line 117.
 (pdftex.def)             Requested size: 230.78893pt x 142.26378pt.
  [5 <./wt.png>]
 <linPRG.png, id=32, 741.77126pt x 97.36375pt>
 File: linPRG.png Graphic file (type png)
  <use linPRG.png>
-Package pdftex.def Info: linPRG.png used on input line 141.
+Package pdftex.def Info: linPRG.png used on input line 140.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
+ [6 <./linPRG.png>]
 
+LaTeX Warning: Citation `dilthey1' on page 7 undefined on input line 148.
 
-LaTeX Warning: Citation `dilthey1' on page 6 undefined on input line 149.
-
-[6 <./linPRG.png>] [7]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 164--165
+[7]
+Overfull \hbox (5.37695pt too wide) in paragraph at lines 163--164
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
 
-[8] [9]
-Underfull \hbox (badness 1406) in paragraph at lines 219--220
+[8] [9] [10]
+Underfull \hbox (badness 1406) in paragraph at lines 214--215
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 219--220
+Underfull \hbox (badness 2158) in paragraph at lines 214--215
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
 
-[10] [11] (./wabi-draft.aux) ) 
+[11] [12] (./wabi-draft.aux) ) 
 Here is how much of TeX's memory you used:
- 2324 strings out of 493089
- 31177 string characters out of 6134842
- 98899 words of memory out of 5000000
- 5776 multiletter control sequences out of 15000+600000
+ 2325 strings out of 493089
+ 31181 string characters out of 6134842
+ 99903 words of memory out of 5000000
+ 5777 multiletter control sequences out of 15000+600000
  12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,8n,26p,1465b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 37i,8n,26p,1993b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2015/texmf-dist/fonts/type1/p
 ublic/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pu
 blic/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pub
@@ -339,10 +333,10 @@ ti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
 i9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9
 .pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/ms
 am10.pfb>
-Output written on wabi-draft.pdf (11 pages, 346426 bytes).
+Output written on wabi-draft.pdf (12 pages, 348488 bytes).
 PDF statistics:
- 104 PDF objects out of 1000 (max. 8388607)
- 72 compressed objects within 1 object stream
+ 107 PDF objects out of 1000 (max. 8388607)
+ 74 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
