@@ -109,7 +109,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> &csa,
   }
 
   assert(right>left);
-  assert(right_rev-left_rev == right-left);
+  //  assert(right_rev-left_rev == right-left);
 
   return (last);
 }
