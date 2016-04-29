@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 14:06
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 16:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -286,24 +286,24 @@ File: linPRG.png Graphic file (type png)
  <use linPRG.png>
 Package pdftex.def Info: linPRG.png used on input line 140.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
- [6 <./linPRG.png>]
 
-LaTeX Warning: Citation `dilthey1' on page 7 undefined on input line 148.
 
-[7]
+LaTeX Warning: Citation `dilthey1' on page 6 undefined on input line 148.
+
+[6 <./linPRG.png>] [7]
 Overfull \hbox (5.37695pt too wide) in paragraph at lines 163--164
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
 
 [8] [9] [10]
-Underfull \hbox (badness 1406) in paragraph at lines 214--215
+Underfull \hbox (badness 1406) in paragraph at lines 216--217
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 214--215
+Underfull \hbox (badness 2158) in paragraph at lines 216--217
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
@@ -333,7 +333,7 @@ ti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
 i9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9
 .pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/ms
 am10.pfb>
-Output written on wabi-draft.pdf (12 pages, 348488 bytes).
+Output written on wabi-draft.pdf (12 pages, 348652 bytes).
 PDF statistics:
  107 PDF objects out of 1000 (max. 8388607)
  74 compressed objects within 1 object stream
