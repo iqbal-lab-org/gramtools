@@ -65,7 +65,7 @@ University of Oxford, Roosevelt Drive, Oxford OX3 7BN, UK\\
 \maketitle
 
 
-\begin{abstract}
+\begin{abstract} WABI
 We show how positional markers can be used to encode genetic variation within a Burrows Wheeler Transform (BWT), and use this to construct a generalisation of the traditional ``reference genome", incorporating known variation within a species. Our goal is to support the inference of the closest mosaic of previously known sequence to the sample under analysis.\\ This encoding results in an increased alphabet size, and by using a wavelet tree encoding of the BWT we reduce the performance impact on rank operations. We give a specialised form of the backward search that allows variation-aware exact matching. We implement this, and demonstrate the cost of constructing an index of the whole human genome with 80 million genetic variants is 31Gb of RAM,  below that of previous implementations. We also show that inferring a closer reference can close large kilobase-scale holes in mapping pileups in \textit{P. falciparum}
 \keywords{pan-genome, Burrows-Wheeler Transform, FM index}
 \end{abstract}
