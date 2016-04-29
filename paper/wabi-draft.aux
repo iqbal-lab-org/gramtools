@@ -21,45 +21,45 @@
 \@writefile{toc}{\contentsline {subsubsection}{Burrows-Wheeler Transform.}{3}}
 \@writefile{toc}{\contentsline {subsubsection}{Suffix Arrays.}{4}}
 \@writefile{toc}{\contentsline {subsubsection}{Backward search}{4}}
-\@writefile{toc}{\contentsline {subsubsection}{Wavelet Trees}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Bla}}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{Wavelet Trees}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Wavelet tree encoding of the PRG above. Calculating the rank of the marked C is performed by repeated rank() calls moving down the binary tree until the alphabet remaining is just 2 characters.}}{5}}
 \newlabel{fig:wt}{{1}{5}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Encoding a variation-aware reference structure}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Encoding a variation-aware reference structure}{6}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. This example will be used in subsequent figures.}}{6}}
 \newlabel{lab}{{2}{6}}
 \citation{dilthey1}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Variation aware backward search in vBWT}{7}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Backward search across vBWT. We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}}{8}}
 \newlabel{fig:example}{{3}{8}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Performance}{8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Construction cost : the human genome}{8}}
 \citation{1000g}
 \citation{miles}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Performance}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Construction cost : the human genome}{9}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{9}}
 \citation{iqbal}
 \citation{depristo}
 \citation{valen}
 \citation{hengli}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{9}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{9}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate}}{10}}
 \newlabel{fig:example}{{4}{10}}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Mapping reads from sample 7G8 to \textit  {P. falciparum} 3D7 reference genome results in a gap}}{10}}
 \newlabel{fig:example}{{5}{10}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}}{10}}
-\newlabel{fig:example}{{6}{10}}
 \citation{marschall}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}}{11}}
+\newlabel{fig:example}{{6}{11}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Performance cost of large alphabet}{11}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{11}}
 \bibcite{valen}{1}
 \bibcite{bwt}{2}
 \bibcite{bwa}{3}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{12}}
+\@writefile{toc}{\contentsline {subsubsection}{Software}{12}}
 \bibcite{bowtie}{4}
 \bibcite{reinert}{5}
 \bibcite{1000g}{6}
 \bibcite{arabi}{7}
 \bibcite{pombe}{8}
 \bibcite{dilthey}{9}
-\@writefile{toc}{\contentsline {subsubsection}{Software}{12}}
 \bibcite{korbinian}{10}
 \bibcite{siren1}{11}
 \bibcite{huang}{12}

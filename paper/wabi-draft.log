@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 16:40
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 17:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -276,86 +276,97 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 
 {/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \vbox (badness 2158) has occurred while \output is active []
+Underfull \vbox (badness 5105) has occurred while \output is active []
 
  [2]
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 100--102
+Underfull \hbox (badness 10000) in paragraph at lines 96--98
 
  []
 
-[4] <wt.png, id=28, 439.6425pt x 271.0125pt>
-File: wt.png Graphic file (type png)
- <use wt.png>
-Package pdftex.def Info: wt.png used on input line 117.
-(pdftex.def)             Requested size: 230.78893pt x 142.26378pt.
- [5 <./wt.png>]
-<linPRG.png, id=32, 741.77126pt x 97.36375pt>
-File: linPRG.png Graphic file (type png)
- <use linPRG.png>
-Package pdftex.def Info: linPRG.png used on input line 140.
-(pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
- [6 <./linPRG.png>]
+[4] <wavelet_tree.pdf, id=28, 1991.69093pt x 845.0471pt>
+File: wavelet_tree.pdf Graphic file (type pdf)
 
-LaTeX Warning: Citation `dilthey1' on page 7 undefined on input line 148.
+<use wavelet_tree.pdf>
+Package pdftex.def Info: wavelet_tree.pdf used on input line 113.
+(pdftex.def)             Requested size: 402.34271pt x 170.71652pt.
 
-<BWT.pdf, id=38, 1991.69093pt x 845.0471pt>
-File: BWT.pdf Graphic file (type pdf)
- <use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 155.
-(pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
-
-Overfull \hbox (122.29149pt too wide) in paragraph at lines 155--156
+Overfull \hbox (55.21918pt too wide) in paragraph at lines 113--114
  [][] 
  []
 
-[7] [8 <./BWT.pdf>]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 170--171
+[5 <./wavelet_tree.pdf>] <linPRG.png, id=63, 741.77126pt x 97.36375pt>
+File: linPRG.png Graphic file (type png)
+
+<use linPRG.png>
+Package pdftex.def Info: linPRG.png used on input line 136.
+(pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
+ [6 <./linPRG.png>]
+
+LaTeX Warning: Citation `dilthey1' on page 7 undefined on input line 144.
+
+<BWT.pdf, id=69, 1991.69093pt x 845.0471pt>
+File: BWT.pdf Graphic file (type pdf)
+ <use BWT.pdf>
+Package pdftex.def Info: BWT.pdf used on input line 151.
+(pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
+
+Overfull \hbox (122.29149pt too wide) in paragraph at lines 151--152
+ [][] 
+ []
+
+[7]
+Underfull \vbox (badness 4229) has occurred while \output is active []
+
+ [8 <./BWT.pdf>]
+Overfull \hbox (5.37695pt too wide) in paragraph at lines 166--167
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
 
-<PRG.png, id=75, 387.3672pt x 239.9364pt>
+<PRG.png, id=106, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 196.
+Package pdftex.def Info: PRG.png used on input line 192.
 (pdftex.def)             Requested size: 183.74716pt x 113.81102pt.
 
-<7G8_to_3D7_pileup.png, id=76, 1284.8pt x 682.55pt>
+<7G8_to_3D7_pileup.png, id=107, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 207.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 203.
 (pdftex.def)             Requested size: 214.21776pt x 113.81102pt.
-
-<7G8_to_inf_ref_pileup.png, id=77, 1282.7925pt x 614.295pt>
+ [9]
+<7G8_to_inf_ref_pileup.png, id=112, 1282.7925pt x 614.295pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 220.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 216.
 (pdftex.def)             Requested size: 237.66522pt x 113.81102pt.
- [9] [10 <./PRG.png> <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [
-11]
-Underfull \hbox (badness 1406) in paragraph at lines 258--259
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [10 <./PRG.png> <./7G8_to_3D7_pileup.png>] [11 <./7G8_to_inf_ref_pileup.png>]
+Underfull \hbox (badness 1406) in paragraph at lines 254--255
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 258--259
+Underfull \hbox (badness 2158) in paragraph at lines 254--255
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
 
-[12] [13] (./wabi-draft.aux)
+[12] [13] [14] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
  2346 strings out of 493089
- 31562 string characters out of 6134842
- 99951 words of memory out of 5000000
+ 31612 string characters out of 6134842
+ 100951 words of memory out of 5000000
  5794 multiletter control sequences out of 15000+600000
  12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -375,10 +386,10 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
 /2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2
 015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (13 pages, 793139 bytes).
+Output written on wabi-draft.pdf (14 pages, 957290 bytes).
 PDF statistics:
- 145 PDF objects out of 1000 (max. 8388607)
- 88 compressed objects within 1 object stream
+ 180 PDF objects out of 1000 (max. 8388607)
+ 103 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
