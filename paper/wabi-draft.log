@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  29 APR 2016 17:48
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  2 MAY 2016 23:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -179,6 +179,9 @@ Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 ) (./wabi-draft.aux
 
+LaTeX Warning: Label `lab' multiply defined.
+
+
 LaTeX Warning: Label `fig:example' multiply defined.
 
 
@@ -302,72 +305,74 @@ File: linPRG.png Graphic file (type png)
 Package pdftex.def Info: linPRG.png used on input line 136.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
  [6 <./linPRG.png>]
+<graph_construction.png, id=69, 541.5432pt x 205.2468pt>
+File: graph_construction.png Graphic file (type png)
 
-LaTeX Warning: Citation `dilthey1' on page 7 undefined on input line 144.
+<use graph_construction.png>
+Package pdftex.def Info: graph_construction.png used on input line 151.
+(pdftex.def)             Requested size: 412.91576pt x 156.49014pt.
 
-<BWT.pdf, id=69, 1991.69093pt x 845.0471pt>
-File: BWT.pdf Graphic file (type pdf)
- <use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 151.
-(pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
-
-Overfull \hbox (122.29149pt too wide) in paragraph at lines 151--152
+Overfull \hbox (65.79222pt too wide) in paragraph at lines 151--152
  [][] 
  []
 
-[7]
-Underfull \vbox (badness 4229) has occurred while \output is active []
+<BWT.pdf, id=70, 1991.69093pt x 845.0471pt>
+File: BWT.pdf Graphic file (type pdf)
+ <use BWT.pdf>
+Package pdftex.def Info: BWT.pdf used on input line 161.
+(pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
 
- [8 <./BWT.pdf>]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 166--167
+Overfull \hbox (122.29149pt too wide) in paragraph at lines 161--162
+ [][] 
+ []
+
+[7] [8 <./graph_construction.png>]
+Overfull \hbox (5.37695pt too wide) in paragraph at lines 176--177
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
 
-<PRG.png, id=106, 387.3672pt x 239.9364pt>
+[9 <./BWT.pdf>] <PRG.png, id=111, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 192.
+Package pdftex.def Info: PRG.png used on input line 202.
 (pdftex.def)             Requested size: 183.74716pt x 113.81102pt.
 
-<7G8_to_3D7_pileup.png, id=107, 1284.8pt x 682.55pt>
+<7G8_to_3D7_pileup.png, id=112, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 203.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 213.
 (pdftex.def)             Requested size: 214.21776pt x 113.81102pt.
- [9]
-<7G8_to_inf_ref_pileup.png, id=112, 1282.7925pt x 614.295pt>
+ [10 <./PRG.png>]
+<7G8_to_inf_ref_pileup.png, id=118, 1282.7925pt x 614.295pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 216.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 226.
 (pdftex.def)             Requested size: 237.66522pt x 113.81102pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [10 <./PRG.png> <./7G8_to_3D7_pileup.png>] [11 <./7G8_to_inf_ref_pileup.png>]
-Underfull \hbox (badness 1406) in paragraph at lines 254--255
+ [11 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [12]
+Underfull \hbox (badness 1406) in paragraph at lines 264--265
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 254--255
+Underfull \hbox (badness 2158) in paragraph at lines 264--265
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
 
-[12] [13] [14] (./wabi-draft.aux)
+[13] [14] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2346 strings out of 493089
- 31612 string characters out of 6134842
+ 2350 strings out of 493089
+ 31731 string characters out of 6134842
  100951 words of memory out of 5000000
- 5794 multiletter control sequences out of 15000+600000
+ 5797 multiletter control sequences out of 15000+600000
  12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  37i,8n,26p,1993b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -386,10 +391,10 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
 /2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2
 015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (14 pages, 957288 bytes).
+Output written on wabi-draft.pdf (14 pages, 989514 bytes).
 PDF statistics:
- 180 PDF objects out of 1000 (max. 8388607)
+ 182 PDF objects out of 1000 (max. 8388607)
  103 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 31 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 36 words of extra memory for PDF output out of 10000 (max. 10000000)
 

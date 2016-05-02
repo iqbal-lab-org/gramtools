@@ -27,33 +27,35 @@
 \@writefile{toc}{\contentsline {section}{\numberline {3}Encoding a variation-aware reference structure}{6}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. This example will be used in subsequent figures.}}{6}}
 \newlabel{lab}{{2}{6}}
-\citation{dilthey1}
+\citation{dilthey}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Graph structure}{7}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Variation aware backward search in vBWT}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Backward search across vBWT. We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}}{8}}
-\newlabel{fig:example}{{3}{8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces PRG graph structure. Depending on the situation, a user might represent the sequences in a) either as 3 separate mutations ( shown in b)),or enumerate 8 small haplotypes , shown in c). Both are supported by our schema. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we place the constraint that we do not support ``nesting" of alleles, as shown in f), where one either has the long deletion, or one of two very similar alleles, differing by SNPs.}}{8}}
+\newlabel{lab}{{3}{8}}
 \citation{1000g}
-\citation{miles}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Backward search across vBWT. We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}}{9}}
+\newlabel{fig:example}{{4}{9}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Performance}{9}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Construction cost : the human genome}{9}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{9}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{9}}
+\citation{miles}
 \citation{iqbal}
 \citation{depristo}
 \citation{valen}
 \citation{hengli}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate}}{10}}
-\newlabel{fig:example}{{4}{10}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Mapping reads from sample 7G8 to \textit  {P. falciparum} 3D7 reference genome results in a gap}}{10}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{10}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate}}{10}}
 \newlabel{fig:example}{{5}{10}}
-\citation{marschall}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}}{11}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Mapping reads from sample 7G8 to \textit  {P. falciparum} 3D7 reference genome results in a gap}}{11}}
 \newlabel{fig:example}{{6}{11}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}}{11}}
+\newlabel{fig:example}{{7}{11}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Performance cost of large alphabet}{11}}
+\citation{marschall}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{12}}
 \bibcite{valen}{1}
 \bibcite{bwt}{2}
 \bibcite{bwa}{3}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{12}}
-\@writefile{toc}{\contentsline {subsubsection}{Software}{12}}
 \bibcite{bowtie}{4}
 \bibcite{reinert}{5}
 \bibcite{1000g}{6}
@@ -62,6 +64,7 @@
 \bibcite{dilthey}{9}
 \bibcite{korbinian}{10}
 \bibcite{siren1}{11}
+\@writefile{toc}{\contentsline {subsubsection}{Software}{13}}
 \bibcite{huang}{12}
 \bibcite{siren2}{13}
 \bibcite{na}{14}
@@ -70,4 +73,4 @@
 \bibcite{depristo}{17}
 \bibcite{hengli}{18}
 \bibcite{marschall}{19}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Checklist of Items to be Sent to Volume Editors}{13}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Checklist of Items to be Sent to Volume Editors}{14}}
