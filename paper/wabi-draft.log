@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  3 MAY 2016 12:02
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  3 MAY 2016 12:30
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -318,9 +318,9 @@ File: graph_construction.png Graphic file (type png)
 
 <use graph_construction.png>
 Package pdftex.def Info: graph_construction.png used on input line 156.
-(pdftex.def)             Requested size: 412.91576pt x 156.49014pt.
+(pdftex.def)             Requested size: 375.38397pt x 142.26378pt.
 
-Overfull \hbox (65.79222pt too wide) in paragraph at lines 156--157
+Overfull \hbox (28.26044pt too wide) in paragraph at lines 156--157
  [][] 
  []
 
@@ -328,18 +328,18 @@ Overfull \hbox (65.79222pt too wide) in paragraph at lines 156--157
 <BWT.pdf, id=75, 1991.69093pt x 845.0471pt>
 File: BWT.pdf Graphic file (type pdf)
  <use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 172.
+Package pdftex.def Info: BWT.pdf used on input line 173.
 (pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
 
-Overfull \hbox (122.29149pt too wide) in paragraph at lines 172--173
+Overfull \hbox (122.29149pt too wide) in paragraph at lines 173--174
  [][] 
  []
 
 [8]
-Underfull \vbox (badness 4229) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [9 <./BWT.pdf>]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 187--188
+Overfull \hbox (5.37695pt too wide) in paragraph at lines 188--189
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
@@ -347,36 +347,36 @@ ence genome (GRC37
 <PRG.png, id=111, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 213.
+Package pdftex.def Info: PRG.png used on input line 214.
 (pdftex.def)             Requested size: 183.74716pt x 113.81102pt.
-
-<7G8_to_3D7_pileup.png, id=112, 1284.8pt x 682.55pt>
+ [10]
+<7G8_to_3D7_pileup.png, id=116, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 224.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 225.
 (pdftex.def)             Requested size: 214.21776pt x 113.81102pt.
- [10]
+
 <7G8_to_inf_ref_pileup.png, id=117, 1282.7925pt x 614.295pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 237.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 238.
 (pdftex.def)             Requested size: 237.66522pt x 113.81102pt.
  [11 <./PRG.png> <./7G8_to_3D7_pileup.png>]
-[12 <./7G8_to_inf_ref_pileup.png>]
-Underfull \hbox (badness 1406) in paragraph at lines 275--276
+[12 <./7G8_to_inf_ref_pileup.png>] [13]
+Underfull \hbox (badness 1406) in paragraph at lines 276--277
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 275--276
+Underfull \hbox (badness 2158) in paragraph at lines 276--277
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
 
-[13] [14] [15] (./wabi-draft.aux)
+[14] [15] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -404,7 +404,7 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
 /2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2
 015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (15 pages, 990679 bytes).
+Output written on wabi-draft.pdf (15 pages, 990711 bytes).
 PDF statistics:
  185 PDF objects out of 1000 (max. 8388607)
  105 compressed objects within 2 object streams
