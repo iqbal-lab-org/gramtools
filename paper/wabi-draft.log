@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  3 MAY 2016 12:30
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  3 MAY 2016 12:53
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -174,7 +174,44 @@ Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
 \Gin@req@height=\dimen125
 \Gin@req@width=\dimen126
 )
-(/usr/local/texlive/2015/texmf-dist/tex/latex/url/url.sty
+(/usr/local/texlive/2015/texmf-dist/tex/latex/algorithms/algorithm.sty
+Package: algorithm 2009/08/24 v0.1 Document Style `algorithm' - floating enviro
+nment
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count117
+\float@exts=\toks20
+\float@box=\box54
+\@float@everytoks=\toks21
+\@floatcapt=\box55
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+\@float@every@algorithm=\toks22
+\c@algorithm=\count118
+)
+(/usr/local/texlive/2015/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
+Package: algpseudocode 
+
+(/usr/local/texlive/2015/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
+Package: algorithmicx 2005/04/27 v1.2 Algorithmicx
+
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+\c@ALG@line=\count119
+\c@ALG@rem=\count120
+\c@ALG@nested=\count121
+\ALG@tlm=\skip45
+\ALG@thistlm=\skip46
+\c@ALG@Lnr=\count122
+\c@ALG@blocknr=\count123
+\c@ALG@storecount=\count124
+\c@ALG@tmpcounter=\count125
+\ALG@tmplength=\skip47
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+) (/usr/local/texlive/2015/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip10
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 ) (./wabi-draft.aux
@@ -193,31 +230,31 @@ LaTeX Warning: Label `fig:example' multiply defined.
 )
 \openout1 = `wabi-draft.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 32.
-LaTeX Font Info:    ... okay on input line 32.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 34.
+LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 34.
+LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 34.
+LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 34.
+LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 34.
+LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 34.
+LaTeX Font Info:    ... okay on input line 34.
  (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count117
+\scratchcounter=\count126
 \scratchdimen=\dimen127
-\scratchbox=\box54
-\nofMPsegments=\count118
-\nofMParguments=\count119
-\everyMPshowfont=\toks20
-\MPscratchCnt=\count120
+\scratchbox=\box56
+\nofMPsegments=\count127
+\nofMParguments=\count128
+\everyMPshowfont=\toks23
+\MPscratchCnt=\count129
 \MPscratchDim=\dimen128
-\MPnumerator=\count121
-\makeMPintoPDFobject=\count122
-\everyMPtoPDFconversion=\toks21
+\MPnumerator=\count130
+\makeMPintoPDFobject=\count131
+\everyMPtoPDFconversion=\toks24
 ) (/usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 Package: pdftexcmds 2011/11/29 v0.20 Utility functions of pdfTeX for LuaTeX (HO
 )
@@ -266,12 +303,12 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-LaTeX Font Info:    Try loading font information for U+msa on input line 65.
+LaTeX Font Info:    Try loading font information for U+msa on input line 67.
 
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 65.
+LaTeX Font Info:    Try loading font information for U+msb on input line 67.
 
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -283,95 +320,84 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [2]
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 96--98
+Underfull \hbox (badness 10000) in paragraph at lines 100--102
 
  []
 
-[4] <wavelet_tree.pdf, id=28, 1991.69093pt x 845.0471pt>
-File: wavelet_tree.pdf Graphic file (type pdf)
-
-<use wavelet_tree.pdf>
-Package pdftex.def Info: wavelet_tree.pdf used on input line 113.
-(pdftex.def)             Requested size: 402.34271pt x 170.71652pt.
-
-Overfull \hbox (55.21918pt too wide) in paragraph at lines 113--114
- [][] 
- []
-
+[4] <wavelet_tree.png, id=28, 1401.0744pt x 792.0792pt>
+File: wavelet_tree.png Graphic file (type png)
+ <use wavelet_tree.png>
+Package pdftex.def Info: wavelet_tree.png used on input line 117.
+(pdftex.def)             Requested size: 301.97337pt x 170.71652pt.
 
 Underfull \vbox (badness 7522) has occurred while \output is active []
 
- [5 <./wavelet_tree.pdf>]
-Overfull \hbox (3.05464pt too wide) in paragraph at lines 126--127
+ [5 <./wavelet_tree.png>]
+Overfull \hbox (3.05464pt too wide) in paragraph at lines 130--131
 []\OT1/cmr/m/n/10 A \OT1/cmr/m/it/10 pan-genome \OT1/cmr/m/n/10 means a rep-re-
 sen-ta-tion of a num-ber (greater than 1) of genomes
  []
 
-<linPRG.png, id=63, 741.77126pt x 97.36375pt>
+<linPRG.png, id=34, 741.77126pt x 97.36375pt>
 File: linPRG.png Graphic file (type png)
  <use linPRG.png>
-Package pdftex.def Info: linPRG.png used on input line 144.
+Package pdftex.def Info: linPRG.png used on input line 148.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
  [6]
-<graph_construction.png, id=68, 541.5432pt x 205.2468pt>
+<graph_construction.png, id=38, 541.5432pt x 205.2468pt>
 File: graph_construction.png Graphic file (type png)
 
 <use graph_construction.png>
-Package pdftex.def Info: graph_construction.png used on input line 156.
+Package pdftex.def Info: graph_construction.png used on input line 162.
 (pdftex.def)             Requested size: 375.38397pt x 142.26378pt.
 
-Overfull \hbox (28.26044pt too wide) in paragraph at lines 156--157
+Overfull \hbox (28.26044pt too wide) in paragraph at lines 162--163
  [][] 
  []
 
-[7 <./linPRG.png> <./graph_construction.png>]
-<BWT.pdf, id=75, 1991.69093pt x 845.0471pt>
+<BWT.pdf, id=39, 1991.69093pt x 845.0471pt>
 File: BWT.pdf Graphic file (type pdf)
  <use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 173.
+Package pdftex.def Info: BWT.pdf used on input line 217.
 (pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
 
-Overfull \hbox (122.29149pt too wide) in paragraph at lines 173--174
+Overfull \hbox (122.29149pt too wide) in paragraph at lines 217--218
  [][] 
  []
 
-[8]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [9 <./BWT.pdf>]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 188--189
+[7 <./linPRG.png>] [8 <./graph_construction.png> <./BWT.pdf>] [9]
+Overfull \hbox (5.37695pt too wide) in paragraph at lines 232--233
 []\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
 ence genome (GRC37
  []
 
-<PRG.png, id=111, 387.3672pt x 239.9364pt>
+[10] <PRG.png, id=87, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 214.
+Package pdftex.def Info: PRG.png used on input line 258.
 (pdftex.def)             Requested size: 183.74716pt x 113.81102pt.
- [10]
-<7G8_to_3D7_pileup.png, id=116, 1284.8pt x 682.55pt>
+
+<7G8_to_3D7_pileup.png, id=88, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 225.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 269.
 (pdftex.def)             Requested size: 214.21776pt x 113.81102pt.
-
-<7G8_to_inf_ref_pileup.png, id=117, 1282.7925pt x 614.295pt>
+ [11 <./PRG.png>]
+<7G8_to_inf_ref_pileup.png, id=93, 1282.7925pt x 614.295pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 238.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 282.
 (pdftex.def)             Requested size: 237.66522pt x 113.81102pt.
- [11 <./PRG.png> <./7G8_to_3D7_pileup.png>]
-[12 <./7G8_to_inf_ref_pileup.png>] [13]
-Underfull \hbox (badness 1406) in paragraph at lines 276--277
+ [12 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [13]
+Underfull \hbox (badness 1406) in paragraph at lines 320--321
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 276--277
+Underfull \hbox (badness 2158) in paragraph at lines 320--321
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
@@ -382,10 +408,10 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2350 strings out of 493089
- 31731 string characters out of 6134842
- 99951 words of memory out of 5000000
- 5797 multiletter control sequences out of 15000+600000
+ 2984 strings out of 493089
+ 40876 string characters out of 6134842
+ 114731 words of memory out of 5000000
+ 6413 multiletter control sequences out of 15000+600000
  12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  37i,8n,26p,1980b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -393,21 +419,23 @@ Here is how much of TeX's memory you used:
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
 usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
-sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
-/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/l
-ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loc
-al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/
-texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/tex
-live/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
-ive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texliv
-e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
-/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2
-015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/201
-5/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (15 pages, 990711 bytes).
+sr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr
+/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/l
+ocal/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/loc
+al/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local
+/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/te
+xlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texli
+ve/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
+e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
+2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/20
+15/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
+5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/2015/te
+xmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
+Output written on wabi-draft.pdf (15 pages, 814420 bytes).
 PDF statistics:
- 185 PDF objects out of 1000 (max. 8388607)
- 105 compressed objects within 2 object streams
+ 162 PDF objects out of 1000 (max. 8388607)
+ 98 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
