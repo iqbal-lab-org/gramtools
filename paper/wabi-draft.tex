@@ -75,18 +75,15 @@ We show how positional markers can be used to encode genetic variation within a 
 
 \section{Introduction}
 
-Genome sequencing seeks to infer the string of DNA bases (characters A,C,G,T) that comes from some specific experiment.This process involves breaking the DNA into smaller fragments, identifying substrings (called "reads") and then inferring properties of the genome (ideally the original string). Thus a sequencing experiment generates a set of oversampled substrings from a single long string (~4 million characters (or "bases") for bacteria, or ~3 billion bases for humans), with errors dependent on the technology. Recently, sequencing has dropped in price and it has become possible to study within-species genetic variation on a large scale \cite{1000g,arabi,pombe}, where the dominant approach is to match substrings to the canonical "reference genome" which is constructed from an arbitrary individual.  This problem (``mapping") has been heavily studied  (see \cite{reinert}) and there are now extremely efficient tools to do it. The use of the Burrows Wheeler Transform, a well known algorithm from computer science originally designed for compression  \cite{bwt}, underlies the two dominant mappers - bwa \cite{bwa} and bowtie \cite{bowtie}. Mapping reads to a reference genome is a very effective means of detecting genetic variation involving single character changes (SNPs - single nucleotide polymorphisms). However this method becomes less effective the further the genome differs from the reference.  Many important regions of genomes are highly diverse, and so sequence reads from one individual can very easily fail to map to the reference. Many species have  regions like this, and in bacteria this can make use of a single reference highly problematic. Furthermore, many natural experiments, such as sequencing the bacteria infecting a patient,  or sequencing cancer,  fundamentally and unavoidably involve sequencing a mixture of different genomes in unknown proportions. 
+Genome sequencing involves breaking  DNA into fragments, identifying substrings (called "reads") and then inferring properties of the genome (ideally reconstructing the original string(s)). Recently, sequencing has dropped in price and it has become possible to study within-species genetic variation on a large scale \cite{1000g,arabi,pombe}, where the dominant approach is to match substrings to the canonical "reference genome" which is constructed from an arbitrary individual.  This problem (``mapping") has been heavily studied  (see \cite{reinert}) and there are now extremely efficient tools to do it. The use of the Burrows Wheeler Transform, a well known algorithm from computer science originally designed for compression  \cite{bwt}, underlies the two dominant mappers - bwa \cite{bwa} and bowtie \cite{bowtie}. Mapping reads to a reference genome is a very effective means of detecting genetic variation involving single character changes (SNPs - single nucleotide polymorphisms). However this method becomes less effective the further the genome differs from the reference.  Many important regions of genomes are highly diverse, and so sequence reads from one individual can very easily fail to map to the reference. 
 
-We want to build a representation of the genome of a species which incorporates N genomes and supports the following inference. We take as input, sequence data from a new sample of our species, and  an estimate of how many genomes the sample contains and their relative proportions - e.g. a normal human sample would contain 2 genomes in a 1:1 ratio, a bacterial isolate would contain 1 genome, and a malaria sample might contain 3 genomes in the ratio 10:3:1. We would then infer the sequence of the underlying genomes. In this paper we describe a a method for encoding genetic variation designed to enable this approach. 
+We  want to build a representation of the genome of a species which incorporates N genomes and supports the following inference. We take as input, sequence data from a new sample of our species, and  an estimate of how many genomes the sample contains and their relative proportions - e.g. a normal human sample would contain 2 genomes in a 1:1 ratio, a bacterial isolate would contain 1 genome, and a malaria sample might contain 3 genomes in the ratio 10:3:1. We would then infer the sequence of the underlying genomes. In this paper we describe a method for encoding genetic variation designed to enable this approach. 
 
-Our data structure is motivated by a biological observation. Genomes evolve (broadly speaking) by two processes - mutation (changing a single character, or less frequently, inserting or deleting a few) and recombination (either two chromosomes exchange a chunk of DNA, or one chromosome copies a chunk from another). Thus once we have seen many genomes of a given species, a new genome is likely to look like a mosaic of genomes we have seen before.  If we can infer a close mosaic (or pair of mosaics for a diploid species), we have found a "personalised reference genome", and the mapping approach should now work much better, as reads are more likely to exact-match. 
+Genomes evolve (broadly speaking) by two processes - mutation (changing a single character, or less frequently, inserting or deleting a few) and recombination (either two chromosomes exchange a chunk of DNA, or one chromosome copies a chunk from another). Thus once we have seen many genomes of a given species, a new genome is likely to look like a mosaic of genomes we have seen before.  If we can infer a close mosaic (or pair of mosaics for a diploid species), we have found a "personalised reference genome", and the mapping approach should now work much better, as reads are more likely to exact-match. This approach was first described in \cite{dilthey}, applied to to the human MHC region-  although the method worked, the implementation was quite specific to the region and would not scale to the whole genome. Valenzuela et al \cite{valen} have recently also espoused a find-the-closest reference approach, and highlighted the lack of suitable software to do this.
 
-This approach was first described in \cite{dilthey}, applied to to the human MHC region. They combined a multiple sequence alignment of high quality assemblies with catalogs of known SNP and indel variation into a directed acyclic graph that they termed a Population Reference Genome (PRG); reads were compared against the PRG and counts were collected at informative positions, after which a hidden markov model (HMM) was used to infer a pair of paths across the PRG which together best explained the data. In principle reads should then be mapped against this pair of genomes to discover genetic variation that was not in the PRG already, although that step was approximated. Furthermore, although the method worked, the implementation was quite specific to the region and would not scale to the whole genome. Valenzuela et al \cite{valen} have recently also espoused a find-the-closest reference approach, and highlighted the lack of suitable software to do this.
+Other ``reference graph" approaches have been published, generally approaching just the alignment step and leaving open the problem of how this is incorporated into standard analyses: Schneeberger \textit{et al} \cite{korbinian} produced an aligner which locally chose the best reference to align to. Siren \textit{et al} developed an  method (GCSA \cite{siren1}) for indexing all subpaths within a directed acyclic graph representation of a multiple sequence alignment, which would enable mapping - however construction costs for a whole human genome plus a set of SNPs required more than 1 Tb of RAM. Huang et al \cite{huang} developed an FM index encoding of a reference genome-plus-variation (``bwbble") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. Bwbble allows reads to align smoothly across multiple SNPs and up to one indel. We do something similar, but treat all variation in an equivalent manner.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
 
-There are also algorithms to the problem of encoding many very similar genomes (e.g. \cite {na}), but in our opinion the greatest biological benefit comes from supporting higher diversity species and incorporating  occasional regions which are  unusually divergent (but often important).
-Other ``reference graph" approaches have been published, generally approaching just the alignment step and leaving open the problem of how this is incorporated into standard analyses: Schneeberger \textit{et al} \cite{korbinian} produced an aligner which locally chose the best reference to align to. Siren \textit{et al} developed an  method (GCSA \cite{siren1}) for indexing all subpaths within a directed acyclic graph representation of a multiple sequence alignment, which would enable mapping - however construction costs for a whole human genome plus a set of SNPs required more than 1 Tb of RAM. Huang et al \cite{huang} developed an FM index encoding of a reference genome-plus-variation (``bwbble") by extending the genetic alphabet to encode single-character variants with new characters (eg an A versus C mutation would be encoded as M) and then concatenating padded indel variants (padding length $R-1$, where $R$ is read length) to the end of the reference genome. Bwbble allows reads to align smoothly across multiple SNPs, since these are encoded in situ within the reference, but for other variants the padding prevents this. We do something similar, but treat all variation in an equivalent manner.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
-
- We show below how to encode a set of genomes, or a reference plus  genetic variation, in an FM index which naturally distinguishes alternative sequences which come from the same place (known as ``alleles"), We extend the well known BWT backward search, and show how read-mapping can be performed in a way that allows reads to cross multiple variants, allowing recombination to occur naturally. Our data structure  supports bidirectional search, in principle allowing detection of Maximal Exact Matches (MEMs) and Super Maximal Exact Matches (SMEMs) that underly the algorithm of bwa-mem \cite{bwa}, but currently we have only implemented exact matching. We show that index construction is relatively cheap, encoding the human genome and 80 million genetic variants from 2535 individuals from the 1000 genomes project using just 31 GB of RAM on a single core in 5 hours. We go on to show how inferring a personalised reference results in better genome inference, looking at a highly challenging region - the MSP3.4 gene of \textit{P. falciparum}. For haploids, our approach has the benefit of allowing people to reuse their existing variant detection approaches. 
+ We show below how to encode a set of genomes, or a reference plus  genetic variation, in an FM index which naturally distinguishes alternative sequences which come from the same place (known as ``alleles"), We extend the well known BWT backward search, and show how read-mapping can be performed in a way that allows reads to cross multiple variants, allowing recombination to occur naturally. Our data structure  supports bidirectional search, in principle allowing detection of Maximal Exact Matches (MEMs) and Super Maximal Exact Matches (SMEMs) that underly the algorithm of bwa-mem \cite{bwa}, but currently we have only implemented exact matching. We show that index construction is relatively cheap, encoding the human genome and 8.3 million genetic variants from the 1000 genomes project using just 36 GB of RAM on a single core in 7 hours. We go on to show how inferring a personalised reference results in better genome inference, looking at a highly challenging region - the MSP3.4 gene of \textit{P. falciparum}. For haploids, our approach has the benefit of allowing people to reuse their existing variant detection approaches. 
  
 
 
@@ -95,10 +92,10 @@ Other ``reference graph" approaches have been published, generally approaching j
 \subsubsection{Burrows-Wheeler Transform.}
 The Burrows-Wheeler Transform (BWT) of a string is a reversible permutation of its characters that was originally developed for compression \cite{bwt}.The BWT of a string $T=t_1t_2 \ldots t_n$ is constructed by sorting its $n$ cyclic shifts $t_1t_2 \ldots t_n$, $t_2 \ldots t_n t_1$, \ldots,  $t_n t_1 \ldots t_{n-1}$ in lexicographic order. The matrix obtained is called the Burrows-Wheeler Matrix (BWM) and the sequence from its last column is the BWT. Storing the first and last column of the BWM is sufficient for finding the number of exact matches of a query in $T$. For locating the position of the matches in $T$ an additional data structure is required, the suffix array. 
 
-\subsubsection{Suffix Arrays.} The suffix array of a string $T$ is an array of integers that provides the starting position of $T$'s suffixes, after they have been ordered lexicographically. Formally, if $T_{i,j}$ is the substring $t_i t_{i+1} \ldots t_j$ of $T$ and SA is the suffix array of $T$, then $T_{SA[1],n}<T_{SA[2],n}<\ldots <T_{SA[n],n}$. It is related to the BWT, since looking at the substrings preceding the terminating character $\$$ in the BWM rows gives the suffixes of $T$ in lexicographical order. In fact, the BWT can be derived in linear time from the suffix array by looping through its values and recording the character occurring just before each suffix in the original text, i.e. $BWT[i]=T[SA[i]-1]$ if $SA[i]\neq1$ and $BWT[i]=\$$ if $SA[i]=1$. The suffix array coupled with the BWT and two additional data structures form the FM-index, which enables the backward search of a pattern in text.
+\subsubsection{Suffix Arrays.} The suffix array of a string $T$ is an array of integers that provides the starting position of $T$'s suffixes, after they have been ordered lexicographically. Formally, if $T_{i,j}$ is the substring $t_i t_{i+1} \ldots t_j$ of $T$ and SA is the suffix array of $T$, then $T_{SA[1],n}<T_{SA[2],n}<\ldots <T_{SA[n],n}$. It is related to the BWT, since looking at the substrings preceding the terminating character $\$$ in the BWM rows gives the suffixes of $T$ in lexicographical order. The suffix array coupled with the BWT and two additional data structures form the FM-index, which enables the backward search of a pattern in text.
 
 \subsubsection{Backward search}
-Any occurrence of a pattern $P$ in text is a prefix for some suffix of $T$, so all occurrences will be adjacent in the suffix array of $T$, since suffixes starting with $P$ are sorted together in a SA-interval. The backward search starts with the last character of $P$ and successively extends it to longer suffixes, calculating their SA-intervals, until the SA-interval of the entire query is reached. Let $C[a]$ be the total number of occurrences in $T$ of characters smaller than $a$ in the alphabet, the $C$-array essentially representing the first column of the BWM. Then if $P'$ is a suffix of the query $P$ and $[l(P'),r(P')]$ is its corresponding SA-interval, then the search can be extended to $aP'$ by calculating the new SA-interval:
+Any occurrence of a pattern $P$ in text is a prefix for some suffix of $T$, so all occurrences will be adjacent in the suffix array of $T$, since suffixes starting with $P$ are sorted together in a SA-interval. The backward search starts with the last character of $P$ and successively extends it to longer suffixes, calculating their SA-intervals, until the SA-interval of the entire query is reached. Let $C[a]$ be the total number of occurrences in $T$ of characters smaller than $a$ in the alphabet. Then if $P'$ is a suffix of the query $P$ and $[l(P'),r(P')]$ is its corresponding SA-interval, then the search can be extended to $aP'$ by calculating the new SA-interval:
 \newline
 \begin{equation} 
 l(aP')=C[a]+rank_{BWT}(a,l(P')-1)+1 
@@ -111,7 +108,7 @@ r(aP')=C[a]+rank_{BWT}(a,r(P))
 The search starts with the SA-interval of the empty string, $[1,n]$ and successively adds one character of $P$ in backward order. When the search is completed, it returns a SA-interval $[l,r]$ for the entire query $P$. If $r \geq l$, there are $r-l+1$ matches for $P$ and their locations in $T$ are given by $SA[i]$ for $l \leq i \leq r$. Otherwise, the pattern does not exist in $T$. If the $C$-array and the ranks have already been stored, the backward search can be performed in $O(|P|)$ time in strings with DNA alphabet.
 
 \subsubsection{Wavelet Trees}
-As the alphabet of a string contains more symbols, rank queries become more computationally expensive since they scale linearly with the alphabet size. The wavelet tree is a data structure designed to store strings with large alphabets efficiently and provide rank calculations in logarithmic time. A wavelet tree converts a string into a balanced binary-tree of bitvectors, whose root is built by taking the sorted alphabet and replacing the lower half of smaller symbols with a 0, and the other half of larger symbols with a 1 in the string. This creates ambiguity initially, but at each tree level, each half of the parent node's alphabet is re-split into 2 and re-encoded, so the ambiguity lessens as the tree is traversed in depth. At the leaves, there is no ambiguity at all. The tree is defined recursively as follows: take the lexicographically ordered alphabet, split it into 2 equal halves; in the string corresponding to the current node (start with original string at root), replace the first half of letters with 0 and the other half with 1; the left child node will contain the 0-encoded symbols and the right child node will contain the 1-encoded symbols, preserving their order from the original string; reapply the first step for each child node recursively until the alphabet left in each node contains only one or two symbols (so a 0 or 1 determines which symbol it is). An example is given in the figure below.
+Rank queries over large alphabets become  computationally expensive since they scale linearly with the alphabet size. The wavelet tree is a data structure designed to store strings with large alphabets efficiently and provide rank calculations in logarithmic time. A wavelet tree converts a string into a balanced binary-tree of bitvectors, whose root is built by taking the sorted alphabet and replacing the lower half of smaller symbols with a 0, and the other half of larger symbols with a 1 in the string. This creates ambiguity initially, but at each tree level, each half of the parent node's alphabet is re-split into 2 and re-encoded, so the ambiguity lessens as the tree is traversed in depth. At the leaves, there is no ambiguity at all. The tree is defined recursively: take the lexicographically ordered alphabet, split it into 2 equal halves; in the string corresponding to the current node (start with original string at root), replace the first half of letters with 0 and the other half with 1; the left child node will contain the 0-encoded symbols and the right child node will contain the 1-encoded symbols, preserving their order from the original string; reapply the first step for each child node recursively until the alphabet left in each node contains only one or two symbols (so a 0 or 1 determines which symbol it is).
 
  \begin{figure}
 \centering
@@ -151,7 +148,7 @@ An illustration of these steps on a toy example is given in Figure 2.
 \label{lab}
 \end{figure}
 
-These markers that surround alternate alleles prevent wrong alignment across their boundaries and ensure the right path is taken when a read crosses a region with multiple alternative sequences. Most importantly, \textit{the markers force the ends of alternative sequences coming from the same site to be sorted together in a separate block in the Burrows-Wheeler matrix, even if they do not have high sequence similarity}. Therefore, alternative alleles from each site can be queried concurrently.
+Importantly, \textit{the markers force the ends of alternative sequences coming from the same site to be sorted together in a separate block in the Burrows-Wheeler matrix, even if they do not have high sequence similarity}. Therefore, alternative alleles from each site can be queried concurrently.
 
 
 \subsection{Graph structure: constraints}
@@ -161,13 +158,13 @@ We show in Figure 3a two chromosomes which differ by 3 SNPs, and in 3b) and 3c) 
 
 \begin{figure}
 \centering
-\includegraphics[height=5cm]{graph_construction.png}
-\caption{PRG graph structure. The sequences shown in Figure 3a) could be represented either as 3 separate mutations (shown in b)),or enumerated as 8 small haplotypes , shown in c). Both are supported by our encoding. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we place the constraint that we do not support ``nesting" of alleles, as shown in f).}
+\includegraphics[height=4.5cm]{graph_construction.png}
+\caption{PRG graph structure. The sequences shown in Figure 3a) could be represented either as 3 separate mutations (shown in b)),or enumerated as 8 small haplotypes , shown in c). Both are supported by our encoding. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we do not support ``nesting" of alleles, as shown in f).}
 \label{lab}
 \end{figure}
 
 
- However, we show in 3d) an example where a long deletion lies ``over" two other alleles. We would encode this in our PRG as shown in 3e). This works, but is not ideal; since there exist deletions which cover many thousands of bases, these can lie above many SNPs, and therefore many possible haplotypes. An alternative would be to allow ``nested" variation, where variants lie on top of other alleles, as shown in Figure 3f). This could certainly be encoded in our system, but we do not allow it for our initial implementation, as it would potentially impact mapping speed. Note that this constraint is shared by bwbble.
+ However, we show in 3d) an example where a long deletion lies ``over" two other alleles. We would encode this in our PRG as shown in 3e). This works, but results in many alternate alleles. An alternative would be to allow ``nested" variation, where variants lie on top of other alleles, as shown in Figure 3f). This could certainly be encoded in our system, but we do not allow it for our initial implementation, as it would potentially impact mapping speed. Note that this constraint is shared by bwbble.
 
 
 
@@ -176,7 +173,17 @@ We show in Figure 3a two chromosomes which differ by 3 SNPs, and in 3b) and 3c) 
 
 In this section, we present a modified backward search algorithm for exact matching against the vBWT that is aware of alternative sequence paths. When reads align to the non-variable part of the linear PRG or when a variant locus is long enough to enclose the entire read, the usual backward search algorithm can be used. Otherwise, when the read must cross variation site junctions in order to align, site identifiers and some alternative alleles must be ignored by the search. This means a read can align to multiple substrings of the linear PRG that may not be adjacent in the BWM, so the search can return multiple SA-intervals. We give pseudocode in Algorithm 1 below, and outline the idea in Figure 4.
 
-\begin{algorithm}[H]
+
+
+
+\begin{figure}
+\centering
+\includegraphics[height=7cm]{BWT.pdf}
+\caption{Backward search across vBWT.  We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}
+\label{fig:example}
+\end{figure}
+
+\begin{algorithm}
 \caption{Modified backward search} \label{bsearch}
 \textbf{Input:} \textrm{pattern} $P[0,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
 \textbf{Output:} \textrm{list of SA intervals corresponding to matches of P} 
@@ -224,19 +231,12 @@ If the variation marker found is an even number, the read is about to cross an a
 
 Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2.
 
-\begin{figure}
-\centering
-\includegraphics[height=7cm]{BWT.pdf}
-\caption{Backward search across vBWT.  We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}
-\label{fig:example}
-\end{figure}
+
 
 
 \section{Performance}
 \subsection{Construction cost : the human genome}
-One natural test of scalability of this data structure is to see how expensive it is to construct a PRG of the human genome. We want to build a PRG where a random human genome is ``close" to some path through the PRG - specifically such that reads map with at most one mismatch.  To that end, we incorporate genetic variation down to a population frequency threshold of 5\% - rare variation offers very limited benefit. 
-
-We   constructed a PRG from the human reference genome (GRC37 without ``alt" contigs) plus the 1000 genomes final VCF (12GB in size) \cite{1000g}, as described below. We first  excluded structural variants which did not have precisely specified alleles, and variants with allele frequency below 5\%. If two variants occurred at consecutive bases, they were merged into one, and all possible haplotypes enumerated. If the VCF contained two consecutive records which overlapped, the second was discarded. This resulted in a dataset of 7.4 million SNPs and 978000 indels. We give construction costs in Table 1, along with comparative figures for Bwbble with identical input (a VCF of precisely the variants that went into our PRG). 
+We   constructed a PRG from the human reference genome (GRC37 without ``alt" contigs) plus the 1000 genomes final VCF (12GB in size) \cite{1000g}, as described below. We first  excluded structural variants which did not have precisely specified alleles, and variants with allele frequency below 5\% (rare variation offers no benefit as use the PRG to find a mosaic reference which differs ideally by isolated SNPs only). If two variants occurred at consecutive bases, they were merged into one, and all possible haplotypes enumerated. If the VCF contained two consecutive records which overlapped, the second was discarded. This resulted in a dataset of 7.4 million SNPs and 978000 indels. We give construction costs in Table 1, along with comparative figures for Bwbble with identical input (a VCF of precisely the variants that went into our PRG). 
  
 \begin{table}
 \caption{FM index construction costs for human reference genome plus 1000 genomes variants}
@@ -251,7 +251,7 @@ Bwbble  & 60 &  1h5m \\
 \end{tabular}
 \end{table}
 
-For comparison, using common Finnish 1000 Genomes SNPs, GCSA took over 1Tb of RAM building chromosomes separately and pruning the graph inhigh diversity regions. GCSA2 reduces the memory footprint to below 128GB RAM, running in 13 hours with 32 cores, and using  over 1Tb of I/O to fast Lustre disk.  Our vBWT construction has a lower  memory cost than GCSA, GCSA2 and bwbble, and is faster than GCSA/GCSA2, but slower than bwbble. 
+For comparison, using common Finnish 1000 Genomes SNPs, GCSA took over 1Tb of RAM building chromosomes separately and pruning the graph in high diversity regions. GCSA2 reduces the memory footprint to below 128GB RAM, running in 13 hours with 32 cores, and using  over 1Tb of I/O to fast Lustre disk.  Our vBWT construction has a lower  memory cost than GCSA, GCSA2 and bwbble,  is faster than GCSA/GCSA2, has no I/O burden, but is significantly slower than bwbble. 
 
 
 
@@ -260,7 +260,7 @@ For comparison, using common Finnish 1000 Genomes SNPs, GCSA took over 1Tb of RA
 \begin{figure}
 \centering
 \includegraphics[height=5cm]{PRG.png}
-\caption{Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate. There is a region of several hundred bases containing the DBL domain (marked) where there are two highly diverged lineages (differing by a SNP every few bases)}
+\caption{Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate.)}
 \label{fig:example}
 \end{figure}
 
@@ -269,34 +269,29 @@ For comparison, using common Finnish 1000 Genomes SNPs, GCSA took over 1Tb of RA
 
 
 
-Thus for many samples a ``pileup" of mapped reads simply shows a hole (see Figure 6). We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from the Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We aligned Illumina (how long?) reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method similar to that outlined by Valenzuela et al \cite{valen} to choose the path through the graph which best supported the data. This was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) to the inferred genome. As can be seen in Figure 7,  this gives dramatically better results.
+Thus for many samples a ``pileup" of mapped reads simply shows a hole (see Figure 6). We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from the Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We aligned Illumina 100bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method similar to that outlined by Valenzuela et al \cite{valen} to choose the path through the graph which best supported the data. This was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) to the inferred genome. As can be seen in Figure 7,  this gives dramatically better results.
 
 
-\begin{figure}
-\centering
-\includegraphics[height=4cm]{7G8_to_3D7_pileup.png}
-\caption{Mapping reads from sample 7G8 to \textit{P. falciparum} 3D7 reference genome results in a gap}
-\label{fig:example}
+\begin{figure}[!tbp]
+  \centering
+  \begin{minipage}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{7G8_to_3D7_pileup.png}
+    \caption{Mapping reads from sample 7G8 to \textit{P. falciparum} 3D7 reference genome results in a gap}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{7G8_to_inf_ref_pileup.png}
+    \caption{Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap }
+  \end{minipage}
 \end{figure}
 
 
-
-
-
-
-
-\begin{figure}
-\centering
-\includegraphics[height=4cm]{7G8_to_inf_ref_pileup.png}
-\caption{Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}
-\label{fig:example}
-\end{figure}
 
 
 
 
 \subsection{Further performance costs}
-One  consequence of our approach, shared with bwbble, is that a single pattern can match multiple intervals in the BWT, because of the positional markers. Thus for mapping,  we have to store a list of intervals, along with which sites and alleles are crossed. Our current implementation of this is naive (using C++ std::unordered\_map). We also store an integer array (mask) allowing us to determine if a position in the PRG is in a site, and if so, which allele - again naively encoded (in std::vector). For the human genome example these cost us around 30GB of RAM. The biggest cost is in these sparse mask arrays, which could be stored much more compactly.
+One  consequence of our approach, shared with bwbble, is that a single pattern can match multiple intervals in the BWT, because of the positional markers. Thus for mapping we store a list of intervals, along with which sites and alleles are crossed. Our current implementation of this is naive (using C++ std::unordered\_map). We also store an integer array (mask) allowing us to determine if a position in the PRG is in a site, and if so, which allele - again naively encoded (in std::vector). For the human genome example these cost us around 30GB of RAM. The biggest cost is in these sparse mask arrays, which could be stored much more compactly.
 
 This encoding results in an alphabet of size $4+2n$ where $n$ is the number of variant sites. We used the wavelet tree to mitigate this cost from O(n) to O(log(n)), but to get an estimate of how this impacts performance in practise, we measure speed of exact matching of simulated perfect reads from \textit{P. falciparum} chromosome 10 with only MSP3.4 variation inserted. To avoid unnecessarily repeatedly shrinking the same BWT intervals, we store  in a hash the  BWT intervals corresponding to all 9-mers in the PRG. This results in read-matching at a rate of 277/second.
 
