@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  3 MAY 2016 12:53
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  4 MAY 2016 11:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -230,18 +230,18 @@ LaTeX Warning: Label `fig:example' multiply defined.
 )
 \openout1 = `wabi-draft.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
  (/usr/local/texlive/2015/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count126
@@ -303,12 +303,12 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-LaTeX Font Info:    Try loading font information for U+msa on input line 67.
+LaTeX Font Info:    Try loading font information for U+msa on input line 68.
 
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 67.
+LaTeX Font Info:    Try loading font information for U+msb on input line 68.
 
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -316,24 +316,22 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 
 {/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 2158) has occurred while \output is active []
 
  [2]
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 100--102
+Underfull \hbox (badness 10000) in paragraph at lines 101--103
 
  []
 
 [4] <wavelet_tree.png, id=28, 1401.0744pt x 792.0792pt>
 File: wavelet_tree.png Graphic file (type png)
  <use wavelet_tree.png>
-Package pdftex.def Info: wavelet_tree.png used on input line 117.
+Package pdftex.def Info: wavelet_tree.png used on input line 118.
 (pdftex.def)             Requested size: 301.97337pt x 170.71652pt.
 
-Underfull \vbox (badness 7522) has occurred while \output is active []
-
- [5 <./wavelet_tree.png>]
-Overfull \hbox (3.05464pt too wide) in paragraph at lines 130--131
+[5 <./wavelet_tree.png>]
+Overfull \hbox (3.05464pt too wide) in paragraph at lines 131--132
 []\OT1/cmr/m/n/10 A \OT1/cmr/m/it/10 pan-genome \OT1/cmr/m/n/10 means a rep-re-
 sen-ta-tion of a num-ber (greater than 1) of genomes
  []
@@ -341,68 +339,65 @@ sen-ta-tion of a num-ber (greater than 1) of genomes
 <linPRG.png, id=34, 741.77126pt x 97.36375pt>
 File: linPRG.png Graphic file (type png)
  <use linPRG.png>
-Package pdftex.def Info: linPRG.png used on input line 148.
+Package pdftex.def Info: linPRG.png used on input line 149.
 (pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
- [6]
-<graph_construction.png, id=38, 541.5432pt x 205.2468pt>
+ [6 <./linPRG.png>] <graph_construction.png, id=39, 541.5432pt x 205.2468pt>
 File: graph_construction.png Graphic file (type png)
 
 <use graph_construction.png>
-Package pdftex.def Info: graph_construction.png used on input line 162.
+Package pdftex.def Info: graph_construction.png used on input line 164.
 (pdftex.def)             Requested size: 375.38397pt x 142.26378pt.
 
-Overfull \hbox (28.26044pt too wide) in paragraph at lines 162--163
+Overfull \hbox (28.26044pt too wide) in paragraph at lines 164--165
  [][] 
  []
 
-<BWT.pdf, id=39, 1991.69093pt x 845.0471pt>
+[7 <./graph_construction.png>] [8] <BWT.pdf, id=51, 1991.69093pt x 845.0471pt>
 File: BWT.pdf Graphic file (type pdf)
- <use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 217.
+
+<use BWT.pdf>
+Package pdftex.def Info: BWT.pdf used on input line 229.
 (pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
 
-Overfull \hbox (122.29149pt too wide) in paragraph at lines 217--218
+Overfull \hbox (122.29149pt too wide) in paragraph at lines 229--230
  [][] 
  []
 
-[7 <./linPRG.png>] [8 <./graph_construction.png> <./BWT.pdf>] [9]
-Overfull \hbox (5.37695pt too wide) in paragraph at lines 232--233
-[]\OT1/cmr/m/n/10 We con-structed four dif-fer-ent PRGs from the hu-man ref-er-
-ence genome (GRC37
- []
-
-[10] <PRG.png, id=87, 387.3672pt x 239.9364pt>
+[9 <./BWT.pdf>] <PRG.png, id=84, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 258.
-(pdftex.def)             Requested size: 183.74716pt x 113.81102pt.
+Package pdftex.def Info: PRG.png used on input line 262.
+(pdftex.def)             Requested size: 229.69135pt x 142.26378pt.
 
-<7G8_to_3D7_pileup.png, id=88, 1284.8pt x 682.55pt>
+[10] <7G8_to_3D7_pileup.png, id=88, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 269.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 277.
 (pdftex.def)             Requested size: 214.21776pt x 113.81102pt.
- [11 <./PRG.png>]
-<7G8_to_inf_ref_pileup.png, id=93, 1282.7925pt x 614.295pt>
+
+<7G8_to_inf_ref_pileup.png, id=89, 1282.7925pt x 614.295pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 282.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 290.
 (pdftex.def)             Requested size: 237.66522pt x 113.81102pt.
- [12 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [13]
-Underfull \hbox (badness 1406) in paragraph at lines 320--321
+
+Underfull \vbox (badness 2608) has occurred while \output is active []
+
+ [11 <./PRG.png> <./7G8_to_3D7_pileup.png>] [12 <./7G8_to_inf_ref_pileup.png>]
+Underfull \hbox (badness 1406) in paragraph at lines 328--329
 []\OT1/cmr/m/n/9 Burrows, M., Wheeler, D.J. :A block sort-ing loss-less data co
 m-pres-sion al-
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 320--321
+Underfull \hbox (badness 2158) in paragraph at lines 328--329
 \OT1/cmr/m/n/9 go-rithm. Dig-i-tal Equip-ment Cor-po-ra-tion, Tech. Rep. 124, 1
 994. Avail-able:
  []
 
-[14] [15] (./wabi-draft.aux)
+[13] [14] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -410,11 +405,11 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  2984 strings out of 493089
  40876 string characters out of 6134842
- 114731 words of memory out of 5000000
+ 110739 words of memory out of 5000000
  6413 multiletter control sequences out of 15000+600000
  12372 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,8n,26p,1980b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 37i,7n,26p,1919b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
@@ -432,10 +427,10 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/2015/te
 xmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on wabi-draft.pdf (15 pages, 814420 bytes).
+Output written on wabi-draft.pdf (14 pages, 811801 bytes).
 PDF statistics:
- 162 PDF objects out of 1000 (max. 8388607)
- 98 compressed objects within 1 object stream
+ 159 PDF objects out of 1000 (max. 8388607)
+ 96 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
