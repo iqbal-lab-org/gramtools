@@ -23,7 +23,7 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
 		  no_sites=d;
 		  covgs.push_back(v);
 	  }
-	  mask_s.push_back(d);
+	  //mask_s.push_back(d);
   }
   h1.close();
 
