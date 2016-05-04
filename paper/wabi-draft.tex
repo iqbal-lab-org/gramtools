@@ -296,14 +296,14 @@ Thus for many samples a ``pileup" of mapped reads simply shows a hole (see Figur
 
 
 
-\subsection{Further performance costs}
+\subsection{Further performance comments}
 One  consequence of our approach, shared with bwbble, is that a single pattern can match multiple intervals in the BWT. Thus for mapping we store a list of intervals, along with which sites and alleles are crossed. Our current implementation of this is naive (using C++ std::unordered\_map). We also store an integer array (mask) allowing us to determine if a position in the PRG is in a site, and if so, which allele - again naively encoded (in std::vector). For the human genome example these cost us around 12GB of RAM. This sparse  array, which contains a zero at every non-variable site in the chromosome,  could be stored much more compactly.
 
 This encoding results in an alphabet of size $4+2n$ where $n$ is the number of variant sites. We used the wavelet tree to mitigate this cost from O(n) to O(log(n)), but to get an estimate of how this impacts performance in practise, we measure speed of exact matching of simulated perfect reads from \textit{P. falciparum} chromosome 10 with only MSP3.4 variation inserted. To avoid unnecessarily repeatedly shrinking the same BWT intervals, we store  in a hash the  BWT intervals corresponding to all 9-mers in the PRG. This results in read-matching at a rate of 277/second.
 
 
 
-Finally, there is one performance improvement which we have yet to implement - precalculating and storing an array of ranks at marker positions across the BWT - just as in a standard FM-index. The alphabet size does not prohibit this - we can ignore the numeric characters, and store only for A,C,G,T. 
+Finally, there is one performance improvement which we have yet to implement - precalculating and storing an array of ranks at marker positions across the BWT - just as in a standard FM-index. This is not normally done for large alphabet wavelet-tree-based suffix arrays, but we can ignore the numeric characters, and store only for A,C,G,T. 
 
 \section{Discussion}
 By extending the alphabet and placing positional markers, we are able to ensure that alternate alleles sort together in the BWT matrix, allowing mapping across sites and recombination. In fact, we could encode quite general graph structures in this manner, but for simplicity we imposed a constraint on graph construction, and did not allow nesting of sites. For haploids, the idea of systematically choosing a closer reference, and then using the standard tools is easily communicated and can be directly integrated into standard analyses. Secondly, for other ploidies, our implementation readily lends itself to collecting phase-informative read-data, running an HMM, and finally MEM-based graph alignment. We have made a choice to encode genetic variation as a Directed Acyclic Graph - thus inversions or rearrangements must be encoded as explicit alternate alleles. Our choice was deliberate - we are aiming for a more limited model, but avoiding heuristics in the details of the graph construction, especially in regions of high diversity. 
