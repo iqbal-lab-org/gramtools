@@ -75,7 +75,7 @@ We show how positional markers can be used to encode genetic variation within a 
 
 \section{Introduction}
 
-Genome sequencing involves breaking  DNA into fragments, identifying substrings (called "reads") and then inferring properties of the genome. Recently, it has become possible to study within-species genetic variation on a large scale \cite{1000g,arabi}, where the dominant approach is to match substrings to the canonical "reference genome" which is constructed from an arbitrary individual.  This problem (``mapping") has been heavily studied  (see \cite{reinert}) and the Burrows Wheeler Transform (BWT) \cite{bwt} underlies the two dominant mappers \cite{bwa,bowtie}. Mapping reads to a reference genome is a very effective means of detecting genetic variation involving single character changes (SNPs - single nucleotide polymorphisms). However this method becomes less effective the further the genome differs from the reference.  Many biologically important regions of genomes are highly diverse, and so sequence reads from a random genome can very easily fail to map to the reference. 
+Genome sequencing involves breaking  DNA into fragments, identifying substrings (called ``reads") and then inferring properties of the genome. Recently, it has become possible to study within-species genetic variation on a large scale \cite{1000g,arabi}, where the dominant approach is to match substrings to the canonical "reference genome" which is constructed from an arbitrary individual.  This problem (``mapping") has been heavily studied  (see \cite{reinert}) and the Burrows Wheeler Transform (BWT) \cite{bwt} underlies the two dominant mappers \cite{bwa,bowtie}. Mapping reads to a reference genome is a very effective means of detecting genetic variation involving single character changes (SNPs - single nucleotide polymorphisms). However this method becomes less effective the further the genome differs from the reference.  Many biologically important regions of genomes are highly diverse, and so sequence reads from a random genome can very easily fail to map to the reference. 
 
 We  want to build a representation of the genome of a species which incorporates N genomes and supports the following inference. We take as input sequence data from a new sample of our species, and  an estimate of how many genomes the sample contains and their relative proportions - e.g. a normal human sample would contain 2 genomes in a 1:1 ratio, a bacterial isolate would contain 1 genome, and a malaria sample might contain 3 genomes in the ratio 10:3:1. We would then infer the sequence of the underlying genomes. We call such a data structure a Population Reference Genome (PRG). In this paper we describe a method for encoding genetic variation designed to enable this approach. 
 
@@ -132,8 +132,8 @@ Following \cite{dilthey}, we use a linear PRG conceptually equivalent to a direc
 
 \begin{figure}
 \centering
-\includegraphics[height=1.5cm]{linPRG}
-\caption{A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. The wavelet tree shown in the previous section is built on this example, and subsequent figures will make further use of it.}
+\includegraphics[height=1.2cm]{fig2_encoding.png}
+\caption{A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP.}
 \label{lab}
 \end{figure}
 

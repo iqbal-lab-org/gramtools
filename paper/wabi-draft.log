@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  5 MAY 2016 17:19
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  5 MAY 2016 21:51
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -327,13 +327,13 @@ File: wavelet_tree.png Graphic file (type png)
 Package pdftex.def Info: wavelet_tree.png used on input line 113.
 (pdftex.def)             Requested size: 251.64804pt x 142.26378pt.
 
-[4 <./wavelet_tree.png>] <linPRG.png, id=31, 741.77126pt x 97.36375pt>
-File: linPRG.png Graphic file (type png)
+[4 <./wavelet_tree.png>] <fig2_encoding.png, id=31, 435.5472pt x 43.8438pt>
+File: fig2_encoding.png Graphic file (type png)
 
-<use linPRG.png>
-Package pdftex.def Info: linPRG.png used on input line 135.
-(pdftex.def)             Requested size: 325.14665pt x 42.67912pt.
- [5 <./linPRG.png>]
+<use fig2_encoding.png>
+Package pdftex.def Info: fig2_encoding.png used on input line 135.
+(pdftex.def)             Requested size: 339.20705pt x 34.14322pt.
+ [5 <./fig2_encoding.png>]
 <graph_construction.png, id=36, 541.5432pt x 205.2468pt>
 File: graph_construction.png Graphic file (type png)
 
@@ -351,10 +351,8 @@ Overfull \hbox (122.29149pt too wide) in paragraph at lines 184--185
  [][] 
  []
 
-[6 <./graph_construction.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [7 <./BWT.pdf>] [8] <PRG.png, id=81, 387.3672pt x 239.9364pt>
+[6 <./graph_construction.png>] [7 <./BWT.pdf>] [8]
+<PRG.png, id=81, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
 Package pdftex.def Info: PRG.png used on input line 267.
@@ -373,20 +371,26 @@ File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 <use 7G8_to_inf_ref_pileup.png>
 Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 287.
 (pdftex.def)             Requested size: 156.20453pt x 74.79953pt.
- [10 <./PRG.png> <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [11] 
-[12] (./wabi-draft.aux)
+ [10 <./PRG.png>] [11 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>]
+Missing character: There is no â in font cmr9!
+Missing character: There is no € in font cmr9!
+Missing character: There is no “ in font cmr9!
+Missing character: There is no â in font cmr9!
+Missing character: There is no € in font cmr9!
+Missing character: There is no “ in font cmr9!
+ [12] [13] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2976 strings out of 493089
- 40774 string characters out of 6134842
- 110727 words of memory out of 5000000
- 6406 multiletter control sequences out of 15000+600000
+ 2978 strings out of 493089
+ 40822 string characters out of 6134842
+ 110735 words of memory out of 5000000
+ 6408 multiletter control sequences out of 15000+600000
  11125 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,7n,26p,1299b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 37i,7n,26p,1309b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
@@ -403,10 +407,10 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 15/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (12 pages, 798452 bytes).
+Output written on wabi-draft.pdf (13 pages, 790879 bytes).
 PDF statistics:
- 148 PDF objects out of 1000 (max. 8388607)
- 88 compressed objects within 1 object stream
+ 152 PDF objects out of 1000 (max. 8388607)
+ 91 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
