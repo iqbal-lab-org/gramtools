@@ -81,7 +81,7 @@ We  want to build a representation of the genome of a species which incorporates
 
 Genomes evolve (broadly speaking) by two processes - mutation (changing a single character, or less frequently, inserting or deleting a few) and recombination (either two chromosomes exchange a chunk of DNA, or one chromosome copies a chunk from another). Thus once we have seen many genomes of a given species, a new genome is likely to look like a mosaic of genomes we have seen before.  If we can infer a close mosaic, we have found a ``personalised reference genome", and reads are more likely to exact-match. This approach was first described in \cite{dilthey}, applied to to the human MHC region. However their implementation was quite specific to the region and would not scale to the whole genome. Valenzuela et al \cite{valen} have  also espoused a find-the-closest-reference approach.
 
-Other ``reference graph" approaches have been published \cite{korbinian,siren1,huang}, generally approaching just the alignment step.  Siren \textit{et al} developed an  method (GCSA \cite{siren1}), with construction costs for a whole human genome (plus SNPs) of more than 1 Tb of RAM. Huang et al \cite{huang} developed an FM index \cite{fmindex} encoding of a reference genome-plus-variation (``bwbble") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. Bwbble allows reads to align smoothly across multiple SNPs and up to one indel. We do something similar, but treat all variation in an equivalent manner.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
+Other ``reference graph" approaches have been published \cite{korbinian,siren1,huang}, generally approaching just the alignment step.  Siren \textit{et al} developed a method (GCSA \cite{siren1}), with construction costs for a whole human genome (plus SNPs) of more than 1 Tb of RAM. Huang et al \cite{huang} developed an FM index \cite{fmindex} encoding of a reference genome-plus-variation (``bwbble") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. Bwbble allows reads to align smoothly across multiple SNPs and up to one indel. We do something similar, but treat all variation in an equivalent manner.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
 
  We show below how to encode a set of genomes, or a reference plus  genetic variation, in an FM index which naturally distinguishes alternate alleles (defined below). We extend the well known  BWT backward search, and show how read-mapping can be performed in a way that allows reads to cross multiple variants, allowing recombination to occur naturally. Our data structure  supports bidirectional search (which underlies the Super Maximal Exact Match algorithms of bwa-mem \cite{bwa}), but currently we have only implemented exact matching. We show that index construction for the human genome and 8.3 million genetic variants from the 1000 genomes project uses just 25 GB of RAM on a single core , taking 4.5 hours. We go on to show how inferring a personalised reference results in better genome inference, looking at a highly challenging region - the MSP3.4 gene of \textit{P. falciparum} where alleles differ by one SNP every 3 bp.  
 
@@ -201,7 +201,7 @@ At each step in backward search, before extending to the next character, we need
 \While {$i > 0$ and $\texttt{SA\char`_int} \neq \emptyset$}
 \ForAll {$[l,r) \in \texttt{SA\char`_int}$} 
 \State $M \gets \texttt{WT.range\char`_search\char`_2d} (l,r-1,5,|\Sigma|)$ \Comment find variation site markers
-\ForAll {$(idx,num) \in M$}  \Comment $ idx\in [l,r), num\in[5,\Sigma]$
+\ForAll {$(idx,num) \in M$}  \Comment $ idx\in [l,r), num\in[5,|\Sigma|]$
 \If {$num\%2=0$}
 \State $\texttt{odd\char`_num}=num-1$
 \Else
@@ -256,7 +256,7 @@ Bwbble  & 60 &  1h5m \\
 \end{tabular}
 \end{table}
 
-For comparison, using common Finnish SNPs, GCSA took over 1TB of RAM building chromosomes separately and pruning the graph in high diversity regions. GCSA2 reduces the memory footprint to below 128GB RAM, running in 13 hours with 32 cores, and using  over 1Tb of I/O to fast  disk.  Our vBWT construction has a lower  memory cost than GCSA, GCSA2 and bwbble,  is faster than GCSA/GCSA2, has no (significant) I/O burden, but is significantly slower than bwbble.  The memory required for the index after construction is 23.5GB RAM.
+For comparison, using common Finnish SNPs, GCSA took over 1TB of RAM building chromosomes separately and pruning the graph in high diversity regions. GCSA2 reduces the memory footprint to below 128GB RAM, running in 13 hours with 32 cores, and using  over 1Tb of I/O to fast disk. Our vBWT construction has a lower memory cost than GCSA, GCSA2 and bwbble, is faster than GCSA/GCSA2, has no (significant) I/O burden, but is significantly slower than bwbble. The memory required for the index after construction is 23.5GB RAM.
 
 
 
