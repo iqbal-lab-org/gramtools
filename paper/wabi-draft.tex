@@ -96,14 +96,14 @@ The Burrows-Wheeler Transform (BWT) of a string is a reversible permutation of i
 Any occurrence of a pattern $P$ in text is a prefix for some suffix of $T$, so all occurrences will be adjacent in the suffix array of $T$, since suffixes starting with $P$ are sorted together in a SA-interval. Let $C[a]$ be the total number of occurrences in $T$ of characters smaller than $a$ in the alphabet. Then if $P'$ is a suffix of the query $P$ and $[l(P'),r(P')]$ is its corresponding SA-interval, then the search can be extended to $aP'$ by calculating the new SA-interval:
 \newline
 \begin{equation} 
-l(aP')=C[a]+rank_{BWT}(a,l(P')-1)+1 
+l(aP')=C[a]+rank_{a}(BWT,l(P')-1)+1 
 \end{equation} 
 
 \begin{equation} 
-r(aP')=C[a]+rank_{BWT}(a,r(P))
+r(aP')=C[a]+rank_{a}(BWT,r(P)),
 \end{equation}
 
-The search starts with the SA-interval of the empty string, $[1,n]$ and successively adds one character of $P$ in backward order. When the search is completed, it returns a SA-interval $[l,r]$ for the entire query $P$. If $r \geq l$, there are $r-l+1$ matches for $P$ and their locations in $T$ are given by $SA[i]$ for $l \leq i \leq r$. Otherwise, the pattern does not exist in $T$. If the $C$-array and the ranks have already been stored, the backward search can be performed in $O(|P|)$ time in strings with DNA alphabet.
+where the operation $rank_a(S,i)$ returns the number of occurences of symbol $a$ in $S[0,i]$. The search starts with the SA-interval of the empty string, $[1,n]$ and successively adds one character of $P$ in backward order. When the search is completed, it returns a SA-interval $[l,r]$ for the entire query $P$. If $r \geq l$, there are $r-l+1$ matches for $P$ and their locations in $T$ are given by $SA[i]$ for $l \leq i \leq r$. Otherwise, the pattern does not exist in $T$. If the $C$-array and the ranks have already been stored, the backward search can be performed in $O(|P|)$ time in strings with DNA alphabet.
 
 \subsubsection{Wavelet Trees}
 Rank queries scale linearly with the alphabet size by default. The wavelet tree is a data structure designed to store strings with large alphabets efficiently and provide rank calculations in logarithmic time. A wavelet tree converts a string into a balanced binary-tree of bitvectors, whose root is built by taking the sorted alphabet and replacing the lower half of smaller symbols with a 0, and the other half of larger symbols with a 1 in the string. This creates ambiguity initially, but at each tree level, each half of the parent node's alphabet is re-split into 2 and re-encoded, so the ambiguity lessens as the tree is traversed in depth. At the leaves, there is no ambiguity at all. The tree is defined recursively: take the lexicographically ordered alphabet, split it into 2 equal halves; in the string corresponding to the current node (start with original string at root), replace the first half of letters with 0 and the other half with 1; the left child node will contain the 0-encoded symbols and the right child node will contain the 1-encoded symbols, preserving their order from the original string; reapply the first step for each child node recursively until the alphabet left in each node contains only one or two symbols (so a 0 or 1 determines which symbol it is).
@@ -127,13 +127,13 @@ These alternatives are termed \textit{alleles} and might be as short as a single
 
 
 
-Following \cite{dilthey}, we use a linear PRG conceptually equivalent to a directed, acyclic, partial order graph, that is generated from a reference sequence and a set of alternative sequences at given variation loci. The graph is linearised into a long string over an alphabet extended with new symbols marking the variants, for which the FM-index can be constructed. 
+Following \cite{dilthey}, we use a linear PRG conceptually equivalent to a directed, acyclic, partial order graph, that is generated from a reference sequence and a set of alternative sequences at given variation sites. The graph is linearised into a long string over an alphabet extended with new symbols marking the variants, for which the FM-index can be constructed. 
 
 
 \begin{figure}
 \centering
 \includegraphics[height=1.5cm]{linPRG}
-\caption{A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. This example will be used in subsequent figures.}
+\caption{A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. The wavelet tree shown in the previous section is built on this example, and subsequent figures will make further use of it.}
 \label{lab}
 \end{figure}
 
@@ -142,10 +142,10 @@ Following \cite{dilthey}, we use a linear PRG conceptually equivalent to a direc
 Building this data structure requires multiple steps. 
 \begin{enumerate}
 \item First, corresponding regions of shared (exact match) sequence between the input  genomes must be identified. These must be of size $k$ at least (where $k$ is pre-defined), and  act as anchors for the coordinates of the variation sites. 
-\item Second, for any locus between two anchor regions, the set of possible haplotypes must be determined from the input genomes, but  do not need to be aligned. Indels are naturally supported by haplotypes of different lengths.
-\item Each variation locus is assigned two unique numeric identifiers, one even and one odd. The odd identifiers will mark locus boundaries and the even identifiers will mark alternative allele boundaries.
-\item For each variation locus, its left anchor is added to the linear PRG, followed by its odd identifier. Then each sequence coming from that locus, starting with the reference sequence, is successively added to the linear PRG, followed by the even locus identifier, except the last sequence, which is followed by the odd identifier.
-\item Convert the linear PRG to integer alphabet ($A\rightarrow 1$, $C\rightarrow2$, $G\rightarrow3$, $T\rightarrow4$, variation locus identifiers $\rightarrow$ 5,6,...)
+\item Second, for any site between two anchor regions, the set of possible haplotypes must be determined from the input genomes, but  do not need to be aligned. Indels are naturally supported by haplotypes of different lengths.
+\item Each variation site is assigned two unique numeric identifiers, one even and one odd, and will be called variation markers. The odd identifiers will mark variation site boundaries and will sometimes be referred to as site markers. The even identifiers will mark alternative allele boundaries and will sometimes be referred to as allele boundary markers.
+\item For each variation site, its left anchor is added to the linear PRG, followed by its odd identifier. Then each sequence coming from that site, starting with the reference sequence, is successively added to the linear PRG, followed by the even site identifier, except the last sequence, which is followed by the odd identifier.
+\item Convert the linear PRG to integer alphabet ($A\rightarrow 1$, $C\rightarrow2$, $G\rightarrow3$, $T\rightarrow4$, variation site identifiers $\rightarrow$ 5,6,...)
 \item The FM-index (suffix array, BWT, wavelet tree over BWT) of the linear PRG is constructed and we will call this the vBWT.
 \end{enumerate}
 
@@ -270,12 +270,12 @@ For comparison, using common Finnish SNPs, GCSA took over 1TB of RAM building ch
 \label{fig:example}
 \end{figure}
 
-\textit{P. falciparum} is a haploid parasite that undergoes recombination when inside a mosquito. It has an unusually  repetitive genome that contains more indels than SNPs \cite{miles}. There are several regions that present challenges to mapping because samples often diverge strongly from the reference. For example, the merozoite surface protein gene MSP3.4 is known to have two highly diverged lineages at a 500bp region (the DBL domain), which differ by around 1 SNP every 3 bases.
+\textit{P. falciparum} is a haploid malaria parasite that undergoes recombination when inside a mosquito. It has an unusually repetitive genome that contains more indels than SNPs \cite{miles}. There are several regions that present challenges to mapping because samples often diverge strongly from the reference. Should say something about vaccine targets here? For example, the merozoite surface protein gene MSP3.4 is known to have two highly diverged lineages at high frequencies in multiple populations from across the world.  The lineages differ by around 1 SNP every 3 bases over a 500bp region (the DBL domain) of the gene.
 
 
 
 
-Thus for many samples a ``pileup" of mapped reads simply shows a hole (see Figure 6). We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from the Ghana, Laos and Cambodia, and built a PRG just for that gene embedded in its chromosome. We aligned Illumina  reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method similar to that outlined by Valenzuela et al \cite{valen} to choose the path through the graph which best supported the data. This was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) to the inferred genome. As can be seen in Figure 7,  this gives dramatically better results.
+We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from the Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We aligned Illumina 100bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. We used a simple ``heaviest path" method similar to that outlined by Valenzuela et al \cite{valen} (NOT sure this is right, they are doing something a bit different) to choose the path through the graph which best supported the data. This was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) to the inferred genome. As can be seen in Figure 6, this gives dramatically better pileup results over the MSP3.4 gene. For validation, we compared our graph-inferred version of the gene with a high-quality assembly from PacBio sequencing (87X coverage?), which confirmed our results. 
 
 
 \begin{figure}[!tbp]
