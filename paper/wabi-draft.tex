@@ -110,7 +110,7 @@ Rank queries scale linearly with the alphabet size by default. The wavelet tree 
 
  \begin{figure}
 \centering
-\includegraphics[height=5cm]{wavelet_tree.png}
+\includegraphics[height=6cm]{wavelet_tree.png}
 \caption{Wavelet tree encoding of a string. Calculating the rank of the marked ``e" is performed by repeated rank() calls moving down the binary tree until the alphabet remaining is just 2 characters. Note that only the bit vectors are stored in the tree, the corresponding strings are only shown here for clarity. }
 \label{fig:wt}
 \end{figure}
@@ -314,7 +314,7 @@ We have demonstrated a whole-genome scale implementation of a PRG designed to en
 We have implemented the vBWT twice. First as a simple prototype, which provided the results on \textit{P. falciparum} above. Secondly,  a careful implementation that provided all other results. These are available here: http://www.well.ox.ac.uk/ {\raise.17ex\hbox{$\scriptstyle\sim$}} zam/code.tgz -  we will make github repos open before publication. 
 
 
-\subsubsection*{Acknowledgments.} We would like to thank Rayan Chikhi, Simon Gog, Lin Huang, Jerome Kelleher, Heng Li,  Gerton Lunter, Victoria Popic and Jouni Siren for discussions and help. We thank the SDSL developers for providing a valuable  resource.
+\subsubsection*{Acknowledgments.} We would like to thank Phelim Bradley, Rayan Chikhi, Simon Gog, Lin Huang, Jerome Kelleher, Heng Li,  Gerton Lunter, Rachel Norris, Victoria Popic and Jouni Siren for discussions and help. We thank the SDSL developers for providing a valuable  resource.
 
 
 
