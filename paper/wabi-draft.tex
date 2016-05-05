@@ -190,12 +190,12 @@ At each step in backward search, before extending to the next character, we need
 
 \begin{algorithm}[H]
 \caption{Modified backward search} \label{bsearch}
-\textbf{Input:} \textrm{pattern} $P[0,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
+\textbf{Input:} \textrm{pattern} $P[1,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
 \textbf{Output:} \textrm{list of SA intervals corresponding to matches of P} 
 \begin{algorithmic}[1]
 \State $l \gets C(P[m])$
 \State $r \gets C(P[m]+1)$
-\State $i \gets m-1$
+\State $i \gets m$
 \State $\texttt{SA\char`_int}=\{[l,r)\}$ \Comment list of SA intervals
 \State $\texttt{Extra\char`_int}=\emptyset$   \Comment Extra intervals
 \While {$i > 0$ and $\texttt{SA\char`_int} \neq \emptyset$}
