@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  5 MAY 2016 21:51
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  5 MAY 2016 22:22
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -340,45 +340,44 @@ File: graph_construction.png Graphic file (type png)
 <use graph_construction.png>
 Package pdftex.def Info: graph_construction.png used on input line 165.
 (pdftex.def)             Requested size: 300.29561pt x 113.81102pt.
- <BWT.pdf, id=37, 1991.69093pt x 845.0471pt>
+ [6 <./graph_construction.png>]
+<BWT.pdf, id=41, 1991.69093pt x 845.0471pt>
 File: BWT.pdf Graphic file (type pdf)
+ <use BWT.pdf>
+Package pdftex.def Info: BWT.pdf used on input line 185.
+(pdftex.def)             Requested size: 536.48734pt x 227.62204pt.
 
-<use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 184.
-(pdftex.def)             Requested size: 469.41502pt x 199.16928pt.
-
-Overfull \hbox (122.29149pt too wide) in paragraph at lines 184--185
+Overfull \hbox (189.3638pt too wide) in paragraph at lines 185--186
  [][] 
  []
 
-[6 <./graph_construction.png>] [7 <./BWT.pdf>] [8]
-<PRG.png, id=81, 387.3672pt x 239.9364pt>
+[7 <./BWT.pdf>] [8] <PRG.png, id=81, 387.3672pt x 239.9364pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 267.
+Package pdftex.def Info: PRG.png used on input line 269.
 (pdftex.def)             Requested size: 229.69135pt x 142.26378pt.
- [9]
-<7G8_to_3D7_pileup.png, id=85, 1284.8pt x 682.55pt>
+
+[9 <./PRG.png>] <7G8_to_3D7_pileup.png, id=86, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 282.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 284.
 (pdftex.def)             Requested size: 138.84729pt x 73.75804pt.
 
-<7G8_to_inf_ref_pileup.png, id=86, 1282.7925pt x 614.295pt>
+<7G8_to_inf_ref_pileup.png, id=87, 1282.7925pt x 614.295pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 287.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 289.
 (pdftex.def)             Requested size: 156.20453pt x 74.79953pt.
- [10 <./PRG.png>] [11 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>]
+ [10 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [11]
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
- [12] [13] (./wabi-draft.aux)
+ [12] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -407,10 +406,10 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 15/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (13 pages, 790879 bytes).
+Output written on wabi-draft.pdf (12 pages, 790591 bytes).
 PDF statistics:
- 152 PDF objects out of 1000 (max. 8388607)
- 91 compressed objects within 1 object stream
+ 148 PDF objects out of 1000 (max. 8388607)
+ 88 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
