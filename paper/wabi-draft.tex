@@ -235,7 +235,7 @@ If the search cursor is next to the start of the site, it is just the site marke
 
 
 If the variation marker found is an even number, the read is about to cross an allele boundary, which means its current suffix matches the beginning of an alternative allele and the read is about to walk out of a site, so the search cursor needs to jump to the start of site. As previously described, the odd markers corresponding to that site can be found in the sorted first column of the BWM, and then querying the suffix array decides which one marks the start of site. Then the SA-interval (size 1) for the BWM row starting with this odd marker is recorded.
-Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2.
+Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2. Our implementation leverages the succinct data structures library SDSL \cite{gog}.
 
 
 
@@ -314,11 +314,11 @@ By extending the alphabet and placing positional markers, we are able to ensure 
 
 
 \subsubsection{Software}
-We have implemented the vBWT twice. First as a simple prototype, which provided the results on \textit{P. falciparum} above. Secondly,  a more careful implementation that provided all other results, and which is available here: http://github.com/iqbal-lab/gramtools. We make the prototype available here purely for sake of reproducibility URL, but all future development (and maintenance) is on the second implementation.
+We have implemented the vBWT twice. First as a simple prototype, which provided the results on \textit{P. falciparum} above, available here http://www.well.ox.ac.uk/~zam/prototype.tgz . Secondly,  a more careful implementation that provided all other results, and which is available here:  http://www.well.ox.ac.uk/~zam/new\_implementation.tgz (these .tgz files are for reviewers - we will make github repositories for both open before publication) . We make the prototype available here purely for sake of reproducibility, but all future development (and maintenance) is on the second implementation. 
 
 
 
-\subsubsection*{Acknowledgments.} We would like to thank Jerome Kelleher, Heng Li, Rayan Chikhi and Jouni Siren for discussions, and Lin Huang and Victoria Popic for help running bwbble. Above all we would like to thank Simon Gog and the SDSL developers for providing a valuable and well-maintained resource. <FUNDING>
+\subsubsection*{Acknowledgments.} We would like to thank Rayan Chikhi, Jerome Kelleher, Heng Li,  Gerton Lunter and Jouni Siren for discussions, and Lin Huang and Victoria Popic for help running bwbble. Above all we would like to thank Simon Gog and the SDSL developers for providing a valuable and well-maintained resource.
 
 
 
@@ -350,7 +350,7 @@ We have implemented the vBWT twice. First as a simple prototype, which provided 
 
 \bibitem{siren2} Siren, J. Indexing Variation Graphs. 	arXiv:1604.06605 
 
-\bibitem{na} Na, J.C., Crochemore, M., Park, H.,  et al: Suffix tree of alignment: an efficient index for similar data. Combinatorial Algorithms ? Revised Selected Papers of the 24th International Workshop, IWOCA 2013, Rouen, France, July 10?12, 2013 (2013), pp. 337?348
+\bibitem{na} Na, J.C., Crochemore, M., Park, H.,  et al: Suffix tree of alignment: an efficient index for similar data. Combinatorial Algorithms. Revised Selected Papers of the 24th International Workshop, IWOCA 2013, Rouen, France,  (2013), pp. 337?348
 
 \bibitem{miles} Miles, A., Iqbal, Z., Vauterin, P., et al .: Genome variation and meiotic recombination in Plasmodium falciparum: insights from deep sequencing of genetic crosses Biorxiv. http://dx.doi.org/10.1101/024182 (2015)
 
@@ -360,6 +360,7 @@ We have implemented the vBWT twice. First as a simple prototype, which provided 
 
 \bibitem{hengli} Li, H. Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. 	arXiv:1303.3997
 
+\bibitem{gog} Gog, S., Beller, T., Moffat, A. et al. From Theory to Practice: Plug and Play with Succinct Data Structures. 13th International Symposium on Experimental Algorithms, (SEA 2014) 326-337
 
 \end{thebibliography}
 
