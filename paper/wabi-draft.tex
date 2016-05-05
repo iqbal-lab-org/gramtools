@@ -27,7 +27,7 @@
 
 \usepackage{url}
 \urldef{\mailsa}\path|{sorina.maciuca,gil.mcvean, zamin.iqbal}@well.ox.ac.uk| 
-\urldef{\mailsb}\path|{carlos.delojoelias}@ndm.ox.ac.uk| 
+\urldef{\mailsb}\path|carlos.delojoelias@ndm.ox.ac.uk| 
 
 \newcommand{\keywords}[1]{\par\addvspace\baselineskip
 \noindent\keywordname\enspace\ignorespaces#1}
@@ -197,8 +197,8 @@ At each step in backward search, before extending to the next character, we need
 \State $l \gets C(P[m])$
 \State $r \gets C(P[m]+1)$
 \State $i \gets m-1$
-\State $\texttt{SA\char`_int}={[l,r)}$
-\State $\texttt{Extra\char`_int}=\emptyset$   \Comment keep list of SA intervals
+\State $\texttt{SA\char`_int}=\{[l,r)\}$ \Comment list of SA intervals
+\State $\texttt{Extra\char`_int}=\emptyset$   \Comment Extra intervals
 \While {$i > 0$ and $\texttt{SA\char`_int} \neq \emptyset$}
 \ForAll {$[l,r) \in \texttt{SA\char`_int}$} 
 \State $M \gets \texttt{WT.range\char`_search\char`_2d} (l,r-1,5,|\Sigma|)$ \Comment find variation site markers
