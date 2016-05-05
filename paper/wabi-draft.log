@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  5 MAY 2016 22:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  5 MAY 2016 22:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -385,7 +385,7 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  2978 strings out of 493089
  40822 string characters out of 6134842
- 110735 words of memory out of 5000000
+ 110734 words of memory out of 5000000
  6408 multiletter control sequences out of 15000+600000
  11125 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -406,7 +406,7 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 15/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (12 pages, 790591 bytes).
+Output written on wabi-draft.pdf (12 pages, 788276 bytes).
 PDF statistics:
  148 PDF objects out of 1000 (max. 8388607)
  88 compressed objects within 1 object stream
