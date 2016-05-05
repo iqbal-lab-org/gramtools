@@ -93,7 +93,7 @@ The Burrows-Wheeler Transform (BWT) of a string is a reversible permutation of i
 
 \subsubsection{Suffix Arrays.} The suffix array of a string $T$ is an array of integers that provides the starting position of $T$'s suffixes, after they have been ordered lexicographically. Formally, if $T_{i,j}$ is the substring $t_i t_{i+1} \ldots t_j$ of $T$ and SA is the suffix array of $T$, then $T_{SA[1],n}<T_{SA[2],n}<\ldots <T_{SA[n],n}$. It is related to the BWT, since looking at the substrings preceding the terminating character $\$$ in the BWM rows gives the suffixes of $T$ in lexicographical order. 
 \subsubsection{Backward search}
-Any occurrence of a pattern $P$ in text is a prefix for some suffix of $T$, so all occurrences will be adjacent in the suffix array of $T$, since suffixes starting with $P$ are sorted together in a SA-interval. Let $C[a]$ be the total number of occurrences in $T$ of characters smaller than $a$ in the alphabet. Then if $P'$ is a suffix of the query $P$ and $[l(P'),r(P')]$ is its corresponding SA-interval, then the search can be extended to $aP'$ by calculating the new SA-interval:
+Any occurrence of a pattern $P$ in text is a prefix for some suffix of $T$, so all occurrences will be adjacent in the suffix array of $T$, since suffixes starting with $P$ are sorted together in a SA-interval. Let $C[a]$ be the total number of occurrences in $T$ of characters smaller than $a$ in the alphabet. Then if $P'$ is a suffix of the query $P$ and $[l(P'),r(P'))$ is its corresponding SA-interval, then the search can be extended to $aP'$ by calculating the new SA-interval:
 \newline
 \begin{equation} 
 l(aP')=C[a]+rank_{a}(BWT,l(P')-1)
@@ -190,12 +190,12 @@ At each step in backward search, before extending to the next character, we need
 
 \begin{algorithm}[H]
 \caption{Modified backward search} \label{bsearch}
-\textbf{Input:} \textrm{pattern} $P[0,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
+\textbf{Input:} \textrm{pattern} $P[1,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
 \textbf{Output:} \textrm{list of SA intervals corresponding to matches of P} 
 \begin{algorithmic}[1]
 \State $l \gets C(P[m])$
 \State $r \gets C(P[m]+1)$
-\State $i \gets m-1$
+\State $i \gets m$
 \State $\texttt{SA\char`_int}=\{[l,r)\}$ \Comment list of SA intervals
 \State $\texttt{Extra\char`_int}=\emptyset$   \Comment Extra intervals
 \While {$i > 0$ and $\texttt{SA\char`_int} \neq \emptyset$}
