@@ -69,7 +69,7 @@ University of Oxford, Roosevelt Drive, Oxford OX3 7BN, UK\\
 
 
 \begin{abstract}
-We show how positional markers can be used to encode genetic variation within a Burrows Wheeler Transform (BWT), and use this to construct a generalisation of the traditional ``reference genome", incorporating known variation within a species. Our goal is to support the inference of the closest mosaic of previously known sequence to the genome(s) under analysis.\\ Our scheme results in an increased alphabet size, and by using a wavelet tree encoding of the BWT we reduce the performance impact on rank operations. We give a specialised form of the backward search that allows variation-aware exact matching. We implement this, and demonstrate the cost of constructing an index of the whole human genome with 80 million genetic variants is 31GB of RAM,  below that of previous implementations. We also show that inferring a closer reference can close large kilobase-scale holes in mapping pileups in \textit{P. falciparum}
+We show how positional markers can be used to encode genetic variation within a Burrows Wheeler Transform (BWT), and use this to construct a generalisation of the traditional ``reference genome", incorporating known variation within a species. Our goal is to support the inference of the closest mosaic of previously known sequence to the genome(s) under analysis.\\ Our scheme results in an increased alphabet size, and by using a wavelet tree encoding of the BWT we reduce the performance impact on rank operations. We give a specialised form of the backward search that allows variation-aware exact matching. We implement this, and demonstrate the cost of constructing an index of the whole human genome with 8 million genetic variants is 25GB of RAM,  below that of previous implementations. We also show that inferring a closer reference can close large kilobase-scale holes in mapping pileups in \textit{P. falciparum}
 \keywords{pan-genome, Burrows-Wheeler Transform, FM index, genome}
 \end{abstract}
 
@@ -187,7 +187,7 @@ In this section, we present a modified backward search algorithm for exact match
 \label{fig:example}
 \end{figure}
 
-At each step in backward search, before extending to the next character, we need to check whether the current matched read substring is preceded by a variation marker anywhere in the linear PRG. A scan for symbols larger than 4 (``range\_search\_2d" in the pseudocode) must be performed in the BWT within the range given by the current SA-interval. With a wavelet tree this range_search can be done in $O(d\log(|\Sigma|/d))$ time, where $d$ is the size of the output. If a variation marker is found and it is an odd number, the read is about cross a site boundary, i.e. is about to walk in or walk out of a site. The suffix array can be queried to find the position of the two odd numbers in the linear PRG: the number occurring at a smaller position will mark the beginning of site and the other one will mark the end of site.  
+At each step in backward search, before extending to the next character, we need to check whether the current matched read substring is preceded by a variation marker anywhere in the linear PRG. A scan for symbols larger than 4 (``range\_search\_2d" in the pseudocode) must be performed in the BWT within the range given by the current SA-interval. With a wavelet tree this range\_search can be done in $O(d\log(|\Sigma|/d))$ time, where $d$ is the size of the output. If a variation marker is found and it is an odd number, the read is about cross a site boundary, i.e. is about to walk in or walk out of a site. The suffix array can be queried to find the position of the two odd numbers in the linear PRG: the number occurring at a smaller position will mark the beginning of site and the other one will mark the end of site.  
 
 \begin{algorithm}[H]
 \caption{Modified backward search} \label{bsearch}
@@ -314,7 +314,7 @@ By extending the alphabet and placing positional markers, we are able to ensure 
 
 
 \subsubsection{Software}
-We have implemented the vBWT twice. First as a simple prototype, which provided the results on \textit{P. falciparum} above, available here http://www.well.ox.ac.uk/~zam/prototype.tgz . Secondly,  a more careful implementation that provided all other results, and which is available here:  http://www.well.ox.ac.uk/~zam/new\_implementation.tgz (these .tgz files are for reviewers - we will make github repositories for both open before publication) . We make the prototype available here purely for sake of reproducibility, but all future development (and maintenance) is on the second implementation. 
+We have implemented the vBWT twice. First as a simple prototype, which provided the results on \textit{P. falciparum} above, available here\\ http://www.well.ox.ac.uk/~zam/prototype.tgz . Secondly,  a more careful implementation that provided all other results, and which is available here: \\ http://www.well.ox.ac.uk/~zam/code.tgz (these .tgz files are for reviewers - we will make github repositories for both open before publication) . All future development (and maintenance) is on the second implementation. 
 
 
 
@@ -350,13 +350,13 @@ We have implemented the vBWT twice. First as a simple prototype, which provided 
 
 \bibitem{siren2} Siren, J. Indexing Variation Graphs. 	arXiv:1604.06605 
 
-\bibitem{na} Na, J.C., Crochemore, M., Park, H.,  et al: Suffix tree of alignment: an efficient index for similar data. Combinatorial Algorithms. Revised Selected Papers of the 24th International Workshop, IWOCA 2013, Rouen, France,  (2013), pp. 337?348
+\bibitem{na} Na, J.C., Crochemore, M., Park, H.,  et al: Suffix tree of alignment: an efficient index for similar data. Combinatorial Algorithms. Revised Selected Papers of the 24th International Workshop, IWOCA 2013, Rouen, France,  (2013)
 
-\bibitem{miles} Miles, A., Iqbal, Z., Vauterin, P., et al .: Genome variation and meiotic recombination in Plasmodium falciparum: insights from deep sequencing of genetic crosses Biorxiv. http://dx.doi.org/10.1101/024182 (2015)
+\bibitem{miles} Miles, A., Iqbal, Z., Vauterin, P., et al .: Genome variation and meiotic recombination in Plasmodium falciparum: insights from deep sequencing of genetic crosses. Biorxiv. http://dx.doi.org/10.1101/024182 (2015)
 
-\bibitem{iqbal} Iqbal, Z., Caccamo, M. Turner, I.,  et al: De novo assembly and genotyping of variants using colored de Bruijn graphs. Nature Genetics  44, 226?232 (2012)
+\bibitem{iqbal} Iqbal, Z., Caccamo, M. Turner, I.,  et al: De novo assembly and genotyping of variants using colored de Bruijn graphs. Nature Genetics  44, 226-232 (2012)
 
-\bibitem{depristo} DePristo, M., Banks, E., Poplin, R.E., et al: A framework for variation discovery and genotyping using next-generation DNA sequencing data. Nature Genetics 43(5): 491?498 (2011)
+\bibitem{depristo} DePristo, M., Banks, E., Poplin, R.E., et al: A framework for variation discovery and genotyping using next-generation DNA sequencing data. Nature Genetics 43(5): 491-498 (2011)
 
 \bibitem{hengli} Li, H. Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. 	arXiv:1303.3997
 
@@ -381,4 +381,5 @@ authors of the paper.
 \item A readme giving the name and email address of the
 corresponding author.
 \end{itemize}
+
 \end{document}
