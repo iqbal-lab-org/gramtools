@@ -189,7 +189,7 @@ In this section, we present a modified backward search algorithm for exact match
 At each step in backward search, before extending to the next character, we need to check whether the current matched read substring is preceded by a variation marker anywhere in the linear PRG. A scan for symbols larger than 4 (``range\_search\_2d" ) must be performed in the BWT within the range given by the current SA-interval. With a wavelet tree this range search can be done in $O(d\log(|\Sigma|/d))$ time, where $d$ is the size of the output. If a variation marker is found and it is an odd number, the read is about to cross a site boundary. The suffix array can be queried to find the position of the two odd numbers (start/end of the site) in the linear PRG.
 
 \begin{algorithm}[H]
-\caption{Modified backward search} \label{bsearch}
+\caption{Variation-aware backward search} \label{bsearch}
 \textbf{Input:} \textrm{pattern} $P[1,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
 \textbf{Output:} \textrm{list of SA intervals corresponding to matches of P} 
 \begin{algorithmic}[1]
