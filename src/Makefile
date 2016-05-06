@@ -27,8 +27,8 @@ UTILS_INC=-I../utils -I /data2/apps/htslib -I /data2/apps
 CPPFLAGS += -isystem $(GTEST_DIR)/include $(UTILS_INC)
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread -DNDEBUG 
-EXTRAFLAGS += -O0 
+CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread 
+#EXTRAFLAGS += -O0 
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
@@ -111,8 +111,9 @@ csa_construction.o: $(USER_DIR)/csa_construction.cpp $(VBWT_HEADERS)/bwt_search.
 map.o: $(USER_DIR)/map.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) -c $(USER_DIR)/map.cpp -lsdsl -ldivsufsort -ldivsufsort64
 
-vBWT: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o precalc_kmer_matches.o parse_masks.o csa_construction.o map.o 
+vBWT: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o precalc_kmer_matches.o parse_masks.o csa_construction.o map.o precalc_gen.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) -L $(LIBS2) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lhts -lz
+
 
 #Bwt_search.o : $(USER_DIR)/bwt_search.cpp $(USER_DIR)/bwt_search.h libsdsl.a $(GTEST_HEADERS)
 #	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) -c $(USER_DIR)/bwt_search.cpp -lsdsl -ldivsufsort -ldivsufsort64

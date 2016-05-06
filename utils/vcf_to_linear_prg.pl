@@ -38,6 +38,9 @@ open($output_fh, ">".$vars{"outfile"})||die("Unable to open output file\n");
 my $outvcf = $vars{"outfile"}.".vcf";
 my $output_vcf_fh;
 open($output_vcf_fh, ">".$outvcf)||die("Cannot open $outvcf to write output\n");
+my $o_mask_fh;
+my $outmask = $vars{"outfile"}.".mask";
+open($o_mask_fh, ">".$outmask)||die("Cannot open $outmask to write output\n");
 
 ## parse the VCF and print a linearised PRG in gramtools format
 #my $last_varnumber = print_linearised_poa(\%refseq, $vars{"ref"}, 
@@ -46,7 +49,7 @@ open($output_vcf_fh, ">".$outvcf)||die("Cannot open $outvcf to write output\n");
 
 my $last_varnumber = print_linearised_poa_in_one_sweep(\%refseq, $vars{"ref"}, 
 						       $vars{"vcf"}, $vars{"min_freq"},
-						       $output_fh, $output_vcf_fh);
+						       $output_fh, $output_vcf_fh, $o_mask_fh);
 
 
 close($output_fh);
@@ -71,7 +74,7 @@ sub test_cluster_func
 sub print_linearised_poa_in_one_sweep
 {
     my ($href_refsequence, $reff, $vcf_file, 
-	$min_freq, $o_fh, $ovcf_fh)= @_;
+	$min_freq, $o_fh, $ovcf_fh, $omask_fh)= @_;
 
     my $nextvar=5;
     ## Assume the VCF is  sorted. There are two reasons
@@ -130,6 +133,7 @@ sub print_linearised_poa_in_one_sweep
 		    {
 			##substr is 0-based and chromosomal pos is 1-based
 			print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
+			print $omask_fh "0 " x (length($seq)-$curr_pos+1);
 		    }
 
 		}
@@ -182,6 +186,7 @@ sub print_linearised_poa_in_one_sweep
 	    {
 		my $len = $sp[1]-$curr_pos;
 		print $o_fh substr($seq, $curr_pos-1, $len);
+		print $omask_fh "0 " x $len;
 		#$curr_pos=$sp[1];
 	    }
 
@@ -232,9 +237,11 @@ sub print_linearised_poa_in_one_sweep
 	    
 
 	    print $o_fh $nextvar;#left marker before the site starts
+	    print $omask_fh "0 ";
 	    print $o_fh $sp[3];		##print the ref allele first
+	    print $omask_fh "1 " x length($sp[3]);
 	    print $o_fh $nextvar+1;#even numbers between alleles
-	    
+	    print $omask_fh "0 ";
 	    ##Now work our way through the alternate alleles
 	    if ($sp[4]=~ /,/)
 	    {
@@ -245,13 +252,17 @@ sub print_linearised_poa_in_one_sweep
 		    my $allele = $sp2[$i];
 		    $allele =~ s/[^ACGTacgt]/C/g;
 		    print $o_fh $allele;
+		    my $tmp = $i+2;
+		    print $omask_fh $tmp." " x length($allele) ;##DEBUG ZAM 
 		    if ($i<scalar(@sp2)-1)
 		    {
 			print $o_fh $nextvar+1;#even number between alleles
+			print $omask_fh "0 ";
 		    }
 		    else
 		    {
 			print $o_fh $nextvar;#last one goes back to nextvar (odd)
+			print $omask_fh "0 ";
 		    }
 		}
 	    }
@@ -259,7 +270,9 @@ sub print_linearised_poa_in_one_sweep
 	    {
 		$sp[4]=~ s/[^ACGTacgt]/C/g;
 		print $o_fh $sp[4];
+		print $omask_fh "1 " x length($sp[4]);
 		print $o_fh $nextvar;
+		print $omask_fh "0 "; 
 	    }
 	    $nextvar+=2;
 	    $curr_pos=$sp[1]+length($sp[3]);
@@ -272,7 +285,8 @@ sub print_linearised_poa_in_one_sweep
     if ($curr_pos<length($seq)+1)
     {
 	##substr is 0-based and chr position is 10based
-	print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
+	print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1); 
+	print $o_fh "\n";##DEBUG ZAM 
     }
     print $o_fh "\n";
     return $nextvar-1;

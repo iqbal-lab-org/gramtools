@@ -20,7 +20,7 @@
 //char c for extending the current pattern     
 using namespace sdsl;
 
-uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2>& csa, 
+uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> &csa, 
 		      uint64_t& left, uint64_t& right, 
 		      uint64_t& left_rev, uint64_t& right_rev, 
 		      uint8_t c)
@@ -67,7 +67,7 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2>& csa,
   //now same in reverse csa
   left_rev  = left_rev + s;
   right_rev = right_rev - b + 1;
-  assert(right_rev-left_rev == right-left);
+  //assert(right_rev-left_rev == right-left);
 
   return right-left;
 }

@@ -78,7 +78,7 @@ class SeqRead
 		{
 			seq_close(file);
 			seq_read_free(read);
-			free(gr);
+			delete gr;
 		}
 
 
