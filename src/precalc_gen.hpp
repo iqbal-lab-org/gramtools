@@ -150,8 +150,8 @@ void gen_precalc_kmers(
 		pthread_join(threads[i],&status);
 		for (auto obj: kmer_idx[i])
 		  {
-		        auto k=obj.first;
-			for (auto n: k) precalc_file<<(int) n << ' ';
+		     auto k=obj.first;
+		     for (auto n: k) precalc_file<<(int) n << ' ';
 			precalc_file << '|';
 
 			if (kmers_in_ref[i].count(k))

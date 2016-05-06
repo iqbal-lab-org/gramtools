@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
 
 	std::vector<uint64_t> mask_s;
 	std::vector<int> mask_a;
+
 	std::vector<std::vector<int> > covgs;
 	std::string q;
 

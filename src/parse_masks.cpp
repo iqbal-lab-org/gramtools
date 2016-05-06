@@ -18,13 +18,13 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
 
   no_sites=0;
   while (h1>>d)
-    { 
-      if (d>no_sites) {
-	no_sites=d;
-	covgs.push_back(v);
-      }
-      mask_s.push_back(d);
-    }
+  { 
+	  if (d>no_sites) {
+		  no_sites=d;
+		  covgs.push_back(v);
+	  }
+	  //mask_s.push_back(d);
+  }
   h1.close();
 
   no_alleles=0;

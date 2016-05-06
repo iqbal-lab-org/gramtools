@@ -1,52 +1,53 @@
 import re
-from Bio import SeqIO
+from Bio import SeqIO,Seq
 import argparse
 import array
 import sys
+import  random
 
 class Chain:
-        '''Chain of Variantblocks, container  class, contains all genome split into VBlocks, like a linked list'''
+	'''Chain of Variantblocks, container  class, contains all genome split into VBlocks, like a linked list'''
 	def __init__(self):
 		self.blcks={}          # Map to address each block by id (id are odd numbers)
 		self.firstBlock=None   # Pointer to first block
 		self.lastBlock=None    # Pointer to last block
 
 	def addVariantBlock(self,b):   # Adding  a block to the linked list
-	    if not self.firstBlock:
-		self.firstBlock=self.lastBlock=b
-	    else:
-		self.lastBlock.next=b
-		b.prev=self.lastBlock
-		self.lastBlock=b
+		if not self.firstBlock:
+			self.firstBlock=self.lastBlock=b
+		else:
+			self.lastBlock.next=b
+			b.prev=self.lastBlock
+			self.lastBlock=b
 
-	    if b.bid!=0:
-		self.blcks[b.bid]=b
+		if b.bid!=0:
+			self.blcks[b.bid]=b
 
 	def __getitem__(self,bid):       # Getting a Vblock by id
-	    return self.blcks[bid]
+		return self.blcks[bid]
 
 	def __iter__(self):             # Iterating over all blocks
-	    a=self.firstBlock
-	    while a:
-		yield a
+		a=self.firstBlock
+		while a:
+			yield a
 		a=a.next
 
 	def blocksAtKDistance(self,bl,k):  
-            '''given a distance (k:kmer-length) which is the further block in each direction from a given block?
-               this method answers that question'''
-	    first=bl
-	    dist=k-1
-	    while dist>0 and first.prev:
-		first=first.prev
-		dist-=len(first)
+		'''given a distance (k:kmer-length) which is the further block in each direction from a given block?
+			this method answers that question'''
+		first=bl
+		dist=k-1
+		while dist>0 and first.prev:
+			first=first.prev
+			dist-=len(first)
 
-	    last=bl
-	    dist=k-1
-	    while dist>0 and last.next:
-		last=last.next
-		dist-=len(last)
+		last=bl
+		dist=k-1
+		while dist>0 and last.next:
+			last=last.next
+			dist-=len(last)
 
-	    return first,last
+		return first,last
 
 	def stringsForVariant(self,bid,k): 
             '''Given a block, and the two farther blocks in each direction, computes all possible strings in volving variants
@@ -75,6 +76,36 @@ class Chain:
 			for i in xrange (0,len(s)-k+1):
 				yield s[i:i+k]
 
+	def randomGenome(self):
+		genome=[]
+		f=self.firstBlock
+		while f:
+			genome.append(random.choice(f.cads).tostring())
+			f=f.next
+
+		return ''.join(genome)
+
+	def getMask(self):
+		sites=[]
+		alleles=[]
+		f=self.firstBlock
+		while f:
+			if len(f.cads)==1:
+				sites+=["0"]*len(f.cads[0])
+				alleles+=["0"]*len(f.cads[0])
+			else:
+				sites.append("0")
+				alleles.append("0")
+				k=1
+				for i in f.cads:
+					sites+=[str(f.bid)]*len(i)
+					alleles+=[str(k)]*len(i)
+					sites.append("0")
+					alleles.append("0")
+					k+=1
+
+			f=f.next
+		return "\t".join(sites),"\t".join(alleles)
 
 	def getKmerDict(self,k,nonVariants=False):
             '''Returns a dictionary containing a map kmer->set(variants) for all variants''' 
@@ -103,17 +134,6 @@ class Chain:
                 '''Feeds that chain with a fasta String'''
                 start=0
                 out=True
-            #    for i in re.finditer("[^0-9][0-9]*[13579][^0-9]",cad):
-            #    	if out:
-            #    		self.addVariantBlock( VariantBlock([cad[start:i.start()+1]]))
-            #    		out=False
-            #    		start=i.start()+1
-            #    	else:
-            #    		endpos=i.span()[1]-1
-            #    		self.addVariantBlock(VariantBlock(re.findall("[^0-9]+",cad[start:endpos]),int(cad[i.span()[0]+1:i.span()[1]-1])))
-            #    		start=endpos
-            #    		out=True
-            #    self.addVariantBlock(VariantBlock([cad[start:]]))
                 i=0
                 lastblock=0
                 while i<len(cad):
@@ -138,10 +158,6 @@ class Chain:
 
                 lastsequence=cad[lastblock:]
                 if lastsequence: self.addVariantBlock(VariantBlock([lastsequence],0))
-
-
-            
-
                 
 
         def parseFasta(self,f):
@@ -188,8 +204,9 @@ if __name__=="__main__":
         aparser = argparse.ArgumentParser(description='PRG kmer generator') 
         aparser.add_argument("-f", dest="fasta",  help="Fasta file", required=True) 
         aparser.add_argument("-n", dest="nonvariant", default=False, help="Print kmers from intervariant regions", action='store_true') 
-#        aparser.add_argument("-v", dest="vnumber",help="output variant numbers associated",default=False, action='store_true') 
         aparser.add_argument("-k", dest="ksize",help="kmer size [31]", type=int, default=31) 
+        aparser.add_argument("-r", dest="nreads",help="Generates random genome and random reads", type=int, default=0) 
+        aparser.add_argument("-m", dest="mask",action='store_true',default=False,help="Dump mask (mask.txt)") 
         options = aparser.parse_args()
 
         bls=Chain()
@@ -199,3 +216,29 @@ if __name__=="__main__":
         
         for i in  bls.getKmerDict(options.ksize,options.nonvariant):
             print i
+
+        if options.nreads:
+            rgen=bls.randomGenome()
+            a=open("randomGenome.fa","w")
+            a.write(">randGenome\n{0}\n".format(rgen))
+            a.close()
+
+            a=open("randomReads.fastq","w")
+            for i in xrange(options.nreads):
+                posic=random.randint(0,len(rgen)-150)
+                if random.randint(0,1):
+                    #a.write("@{0}\n{1}\n+\n{2}\n".format(i,str(Seq.Seq(rgen[posic:posic+150]).reverse_complement()),'H'*150))
+                    a.write("@{0}\n{1}\n+\n{2}\n".format(i,rgen[posic:posic+150],'H'*150))
+                else:
+                    a.write("@{0}\n{1}\n+\n{2}\n".format(i,rgen[posic:posic+150],'H'*150))
+
+            a.close()
+
+        if options.mask:
+             sites,alleles=bls.getMask()
+             a=open('mask_sites.txt','w')
+             a.write(sites)
+             a.close()
+             a=open('mask_alleles.txt','w')
+             a.write(alleles)
+             a.close()
