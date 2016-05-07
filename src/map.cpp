@@ -71,31 +71,31 @@ int main(int argc, char* argv[]) {
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator res_it;
 
+	std::vector<uint8_t> p;
+	p.reserve(100);	
 	for (auto q: inputReads)
 	{
-		// If you declare p inside the while scope, it is destroyed/created automatically in every loop
-		std::vector<uint8_t> p;
-
-		//logging
-		if (!(inc++%10)) { out2<<no_reads<<endl; }
-
-		//add N's
-		int flag=0;
-		for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
-			if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
-			else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
-			else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
-			else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
-			else {flag=1;}; 
+	  
+	  //logging
+	  if (!(inc++%10)) { out2<<no_reads<<endl; }
+	  
+	  //add N's
+	  int flag=0;
+	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
+	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
+	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
+	    else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
+	    else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
+	    else {flag=1;}; 
 			  
-		}
-		if (flag==1)
-		  {
-		    continue;
-		  }
-		std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
-		if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
-		  sa_intervals=kmer_idx[kmer];
+	  }
+	  if (flag==1)
+	    {
+	      continue;
+	    }
+	  std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
+	  if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
+	    sa_intervals=kmer_idx[kmer];
 		  sa_intervals_rev=kmer_idx_rev[kmer];
 		  sites=kmer_sites[kmer];	
 		  
@@ -127,6 +127,7 @@ int main(int argc, char* argv[]) {
 		p.clear();
 
 		no_reads++;
+		p.clear();
 	}
 	/*
 	for (int i=0;i<covgs.size();i++) {
