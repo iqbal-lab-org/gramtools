@@ -31,20 +31,21 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
   int i=0;
   //assert at least 2 alleles at each site
   while (h2>>a)
-  { 
-	  if (a>no_alleles) no_alleles=a;
-	  if (a<no_alleles && a!=0) {
-//		  covgs[mask_s[i]-6].assign(no_alleles,0); //should have -5? might change anyway if I don't end up using mask_s
-		  no_alleles=a;
-	  }
-	  i++;
-	  mask_a.push_back(a);
-  }
+    { 
+      if (a>no_alleles) no_alleles=a;
+      if (a<no_alleles && a!=0) {
+	//	covgs[mask_s[i]-6].assign(no_alleles,0); //should have -5? might change anyway if I don't end up using mask_s
+	no_alleles=a;
+      }
+      i++;
+      mask_a.push_back(a);
+    }
   h2.close();
 
   if (no_alleles>0) {
     //	  covgs[covgs.size()-1].assign(no_alleles,0);
+
   }
 
-  return(no_sites);
+  return(no_sites+1); //no_sites is last odd number in mask_sites, but alphabet size is the even number corresponding to it
 }
