@@ -45,9 +45,10 @@ int main(int argc, char* argv[]) {
 	//not using mask_s anymore?
 
 	timestamp();
-	cout<<"CSA construction"<<endl;
+	cout<<"Start CSA construction"<<endl;
 	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(argv[1],argv[8],argv[9],argv[2],true);
 	timestamp();
+	cout<<"End CSA construction"<<endl;
 
 	uint64_t maxx=parse_masks(mask_s,mask_a,argv[4],argv[5],covgs);
 
@@ -79,14 +80,19 @@ int main(int argc, char* argv[]) {
 		if (!(inc++%10)) { out2<<no_reads<<endl; }
 
 		//add N's
-
+		int flag=0;
 		for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
 			if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
-			if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
-			if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
-			if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
+			else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
+			else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
+			else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
+			else {flag=1;}; 
+			  
 		}
-
+		if (flag==1)
+		  {
+		    continue;
+		  }
 		std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
 		if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
 		  sa_intervals=kmer_idx[kmer];
@@ -102,16 +108,21 @@ int main(int argc, char* argv[]) {
 		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
 
 		  no_occ=0;
-		  for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
-		    no_occ+=(*it).second-(*it).first;
-
+		  //for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+		  //  no_occ+=(*it).second-(*it).first;
+		  if (sa_intervals.begin()==sa_intervals.end())
+		    {
+		      it=sa_intervals.begin();
+		      no_occ+=(*it).second-(*it).first; 
+		      no_mapped++;
+		    }
 		  sa_intervals.clear();
 		  sa_intervals_rev.clear();
 		  sites.clear();
 		}
 		else no_occ=0;
 	   
-		out<<no_occ<<" ";
+		out<<no_mapped<<" ";
 		//clear p, sa_intervals etc
 		p.clear();
 
