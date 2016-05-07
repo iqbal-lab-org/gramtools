@@ -1,62 +1,61 @@
 \relax 
-\citation{1000g,arabi,pombe}
+\citation{1000g,arabi}
 \citation{reinert}
 \citation{bwt}
-\citation{bwa}
-\citation{bowtie}
+\citation{bwa,bowtie}
 \@writefile{toc}{\contentsline {title}{Lecture Notes in Computer Science}{1}}
 \@writefile{toc}{\authcount {4}}
 \@writefile{toc}{\contentsline {author}{Authors' Instructions}{1}}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}}
 \citation{dilthey}
 \citation{valen}
-\citation{na}
-\citation{korbinian}
+\citation{korbinian,siren1,huang}
 \citation{siren1}
 \citation{huang}
+\citation{fmindex}
 \citation{siren2}
 \citation{bwa}
 \citation{bwt}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Background: Compressed Text Indexes}{3}}
-\@writefile{toc}{\contentsline {subsubsection}{Burrows-Wheeler Transform.}{3}}
-\@writefile{toc}{\contentsline {subsubsection}{Suffix Arrays.}{4}}
-\@writefile{toc}{\contentsline {subsubsection}{Backward search}{4}}
-\@writefile{toc}{\contentsline {subsubsection}{Wavelet Trees}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Wavelet tree encoding of a string; we return to this string in Figure 2 below, as an encoding of a PRG. Calculating the rank of the marked C is performed by repeated rank() calls moving down the binary tree until the alphabet remaining is just 2 characters.}}{5}}
-\newlabel{fig:wt}{{1}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background: Compressed Text Indexes}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{Burrows-Wheeler Transform.}{2}}
+\citation{wt}
+\@writefile{toc}{\contentsline {subsubsection}{Suffix Arrays.}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{Backward search}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{Wavelet Trees}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Wavelet tree encoding of a string. Calculating the rank of the marked ``e" is performed by repeated rank() calls moving down the binary tree until the alphabet remaining is just 2 characters. Note that only the bit vectors are stored in the tree, the corresponding strings are only shown here for clarity. }}{4}}
+\newlabel{fig:wt}{{1}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Encoding a variation-aware reference structure}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Terminology}{4}}
 \citation{dilthey}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Encoding a variation-aware reference structure}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Terminology}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}PRG Encoding}{6}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP. This example will be used in subsequent figures.}}{7}}
-\newlabel{lab}{{2}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Graph structure: constraints}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Variation aware backward search in vBWT}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces PRG graph structure. The sequences shown in Figure 3a) could be represented either as 3 separate mutations (shown in b)),or enumerated as 8 small haplotypes , shown in c). Both are supported by our encoding. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we place the constraint that we do not support ``nesting" of alleles, as shown in f), where one either has the long deletion, or one of two very similar alleles, differing by SNPs.}}{8}}
-\newlabel{lab}{{3}{8}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Backward search across vBWT. We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation locus. We check with a mask, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner we are able to align across the site.}}{8}}
-\newlabel{fig:example}{{4}{8}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Modified backward search}}{9}}
-\newlabel{bsearch}{{1}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}PRG Encoding}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP.}}{5}}
+\newlabel{lab}{{2}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Graph structure: constraints}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces PRG graph structure. The sequences shown in Figure 3a) could be represented either as 3 separate mutations (shown in b)), or enumerated as 8 small haplotypes, shown in c). Both are supported by our encoding. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we do not support ``nesting" of alleles, as shown in f).}}{6}}
+\newlabel{lab}{{3}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Variation aware backward search in vBWT}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Backward search across vBWT. We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation site. We check the suffix array to get the coordinate in the linear PRG, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner (the shorter arrows signify multiple intermediate steps not shown) we are able to align across the site.}}{7}}
+\newlabel{fig:example}{{4}{7}}
+\citation{gog}
 \citation{1000g}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Performance}{10}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Construction cost : the human genome}{10}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Variation-aware backward search}}{8}}
+\newlabel{bsearch}{{1}{8}}
 \citation{miles}
 \citation{iqbal}
 \citation{depristo}
-\citation{valen}
 \citation{hengli}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{11}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate}}{11}}
-\newlabel{fig:example}{{5}{11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Mapping reads from sample 7G8 to \textit  {P. falciparum} 3D7 reference genome results in a gap}}{12}}
-\newlabel{fig:example}{{6}{12}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap and leaves isolated variation which is easy to identify by standard approaches}}{12}}
-\newlabel{fig:example}{{7}{12}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Performance cost of large alphabet}{12}}
-\citation{marschall}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{13}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Performance}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Construction cost : the human genome}{9}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate.)}}{10}}
+\newlabel{fig:example}{{5}{10}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Mapping reads from sample 7G8 to \textit  {P. falciparum} 3D7 reference genome results in a gap.}}{10}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap, leaving isolated variants easy to detect with standard methods }}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Further performance comments}{10}}
+\citation{dilthey}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{11}}
+\@writefile{toc}{\contentsline {subsubsection}{Software}{11}}
 \bibcite{valen}{1}
 \bibcite{bwt}{2}
 \bibcite{bwa}{3}
@@ -64,17 +63,15 @@
 \bibcite{reinert}{5}
 \bibcite{1000g}{6}
 \bibcite{arabi}{7}
-\bibcite{pombe}{8}
-\bibcite{dilthey}{9}
-\bibcite{korbinian}{10}
-\bibcite{siren1}{11}
-\bibcite{huang}{12}
-\bibcite{siren2}{13}
-\bibcite{na}{14}
-\@writefile{toc}{\contentsline {subsubsection}{Software}{14}}
+\bibcite{dilthey}{8}
+\bibcite{korbinian}{9}
+\bibcite{siren1}{10}
+\bibcite{huang}{11}
+\bibcite{siren2}{12}
+\bibcite{fmindex}{13}
+\bibcite{wt}{14}
 \bibcite{miles}{15}
 \bibcite{iqbal}{16}
 \bibcite{depristo}{17}
 \bibcite{hengli}{18}
-\bibcite{marschall}{19}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Checklist of Items to be Sent to Volume Editors}{15}}
+\bibcite{gog}{19}
