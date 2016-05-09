@@ -110,25 +110,28 @@ int main(int argc, char* argv[]) {
 		  no_occ=0;
 		  //for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
 		  //  no_occ+=(*it).second-(*it).first;
-		  if (sa_intervals.begin()==sa_intervals.end())
+		  if (sa_intervals.size()==1)
 		    {
 		      it=sa_intervals.begin();
 		      no_occ+=(*it).second-(*it).first; 
 		      no_mapped++;
 		    }
+		  else no_occ=0;
 		  sa_intervals.clear();
 		  sa_intervals_rev.clear();
 		  sites.clear();
 		}
 		else no_occ=0;
 	   
-		out<<no_mapped<<" ";
+		out<<no_occ<<" ";
 		//clear p, sa_intervals etc
 		p.clear();
 
 		no_reads++;
 		p.clear();
 	}
+	
+	cout<<no_mapped<<endl;
 	/*
 	for (int i=0;i<covgs.size();i++) {
 		for (int j=0;j<covgs[i].size();j++)
