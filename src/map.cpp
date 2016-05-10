@@ -1,5 +1,6 @@
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <cstdint>
@@ -81,6 +82,7 @@ int main(int argc, char* argv[]) {
 	  
 	  //add N's
 	  int flag=0;
+	  cout<<q->seq<<endl;
 	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
 	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
 	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
@@ -95,7 +97,7 @@ int main(int argc, char* argv[]) {
 	    }
 	  std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
 	  if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
-	    sa_intervals=kmer_idx[kmer];
+	          sa_intervals=kmer_idx[kmer];
 		  sa_intervals_rev=kmer_idx_rev[kmer];
 		  sites=kmer_sites[kmer];	
 		  
@@ -113,8 +115,31 @@ int main(int argc, char* argv[]) {
 		  if (sa_intervals.size()==1)
 		    {
 		      it=sa_intervals.begin();
-		      no_occ+=(*it).second-(*it).first; 
+		      no_occ=(*it).second-(*it).first; 
 		      no_mapped++;
+		      if (first_del==false) sites.clear();
+		      for (auto ind=(*it).first;ind<(*it).second;ind++) {
+			if (sites.empty()) {
+			  if (mask_a[csa[ind]]!=0) {
+			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]++;
+			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()]);
+			  }
+			}
+			else {
+			  if (no_occ>1) assert(sites.front().back().second.size()==0);
+			  for (auto it_s : sites) {
+			    for (auto site_pair : it_s) {
+			      auto site=site_pair.first;
+			      auto allele=site_pair.second;
+			      if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
+			      if (allele.empty()) covgs[site-5][mask_a[csa[ind]]-1]++;
+			      else 
+				for (auto al:allele)
+				  covgs[site-5][al-1]++;
+			    }
+			  }
+			}
+		      }
 		    }
 		  else no_occ=0;
 		  sa_intervals.clear();
@@ -123,22 +148,21 @@ int main(int argc, char* argv[]) {
 		}
 		else no_occ=0;
 	   
-		out<<no_occ<<" ";
+	  //out<<no_occ<<" ";
 		//clear p, sa_intervals etc
-		p.clear();
-
+	
 		no_reads++;
 		p.clear();
 	}
 	
 	cout<<no_mapped<<endl;
-	/*
+	
 	for (int i=0;i<covgs.size();i++) {
 		for (int j=0;j<covgs[i].size();j++)
 			out<<covgs[i][j]<<" ";
 		out<<endl;
 	}
-
+	/*
 	for (int i=0;i<site_reads.size();i++) {
 		std::string name=string(argv[9])+"Site"+std::to_string(i);
 		std::ofstream fsite(name);
