@@ -132,10 +132,10 @@ int main(int argc, char* argv[]) {
 			      auto site=site_pair.first;
 			      auto allele=site_pair.second;
 			      if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
-			      if (allele.empty()) covgs[site-5][mask_a[csa[ind]]-1]++;
+			      if (allele.empty()) covgs[(site-5)/2][mask_a[csa[ind]]-1]++;
 			      else 
 				for (auto al:allele)
-				  covgs[site-5][al-1]++;
+				  covgs[(site-5)/2][al-1]++;
 			    }
 			  }
 			}

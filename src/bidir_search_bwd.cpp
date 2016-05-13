@@ -71,7 +71,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 
 
 
-					if (num==prev_num) ignore=true;
+					if ((num==prev_num) || (num%2==0 && num==prev_num+1)) ignore=true;
 					else ignore=false;
 
 					left_new=(*it).first;
@@ -108,13 +108,18 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 					//can delete them here or in top a fcn when calculating coverages
 					else {
 						if (ignore) {
-							if (num%2==0) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
+						  if (num%2==0) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
 							//else ?, assert sites.first=num
 						}
 						else {
 							*it=std::make_pair(left_new,right_new);
 							*it_rev=std::make_pair(left_rev_new,right_rev_new);
-							(*it_s).push_back(get_location(csa,i,num,last,allele_empty,mask_a));
+							if ((*it_s).back().first==num || (*it_s).back().first==num-1) {
+							  //assert((*it_s).back().second.empty());
+							  (*it_s).back()=get_location(csa,i,num,last,(*it_s).back().second,mask_a);
+							}
+							else
+							  (*it_s).push_back(get_location(csa,i,num,last,allele_empty,mask_a));
 							allele_empty.clear();
 							allele_empty.reserve(3500);
 							//++it;
