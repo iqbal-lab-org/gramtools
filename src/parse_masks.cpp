@@ -15,7 +15,6 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
   uint64_t d,no_sites;
   std::ifstream h1(sites_fname);
   std::ifstream h2(alleles_fname);
-  std::vector<int> v; 
 
   no_sites=0;
   while (h1>>d)
@@ -23,12 +22,10 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
 	  if (d>no_sites) {
 		  no_sites=d;
 		  mask_s.push_back(0); //fix bug in mask generation script that was missing the 0 from the beginning of each site
-		  covgs.push_back(v);
 	  }
 	  mask_s.push_back(d);
   }
   h1.close();
-  //  covgs.reserve((no_sites-4)/2);
  
   no_alleles=0;
   int i=0;
@@ -38,8 +35,8 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
       if (a>no_alleles)
 	no_alleles=a;
       if (a<no_alleles && a!=0) {
-	covgs[(mask_s[i]-7)/2].assign(no_alleles,0); //should have -5? might change anyway if I don't end up using mask_s
-	no_alleles=a;
+	covgs.push_back(std::vector<int> (no_alleles,0));
+ 	no_alleles=a;
       }
       i++;
       mask_a.push_back(a);
@@ -47,8 +44,7 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
   h2.close();
 
   if (no_alleles>0) {
-    //    covgs.back().assign(no_alleles,0);
-    covgs[covgs.size()-1].assign(no_alleles,0);
+    covgs.push_back(std::vector<int> (no_alleles,0));
   }
 
   for (i=3141175;i<=3413540;i++) {
