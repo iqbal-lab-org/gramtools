@@ -21,7 +21,7 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
   { 
 	  if (d>no_sites) {
 		  no_sites=d;
-		  mask_s.push_back(0); //fix bug in mask generation script that was missing the 0 from the beginning of each site
+		  //		  mask_s.push_back(0); //fix bug in mask generation script that was missing the 0 from the beginning of each site
 	  }
 	  mask_s.push_back(d);
   }
@@ -47,10 +47,10 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
     covgs.push_back(std::vector<int> (no_alleles,0));
   }
 
-  for (i=3141175;i<=3413540;i++) {
+  /*  for (i=3141175;i<=3413540;i++) {
     mask_s.push_back(0);
     mask_a.push_back(0);
-  }
+    }*/
 
   cout<<endl<<mask_s.size()<<" "<<mask_a.size()<<endl;
 

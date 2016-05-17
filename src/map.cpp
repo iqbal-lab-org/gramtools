@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 			if (sites.empty()) {
 			  if (mask_a[csa[ind]]!=0) {
 			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]++;
-			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()]);
+			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
 			  }
 			}
 			else {
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 		}
 		else no_occ=0;
 	   
-	  //out<<no_occ<<" ";
+	        cout<<no_occ<<endl;
 		//clear p, sa_intervals etc
 	
 		no_reads++;
