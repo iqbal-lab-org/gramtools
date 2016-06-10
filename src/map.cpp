@@ -168,70 +168,68 @@ int main(int argc, char* argv[]) {
 	p.reserve(100);	
 	for (auto q: inputReads)
 	{
+	  
+	  //logging
+	  if (!(inc++%10)) { out2<<no_reads<<endl; }
+	  
+	  //add N's
+	  int flag=0;
+	  //cout<<q->seq<<endl;
+	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
+	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
+	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
+	    else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
+	    else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
+	    else {flag=1;}; 
+			  
+	  }
+	  if (flag==1)
+	    {
+	      continue;
+	    }
+	  std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
+	  if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
+	          sa_intervals=kmer_idx[kmer];
+		  sa_intervals_rev=kmer_idx_rev[kmer];
+		  sites=kmer_sites[kmer];	
+		  
+		  it=sa_intervals.begin();
+		  it_rev=sa_intervals_rev.begin();
 
-		//logging
-		if (!(inc++%10)) { out2<<no_reads<<endl; }
+		  if (kmers_in_ref.find(kmer)!=kmers_in_ref.end()) first_del=false;
+		  else first_del=true;
 
-		//add N's
-		int flag=0;
-		cout<<q->seq<<endl;
-		for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
-			if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
-			else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
-			else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
-			else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
-			else {flag=1;}; 
+		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
 
-		}
-		if (flag==1)
-		{
-			continue;
-		}
-		std::vector<uint8_t> kmer(p.begin()+p.size()-k,p.end()); //is there a way to avoid making this copy?
-		if (kmer_idx.find(kmer)!=kmer_idx.end() && kmer_idx_rev.find(kmer)!=kmer_idx_rev.end() && kmer_sites.find(kmer)!=kmer_sites.end()) {
-			sa_intervals=kmer_idx[kmer];
-			sa_intervals_rev=kmer_idx_rev[kmer];
-			sites=kmer_sites[kmer];	
-
-			it=sa_intervals.begin();
-			it_rev=sa_intervals_rev.begin();
-
-			if (kmers_in_ref.find(kmer)!=kmers_in_ref.end()) first_del=false;
-			else first_del=true;
-
-			res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
-
-			no_occ=0;
-			//for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
-			//  no_occ+=(*it).second-(*it).first;
-			if (sa_intervals.size()==1)
-			{
-				it=sa_intervals.begin();
-				no_occ=(*it).second-(*it).first; 
-				no_mapped++;
-				if (first_del==false) sites.clear();
-				for (auto ind=(*it).first;ind<(*it).second;ind++) {
-					if (sites.empty()) {
-						if (mask_a[csa[ind]]!=0) {
-							covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]++;
-							assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
-						}
-					}
-					else {
-						if (no_occ>1) assert(sites.front().back().second.size()==0);
-						for (auto it_s : sites) {
-							for (auto site_pair : it_s) {
-								auto site=site_pair.first;
-								auto allele=site_pair.second;
-								if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
-								if (allele.empty()) covgs[(site-5)/2][mask_a[csa[ind]]-1]++;
-								else 
-									for (auto al:allele)
-										covgs[(site-5)/2][al-1]++;
-							}
-						}
-					}
-				}
+		  no_occ=0;
+		  //for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+		  //  no_occ+=(*it).second-(*it).first;
+		  if (sa_intervals.size()==1)
+		    {
+		      it=sa_intervals.begin();
+		      no_occ=(*it).second-(*it).first; 
+		      no_mapped++;
+		      if (first_del==false) sites.clear();
+		      for (auto ind=(*it).first;ind<(*it).second;ind++) {
+			if (sites.empty()) {
+			  if (mask_a[csa[ind]]!=0) {
+			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]++;
+			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
+			  }
+			}
+			else {
+			  if (no_occ>1) assert(sites.front().back().second.size()==0);
+			  for (auto it_s : sites) {
+			    for (auto site_pair : it_s) {
+			      auto site=site_pair.first;
+			      auto allele=site_pair.second;
+			      if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
+			      if (allele.empty()) covgs[(site-5)/2][mask_a[csa[ind]]-1]++;
+			      else 
+				for (auto al:allele)
+				  covgs[(site-5)/2][al-1]++;
+			    }
+			  }
 			}
 			else no_occ=0;
 			sa_intervals.clear();
@@ -239,8 +237,8 @@ int main(int argc, char* argv[]) {
 			sites.clear();
 		}
 		else no_occ=0;
-
-		cout<<no_occ<<endl;
+	   
+	  //cout<<no_occ<<endl;
 		//clear p, sa_intervals etc
 
 		no_reads++;
