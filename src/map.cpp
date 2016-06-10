@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 	for (auto i: pars)
 		if (*i=="")
 		{
-			std::cout << "You must specify all the parameters" << HELP;
+			std::cout << "You must specify all parameters" << HELP;
 			exit(-1);
 		}
 
