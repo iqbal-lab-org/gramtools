@@ -17,18 +17,18 @@ using namespace sdsl;
 void timestamp(); 
 
 
-char *HELP="\nvBWT Usage:\n\
-\n	  --prg   -p   file containing linear prg                                                                                                     \
-\n	  --csa   -c   file where CSA is stored                                                                                                       \
-\n	  --input -i   file containing reads to be mapped (one read per line)                                                                         \
-\n	  --ps    -s   file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which site   \
-\n	  --pa    -a   file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which allele \
+char *HELP="\ngramtools usage:\n\
+\n	  --prg   -p   input file containing linear prg                                                                                                     \
+\n	  --csa   -c   output file where CSA is stored                                                                                                       \
+\n	  --input -i   input FASTA/FASTQ file to be mapped                                                                         \
+\n	  --ps    -s   input file containing mask over the                                                                        \      \n                        linear prg that indicates at each                                                                       \      \n                        position whether you are inside a                                                                       \      \n                        site and if so, which site   \
+\n	  --pa    -a   input file containing mask over the                                                                        \      \n                        linear prg that indicates at each                                                                       \      \n                        position whether you are inside a                                                                       \      \n                        site and if so, which allele   \
 \n	  --co    -v   name of output file where coverages on each allele are printed                                                                 \
 \n	  --ro    -r   name of output file where reads that have been processed are printed                                                           \
-\n	  --po    -b   name of binary file where the prg in integer alphabet is written                                                               \
-\n	  --log   -l   memory log file for CSA                                                                                                        \
+\n	  --po    -b   output filename of binary file containing the prg in integer alphabet                                                                \
+\n	  --log   -l   Output memory log file for CSA                                                                                                        \
 \n	  --ksize -k   size of precalculated kmers                                                                                                    \
-\n	  --kfile -f   kmer file                                                                                                                      \
+\n	  --kfile -f   input  file listing all kmers in PRG                                                                                                                     \
 \n";
 
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 	for (auto i: pars)
 		if (*i=="")
 		{
-			std::cout << "You must specify all the parameters" << HELP;
+			std::cout << "You must specify all parameters" << HELP;
 			exit(-1);
 		}
 
@@ -231,20 +231,22 @@ int main(int argc, char* argv[]) {
 			    }
 			  }
 			}
-			else no_occ=0;
-			sa_intervals.clear();
-			sa_intervals_rev.clear();
-			sites.clear();
-		}
-		else no_occ=0;
-	   
+		      }
+		    }
+		  else no_occ=0;
+		  sa_intervals.clear();
+		  sa_intervals_rev.clear();
+		  sites.clear();
+	  }
+	  else no_occ=0;
+	  
 	  //cout<<no_occ<<endl;
-		//clear p, sa_intervals etc
-
-		no_reads++;
-		p.clear();
+	  //clear p, sa_intervals etc
+	  
+	  no_reads++;
+	  p.clear();
 	}
-
+	
 	cout<<no_mapped<<endl;
 
 	for (int i=0;i<covgs.size();i++) {
