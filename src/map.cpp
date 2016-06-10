@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	  
 	  //add N's
 	  int flag=0;
-	  cout<<q->seq<<endl;
+	  //cout<<q->seq<<endl;
 	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
 	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
 	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 		}
 		else no_occ=0;
 	   
-	        cout<<no_occ<<endl;
+	  //cout<<no_occ<<endl;
 		//clear p, sa_intervals etc
 	
 		no_reads++;
