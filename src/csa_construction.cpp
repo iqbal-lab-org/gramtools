@@ -15,9 +15,9 @@ using namespace std;
 //make SA sampling density and ISA sampling density customizable
 
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
-							    char* int_al_fname, 
-							    char* memory_log_fname,
-							    char* csa_file,
+							    std::string int_al_fname, 
+							    std::string memory_log_fname,
+							    std::string csa_file,
 							    bool fwd)				        
 
 {
@@ -90,7 +90,7 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
 
    if (fwd==false) {
      char int_al_fname_rev[50];
-     strcpy(int_al_fname_rev,int_al_fname);
+     strcpy(int_al_fname_rev,int_al_fname.c_str());
      strcat(int_al_fname_rev,"_rev");
      uint64_t prg_int_rev[ii];
      std::reverse_copy(prg_int,prg_int+ii,prg_int_rev);
@@ -102,13 +102,13 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
      construct(csa,int_al_fname_rev,8);
    }
    else {
-     fp=fopen(int_al_fname,"wb");
+     fp=fopen(int_al_fname.c_str(),"wb");
      fwrite(prg_int,sizeof(uint64_t),ii,fp);
      fclose(fp);
      std::cout.rdbuf(out.rdbuf());   
      free(prg_int);
      memory_monitor::start();
-     construct(csa,int_al_fname,8);  
+     construct(csa,int_al_fname.c_str(),8);  
      memory_monitor::stop();
      memory_monitor::write_memory_log<HTML_FORMAT>(cout);
  

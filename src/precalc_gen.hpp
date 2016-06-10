@@ -38,14 +38,14 @@ static inline std::string &trim(std::string &s) {
 	return ltrim(rtrim(s));
 }
 
-std::vector<std::string> split(std::string cad,char *delim)
+std::vector<std::string> split(std::string cad,std::string delim)
 {
 	std::vector<std::string> v;
 	int p,q,d;
 
 	q=cad.size();
 	p=0;
-	d=strlen(delim);
+	d=strlen(delim.c_str());
 	while (p<q){
 		int posfound=cad.find(delim,p);
 		std::string token;
@@ -81,6 +81,7 @@ void * worker (void *st)
 {
 	thread_data* th=(thread_data *) st;
 	precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),*(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers));
+	return NULL;
 }
 
 
@@ -92,7 +93,7 @@ void gen_precalc_kmers(
 //		sequence_set<std::vector<uint8_t>> &kmers_in_ref,
 //		std::vector<std::vector<uint8_t>> &kmers,
 		std::vector<int> &mask_a,
-		char *kmer_fname,
+		std::string kmer_fname,
 		uint64_t maxx,
 		int k
 		)
@@ -210,8 +211,8 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 
 		std::vector<std::string> idx_str=split(parts[2]," ");
 		std::vector<std::string> idx_rev_str=split(parts[3]," ");
-		for (int i=0;i<idx_str.size()/2;i++) idx.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_str[i*2]),std::stoi(idx_str[i*2+1])));
-		for (int i=0;i<idx_rev_str.size()/2;i++) idx_rev.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_rev_str[i*2]),std::stoi(idx_rev_str[i*2+1])));
+		for (unsigned int i=0;i<idx_str.size()/2;i++) idx.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_str[i*2]),std::stoi(idx_str[i*2+1])));
+		for (unsigned int i=0;i<idx_rev_str.size()/2;i++) idx_rev.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_rev_str[i*2]),std::stoi(idx_rev_str[i*2+1])));
 
 		int flag=0;
 		if (! idx.empty())
@@ -227,7 +228,7 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 
 		if (flag==1)
 		  {
-		    for (int i=4;i<parts.size();i++)
+		    for (unsigned int i=4;i<parts.size();i++)
 		      {
 			std::vector<std::pair<uint32_t, std::vector<int>>> v;
 			for (auto pair_i_v: split(parts[i],"@")){
@@ -237,7 +238,7 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 			      int first=std::stoi(strvec[0]);
 			      
 			      std::vector<int> rest;
-			      for (int i=1;i<strvec.size();i++)
+			      for (unsigned int i=1;i<strvec.size();i++)
 				if (strvec[i].size())
 				  rest.push_back(std::stoi(strvec[i]));
 			      
@@ -293,7 +294,7 @@ void get_precalc_kmers(
 		sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
 		sequence_set<std::vector<uint8_t>> &kmers_in_ref,
 		std::vector<int> &mask_a,
-		char *kmer_fname,
+		std::string kmer_fname,
 		uint64_t maxx,
 		int k)
 {
