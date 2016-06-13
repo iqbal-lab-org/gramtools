@@ -81,7 +81,7 @@ We  want to build a representation of the genome of a species which incorporates
 
 Genomes evolve (broadly speaking) by two processes - mutation (changing a single character, or less frequently, inserting or deleting a few) and recombination (either two chromosomes exchange a chunk of DNA, or one chromosome copies a chunk from another). Thus once we have seen many genomes of a given species, a new genome is likely to look like a mosaic of genomes we have seen before.  If we can infer a close mosaic, we have found a ``personalised reference genome", and reads are more likely to exact-match. This approach was first described in \cite{dilthey}, applied to the human MHC region. However their implementation was quite specific to the region and would not scale to the whole genome. Valenzuela \textit{et al} \cite{valen} have  also espoused a find-the-closest-reference approach.
 
-Other ``reference graph" methods have been published \cite{korbinian,siren1,huang}, generally approaching just the alignment step.  Siren \textit{et al} developed a method (GCSA \cite{siren1}), with construction costs for a whole human genome (plus SNPs) of more than 1 Tb of RAM. Huang \textit{et al} \cite{huang} developed an FM index \cite{fmindex} encoding of a reference genome-plus-variation (``BWBBLE") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. BWBBLE allows reads to align smoothly across multiple SNPs and up to one indel. We do something similar, but treat all variation in an equivalent manner.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
+Other ``reference graph" methods have been published \cite{korbinian,siren1,huang}, generally approaching just the alignment step.  Siren \textit{et al} developed a method (GCSA \cite{siren1}), with construction costs for a whole human genome (plus SNPs) of more than 1 Tb of RAM. Huang \textit{et al} \cite{huang} developed an FM index \cite{fmindex} encoding of a reference genome-plus-variation (``BWBBLE") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. We do something similar, but treat all variation in an equivalent manner.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
 
  We show below how to encode a set of genomes, or a reference plus  genetic variation, in an FM index which naturally distinguishes alternate alleles (defined below). We extend the well known  BWT backward search, and show how read-mapping can be performed in a way that allows reads to cross multiple variants, allowing recombination to occur naturally. Our data structure  supports bidirectional search (which underlies the Super Maximal Exact Match algorithms of bwa-mem \cite{bwa}), but currently we have only implemented exact matching. We show that index construction for the human genome and 8.3 million genetic variants from the 1000 genomes project uses just 25 GB of RAM on a single core, taking 4.5 hours. We go on to show how inferring a personalised reference results in better genome inference, looking at a highly challenging region - the MSP3.4 gene of \textit{P. falciparum} where alleles differ by one SNP every 3 bp.  
 
@@ -134,7 +134,7 @@ Following \cite{dilthey}, we use a linear PRG conceptually equivalent to a direc
 \centering
 \includegraphics[height=1.2cm]{fig2_encoding.png}
 \caption{A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP.}
-\label{lab}
+\label{lab3}
 \end{figure}
 
 
@@ -164,7 +164,7 @@ In 3d) we have an example where a long deletion lies ``over" two other alleles. 
 \centering
 \includegraphics[height=4cm]{graph_construction.png}
 \caption{PRG graph structure. The sequences shown in Figure 3a) could be represented either as 3 separate mutations (shown in b)), or enumerated as 8 small haplotypes, shown in c). Both are supported by our encoding. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we do not support ``nesting" of alleles, as shown in f).}
-\label{lab}
+\label{lab2}
 \end{figure}
 
 
@@ -246,14 +246,14 @@ Once the check for variation markers is finished and all candidate SA-intervals 
 We   constructed a PRG from the human reference genome (GRC37 without ``alt" contigs) plus the 1000 genomes final VCF (12GB in size) \cite{1000g}, as described below. We first  excluded structural variants which did not have precisely specified alleles, and variants with allele frequency below 5\% (rare variation offers limited benefit - our goal is to maximise the proportion of reads mismatching the graph by at most 1 SNP). If two variants occurred at consecutive bases, they were merged into one, and all possible haplotypes enumerated. If the VCF contained two consecutive records which overlapped, the second was discarded. This resulted in a dataset of 7.4 million SNPs and 978000 indels. We give construction costs in Table 1, along with comparative figures for BWBBLE with identical input. 
  
 \begin{table}
-\caption{FM index construction costs for human reference genome plus 1000 genomes variants}
+\caption{FM index construction costs and final data structure size for human reference genome plus 1000 genomes variants}
 \centering
-\begin{tabular}{c c c}
+\begin{tabular}{c c c c}
 \hline
-Software  & Memory(GB) & Time (hrs/mins)\\
+Software  & Peak Memory(GB) & Time (hrs/mins) & Final/in-use memory (GB)\\
 \hline
-vBWT  & 25  & 4h24m \\
-BWBBLE  & 60 &  1h5m \\ 
+vBWT  & 25  & 4h24m & 23.5 \\
+BWBBLE  & 60 &  1h5m  & 12\\ 
 \hline
 \end{tabular}
 \end{table}
@@ -276,7 +276,7 @@ For comparison, using common Finnish SNPs, GCSA took over 1TB of RAM building ch
 
 
 
-We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} variant calls from 700 \textit{P. falciparum} samples from Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We show in Figure 5 the density of variants and number of alleles across the gene. We aligned Illumina 100bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. At each site we chose the allele with the highest coverage to extract the path through the graph with maximum support - this was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) independently to the reference and to the inferred genome. As can be seen in Figures 6 and 7, this gives dramatically better pileup results over the MSP3.4 gene.
+We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \cite{depristo} [REMOVE GATK?] variant calls from 650 \textit{P. falciparum} samples from Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We show in Figure 5 the density of variants and number of alleles across the gene. We aligned Illumina 100bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. At each site we chose the allele with the highest coverage to extract the path through the graph with maximum support - this was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) independently to the reference and to the inferred genome. As can be seen in Figures 6 and 7, this gives dramatically better pileup results over the MSP3.4 gene.
 
 \begin{figure}[!tbp]
   \centering
@@ -297,9 +297,27 @@ We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} and GATK \
 
 
 \subsection{Further performance comments}
-One  consequence of our approach, shared with BWBBLE, is that a single pattern can match multiple intervals in the BWT. Thus, for mapping, we store a list of intervals, along with a corresponding list of which sites and alleles are crossed. Our current implementation of this is naive (using C++ std::vectors and std::lists). We also store an integer array allowing us to determine if a position in the PRG is in a site, and if so, which allele - again naively encoded (in std::vector). For the human  example this costs us around 12GB of RAM. This  array, which contains a zero at every non-variable site in the chromosome, could be stored much more compactly.
+One  consequence of our approach, shared with BWBBLE, is that a single pattern can match multiple intervals in the BWT. Thus, for mapping, we store a list of intervals, along with a corresponding list of which sites and alleles are crossed. Our current implementation of this is naive (using C++ std::vectors and std::lists). We also store an integer array allowing us to determine if a position in the PRG is in a site, and if so, which allele - again naively encoded (in std::vector). For the human  example this costs us around 12GB of RAM (not included in table above as not part of index). This  array, which contains a zero at every non-variable site in the chromosome, could be stored much more compactly.
 
-This encoding results in an alphabet of size $4+2n$ where $n$ is the number of variant sites. We used the wavelet tree to mitigate this cost from $O(|\Sigma|)$ to $O(\log(\Sigma))$, but to get an estimate of how this impacts performance in practise, we measure speed of exact matching of simulated perfect reads from \textit{P. falciparum} chromosome 10 with only MSP3.4 variation inserted. To avoid repeatedly calculating the same SA intervals, we precalculate a hash of the  SA intervals corresponding to all 9-mers in the PRG. This precalculation was done in 8 minutes using 25 threads. After that, the single-threaded read-matching rate was 597 reads/second. To lend context, mapping the same reads to corresponding reference chromosome using bwa\_mem was 50x faster (34000 reads/second). All experiments were performed on a machine with 64 processors Intel Xeon CPU E5-4620 v2 @ 2.60GHz and 1 TB of memory.
+This encoding results in an alphabet of size $4+2n$ where $n$ is the number of variant sites. We used the wavelet tree to mitigate this cost from $O(|\Sigma|)$ to $O(\log(\Sigma))$. To get an estimate of how this impacts performance in practise, we measure speed of exact matching of 450,000 simulated perfect 150bp reads from each of 100 random haplotypes from \textit{P. falciparum} chromosome 10 with only MSP3.4 variation inserted. To avoid repeatedly calculating the same SA intervals, we precalculate a hash of the  SA intervals corresponding to all 9-mers in the PRG. This precalculation was done in 8 minutes using 25 threads. We compared BWBBLE on the same dataset and, for context, measured speed of traditional mapping of reads with bwa to the haplotype from which reads were sampled. Results (mean) displayed in this table:
+
+
+\begin{table}
+\caption{Exact-matching speed benchmark on \textit{P. falciparum} chromosome 10 with MSP3.4 variation}
+\centering
+\begin{tabular}{c c c c}
+\hline
+Software  & Time (sec) & Speed (reads/sec) & Unmapped reads \\
+\hline
+BWA & 12 & 37500 & 0 \\
+vBWT  & 21  & 21429 &  0 \\
+BWBBLE  & 69 & 6522 & ?\\ 
+\hline
+\end{tabular}
+\end{table}
+
+
+All experiments were performed on a machine with 64 processors Intel Xeon CPU E5-4620 v2 @ 2.60GHz and 1 TB of memory.
 
 Finally, there is one performance improvement which we have yet to implement - precalculating and storing an array of ranks at marker positions across the BWT - just as in a standard FM-index. This is not normally done for large alphabet wavelet-tree-based suffix arrays, but we can ignore the numeric characters, and store only for A,C,G,T. 
 
@@ -307,12 +325,8 @@ Finally, there is one performance improvement which we have yet to implement - p
 We have demonstrated a whole-genome scale implementation of a PRG designed to enable inference as introduced in \cite{dilthey}. As with any reference graph approach, there is an implicit coupling between mapping and graph structure (for handling alternate alleles). By extending the alphabet and placing positional markers, we are able to ensure that alternate alleles sort together in the BWT matrix, allowing mapping across sites and recombination. In fact, we could encode quite general graph structures in this manner, but for simplicity we imposed a constraint on graph construction, and did not allow nesting of SNPs on other longer alleles. For haploids we naturally infer a personalised reference genome. For other ploidies, our implementation readily lends itself to ``lightweight alignment" followed by an HMM to infer a phased tuple of mosaic haplotypes, followed by full MEM-based graph alignment.  
 
 
-
-
-
 \subsubsection{Software}
-We have implemented the vBWT twice. First as a simple prototype, which provided the results on \textit{P. falciparum} above. Secondly,  a careful implementation that provided all other results. These are available here: http://www.well.ox.ac.uk/ {\raise.17ex\hbox{$\scriptstyle\sim$}} zam/code.tgz -  we will make github repos open before publication. 
-
+Our software, gramtools, is available here: http://github.com/iqbal-lab/gramtools, and scripts and PRG files for reproducing this paper are here.
 
 \subsubsection*{Acknowledgments.} We would like to thank Phelim Bradley, Rayan Chikhi, Simon Gog, Lin Huang, Jerome Kelleher, Heng Li,  Gerton Lunter, Rachel Norris, Victoria Popic and Jouni Siren for discussions and help. We thank the SDSL developers for providing a valuable  resource.
 

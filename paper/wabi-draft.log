@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  6 MAY 2016 11:29
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  13 JUN 2016 09:05
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -216,9 +216,6 @@ Document Style - pseudocode environments for use with the `algorithmicx' style
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 ) (./wabi-draft.aux
 
-LaTeX Warning: Label `lab' multiply defined.
-
-
 LaTeX Warning: Label `fig:example' multiply defined.
 
 )
@@ -384,16 +381,16 @@ Missing character: There is no “ in font cmr9!
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
- [12] (./wabi-draft.aux)
+ [12] [13] (./wabi-draft.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2978 strings out of 493089
- 40822 string characters out of 6134842
- 110735 words of memory out of 5000000
- 6408 multiletter control sequences out of 15000+600000
+ 2979 strings out of 493089
+ 40829 string characters out of 6134842
+ 110743 words of memory out of 5000000
+ 6409 multiletter control sequences out of 15000+600000
  11125 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  37i,7n,26p,1309b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -413,10 +410,10 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 15/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (12 pages, 788423 bytes).
+Output written on wabi-draft.pdf (13 pages, 789101 bytes).
 PDF statistics:
- 148 PDF objects out of 1000 (max. 8388607)
- 88 compressed objects within 1 object stream
+ 152 PDF objects out of 1000 (max. 8388607)
+ 91 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 

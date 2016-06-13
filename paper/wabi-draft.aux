@@ -29,10 +29,10 @@
 \citation{dilthey}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}PRG Encoding}{5}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A simple PRG linearised according to our encoding. The first site has 3 alleles, which do not here look at all similar, and the second is a SNP.}}{5}}
-\newlabel{lab}{{2}{5}}
+\newlabel{lab3}{{2}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Graph structure: constraints}{6}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces PRG graph structure. The sequences shown in Figure 3a) could be represented either as 3 separate mutations (shown in b)), or enumerated as 8 small haplotypes, shown in c). Both are supported by our encoding. Similarly, the sequences in d) could be represented in our implementation as shown in e). However, we do not support ``nesting" of alleles, as shown in f).}}{6}}
-\newlabel{lab}{{3}{6}}
+\newlabel{lab2}{{3}{6}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Variation aware backward search in vBWT}{6}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Backward search across vBWT. We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation site. We check the suffix array to get the coordinate in the linear PRG, and find it is the end. Therefore the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner (the shorter arrows signify multiple intermediate steps not shown) we are able to align across the site.}}{7}}
 \newlabel{fig:example}{{4}{7}}
@@ -46,7 +46,7 @@
 \citation{hengli}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Performance}{9}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Construction cost : the human genome}{9}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs for human reference genome plus 1000 genomes variants}}{9}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FM index construction costs and final data structure size for human reference genome plus 1000 genomes variants}}{9}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Inferring a Closer Reference Genome}{9}}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate.)}}{10}}
 \newlabel{fig:example}{{5}{10}}
@@ -54,8 +54,8 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Mapping reads from sample 7G8 to our vBWT-inferred genome removes the gap, leaving isolated variants easy to detect with standard methods }}{10}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Further performance comments}{10}}
 \citation{dilthey}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Exact-matching speed benchmark on \textit  {P. falciparum} chromosome 10 with MSP3.4 variation}}{11}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{11}}
-\@writefile{toc}{\contentsline {subsubsection}{Software}{11}}
 \bibcite{valen}{1}
 \bibcite{bwt}{2}
 \bibcite{bwa}{3}
@@ -72,6 +72,7 @@
 \bibcite{wt}{14}
 \bibcite{miles}{15}
 \bibcite{iqbal}{16}
+\@writefile{toc}{\contentsline {subsubsection}{Software}{12}}
 \bibcite{depristo}{17}
 \bibcite{hengli}{18}
 \bibcite{gog}{19}
