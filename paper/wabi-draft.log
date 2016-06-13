@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  13 JUN 2016 09:05
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2016.4.13)  14 JUN 2016 00:47
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -318,27 +318,28 @@ Underfull \hbox (badness 10000) in paragraph at lines 96--98
 
  []
 
-[3] <wavelet_tree.png, id=25, 1401.0744pt x 792.0792pt>
+[3] <wavelet_tree.png, id=25, 1303.5099pt x 898.3161pt>
 File: wavelet_tree.png Graphic file (type png)
  <use wavelet_tree.png>
 Package pdftex.def Info: wavelet_tree.png used on input line 113.
-(pdftex.def)             Requested size: 301.97337pt x 170.71652pt.
+(pdftex.def)             Requested size: 247.70923pt x 170.71652pt.
 
-[4 <./wavelet_tree.png>] <fig2_encoding.png, id=31, 435.5472pt x 43.8438pt>
+[4 <./wavelet_tree.png (PNG copy)>]
+<fig2_encoding.png, id=29, 435.5472pt x 43.8438pt>
 File: fig2_encoding.png Graphic file (type png)
-
-<use fig2_encoding.png>
+ <use fig2_encoding.png>
 Package pdftex.def Info: fig2_encoding.png used on input line 135.
 (pdftex.def)             Requested size: 339.20705pt x 34.14322pt.
- [5 <./fig2_encoding.png>]
-<graph_construction.png, id=36, 541.5432pt x 205.2468pt>
+
+[5 <./fig2_encoding.png>]
+<graph_construction.png, id=35, 541.5432pt x 205.2468pt>
 File: graph_construction.png Graphic file (type png)
 
 <use graph_construction.png>
 Package pdftex.def Info: graph_construction.png used on input line 165.
 (pdftex.def)             Requested size: 300.29561pt x 113.81102pt.
  [6 <./graph_construction.png>]
-<BWT.pdf, id=41, 1991.69093pt x 845.0471pt>
+<BWT.pdf, id=40, 1991.69093pt x 845.0471pt>
 File: BWT.pdf Graphic file (type pdf)
  <use BWT.pdf>
 Package pdftex.def Info: BWT.pdf used on input line 185.
@@ -355,26 +356,27 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [8]
-<PRG.png, id=81, 387.3672pt x 239.9364pt>
+<PRG.png, id=80, 715.7139pt x 347.3778pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
 Package pdftex.def Info: PRG.png used on input line 269.
-(pdftex.def)             Requested size: 229.69135pt x 142.26378pt.
+(pdftex.def)             Requested size: 293.10605pt x 142.26378pt.
  [9]
-<7G8_to_3D7_pileup.png, id=85, 1284.8pt x 682.55pt>
+<7G8_to_3D7_pileup.png, id=84, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
 Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 284.
 (pdftex.def)             Requested size: 138.84729pt x 73.75804pt.
 
-<7G8_to_inf_ref_pileup.png, id=86, 1282.7925pt x 614.295pt>
+<7G8_to_inf_ref_pileup.png, id=85, 1128.215pt x 590.205pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
 Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 289.
-(pdftex.def)             Requested size: 156.20453pt x 74.79953pt.
- [10 <./PRG.png> <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [11]
+(pdftex.def)             Requested size: 156.20453pt x 81.70953pt.
+ [10 <./PRG.png (PNG copy)> <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.
+png>] [11]
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
@@ -410,9 +412,9 @@ e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 15/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (13 pages, 789101 bytes).
+Output written on wabi-draft.pdf (13 pages, 942643 bytes).
 PDF statistics:
- 152 PDF objects out of 1000 (max. 8388607)
+ 151 PDF objects out of 1000 (max. 8388607)
  91 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
