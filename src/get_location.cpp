@@ -7,7 +7,7 @@
 
 using namespace sdsl;
 
-std::pair<uint32_t, std::vector<int>> get_location(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> &csa,
+std::pair<uint32_t, std::vector<int>> get_location(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
 		      uint64_t num_idx,
 		      uint32_t num, bool last,
 		      std::vector<int>& allele,

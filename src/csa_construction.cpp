@@ -14,7 +14,7 @@ using namespace std;
 
 //make SA sampling density and ISA sampling density customizable
 
-csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
+csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_constr(std::string fname, 
 							    std::string int_al_fname, 
 							    std::string memory_log_fname,
 							    std::string csa_file,
@@ -84,7 +84,7 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
        ii++;// so ii keeps track of actual base position - it's aware of numbers with more than one digit
      }
    
-   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa;
+   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa;
    
    cout<<"PRG size: "<<ii<<endl<<"Alphabet size: "<<l<<endl;
 

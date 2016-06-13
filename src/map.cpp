@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
 	timestamp();
 	cout<<"Start CSA construction"<<endl;
-	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(_prg,_binoutput,_log,_csa,true);
+	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(_prg,_binoutput,_log,_csa,true);
 	timestamp();
 	cout<<"End CSA construction"<<endl;
 

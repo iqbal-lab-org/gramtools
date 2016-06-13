@@ -29,7 +29,7 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include $(UTILS_INC)
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread 
-EXTRAFLAGS += -O0
+EXTRAFLAGS += -O3
 
 
 # All tests produced by this Makefile.  Remember to add new tests you
