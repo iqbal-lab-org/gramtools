@@ -15,9 +15,9 @@ using namespace std;
 //make SA sampling density and ISA sampling density customizable
 
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname, 
-							    char* int_al_fname, 
-							    char* memory_log_fname,
-							    char* csa_file,
+							    std::string int_al_fname, 
+							    std::string memory_log_fname,
+							    std::string csa_file,
 							    bool fwd)				        
 
 {
@@ -26,7 +26,7 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
    std::ofstream out(memory_log_fname);
    std::streambuf *coutbuf = std::cout.rdbuf();
    FILE* fp;
-   uint64_t l=0;
+   int l=0;
 
 
    std::ifstream in(fname, std::ios::in | std::ios::binary);
@@ -55,41 +55,42 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
        exit(1);
      }
    uint32_t i=0;
-   uint32_t ii=0;
+   uint64_t ii=0;
 
-   while (i<prg.length()) {
-
-       if (isdigit(prg[i])) {
-      	 int j=1;
-	       while(isdigit(prg[i+1])) {
-	         j++;
-	         i++;
-	       }
-	     auto al_ind=prg.substr(i-j+1,j);
-	 //uint64_t l=(uint64_t) stoull(al_ind,NULL,0);
-	     l=stoull(al_ind,NULL,0);
+   while (i<prg.length()) 
+     {
+       if (isdigit(prg[i])) 
+	 {
+	   int j=1;
+	   while(isdigit(prg[i+1])) 
+	     {
+	       j++;
+	       i++;
+	     }
+	   auto al_ind=prg.substr(i-j+1,j);
+	   //uint64_t l=(uint64_t) stoull(al_ind,NULL,0);
+	   l=stoull(al_ind,NULL,0);
 	 //uint64_t l=boost::lexical_cast<uint64_t>(al_ind); 
-	     prg_int[ii]=l;
-
-       }
+	   prg_int[ii]=l;
+	 }
        else 
-       {
-        	 if (prg[i]=='A' or prg[i]=='a') prg_int[ii]=1;
-	         if (prg[i]=='C' or prg[i]=='c') prg_int[ii]=2;
-	         if (prg[i]=='G' or prg[i]=='g') prg_int[ii]=3;
-	         if (prg[i]=='T' or prg[i]=='t') prg_int[ii]=4;
-        }
+	 {
+	   if (prg[i]=='A' or prg[i]=='a') prg_int[ii]=1;
+	   if (prg[i]=='C' or prg[i]=='c') prg_int[ii]=2;
+	   if (prg[i]=='G' or prg[i]=='g') prg_int[ii]=3;
+	   if (prg[i]=='T' or prg[i]=='t') prg_int[ii]=4;
+	 }
        i++;
        ii++;// so ii keeps track of actual base position - it's aware of numbers with more than one digit
-   }
-
+     }
+   
    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa;
    
    cout<<"PRG size: "<<ii<<endl<<"Alphabet size: "<<l<<endl;
 
    if (fwd==false) {
      char int_al_fname_rev[50];
-     strcpy(int_al_fname_rev,int_al_fname);
+     strcpy(int_al_fname_rev,int_al_fname.c_str());
      strcat(int_al_fname_rev,"_rev");
      uint64_t prg_int_rev[ii];
      std::reverse_copy(prg_int,prg_int+ii,prg_int_rev);
@@ -101,13 +102,13 @@ csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_constr(std::string fname,
      construct(csa,int_al_fname_rev,8);
    }
    else {
-     fp=fopen(int_al_fname,"wb");
+     fp=fopen(int_al_fname.c_str(),"wb");
      fwrite(prg_int,sizeof(uint64_t),ii,fp);
      fclose(fp);
      std::cout.rdbuf(out.rdbuf());   
      free(prg_int);
      memory_monitor::start();
-     construct(csa,int_al_fname,8);  
+     construct(csa,int_al_fname.c_str(),8);  
      memory_monitor::stop();
      memory_monitor::write_memory_log<HTML_FORMAT>(cout);
  

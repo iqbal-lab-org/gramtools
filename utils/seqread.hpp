@@ -71,7 +71,16 @@ class SeqRead
 		{
 			read = seq_read_new();
 			file = seq_open(fileinput);
-			gr=new GenomicRead();
+			if (file==NULL)
+			  {
+			    seq_read_free(read);
+			    printf("Unable to open %s\n", fileinput);
+			    exit(1);
+			  }
+			else
+			  {
+			    gr=new GenomicRead();
+			  }
 		}
 
 		~SeqRead()
