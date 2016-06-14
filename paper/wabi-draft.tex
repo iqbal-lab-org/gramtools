@@ -276,7 +276,7 @@ For comparison, using common Finnish SNPs, GCSA took over 1TB of RAM building ch
 
 
 
-We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} variant calls from 650 \textit{P. falciparum} samples from Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We show in Figure 5 the density of variants and number of alleles across the gene. We aligned Illumina 100bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. At each site we chose the allele with the highest coverage to extract the path through the graph with maximum support - this was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) independently to the reference and to the inferred genome. As can be seen in Figures 6 and 7, this gives dramatically better pileup results over the MSP3.4 gene.
+We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} variant calls from 650 \textit{P. falciparum} samples from Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We show in Figure 5 the density of variants and number of alleles across the gene. We aligned Illumina 76bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. At each site we chose the allele with the highest coverage to extract the path through the graph with maximum support - this was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) independently to the reference and to the inferred genome. As can be seen in Figures 6 and 7, this gives dramatically better pileup results over the MSP3.4 gene.
 
 \begin{figure}[!tbp]
   \centering
@@ -328,7 +328,7 @@ We have described a whole-genome scale implementation of a PRG designed to enabl
 \subsubsection{Software}
 Our software, gramtools, is available here: http://github.com/iqbal-lab/gramtools, and scripts and PRG files for reproducing this paper are here.
 
-\subsubsection*{Acknowledgments.} We would like to thank Phelim Bradley, Rayan Chikhi, Simon Gog, Lin Huang, Jerome Kelleher, Heng Li,  Gerton Lunter, Rachel Norris, Victoria Popic and Jouni Siren for discussions and help. We thank the SDSL developers for providing a valuable  resource.
+\subsubsection*{Acknowledgments.} We would like to thank Phelim Bradley, Rayan Chikhi, Simon Gog, Lin Huang, Jerome Kelleher, Heng Li,  Gerton Lunter, Rachel Norris, Victoria Popic, Jouni Siren and Jacob Almagro-Garcia for discussions and help. We thank the SDSL developers for providing a valuable  resource.
 
 
 
@@ -338,17 +338,17 @@ Our software, gramtools, is available here: http://github.com/iqbal-lab/gramtool
 
 \bibitem{bwt} Burrows, M., Wheeler, D.J. :A block sorting lossless data compression algorithm. Digital Equipment Corporation, Tech. Rep. 124, 1994. 
 
-\bibitem{bwa} Li, H., Durbin, R.: Fast and accurate short read alignment with Burrows?Wheeler transform. Bioinformatics 25 (14): 1754-1760 (2009)
+\bibitem{bwa} Li, H., Durbin, R.: Fast and accurate short read alignment with Burrows-Wheeler transform. Bioinformatics 25 (14): 1754-1760 (2009)
 
 \bibitem{bowtie} Langmead, B., Salzberg, S.: Fast gapped-read alignment with Bowtie 2. Nature Methods. Mar 4;9(4):357-9 (2012)
 
 \bibitem{reinert} Reinert, K., Langmead, B., Weese, D., et al.: Alignment of Next-Generation Sequencing Reads. Annu Rev Genomics Hum Genet. 2015;16:133-51
 
-\bibitem{1000g} The 1000 Genomes Project Consortium: A global reference for human genetic variation. Nature 526, 68?74
+\bibitem{1000g} The 1000 Genomes Project Consortium: A global reference for human genetic variation. Nature 526, 68-74
 
 \bibitem{arabi} Ossowski, S., Schneeberger, K., Clark, R.M., et al.. Sequencing of natural strains of Arabidopsis thaliana with short reads. Genome Research 18, 2024-2033 (2008)
 
-\bibitem{dilthey} Dilthey, A., Cox, C., Iqbal, Z., et al.: Improved genome inference in the MHC using a population reference graph. Nature Genetics 47, 682?688 (2015)
+\bibitem{dilthey} Dilthey, A., Cox, C., Iqbal, Z., et al.: Improved genome inference in the MHC using a population reference graph. Nature Genetics 47, 682-688 (2015)
 
 \bibitem{korbinian} Schneeberger, K.,Hagmann, J., Ossowski, S.,  et al.. Simultaneous alignment of short reads against multiple genomes. Genome Biol. 10, R98 (2009).
 
@@ -364,7 +364,7 @@ Our software, gramtools, is available here: http://github.com/iqbal-lab/gramtool
 
 \bibitem{miles} Miles, A., Iqbal, Z., Vauterin, P., et al. .: Genome variation and meiotic recombination in Plasmodium falciparum: insights from deep sequencing of genetic crosses Biorxiv. http://dx.doi.org/10.1101/024182 (2015)
 
-\bibitem{iqbal} Iqbal, Z., Caccamo, M. Turner, I.,  et al.: De novo assembly and genotyping of variants using colored de Bruijn graphs. Nature Genetics  44, 226?232 (2012)
+\bibitem{iqbal} Iqbal, Z., Caccamo, M. Turner, I.,  et al.: De novo assembly and genotyping of variants using colored de Bruijn graphs. Nature Genetics  44, 226-232 (2012)
 
 \bibitem{hengli} Li, H. Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. 	arXiv:1303.3997
 
