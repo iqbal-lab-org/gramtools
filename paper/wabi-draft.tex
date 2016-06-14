@@ -204,7 +204,7 @@ Once the check for variation markers is finished and all candidate SA-intervals 
 \State $i \gets m$
 \State $\texttt{SA\char`_int}=\{[l,r)\}$ \Comment list of SA intervals
 \State $\texttt{Extra\char`_int}=\emptyset$   \Comment Extra intervals
-\While {$i > 0$ and $\texttt{SA\char`_int} \neq \emptyset$}
+\While {$i > 1$ and $\texttt{SA\char`_int} \neq \emptyset$}
 \ForAll {$[l,r) \in \texttt{SA\char`_int}$} 
 \State $M \gets \texttt{WT.range\char`_search\char`_2d} (l,r-1,5,|\Sigma|)$ \Comment find variation site markers
 \ForAll {$(idx,num) \in M$}  \Comment $ idx\in [l,r), num\in[5,|\Sigma|]$
@@ -219,9 +219,9 @@ Once the check for variation markers is finished and all candidate SA-intervals 
 \State $\texttt{start\char`_site} \gets C(\texttt{odd\char`_num})+1$, $\texttt{end\char`_site} \gets C(\texttt{odd\char`_num})$
 \EndIf
 \If {$num \%2=1$ and $SA[idx]=SA[\texttt{site\char`_end}]+1$}
-\State $\texttt{Extra\char`_int}=\texttt{Extra\char`_int} \cup \{[C(num),C(num+2))\}$
+\State $\texttt{Extra\char`_int}=\texttt{Extra\char`_int} \cup \{[C(num),C(num+2)]\}$
 \Else
-\State $\texttt{Extra\char`_int}=\texttt{Extra\char`_int} \cup \{[C[\texttt{start\char`_site}], C[\texttt{start\char`_site}]+1)\}$
+\State $\texttt{Extra\char`_int}=\texttt{Extra\char`_int} \cup \{[C[\texttt{start\char`_site}], C[\texttt{start\char`_site}]+1]\}$
 \EndIf
 \EndFor
 \EndFor
