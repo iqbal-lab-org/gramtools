@@ -294,7 +294,7 @@ We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} variant ca
 
 
 
-\subsection{Further performance comments}
+\subsection{Performance and usability of output}
 One  consequence of our approach, shared with BWBBLE, is that a single pattern can match multiple intervals in the BWT. Thus, for mapping, we store lists of intervals, and sites/alleles  that are crossed. We also store an integer array that allows us to determine if a position in the PRG is in a site, and if so, which allele; this is naively encoded (in std::vector). For the human example, this costs us around 12GB of RAM (not included in table above as not part of index). This  array, which contains a zero at every non-variable site in the chromosome, could be stored much more compactly.
 
 Our encoding results in an alphabet of size $4+2n$ where $n$ is the number of variant sites. We used the wavelet tree to mitigate this cost from $O(|\Sigma|)$ to $O(\log(\Sigma))$.
