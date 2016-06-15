@@ -49,7 +49,7 @@
 % the running heads and the author index.
 %
 \author{Sorina Maciuca%
-\and Carlos delOjo Elias\and Gil McVean \and Zamin Iqbal}
+\and Carlos del Ojo Elias\and Gil McVean \and Zamin Iqbal}
 %
 \authorrunning{Encoding genetic variation in a BWT}
 % (feature abused for this document to repeat the title also on left hand pages)
@@ -69,29 +69,29 @@ University of Oxford, Roosevelt Drive, Oxford OX3 7BN, UK\\
 
 
 \begin{abstract}
-We show how positional markers can be used to encode genetic variation within a Burrows Wheeler Transform (BWT), and use this to construct a generalisation of the traditional ``reference genome", incorporating known variation within a species. Our goal is to support the inference of the closest mosaic of previously known sequences to the genome(s) under analysis.\\ Our scheme results in an increased alphabet size, and by using a wavelet tree encoding of the BWT we reduce the performance impact on rank operations. We give a specialised form of the backward search that allows variation-aware exact matching. We implement this, and demonstrate the cost of constructing an index of the whole human genome with 8 million genetic variants is 25GB of RAM. We also show that inferring a closer reference can close large kilobase-scale coverage gaps in \textit{P. falciparum}.
-\keywords{pan-genome, Burrows-Wheeler Transform, FM index, genome}
+We show how positional markers can be used to encode genetic variation within a Burrows-Wheeler Transform (BWT), and use this to construct a generalisation of the traditional ``reference genome", incorporating known variation within a species. Our goal is to support the inference of the closest mosaic of previously known sequences to the genome(s) under analysis.\\ Our scheme results in an increased alphabet size, and by using a wavelet tree encoding of the BWT we reduce the performance impact on rank operations. We give a specialised form of the backward search that allows variation-aware exact matching. We implement this, and demonstrate the cost of constructing an index of the whole human genome with 8 million genetic variants is 25GB of RAM. We also show that inferring a closer reference can close large kilobase-scale coverage gaps in \textit{P. falciparum}.
+\keywords{pan-genome, Burrows-Wheeler Transform, FM-index, genome}
 \end{abstract}
 
 \section{Introduction}
 
-Genome sequencing involves breaking DNA into fragments, identifying substrings (called ``reads"), assembling them and then inferring properties of the genome. Recently, it has become possible to study within-species genetic variation on a large scale \cite{1000g,arabi}, where the dominant approach is to match substrings to the canonical ``reference genome" which is constructed from an arbitrary individual. This problem (``mapping") has been heavily studied (see \cite{reinert}) and the Burrows Wheeler Transform (BWT) \cite{bwt} underlies the two dominant mappers \cite{bwa,bowtie}. Mapping reads to a reference genome is a very effective way of detecting genetic variation caused by single character changes (SNPs - single nucleotide polymorphisms). However, this method becomes less effective the further the genome differs from the reference. Sequences that diverge from the reference genome are difficult to map and tend to produce mapping failure. This is an important problem to address since, in many organisms, biologically relevant genomic regions are highly diverse. 
+Genome sequencing involves breaking DNA into fragments, identifying substrings (called ``reads"), and then inferring properties of the genome. Recently, it has become possible to study within-species genetic variation on a large scale \cite{1000g,arabi}, where the dominant approach is to match substrings to the canonical ``reference genome" which is constructed from an arbitrary individual. This problem (``mapping") has been heavily studied (see \cite{reinert}) and the Burrows-Wheeler Transform (BWT) \cite{bwt} underlies the two dominant mappers \cite{bwa,bowtie}. Mapping reads to a reference genome is a very effective way of detecting genetic variation caused by single character changes (SNPs - single nucleotide polymorphisms). However, this method becomes less effective the further the genome differs from the reference. This is an important problem to address since, in many organisms, biologically relevant genomic regions are highly diverse. 
 
-For a given species, our goal is to build a compact representation of the genomes of N individuals, which we call a Population Reference Genome (PRG). This data structure supports and facilitates the following inference: we take as input sequence data from a new sample, an estimate of how many genomes the sample contains and their relative proportions - e.g. a normal human sample would contain 2 genomes in a 1:1 ratio, a bacterial isolate would contain 1 genome and a malaria sample might contain 3 genomes in the ratio 10:3:1. We would then infer the sequence of the underlying genomes. In this paper we describe a method for encoding genetic variation designed to enable this approach. 
+For a given species, our goal is to build a compact representation of the genomes of N individuals, which we call a Population Reference Genome (PRG). This data structure facilitates the following inference: we take as input sequence data from a new sample, an estimate of how many genomes the sample contains and their relative proportions - e.g. a normal human sample would contain 2 genomes in a 1:1 ratio, a bacterial isolate would contain 1 genome and a malaria sample might contain 3 genomes in the ratio 10:3:1. We would then infer the sequence of the underlying genomes. In this paper we describe a method for encoding genetic variation designed to enable this approach. 
 
-Genomes evolve mainly via two processes - mutation (changing a single character or, less frequently, inserting or deleting a few) and recombination (either two chromosomes exchange a chunk of DNA, or one chromosome copies a chunk from another). Thus once we have seen many genomes of a given species, a new genome is likely to look like a mosaic of genomes we have seen before. If we can infer a close mosaic, we have found a ``personalised reference genome", and reads are more likely to match exactly. This approach was first described in \cite{dilthey}, applied to the human MHC region. However their implementation was quite specific to the region and would not scale to the whole genome. Valenzuela \textit{et al.} \cite{valen} have  also espoused a find-the-closest-reference approach.
+Genomes evolve mainly via two processes - mutation (changing a few characters) and recombination (either two chromosomes exchange a chunk of DNA, or one chromosome copies a chunk from another). Thus once we have seen many genomes of a given species, a new genome is likely to look like a mosaic of genomes we have seen before. If we can infer a close mosaic, we have found a ``personalised reference genome", and reads are more likely to match exactly. This approach was first described in \cite{dilthey}, applied to the human MHC region. However their implementation was quite specific to the region and would not scale to the whole genome. Valenzuela \textit{et al.} \cite{valen} have  also espoused a find-the-closest-reference approach.
 
-Other ``reference graph" methods have been published \cite{korbinian,siren1,huang}, generally approaching just the alignment step.  Siren \textit{et al.} developed a method (GCSA \cite{siren1}), with construction costs for a whole human genome (plus SNPs) of more than 1 Tb of RAM. Huang \textit{et al.} \cite{huang} developed an FM-index \cite{fmindex} encoding of a reference genome-plus-variation (``BWBBLE") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. We do something similar, but treat all variation in an equivalent manner. and retain knowledge of allelism naturally.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
+Other ``reference graph" methods have been published \cite{korbinian,siren1,huang}, generally approaching just the alignment step.  Siren \textit{et al.} developed a method (GCSA \cite{siren1}), with construction costs for a whole human genome (plus mutations) of more than 1 Tb of RAM. Huang \textit{et al.} \cite{huang} developed an FM-index \cite{fmindex} encoding of a reference genome-plus-variation (``BWBBLE") by extending the genetic alphabet to encode single-character variants with new characters and then concatenating padded indel variants to the end of the reference genome. We do something similar, but treat all variation in an equivalent manner, and retain knowledge of allelism naturally.  While completing this paper, the preprint for GCSA2 was published (\cite{siren2}), which drops RAM usage of human genome index construction to $<$100GB at the cost of $>$1Tb of disk I/O.   
 
- We show below how to encode a set of genomes, or a reference plus  genetic variation, in an FM-index which naturally distinguishes alternate alleles (defined below). We extend the well known BWT backward search and show how read-mapping can be performed in a way that allows reads to cross multiple variants, allowing recombination to occur naturally. Our data structure  supports bidirectional search (which underlies the Super Maximal Exact Match algorithms of bwa-mem \cite{bwa}), but currently we have only implemented exact matching. We use empirical datasets to demonstrate low construction cost (human genome) and the value inferring a personalised reference (filling ``holes" in the MSP3.4 gene of \textit{P. falciparum} where alleles differ by one SNP every 3 bp on average).  
+ We show below how to encode a set of genomes, or a reference plus  genetic variation, in an FM-index which naturally distinguishes alternate alleles. We extend the well known BWT backward search and show how read-mapping can be performed in a way that allows reads to cross multiple variants, allowing recombination to occur naturally. Our data structure  supports bidirectional search (which underlies the Super Maximal Exact Match algorithms of bwa-mem \cite{bwa}), but currently we have only implemented exact matching. We use empirical datasets to demonstrate low construction cost (human genome) and the value of inferring a personalised reference in \textit{P. falciparum}.  
 
 
 \section{Background: Compressed Text Indexes}
 
 \subsubsection{Burrows-Wheeler Transform.}
-The Burrows-Wheeler Transform (BWT) of a string is a reversible permutation of its characters. The BWT of a string $T=t_1t_2 \ldots t_n$ is constructed by sorting its $n$ cyclic shifts $t_1t_2 \ldots t_n$, $t_2 \ldots t_n t_1$, \ldots,  $t_n t_1 \ldots t_{n-1}$ in lexicographic order. The matrix obtained is called the Burrows-Wheeler Matrix (BWM) and the sequence from its last column is the BWT. 
-
-\subsubsection{Suffix Arrays.} The suffix array of a string $T$ is an array of integers that provides the starting position of $T$'s suffixes, after they have been ordered lexicographically. Formally, if $T_{i,j}$ is the substring $t_i t_{i+1} \ldots t_j$ of $T$ and SA is the suffix array of $T$, then $T_{\textit{SA[1],n}}<T_{\textit{SA[2],n}}<\ldots <T_{\textit{SA[n],n}}$. \subsubsection{Backward search}
+The Burrows-Wheeler Transform (BWT) of a string is a reversible permutation of its characters. The BWT of a string $T=t_1t_2 \ldots t_n$ is constructed by sorting its $n$ cyclic shifts $t_1t_2 \ldots t_n$, $t_2 \ldots t_n t_1$, \ldots,  $t_n t_1 \ldots t_{n-1}$ in lexicographic order. The matrix obtained is called the Burrows-Wheeler Matrix (BWM) and the sequence from its last column is the BWT.  
+\subsubsection{Suffix Arrays.} The suffix array of a string $T$ is an array of integers that provides the starting position of $T$'s suffixes, after they have been ordered lexicographically. Formally, if $T_{i,j}$ is the substring $t_i t_{i+1} \ldots t_j$ of $T$ and SA is the suffix array of $T$, then $T_{\textit{SA[1],n}}<T_{\textit{SA[2],n}}<\ldots <T_{\textit{SA[n],n}}$. It is related to the BWT, since looking at the substrings preceding the terminating character $\$$ in the BWM rows gives the suffixes of $T$ in lexicographical order. 
+\subsubsection{Backward search}
 Any occurrence of a pattern $P$ in text is a prefix for some suffix of $T$, so all occurrences will be adjacent in the suffix array of $T$ since suffixes starting with $P$ are sorted together in a SA-interval. Let $C[a]$ be the total number of occurrences in $T$ of characters smaller than $a$ in the alphabet. If $P'$ is a suffix of the query $P$ and $[l(P'),r(P'))$ is its corresponding SA-interval, then the search can be extended to $aP'$ by calculating the new SA-interval:
 \newline
 \begin{equation} 
@@ -102,19 +102,17 @@ l(aP')=C[a]+rank_{a}(BWT,l(P')-1)
 r(aP')=C[a]+rank_{a}(BWT,r(P)),
 \end{equation}
 where the operation $rank_a(S,i)$ returns the number of occurrences of symbol $a$ in $S[1,i]$. The search starts with the SA-interval of the empty string, $[1,n]$ and successively adds one character of $P$ in reverse order. When the search is completed, it returns a SA-interval $[l,r)$ for the entire query $P$. If $r > l$, there are $r-l$ matches for $P$ and their locations in $T$ are given by $SA[i]$ for $l \leq i < r$. Otherwise, the pattern does not exist in $T$. If the $C$-array and the ranks have already been stored, the backward search can be performed in $O(|P|)$ time in strings with DNA alphabet.
-
-
 \subsubsection{Wavelet Trees}
 Rank queries scale linearly with the alphabet size by default. The wavelet tree \cite{wt} is a data structure designed to store strings with large alphabets efficiently and provide rank calculations in logarithmic time. The tree is defined recursively: take the lexicographically ordered alphabet, split it into 2 equal halves; in the string corresponding to the current node (start with the original string at root), replace the first half of letters with 0 and the other half with 1; the left child node will contain the 0-encoded symbols and the right child node will contain the 1-encoded symbols, preserving their order from the original string; re-apply the first step for each child node recursively until the alphabet left in each node contains only one or two symbols (so a 0 or 1 determines which symbol it is).
 
  \begin{figure}
 \centering
 \includegraphics[height=6cm]{wavelet_tree.png}
-\caption{Wavelet tree encoding of a string (the BWT in figure 4). Calculating the rank of the marked ``A" is performed by repeated rank() calls moving down the binary tree until the alphabet remaining is just 2 characters. Note that only the bit vectors are stored in the tree, the corresponding strings are only shown here for clarity. }
+\caption{Wavelet tree encoding of a string that is the same as the BWT in figure 4. Calculating the rank of the marked ``A" is performed by repeated rank() calls moving down the binary tree until the alphabet remaining is just 2 characters. Note that only the bit vectors are stored in the tree, the corresponding strings are only shown here for clarity. }
 \label{fig:wt}
 \end{figure}
 
-To answer a rank query over the original string with large alphabet, repeated rank queries over the bit-vectors in the wavelet tree nodes are used to locate the subtree that contains the leaf where the queried symbol is non-ambiguously encoded. The rank of the queried symbol in this leaf is equal to its rank in the original string. The number of rank queries needed to reach the leaf is equal to the height of the tree, i.e. $\log_{2} {|\Sigma|}$ if we let $\Sigma$ be the set of symbols in the alphabet. Computing ranks over binary vectors can be done in constant time, so a rank query in a wavelet tree-encoded string has complexity $O(\log_{2} {|\Sigma|})$. 
+To answer a rank query over the original string with large alphabet, repeated rank queries over the bit vectors in the wavelet tree nodes are used to locate the subtree that contains the leaf where the queried symbol is non-ambiguously encoded. The rank of the queried symbol in this leaf is equal to its rank in the original string. The number of rank queries needed to reach the leaf is equal to the height of the tree, i.e. $\log_{2} {|\Sigma|}$ if we let $\Sigma$ be the set of symbols in the alphabet. Computing ranks over binary vectors can be done in constant time, so a rank query in a wavelet tree-encoded string has complexity $O(\log_{2} {|\Sigma|})$. 
 
 \section{Encoding a variation-aware reference structure}
 
@@ -140,9 +138,9 @@ We use a  PRG conceptually equivalent to a directed, acyclic, partial order grap
 
 Building this data structure requires multiple steps. 
 \begin{enumerate}
-\item First, corresponding regions of shared (exact match) sequence between the input  genomes must be identified. These must be of size $k$ at least (where $k$ is pre-defined), and  act as anchors for the coordinates of the variation sites. 
-\item Second, for any site between two anchor regions, the set of possible haplotypes must be determined from the input genomes, but  do not need to be aligned. Indels are naturally supported by haplotypes of different lengths.
-\item Each variation site is assigned two unique numeric identifiers, one even and one odd, and they will be called variation markers. The odd identifiers will mark variation site boundaries and will sometimes be referred to as site markers. The even identifiers will mark alternative allele boundaries and will sometimes be referred to as allele boundary markers.
+\item Corresponding regions of shared sequence between the input  genomes must be identified. These must be of size $k$ at least (where $k$ is pre-defined), and  act as anchors. 
+\item For any site between two anchor regions, the set of possible alleles/haplotypes must be determined, but  do not need to be aligned. Indels are supported by haplotypes of different lengths.
+\item Each variation site is assigned two unique numeric identifiers, one even and one odd, which we call variation markers. The odd identifiers will mark variation site boundaries and will sometimes be referred to as site markers. The even identifiers will mark alternative allele boundaries and will sometimes be referred to as allele boundary markers.
 \item For each variation site, its left anchor is added to the linear PRG, followed by its odd identifier. Then each sequence coming from that site, starting with the reference sequence, is successively added to the linear PRG, followed by the even site identifier, except the last sequence, which is followed by the odd identifier.
 \item Convert the linear PRG to integer alphabet ($A\rightarrow 1$, $C\rightarrow2$, $G\rightarrow3$, $T\rightarrow4$, variation site identifiers $\rightarrow$ 5,6,...)
 \item The FM-index (suffix array, BWT, wavelet tree over BWT) of the linear PRG is constructed and we will call this the vBWT.
@@ -167,31 +165,26 @@ In 3d) we have an example where a long deletion lies ``over" two other alleles. 
 \end{figure}
 
 
-
-
-
-
 \section{Variation-aware backward search in vBWT}
 
-In this section, we present a modified backward search algorithm for exact matching against the vBWT that is aware of alternative sequence paths. When reads align to the non-variable part of the linear PRG or when a variant locus is long enough to enclose the entire read, the usual backward search algorithm can be used. Otherwise, when the read must cross variation site junctions in order to align, site identifiers and some alternative alleles must be ignored by the search. This means a read can align to multiple substrings of the linear PRG that may not be adjacent in the BWM, so the search can return multiple SA-intervals. We give pseudocode in Algorithm 1 below, and outline the idea in Figure 4.
 
-\begin{figure}[H]
+
+
+In this section, we present a modified backward search algorithm for exact matching against the vBWT that is aware of alternative sequence paths. Our implementation leverages the succinct data structures library SDSL \cite{gog} and is incorporated in our software called {\bf gramtools}. 
+
+
+When reads align to the non-variable part of the PRG or when an allele is long enough to enclose the entire read, the usual backward search algorithm can be used. Otherwise, when the read must cross variation site junctions, site identifiers and some alternative alleles must be ignored by the search. This means a read can align to multiple substrings of the linear PRG that may not be adjacent in the BWM, so the search can return multiple SA-intervals. We give pseudocode in Algorithm 1 below, and outline the idea in Figure 4.
+
+\begin{figure}
 \centering
 \includegraphics[height=8cm]{BWT.pdf}
 \caption{Backward search across the vBWT of the linear PRG in figure 2.  We start at the right-hand end of the read GTTATTTAC, with the character C, and as we extend we hit the character 5, signalling the start or end of a variation site. We check the suffix array to get the coordinate in the linear PRG, and find it is the end. Therefore, the read must now continue into one of the alleles, signalled by the number 6. Continuing in this manner (the shorter arrows signify multiple intermediate steps not shown) we are able to align across the site.}
 \label{example}
 \end{figure}
 
-
-
-At each step in the backward search, before extending to the next character, we need to check whether the current matched read substring is preceded by a variation marker anywhere in the linear PRG. A scan for symbols larger than 4 (``range\_search\_2d" in the pseudocode) must be performed in the BWT within the range given by the current SA-interval. With a wavelet tree this range search can be done in $O(d\log(|\Sigma|/d))$ time, where $d$ is the size of the output. If a variation marker is found and it is an odd number, the read is about to cross a site boundary. The suffix array can be queried to find the position of the two odd numbers (start/end of the site) in the linear PRG.
-
-
-
+At each step in the backward search, before extending to the next character, we need to check whether the current matched read substring is preceded by a variation marker anywhere in the linear PRG. A scan for symbols larger than 4 (``range\_search\_2d" in the pseudocode) must be performed within the range given by the current SA-interval. With a wavelet tree this range search can be done in $O(d\log(|\Sigma|/d))$ time, where $d$ is the size of the output. If a variation marker is found and it is an odd number, the read is about to cross a site boundary. The suffix array can be queried to find the position of the two odd numbers (start/end of the site) in the linear PRG.
 
 If the search cursor is next to the start of the site, it is just the site marker that needs to be skipped, so the SA-interval (size 1) of the suffix starting with that marker needs to be added to the set of intervals that will be extended with the next character in the read. If the search cursor is next to the end of a site, all alternative alleles from that site need to be queried. Their ends are sorted together in the BWM because of the markers, so they can be queried concurrently by adding the SA-interval of suffixes starting with all numbers marking that site (even and odd). 
-If the variation marker found is an even number, the read is about to cross an allele boundary, which means its current suffix matches the beginning of an alternative allele and the read is about to walk out of a site, so the search cursor needs to jump to the start of site. As previously described, the odd markers corresponding to that site can be found in the sorted first column of the BWM, and then querying the suffix array decides which one marks the start of site. Then the SA-interval (size 1) for the BWM row starting with this odd marker is recorded.
-Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2. Our implementation leverages the succinct data structures library SDSL \cite{gog}.
 
 
 
@@ -242,12 +235,19 @@ Once the check for variation markers is finished and all candidate SA-intervals 
 
 
 
-\section{Performance}
+If the variation marker found is  even , the read is about to cross an allele boundary, which means its current suffix matches the beginning of an alternative allele and the read is about to walk out of a site, so the search cursor needs to jump to the start of site. The odd markers corresponding to that site can be found in the first column of the BWM, and then querying the suffix array decides which one marks the start of site. The SA-interval (size 1) for the BWM row starting with this odd marker is recorded.
+Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2. 
+
+
+
+
+
+\section{Experiments}
 \subsection{Construction cost : the human genome}
-We constructed a PRG from the human reference genome (GRC37 without ``alt" contigs) plus the 1000 genomes final VCF (12GB in size) \cite{1000g}, as described below. We first  excluded structural variants which did not have precisely specified alleles, and variants with allele frequency below 5\% (rare variation offers limited benefit - our goal is to maximise the proportion of reads mismatching the graph by at most 1 SNP). If two variants occurred at consecutive bases, they were merged into one, and all possible haplotypes enumerated. If the VCF contained two consecutive records which overlapped, the second was discarded. This resulted in a dataset of 7.4 million SNPs and 978000 indels. We give construction costs in Table 1, along with comparative figures for BWBBLE with identical input. 
+We constructed a PRG from the human reference genome (GRC37 without ``alt" contigs) plus the 1000 genomes final VCF (12GB in size) \cite{1000g}. We excluded  variants without  specified alleles, and those with allele frequency below 5\% (rare variation offers limited benefit - our goal is to maximise the proportion of reads mismatching the graph by at most 1 SNP). If two variants occurred at consecutive bases, they were merged, and all haplotypes enumerated. If the VCF contained two consecutive records which overlapped, the second was discarded. This resulted in a dataset of 7.4 million SNPs and 978000 indels. We give construction costs in Table 1, along with comparative figures for BWBBLE with identical input. 
  
 \begin{table}
-\caption{FM index construction costs and final data structure size for human reference genome plus 1000 genomes variants}
+\caption{FM-index construction costs and final data structure size for human reference genome plus 1000 genomes variants}
 \centering
 \begin{tabular}{c c c c}
 \hline
@@ -259,25 +259,24 @@ BWBBLE  & 60 &  1h5m  & 12\\
 \end{tabular}
 \end{table}
 
-For comparison, using common Finnish SNPs, GCSA took over 1TB of RAM building chromosomes separately and pruning the graph in high diversity regions. GCSA2 reduces the memory footprint to below 128GB RAM, although it prunes the graph in high diversity regions which we want to preserve, running in 13 hours with 32 cores, and using  over 1Tb of I/O to fast disk. Our vBWT construction has a lower memory cost than GCSA, GCSA2 and BWBBLE, is faster than GCSA/GCSA2, has no (significant) I/O burden, but is significantly slower than BWBBLE. 
+For comparison, GCSA took over 1TB of RAM building chromosomes separately and pruning the graph in high diversity regions. GCSA2 reduces the memory footprint to below 128GB RAM, running in 13 hours with 32 cores, and using  over 1Tb of I/O to fast disk. Our vBWT construction has a lower memory cost than GCSA, GCSA2 and BWBBLE, is faster than GCSA/GCSA2, has no (significant) I/O burden, but is significantly slower than BWBBLE. 
 
 
 
 \subsection{Inferring a Closer Reference Genome}
 
-\textit{P. falciparum} is a haploid malaria parasite that undergoes recombination within the midgut of vector mosquitoes. It has an unusually repetitive genome (80\% AT) that contains more indels than SNPs \cite{miles}. There are several regions that present challenges to mapping because samples often diverge strongly from the reference. For example, the merozoite surface protein gene MSP3.4 is known to have two highly diverged lineages at high frequencies in multiple populations from across the world.  The lineages differ by around 1 SNP every 3 bases over a 500bp region (the DBL domain) of the gene.
+\textit{P. falciparum} is a haploid parasite that undergoes recombination. It has an unusual genome that contains more indels than SNPs \cite{miles}. The gene MSP3.4 is known to have two  diverged lineages at high frequencies in multiple populations from across the world.  The lineages differ by around 1 SNP every 3 bases over a 500bp region (the DBL domain) of the gene. We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} variant calls from 650 \textit{P. falciparum} samples and built a PRG just for that chromosome. We show in Figure 5 the density of variants and number of alleles. 
 
-We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} variant calls from 650 \textit{P. falciparum} samples from Ghana, Laos and Cambodia, and built a PRG just for that chromosome. We show in Figure 5 the density of variants and number of alleles across the gene. We aligned Illumina 76bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching), and collected counts on the number of reads supporting each allele. At each site we chose the allele with the highest coverage to extract the path through the graph with maximum support - this was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) independently to the reference and to the inferred genome. As can be seen in Figures 6 and 7, this gives dramatically better pileup results over the MSP3.4 gene.
-
-\begin{figure}[H]
+\begin{figure} 
 \centering
 \includegraphics[height=4cm]{PRG.png}
 \caption{Histogram of number of alleles at each site in MSP3.4 plotted above the chromosome coordinate.)}
 \label{fig:example}
 \end{figure}
 
+We aligned Illumina 76bp reads from a well-studied sample that was not used in graph construction (named 7G8) to the PRG using backward search (exact matching, which took 3 mins), and collected counts on the number of reads supporting each allele. At each site we chose the allele with the highest coverage to extract the path through the graph with maximum support - this was our graph-inferred personalised reference for this sample. We then mapped the reads (using bwa\_mem \cite{hengli}) independently to the reference and to the inferred genome. As can be seen in Figures 6 and 7, our method gives dramatically better pileup results over the MSP3.4 gene.
 
-\begin{figure}[!tbp]
+\begin{figure}
   \centering
   \begin{minipage}[b]{0.4\textwidth}
     \includegraphics[height=3cm]{7G8_to_3D7_pileup.png}
@@ -295,11 +294,14 @@ We constructed a catalog of MSP3.4 variation from Cortex \cite{iqbal} variant ca
 
 
 
-\subsection{Performance and usability of output}
-One  consequence of our approach, shared with BWBBLE, is that a single pattern can match multiple intervals in the BWT. Thus, for mapping, we store lists of intervals, and sites/alleles  that are crossed. We also store an integer array that allows us to determine if a position in the PRG is in a site, and if so, which allele; this is naively encoded (in std::vector). For the human example, this costs us around 12GB of RAM (not included in table above as not part of index). This  array, which contains a zero at every non-variable site in the chromosome, could be stored much more compactly.
 
-Our encoding results in an alphabet of size $4+2n$ where $n$ is the number of variant sites. We used the wavelet tree to mitigate this cost from $O(|\Sigma|)$ to $O(\log(\Sigma))$.
-We  took 44,439 genome-wide SNPs and indels called with Cortex for \textit{P. falciparum} from a single genetic cross (7G8xGB4) \cite{miles} and created a whole-genome PRG, and simulated 10,000 reads from one random haplotype. All reads were 150bp, error-free. To avoid repeatedly calculating the same SA intervals, we precalculate a hash of the SA intervals corresponding to all 9-mers in the PRG that overlap an allele. This one-time precalculation was done in 1 hour 43 mins using 25 threads. In order to avoid unfairly slowing BWBBLE we constrained it to do exact matching only.  All experiments were performed single-threaded on a machine with 64 processors Intel Xeon CPU E5-4620 v2 @ 2.60GHz and 1 TB of memory.
+
+
+
+\subsection{Simulations and usability}
+One  consequence of our approach, shared with BWBBLE, is that a single pattern can match multiple intervals in the suffix array. Thus, during mapping, we store lists of intervals, and sites/alleles  that are crossed. We also store an integer array that allows us to determine if a position in the PRG is in a site, and if so, which allele; this is naively encoded (in std::vector). For the human example, this costs us around 12GB of RAM. This  array, which contains a zero at every non-variable site in the chromosome, could be stored much more compactly.
+
+We  took 44,439  \textit{P. falciparum} SNPs and indels called with Cortex from a single genetic cross (7G8xGB4) \cite{miles} and created a whole-genome PRG, and simulated 10,000 reads from one random haplotype. All reads were 150bp, error-free. We precalculate a hash of the SA intervals corresponding to all 9-mers in the PRG that overlap a variation site. This one-time precalculation was done in 1 hour 43 mins using 25 threads. In order to avoid unfairly slowing BWBBLE we constrained it to do exact matching only.  All experiments were performed single-threaded on a machine with 64 processors Intel Xeon CPU E5-4620 v2 @ 2.60GHz and 1 TB of memory.
 
 \begin{table}
 \caption{Simulation results }
@@ -315,16 +317,15 @@ BWBBLE  & align & 2.6 & 3846 \\
 \end{tabular}
 \end{table}
 
-Gramtools mapping speed is about 500x slower than BWBBLE, although it is fast enough to be practical for megabase sized genomes - a 30x whole-genome dataset for P. falciparum would take 5.8 hours using 24 cores. However, the output is directly usable and interpretable by any bioinformatician - a reference genome close to the sample, and a standard SAM file. By comparison, BWBBLE is much faster, but the output is a SAM file with respect to an extended reference with non-SNP variation (biallelic and multiallelic) appended at the end - thus plugging this into a normal workflow requires effort and innovation.
+Gramtools mapping speed is notably slower than BWBBLE, although it is usable for megabase sized genomes - a 30x whole-genome dataset for \textit{P. falciparum} would take 5.8 hours using 24 cores. However, the output is directly usable and interpretable by any bioinformatician - a reference genome close to the sample, and a standard SAM file. By comparison, BWBBLE outputs a SAM file with respect to an artificial reference with indels appended at the end - to use this in a normal pipeline requires software development and innovation.
 
 Finally, there is one significant performance improvement which we have yet to implement - precalculating and storing an array of ranks at marker positions across the BWT - just as in a standard FM-index. This is not normally done for large alphabet wavelet-tree-based suffix arrays, but we can ignore the numeric characters, and store only for A,C,G,T. 
 
 \section{Discussion}
 We have described a whole-genome scale implementation of a PRG designed to enable inference of a within-graph mosaic reference close to that of a new individual, followed by discovery of novel variation as a ``delta" from that. As with any reference graph approach, there is an implicit coupling between mapping and graph structure (for handling alternate alleles). By extending the alphabet and placing positional markers, we are able to ensure that alternate alleles sort together in the BWT matrix, allowing mapping across sites and recombination. For haploids we naturally infer a personalised reference genome. For other ploidies, our implementation readily lends itself to ``lightweight alignment" followed by an HMM to infer a phased tuple of mosaic haplotypes, followed by full MEM-based graph alignment.  
 
-
 \subsubsection{Software}
-Our software, gramtools, is available here: http://github.com/iqbal-lab/gramtools, and scripts and PRG files for reproducing this paper are here: https://github.com/iqbal-lab/paper-2016-vBWT-gramtools-WABI
+Our software, gramtools, is available here: http://github.com/iqbal-lab/gramtools, and scripts for reproducing this paper are here: https://github.com/iqbal-lab/paper-2016-vBWT-gramtools-WABI
 
 \subsubsection*{Acknowledgments.} We would like to thank Jacob Almagro-Garcia, Phelim Bradley, Rayan Chikhi, Simon Gog, Lin Huang, Jerome Kelleher, Heng Li,  Gerton Lunter, Rachel Norris, Victoria Popic, and Jouni Siren   for discussions and help. We thank the SDSL developers for providing a valuable  resource.
 

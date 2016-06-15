@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  15 JUN 2016 09:42
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  15 JUN 2016 11:14
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -300,9 +300,9 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 68.
 (/usr/local/texlive/2015/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Overfull \hbox (8.01758pt too wide) in paragraph at lines 73--74
+Overfull \hbox (9.04637pt too wide) in paragraph at lines 73--74
 \OT1/cmr/bx/n/9 Keywords:\OT1/cmr/m/n/9 pan-genome, Burrows-Wheeler Trans-form,
- FM in-dex, genome 
+ FM-index, genome 
  []
 
 [1
@@ -314,16 +314,16 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--97
 
  []
 
-<wavelet_tree.png, id=18, 1303.5099pt x 898.3161pt>
+<wavelet_tree.png, id=21, 1303.5099pt x 898.3161pt>
 File: wavelet_tree.png Graphic file (type png)
  <use wavelet_tree.png>
-Package pdftex.def Info: wavelet_tree.png used on input line 112.
+Package pdftex.def Info: wavelet_tree.png used on input line 110.
 (pdftex.def)             Requested size: 247.70923pt x 170.71652pt.
 
 [3] <fig2_encoding.png, id=26, 435.5472pt x 43.8438pt>
 File: fig2_encoding.png Graphic file (type png)
  <use fig2_encoding.png>
-Package pdftex.def Info: fig2_encoding.png used on input line 134.
+Package pdftex.def Info: fig2_encoding.png used on input line 132.
 (pdftex.def)             Requested size: 339.20705pt x 34.14322pt.
 
 [4 <./wavelet_tree.png (PNG copy)>]
@@ -331,7 +331,7 @@ Package pdftex.def Info: fig2_encoding.png used on input line 134.
 File: graph_construction.png Graphic file (type png)
 
 <use graph_construction.png>
-Package pdftex.def Info: graph_construction.png used on input line 164.
+Package pdftex.def Info: graph_construction.png used on input line 162.
 (pdftex.def)             Requested size: 300.29561pt x 113.81102pt.
  [5 <./fig2_encoding.png>]
 <BWT.pdf, id=36, 1991.69093pt x 845.0471pt>
@@ -344,74 +344,76 @@ Overfull \hbox (189.3638pt too wide) in paragraph at lines 180--181
  [][] 
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [6 <./graph_construction.png>] [7 <./BWT.pdf>]
+[6 <./graph_construction.png>] [7 <./BWT.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [8]
-[9] <PRG.png, id=83, 715.7139pt x 347.3778pt>
+<PRG.png, id=80, 715.7139pt x 347.3778pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 274.
+Package pdftex.def Info: PRG.png used on input line 272.
 (pdftex.def)             Requested size: 234.48265pt x 113.81102pt.
 
-<7G8_to_3D7_pileup.png, id=84, 1284.8pt x 682.55pt>
+<7G8_to_3D7_pileup.png, id=81, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 283.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 282.
 (pdftex.def)             Requested size: 160.65842pt x 85.35826pt.
 
-Overfull \hbox (21.81113pt too wide) in paragraph at lines 283--284
+Overfull \hbox (21.81113pt too wide) in paragraph at lines 282--283
 [][] 
  []
 
-<7G8_to_inf_ref_pileup.png, id=85, 1128.215pt x 590.205pt>
+<7G8_to_inf_ref_pileup.png, id=82, 1128.215pt x 590.205pt>
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 288.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 287.
 (pdftex.def)             Requested size: 156.20453pt x 81.70953pt.
- [10 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png> <./PRG.png (PNG co
-py)>] [11]
+ [9] [10 <./PRG.png (PNG copy)> <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pil
+eup.png>]
+Overfull \hbox (34.48834pt too wide) in paragraph at lines 328--329
+\OT1/cmr/m/n/10 lab/gramtools, and scripts for re-pro-duc-ing this pa-per are h
+ere: https://github.com/iqbal-
+ []
+
+[11]
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
- [12] [13] (./wabi-draft.aux) ) 
+ [12] (./wabi-draft.aux) ) 
 Here is how much of TeX's memory you used:
- 2980 strings out of 493089
- 40838 string characters out of 6134842
- 110708 words of memory out of 5000000
- 6410 multiletter control sequences out of 15000+600000
+ 2979 strings out of 493089
+ 40828 string characters out of 6134842
+ 112708 words of memory out of 5000000
+ 6409 multiletter control sequences out of 15000+600000
  11125 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,7n,26p,1107b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2015/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmr9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/c
-msy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cms
-y9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti1
-0.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.
-pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pf
-b>
-Output written on wabi-draft.pdf (13 pages, 946643 bytes).
+ 37i,7n,26p,984b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2015/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmmi6.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmmi9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+r9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy1
+0.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pf
+b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb
+></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb><
+/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
+Output written on wabi-draft.pdf (12 pages, 945232 bytes).
 PDF statistics:
- 151 PDF objects out of 1000 (max. 8388607)
- 91 compressed objects within 1 object stream
+ 147 PDF objects out of 1000 (max. 8388607)
+ 88 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
