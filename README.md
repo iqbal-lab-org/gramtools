@@ -27,4 +27,7 @@ Forthcoming changes:
 
 Do read our paper, which you can find here: 
 
+NB we have an open bug at the moment where, after the program has finished, right at the very end, 
+when the program finishes the shutdown process causes a crash. We're looking into it!
+
 Sorina, Carlos, Gil, Zam
