@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  15 JUN 2016 11:20
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  15 JUN 2016 11:28
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -387,10 +387,10 @@ Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
  [12] (./wabi-draft.aux) ) 
 Here is how much of TeX's memory you used:
- 2979 strings out of 493089
- 40828 string characters out of 6134842
- 112708 words of memory out of 5000000
- 6409 multiletter control sequences out of 15000+600000
+ 2981 strings out of 493089
+ 40846 string characters out of 6134842
+ 112716 words of memory out of 5000000
+ 6411 multiletter control sequences out of 15000+600000
  11125 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  37i,7n,26p,984b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -410,7 +410,7 @@ pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pf
 b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb><
 /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (12 pages, 945218 bytes).
+Output written on wabi-draft.pdf (12 pages, 945590 bytes).
 PDF statistics:
  147 PDF objects out of 1000 (max. 8388607)
  88 compressed objects within 1 object stream
