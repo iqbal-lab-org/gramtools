@@ -193,8 +193,8 @@ If the search cursor is next to the start of the site, it is just the site marke
 \textbf{Input:} \textrm{pattern} $P[1,m]$ \textrm{and FM-index of PRG in integer alphabet}\\
 \textbf{Output:} \textrm{list of SA intervals corresponding to matches of P} 
 \begin{algorithmic}[1]
-\State $l \gets C(P[m])$
-\State $r \gets C(P[m]+1)$
+\State $l \gets C(P[m])$\Comment l for left
+\State $r \gets C(P[m]+1)$\Comment r for right
 \State $i \gets m$
 \State $\texttt{SA\char`_int}=\{[l,r)\}$ \Comment list of SA intervals
 \State $\texttt{Extra\char`_int}=\emptyset$   \Comment Extra intervals
@@ -235,7 +235,7 @@ If the search cursor is next to the start of the site, it is just the site marke
 
 
 
-If the variation marker found is  even , the read is about to cross an allele boundary, which means its current suffix matches the beginning of an alternative allele and the read is about to walk out of a site, so the search cursor needs to jump to the start of site. The odd markers corresponding to that site can be found in the first column of the BWM, and then querying the suffix array decides which one marks the start of site. The SA-interval (size 1) for the BWM row starting with this odd marker is recorded.
+If the variation marker found is  even, the read is about to cross an allele boundary, which means its current suffix matches the beginning of an alternative allele and the read is about to walk out of a site, so the search cursor needs to jump to the start of site. The odd markers corresponding to that site can be found in the first column of the BWM, and then querying the suffix array decides which one marks the start of site. The SA-interval (size 1) for the BWM row starting with this odd marker is recorded.
 Once the check for variation markers is finished and all candidate SA-intervals have been added, each interval can be extended with the next character in the read by using equations 1 and 2. 
 
 
