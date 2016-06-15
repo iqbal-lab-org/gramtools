@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  15 JUN 2016 08:51
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.8.10)  15 JUN 2016 09:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -310,56 +310,61 @@ Overfull \hbox (8.01758pt too wide) in paragraph at lines 73--74
 
 {/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 [2]
-Underfull \hbox (badness 10000) in paragraph at lines 96--98
+Underfull \hbox (badness 10000) in paragraph at lines 95--97
 
  []
 
-<wavelet_tree.png, id=20, 1303.5099pt x 898.3161pt>
+<wavelet_tree.png, id=18, 1303.5099pt x 898.3161pt>
 File: wavelet_tree.png Graphic file (type png)
  <use wavelet_tree.png>
-Package pdftex.def Info: wavelet_tree.png used on input line 113.
+Package pdftex.def Info: wavelet_tree.png used on input line 112.
 (pdftex.def)             Requested size: 247.70923pt x 170.71652pt.
 
-[3] [4 <./wavelet_tree.png (PNG copy)>]
-<fig2_encoding.png, id=29, 435.5472pt x 43.8438pt>
+[3] <fig2_encoding.png, id=26, 435.5472pt x 43.8438pt>
 File: fig2_encoding.png Graphic file (type png)
  <use fig2_encoding.png>
-Package pdftex.def Info: fig2_encoding.png used on input line 135.
+Package pdftex.def Info: fig2_encoding.png used on input line 134.
 (pdftex.def)             Requested size: 339.20705pt x 34.14322pt.
 
-[5 <./fig2_encoding.png>]
-<graph_construction.png, id=35, 541.5432pt x 205.2468pt>
+[4 <./wavelet_tree.png (PNG copy)>]
+<graph_construction.png, id=31, 541.5432pt x 205.2468pt>
 File: graph_construction.png Graphic file (type png)
 
 <use graph_construction.png>
-Package pdftex.def Info: graph_construction.png used on input line 165.
+Package pdftex.def Info: graph_construction.png used on input line 164.
 (pdftex.def)             Requested size: 300.29561pt x 113.81102pt.
- <BWT.pdf, id=36, 1991.69093pt x 845.0471pt>
+ [5 <./fig2_encoding.png>]
+<BWT.pdf, id=36, 1991.69093pt x 845.0471pt>
 File: BWT.pdf Graphic file (type pdf)
-
-<use BWT.pdf>
-Package pdftex.def Info: BWT.pdf used on input line 185.
+ <use BWT.pdf>
+Package pdftex.def Info: BWT.pdf used on input line 180.
 (pdftex.def)             Requested size: 536.48734pt x 227.62204pt.
 
-Overfull \hbox (189.3638pt too wide) in paragraph at lines 185--186
+Overfull \hbox (189.3638pt too wide) in paragraph at lines 180--181
  [][] 
  []
 
-[6 <./graph_construction.png>] [7 <./BWT.pdf>] [8] [9]
-<PRG.png, id=83, 715.7139pt x 347.3778pt>
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [6 <./graph_construction.png>] [7 <./BWT.pdf>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8]
+[9] <PRG.png, id=83, 715.7139pt x 347.3778pt>
 File: PRG.png Graphic file (type png)
  <use PRG.png>
-Package pdftex.def Info: PRG.png used on input line 273.
+Package pdftex.def Info: PRG.png used on input line 274.
 (pdftex.def)             Requested size: 234.48265pt x 113.81102pt.
 
 <7G8_to_3D7_pileup.png, id=84, 1284.8pt x 682.55pt>
 File: 7G8_to_3D7_pileup.png Graphic file (type png)
 
 <use 7G8_to_3D7_pileup.png>
-Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 282.
+Package pdftex.def Info: 7G8_to_3D7_pileup.png used on input line 283.
 (pdftex.def)             Requested size: 160.65842pt x 85.35826pt.
 
-Overfull \hbox (21.81113pt too wide) in paragraph at lines 282--283
+Overfull \hbox (21.81113pt too wide) in paragraph at lines 283--284
 [][] 
  []
 
@@ -367,44 +372,43 @@ Overfull \hbox (21.81113pt too wide) in paragraph at lines 282--283
 File: 7G8_to_inf_ref_pileup.png Graphic file (type png)
 
 <use 7G8_to_inf_ref_pileup.png>
-Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 287.
+Package pdftex.def Info: 7G8_to_inf_ref_pileup.png used on input line 288.
 (pdftex.def)             Requested size: 156.20453pt x 81.70953pt.
- [10 <./PRG.png (PNG copy)>]
-Underfull \vbox (badness 1038) has occurred while \output is active []
-
- [11 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png>] [12]
+ [10 <./7G8_to_3D7_pileup.png> <./7G8_to_inf_ref_pileup.png> <./PRG.png (PNG co
+py)>] [11]
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
- [13] (./wabi-draft.aux) ) 
+ [12] [13] (./wabi-draft.aux) ) 
 Here is how much of TeX's memory you used:
- 2979 strings out of 493089
- 40828 string characters out of 6134842
- 109708 words of memory out of 5000000
- 6409 multiletter control sequences out of 15000+600000
+ 2980 strings out of 493089
+ 40838 string characters out of 6134842
+ 110708 words of memory out of 5000000
+ 6410 multiletter control sequences out of 15000+600000
  11125 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  37i,7n,26p,1107b,349s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2015/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmmi6.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy1
-0.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.
-pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pf
-b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb
-></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb><
-/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on wabi-draft.pdf (13 pages, 947249 bytes).
+</usr/local/texlive/2015/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmmi9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/c
+msy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cms
+y9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti1
+0.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pf
+b>
+Output written on wabi-draft.pdf (13 pages, 946643 bytes).
 PDF statistics:
  151 PDF objects out of 1000 (max. 8388607)
  91 compressed objects within 1 object stream
