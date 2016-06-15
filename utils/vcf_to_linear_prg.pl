@@ -38,19 +38,31 @@ open($output_fh, ">".$vars{"outfile"})||die("Unable to open output file\n");
 my $outvcf = $vars{"outfile"}.".vcf";
 my $output_vcf_fh;
 open($output_vcf_fh, ">".$outvcf)||die("Cannot open $outvcf to write output\n");
-my $o_mask_fh;
-my $outmask = $vars{"outfile"}.".mask";
-open($o_mask_fh, ">".$outmask)||die("Cannot open $outmask to write output\n");
+my $o_mask_a_fh;
+my $outmask_a = $vars{"outfile"}.".mask_alleles";
+open($o_mask_a_fh, ">".$outmask_a)||die("Cannot open $outmask_a to write output\n");
+my $o_mask_s_fh;
+my $outmask_s = $vars{"outfile"}.".mask_sites";
+open($o_mask_s_fh, ">".$outmask_s)||die("Cannot open $outmask_s to write output\n");
 
 ## parse the VCF and print a linearised PRG in gramtools format
 
 my $last_varnumber = print_linearised_poa_in_one_sweep(\%refseq, $vars{"ref"}, 
 						       $vars{"vcf"}, $vars{"min_freq"},
-						       $output_fh, $output_vcf_fh, $o_mask_fh);
+						       $output_fh, $output_vcf_fh, 
+						       $o_mask_a_fh, $o_mask_s_fh);
 
 
 close($output_fh);
 close($output_vcf_fh);
+
+##make a .fa version for Carlos's pythin script
+my $outfile_fa =$vars{"outfile"}.".fa";
+open(OUT, ">".$outfile_fa)||die();
+print OUT ">PRG with fasta header purely for an internal Python script that needs i\n";
+close(OUT);
+my $cfinal = "cat ".$vars{"outfile"}." >> $outfile_fa";
+qx{$cfinal};
 
 print "Finished printing linear PRG. Final number in alphabet is  $last_varnumber\n";
 
@@ -71,7 +83,7 @@ sub test_cluster_func
 sub print_linearised_poa_in_one_sweep
 {
     my ($href_refsequence, $reff, $vcf_file, 
-	$min_freq, $o_fh, $ovcf_fh, $omask_fh)= @_;
+	$min_freq, $o_fh, $ovcf_fh, $omask_fh_A, $omask_fh_S)= @_;
 
     my $nextvar=5;
     ## Assume the VCF is  sorted. There are two reasons
@@ -133,7 +145,8 @@ sub print_linearised_poa_in_one_sweep
 			my $zzz=0;
 			while ($zzz<length($seq)-$curr_pos+1)
 			{
-			    print $omask_fh "0 ";
+			    print $omask_fh_A "0 ";
+			    print $omask_fh_S "0 ";
 			    $zzz++;
 			}
 			
@@ -192,7 +205,8 @@ sub print_linearised_poa_in_one_sweep
 		my $y=0;
 		while ($y<$len)
 		{
-		    print $omask_fh "0 ";
+		    print $omask_fh_A "0 ";
+		    print $omask_fh_S "0 ";
 		    $y++;
 		}
 		#$curr_pos=$sp[1];
@@ -245,16 +259,19 @@ sub print_linearised_poa_in_one_sweep
 	    
 
 	    print $o_fh $nextvar;#left marker before the site starts
-	    print $omask_fh "0 ";
+	    print $omask_fh_A "0 ";
+	    print $omask_fh_S "0 ";
 	    print $o_fh $sp[3];		##print the ref allele first
 	    my $x=0;
 	    while ($x<length($sp[3]))
 	    {
-		print $omask_fh "1 ";
+		print $omask_fh_A "1 ";
+		print $omask_fh_S $nextvar." ";
 		$x++;
 	    }
 	    print $o_fh $nextvar+1;#even numbers between alleles
-	    print $omask_fh "0 ";
+	    print $omask_fh_A "0 ";
+	    print $omask_fh_S "0 ";
 
 	    ##Now work our way through the alternate alleles
 	    if ($sp[4]=~ /,/)
@@ -273,19 +290,22 @@ sub print_linearised_poa_in_one_sweep
 		    my $z=0;
 		    while ($z<$len)
 		    {
-			print $omask_fh $tmp." ";
+			print $omask_fh_A $tmp." ";
+			print $omask_fh_S $nextvar." ";
 			$z++;
 		    }
 		    
 		    if ($i<scalar(@sp2)-1)
 		    {
 			print $o_fh $nextvar+1;#even number between alleles
-			print $omask_fh "0 ";
+			print $omask_fh_A "0 ";
+			print $omask_fh_S "0 ";
 		    }
 		    else
 		    {
 			print $o_fh $nextvar;#last one goes back to nextvar (odd)
-			print $omask_fh "0 ";
+			print $omask_fh_A "0 ";
+			print $omask_fh_S "0 ";
 		    }
 		}
 	    }
@@ -296,11 +316,13 @@ sub print_linearised_poa_in_one_sweep
 		my $yy=0;
 		while ($yy<length($sp[4]))
 		{
-		    print $omask_fh "2 " ;
+		    print $omask_fh_A "2 " ;
+		    print $omask_fh_S $nextvar." " ;
 		    $yy++;
 		}
 		print $o_fh $nextvar;
-		print $omask_fh "0 "; 
+		print $omask_fh_A "0 "; 
+		print $omask_fh_S "0 "; 
 	    }
 	    $nextvar+=2;
 	    $curr_pos=$sp[1]+length($sp[3]);
@@ -317,7 +339,8 @@ sub print_linearised_poa_in_one_sweep
 	my $zz=0;
 	while ($zz<length($seq)-$curr_pos+1)
 	{
-	    print $omask_fh "0 ";
+	    print $omask_fh_A "0 ";
+	    print $omask_fh_S "0 ";
 	    $zz++;
 	}
     }
