@@ -314,7 +314,7 @@ BWBBLE  & align & 2.6 & 3846 \\
 \end{tabular}
 \end{table}
 
-Firstly, gramtools mapping speed is about 700x slower than BWBBLE, although it is fast enough to be practical for megabase sized genomes - a 30x whole-genome dataset for P. falciparum would take 5.8 hours using 24 cores. Secondly, the output is directly usable and interpretable by any bioinformatician - a reference genome close to the sample, and a standard SAM file. By comparison, BWBBLE is much faster, but the output is a SAM file with respect to an extended reference with non-SNP variation appended at the end - thus plugging this into a normal workflow requires effort and innovation.
+Gramtools mapping speed is about 500x slower than BWBBLE, although it is fast enough to be practical for megabase sized genomes - a 30x whole-genome dataset for P. falciparum would take 5.8 hours using 24 cores. However, the output is directly usable and interpretable by any bioinformatician - a reference genome close to the sample, and a standard SAM file. By comparison, BWBBLE is much faster, but the output is a SAM file with respect to an extended reference with non-SNP variation (biallelic and multiallelic) appended at the end - thus plugging this into a normal workflow requires effort and innovation.
 
 Finally, there is one significant performance improvement which we have yet to implement - precalculating and storing an array of ranks at marker positions across the BWT - just as in a standard FM-index. This is not normally done for large alphabet wavelet-tree-based suffix arrays, but we can ignore the numeric characters, and store only for A,C,G,T. 
 
