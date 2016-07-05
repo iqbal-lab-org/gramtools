@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 	std::vector<uint8_t>::iterator res_it;
 
 	std::vector<uint8_t> p;
-	p.reserve(100);	
+	p.reserve(200);	
 	for (auto q: inputReads)
 	{
 	  
@@ -233,20 +233,25 @@ int main(int argc, char* argv[]) {
 			}
 		      }
 		    }
-		  else no_occ=0;
+		  else 
+		    {
+		      no_occ=0;
+		    }
 		  sa_intervals.clear();
 		  sa_intervals_rev.clear();
 		  sites.clear();
 	  }
-	  else no_occ=0;
-	  
+	  else
+	    {
+	      no_occ=0;
+	    }
 	  //cout<<no_occ<<endl;
 	  //clear p, sa_intervals etc
 	  
 	  no_reads++;
 	  p.clear();
 	}
-	
+
 	cout<<no_mapped<<endl;
 
 	for (int i=0;i<covgs.size();i++) {
