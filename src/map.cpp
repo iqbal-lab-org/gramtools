@@ -209,11 +209,12 @@ int main(int argc, char* argv[]) {
 		    }
 		  else first_del=true;
 
+		  bool precalc_done=true;
 		  res_it = bidir_search_bwd(csa, (*it).first, (*it).second, 
 					    (*it_rev).first, (*it_rev).second, 
 					    p.begin(),p.begin()+p.size()-k, 
 					    sa_intervals, sa_intervals_rev, 
-					    sites, mask_a, maxx, first_del);
+					    sites, mask_a, maxx, first_del, precalc_done);
 
 		  no_occ=0;
 

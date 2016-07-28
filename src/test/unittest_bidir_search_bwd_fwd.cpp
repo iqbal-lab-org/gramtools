@@ -407,13 +407,23 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 
 TEST(BackwardSearchTest, One_match_many_sites){
 
+
+  test_file2="../test_cases/One_match_many_sites.txt";
+  query="cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
+  mask_file="../test_cases/One_match_many_sites_mask_a.txt";
+  ifstream g(mask_file);
+
+  int a;
+  mask_a.clear();
+  while (g>>a) mask_a.push_back(a);
+
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
   bool first_del=false;
-
+  bool precalc=false;
   q=query;
   for (int i=0;i<q.length();i++) {
        if (q[i]=='A' or q[i]=='a') p.push_back(1);
@@ -422,7 +432,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
        if (q[i]=='T' or q[i]=='t') p.push_back(4);
   }
 
-  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,16,first_del);
+  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,16,first_del, precalc);
   uint64_t no_occ=0;
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it) 
     no_occ+=(*it).second-(*it).first;
@@ -437,7 +447,8 @@ TEST(BackwardSearchTest, One_match_many_sites){
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",false);
   first_del=false;
-  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,16,first_del);  
+
+  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,16,first_del, precalc);  
 
   no_occ=0;
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
@@ -473,20 +484,6 @@ vector<string> generate_all_substrings(string q) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
-  test_file = argv[1];
-  // q=argv[2];
-  ifstream f(test_file);
-  f>>prg;
-  substrings=generate_all_substrings(prg);
-
-  test_file2=argv[2];
-  query=argv[3];
-  
-  mask_file=argv[4];
-  ifstream g(mask_file);
-
-  int a;
-  while (g>>a) mask_a.push_back(a);
 
   return RUN_ALL_TESTS();
 }
