@@ -156,6 +156,7 @@ int main(int argc, char* argv[]) {
 	get_precalc_kmers(csa,kmer_idx,kmer_idx_rev,kmer_sites,kmers_in_ref,mask_a,_kfile,maxx,k);
 
 	//precalc_kmer_matches(csa,k,kmer_idx,kmer_idx_rev,kmer_sites,mask_a,maxx,kmers_in_ref,_kfile);
+	cout << "About to start mapping:"<<endl;
 	timestamp();
 
 	std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
@@ -176,14 +177,16 @@ int main(int argc, char* argv[]) {
 	  //add N's
 	  int flag=0;
 	  //cout<<q->seq<<endl;
-	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
+	  int seqlen=strlen(q->seq);
+	  for (int i=0;i<seqlen;i++) {
+	
 	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
 	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
 	    else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
 	    else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
 	    else {flag=1;}; 
-			  
 	  }
+
 	  if (flag==1)
 	    {
 	      continue;
@@ -206,12 +209,16 @@ int main(int argc, char* argv[]) {
 		    }
 		  else first_del=true;
 
-		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
+		  res_it = bidir_search_bwd(csa, (*it).first, (*it).second, 
+					    (*it_rev).first, (*it_rev).second, 
+					    p.begin(),p.begin()+p.size()-k, 
+					    sa_intervals, sa_intervals_rev, 
+					    sites, mask_a, maxx, first_del);
 
 		  no_occ=0;
-		  //for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
-		  //  no_occ+=(*it).second-(*it).first;
-		  if (sa_intervals.size()==1)//mapping is unqie horizontally
+
+		  if (sa_intervals.size()==1)
+		    //proxy for mapping is "unique horizontally"
 		    {
 		      it=sa_intervals.begin();
 		      no_occ=(*it).second-(*it).first; 
@@ -263,6 +270,10 @@ int main(int argc, char* argv[]) {
 	  no_reads++;
 	  p.clear();
 	}
+
+
+	cout << "Finished mapping:"<<endl;
+	timestamp();
 
 	cout<<no_mapped<<endl;
 
