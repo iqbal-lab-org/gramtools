@@ -8,13 +8,14 @@
 using namespace sdsl;
 
 std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216>& csa_rev,
-		uint64_t left, uint64_t right,
-		uint64_t left_rev, uint64_t right_rev,
-		std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
-		std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
-		std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
-		std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
-		std::vector<int> &mask_a, uint64_t maxx, bool& first_del)
+						uint64_t left, uint64_t right,
+						uint64_t left_rev, uint64_t right_rev,
+						std::vector<uint8_t>::iterator pat_begin, std::vector<uint8_t>::iterator pat_end,
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
+						std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
+						std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
+						bool kmer_precalc_done)
 
 //need to swap * with *_rev everywhere
 {
@@ -49,15 +50,16 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
 		it_rev_end=sa_intervals_rev.end();
 		it_s_end=sites.end();
 
-		if (pat_it!=pat_begin) {
-			for(;it!=it_end && it_rev!=it_rev_end && it_s!=it_s_end; ++it, ++it_rev, ++it_s) {
-				std::vector<std::pair<uint64_t,uint64_t>> res=csa_rev.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
-				//might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
-				uint32_t prev_num=0;
-				for (auto z=res.begin(),zend=res.end();z!=zend;++z) {
-					uint64_t i=(*z).first;
-					uint32_t num=(*z).second;
-
+		if ( (pat_it!=pat_begin) or (kmer_precalc_done==true) ) { 
+		  for(;it!=it_end && it_rev!=it_rev_end && it_s!=it_s_end; ++it, ++it_rev, ++it_s) {
+		    std::vector<std::pair<uint64_t,uint64_t>> res
+		      =csa_rev.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
+		    //might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
+		    uint32_t prev_num=0;
+		    for (auto z=res.begin(),zend=res.end();z!=zend;++z) {
+		      uint64_t i=(*z).first;
+		      uint32_t num=(*z).second;
+		      
 					if (num==prev_num) ignore=true;
 					else ignore=false;
 
