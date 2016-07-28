@@ -300,16 +300,29 @@ TEST(BackwardSearchTest, Two_long_sites){
   p.clear();
 }
 
-/*
+
 TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",true);
+
+
+  test_file2="../test_cases/match_within_long_site.txt";
+  //  query="tagacacacagtgtcgcctcgtcggctttgagtggtgctagacctca";
+  query="ctgctccacacagaga";
+  mask_file="../test_cases/match_within_long_site_mask_a.txt";
+  ifstream g(mask_file);
+
+  int a;
+  mask_a.clear();
+  while (g>>a) mask_a.push_back(a);
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=
+    csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
   bool first_del=false;
-
+  bool precalc=false;
   q=query;
   for (int i=0;i<q.length();i++) {
        if (q[i]=='A' or q[i]=='a') p.push_back(1);
@@ -318,7 +331,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
        if (q[i]=='T' or q[i]=='t') p.push_back(4);
   }
 
-  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del);
+  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);
 
   uint64_t no_occ=0;
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it) 
@@ -332,9 +345,10 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa_rev=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
   first_del=false;
-  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del);  
+
+  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
 
   no_occ=0;
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
@@ -351,6 +365,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 }
 
 
+/*
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,2> csa=csa_constr(test_file2,covgs, "int_alphabet_file","memory_log_file","csa_file",true);
