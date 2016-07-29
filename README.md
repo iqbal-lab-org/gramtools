@@ -31,3 +31,35 @@ NB we have an open bug at the moment where, after the program has finished, righ
 when the program finishes the shutdown process causes a crash. We're looking into it!
 
 Sorina, Carlos, Gil, Zam
+
+# Compiling
+You need C++11. Go into the src/ directory and type `make`.
+
+# Usage
+
+* Build the PRG file from a VCF
+```
+perl utils/vcf_to_linear_prg.pl --outfile my_species.prg --vcf big.vcf --ref reference.fa
+```
+This will create my_species.prg, my_species.prg.fa, my_species.prg.mask_alleles and my_species.prg.mask_sites
+
+* Create a kmers file
+
+```
+python utils/variantKmers.py -f my_species.prg.fa  -k 9 -n > my_species.kmers.txt
+```
+
+* Map reads to the PRG, putting output in directory out/
+
+```
+gramtools --prg my_species.prg --csa out/csa --ps my_species.prg.mask_sites --pa my_species.prg.mask_alleles
+          --co out/covg --ro out/reads --po out/bin --log out/memlog --ksize 9 --kfile my_species.kmers.txt 
+          --input sample.fastq
+```
+
+
+
+
+
+
+This will create
