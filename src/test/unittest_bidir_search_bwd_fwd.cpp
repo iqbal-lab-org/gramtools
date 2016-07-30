@@ -10,28 +10,39 @@
 using namespace sdsl;
 using namespace std;
 
-string test_file,q,test_file2,query,mask_file;
+string q,test_file2,query,mask_file;
 std::vector<uint8_t> p;
 std::vector<std::vector<int>> covgs;
 string prg,prg2;
 vector<string> substrings;
 std::vector<int> mask_a;
 
-/*
-TEST(BackwardSearchTest, NoVariants){
+//forward declare
+vector<string> generate_all_substrings(string q);
 
-  //SORINA - WHAT GOES HERE?if you can fill in the next 3 lines, this should compile and run
-  test_file2="";
-  query="";
-  mask_file="../test_cases/";
-  ifstream g(mask_file);
-  bool precalc=false;
+TEST(BackwardSearchTest, NoVariants1){
 
+  //PRG
+  test_file2="../test_cases/one_byte.txt";
+
+  //generate all substrings of PRG, use them all as queries
+  string temp;
+  ifstream ff(test_file2);
+  ff >> temp;//in this case, is a one char PRG, no need for substrings
+  substrings.push_back(temp);
+
+  //dummy mask
   int a;
   mask_a.clear();
-  while (g>>a) mask_a.push_back(a);
+  for (a=0; a< query.length(); a++)
+    {
+      mask_a.push_back(0);
+    }
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file, "int_alphabet_file","memory_log_file","csa_file",true);
+
+  bool precalc=false;
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -68,7 +79,7 @@ TEST(BackwardSearchTest, NoVariants){
     sa_intervals_rev.clear();
     sites.clear();
 
-    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file, "int_alphabet_file","memory_log_file","csa_file",false);
+    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
@@ -83,7 +94,83 @@ TEST(BackwardSearchTest, NoVariants){
     p.clear();
   }
 }
-*/
+
+
+TEST(BackwardSearchTest, NoVariants2){
+
+  //PRG
+  test_file2="../test_cases/100a.txt";
+
+  //generate all substrings of PRG, use them all as queries
+  string temp;
+  ifstream ff(test_file2);
+  ff >> temp;
+  substrings=generate_all_substrings(temp);
+
+  //dummy mask
+  int a;
+  mask_a.clear();
+  for (a=0; a< temp.length(); a++)
+    {
+      mask_a.push_back(0); 
+    }
+
+
+  bool precalc=false;
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+
+  std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+  //  std::vector<int> mask_a;
+ 
+  for (vector<string>::iterator it=substrings.begin();it<substrings.end();++it) {
+    q=*it;
+
+    bool first_del=false;
+    bool precalc = false;
+    int occ_expt=0;
+    int pos=prg.find(q,0);
+
+    while (pos!=string::npos) {
+      occ_expt++;
+      pos=prg.find(q,pos+1);
+    }
+
+    for (uint16_t i=0;i<q.length();i++) {
+       if (q[i]=='A' or q[i]=='a') p.push_back(1);
+       if (q[i]=='C' or q[i]=='c') p.push_back(2);
+       if (q[i]=='G' or q[i]=='g') p.push_back(3);
+       if (q[i]=='T' or q[i]=='t') p.push_back(4);
+    }
+
+    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);
+
+    uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
+    EXPECT_EQ(false,first_del);
+    EXPECT_EQ(1,sa_intervals.size());
+    EXPECT_EQ(no_occ,occ_expt);
+
+    sa_intervals.clear();
+    sa_intervals_rev.clear();
+    sites.clear();
+
+    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+    first_del=false;
+    res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
+
+    no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
+    EXPECT_EQ(false,first_del);
+    EXPECT_EQ(1,sa_intervals.size());
+    EXPECT_EQ(no_occ,occ_expt);
+
+    sa_intervals.clear();
+    sa_intervals_rev.clear();
+    sites.clear();
+    p.clear();
+  }
+}
+
 
 TEST(BackwardSearchTest, OneSNP){
 
