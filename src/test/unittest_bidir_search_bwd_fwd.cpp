@@ -42,24 +42,18 @@ TEST(BackwardSearchTest, NoVariants1){
 
   bool precalc=false;
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
-  std::vector<int> mask_a;
+  //  std::vector<int> mask_a;
  
   for (vector<string>::iterator it=substrings.begin();it<substrings.end();++it) {
     q=*it;
 
     bool first_del=false;
     bool precalc = false;
-    int occ_expt=0;
-    int pos=prg.find(q,0);
-
-    while (pos!=string::npos) {
-      occ_expt++;
-      pos=prg.find(q,pos+1);
-    }
+    int occ_expt=1;
 
     for (uint16_t i=0;i<q.length();i++) {
        if (q[i]=='A' or q[i]=='a') p.push_back(1);
@@ -79,7 +73,7 @@ TEST(BackwardSearchTest, NoVariants1){
     sa_intervals_rev.clear();
     sites.clear();
 
-    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
@@ -93,24 +87,24 @@ TEST(BackwardSearchTest, NoVariants1){
     sites.clear();
     p.clear();
   }
+
 }
 
 
 TEST(BackwardSearchTest, NoVariants2){
 
   //PRG
-  test_file2="../test_cases/100a.txt";
+  test_file2="../test_cases/36a.txt";
 
   //generate all substrings of PRG, use them all as queries
-  string temp;
   ifstream ff(test_file2);
-  ff >> temp;
-  substrings=generate_all_substrings(temp);
+  ff >> prg;
+  substrings=generate_all_substrings(prg);
 
   //dummy mask
   int a;
   mask_a.clear();
-  for (a=0; a< temp.length(); a++)
+  for (a=0; a< prg.length(); a++)
     {
       mask_a.push_back(0); 
     }
@@ -118,7 +112,8 @@ TEST(BackwardSearchTest, NoVariants2){
 
   bool precalc=false;
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa 
+    =csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -155,7 +150,7 @@ TEST(BackwardSearchTest, NoVariants2){
     sa_intervals_rev.clear();
     sites.clear();
 
-    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+    csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
@@ -185,7 +180,7 @@ TEST(BackwardSearchTest, OneSNP){
   mask_a.clear();
   while (g>>a) mask_a.push_back(a);
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -210,7 +205,7 @@ TEST(BackwardSearchTest, OneSNP){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del,precalc);  
 
@@ -237,7 +232,7 @@ TEST(BackwardSearchTest, TwoSNPs){
   mask_a.clear();
   while (g>>a) mask_a.push_back(a);
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -264,7 +259,7 @@ TEST(BackwardSearchTest, TwoSNPs){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
 
@@ -291,7 +286,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   mask_a.clear();
   while (g>>a) mask_a.push_back(a);
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
@@ -320,7 +315,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del, precalc);  
 
@@ -352,7 +347,7 @@ TEST(BackwardSearchTest, Two_long_sites){
   while (g>>a) mask_a.push_back(a);
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=
-    csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+    csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
@@ -381,7 +376,7 @@ TEST(BackwardSearchTest, Two_long_sites){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
 
@@ -415,7 +410,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   while (g>>a) mask_a.push_back(a);
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=
-    csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+    csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
@@ -444,7 +439,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
 
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
@@ -541,7 +536,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   while (g>>a) mask_a.push_back(a);
 
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
@@ -569,7 +564,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
 
@@ -599,7 +594,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
   mask_a.clear();
   while (g>>a) mask_a.push_back(a);
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
@@ -627,7 +622,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
 
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,16,first_del, precalc);  

@@ -30,7 +30,7 @@ template < typename SEQUENCE >
 
 using sequence_set = std::unordered_set< SEQUENCE, seq_hash<SEQUENCE> > ;
 
-csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_constr(std::string fname, std::string int_al_fname, std::string memory_log_fname, std::string csa_file, bool fwd);
+csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_constr(std::string fname, std::string int_al_fname, std::string memory_log_fname, std::string csa_file, bool fwd, bool verbose);
 
 void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa, int k,   
 			   sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
