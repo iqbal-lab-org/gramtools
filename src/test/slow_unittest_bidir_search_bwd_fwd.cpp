@@ -50,9 +50,10 @@ TEST(BackwardSearchTest, NoVariantsSlowTest2){
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
   //  std::vector<int> mask_a;
  
-  for (vector<string>::iterator it=substrings.begin();it<substrings.end();++it) {
+  for (vector<string>::iterator it=substrings.begin();
+       it<substrings.end();++it) {
     q=*it;
-
+    
     bool first_del=false;
     bool precalc = false;
     int occ_expt=0;
@@ -73,7 +74,7 @@ TEST(BackwardSearchTest, NoVariantsSlowTest2){
     std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);
 
     uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -86,7 +87,7 @@ TEST(BackwardSearchTest, NoVariantsSlowTest2){
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -149,7 +150,7 @@ TEST(BackwardSearchTest, NoVariantsABCABCTest3){
     std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);
 
     uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -162,7 +163,7 @@ TEST(BackwardSearchTest, NoVariantsABCABCTest3){
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -225,7 +226,7 @@ TEST(BackwardSearchTest, NoVariantsACTG4){
     std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);
 
     uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -238,7 +239,7 @@ TEST(BackwardSearchTest, NoVariantsACTG4){
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -301,7 +302,7 @@ TEST(BackwardSearchTest, NoVariantsSlow_MSP34_200bp_Test5){
     std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);
 
     uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -314,7 +315,7 @@ TEST(BackwardSearchTest, NoVariantsSlow_MSP34_200bp_Test5){
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
