@@ -137,6 +137,7 @@ TEST(BackwardSearchTest, OneSNP){
   EXPECT_EQ(sites.front().front().first, 5);
   EXPECT_EQ(sites.front().front().second.front(), 1);
   EXPECT_EQ(sites.front().front().second.size(), 1);
+  EXPECT_TRUE(sites.size()==1);
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
@@ -202,7 +203,7 @@ TEST(BackwardSearchTest, TwoSNPs){
   EXPECT_EQ(sites.front().back().first, 5);
   EXPECT_EQ(sites.front().back().second.front(), 1);
   EXPECT_EQ(sites.front().back().second.size(), 1);
-
+  
 
 
   sa_intervals.clear();
@@ -227,8 +228,9 @@ TEST(BackwardSearchTest, TwoSNPs){
 
 TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
 
+  //prg=catttacaca5g6t5aactagagagcaacagaactctct
   test_file2="../test_cases/two_matches_var_nonvar.txt";
-  query="acagaac";
+  query="acagaac";//one match crosses allele 1, and the other in nonvar
   mask_file="../test_cases/two_matches_var_nonvar_mask_a.txt";
   ifstream g(mask_file);
 
@@ -260,6 +262,16 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   EXPECT_TRUE(first_del==false);
   EXPECT_EQ(2,sa_intervals.size());
   EXPECT_EQ(no_occ,2);
+
+  //first SA_interval is in non-variable region
+  EXPECT_EQ(sites.front().size(), 0);
+  //second overlaps a site
+  EXPECT_EQ(sites.back().front().first, 5);
+  EXPECT_EQ(sites.back().front().second.front(), 1);
+  EXPECT_EQ(sites.back().size(), 1);
+
+  
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
