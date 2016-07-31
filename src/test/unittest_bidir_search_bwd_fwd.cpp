@@ -154,7 +154,7 @@ TEST(BackwardSearchTest, TwoSNPs){
 
   test_file2="../test_cases/two_snps.txt";
   query="ttacacagaactagaagcag";
-  mask_file="../test_cases/One_match_many_sites_mask_a.txt";
+  mask_file="../test_cases/two_snps_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
