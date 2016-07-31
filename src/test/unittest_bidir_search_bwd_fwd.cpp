@@ -388,14 +388,12 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 }
 
 
-/*
+
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 
-  //SORINA - What are the input PRG, mask and query for this test?
-
-  test_file2="../test_cases/ ";
-  query="";
-  mask_file="../test_cases/ ";
+  test_file2="../test_cases/repeated_snp_on_both_edges.txt";
+  query="tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
+  mask_file="../test_cases/match_within_long_site_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -403,13 +401,13 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   while (g>>a) mask_a.push_back(a);
 
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true,false);
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
   bool first_del=false;
-  bool prealc=false;
+  bool precalc=false;
 
   q=query;
   for (uint16_t i=0;i<q.length();i++) {
@@ -432,7 +430,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   sa_intervals_rev.clear();
   sites.clear();
 
-  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false);
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false,false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
 
@@ -449,7 +447,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   sites.clear();
   p.clear();
 }
-*/
+
 
 
 
