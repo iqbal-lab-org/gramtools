@@ -298,7 +298,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
 
 TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region){
 
-  //prg=catttacaca5g6t5aactagagagcaacagaactctct
+  //prg=catttacaca5g6t5aactagagagcaacataactctct
   test_file2="../test_cases/two_matches_var_other_allele_nonvar.txt";
   query="acataac";//one match crosses allele 2, and the other in nonvar
   mask_file="../test_cases/two_matches_var_nonvar_mask_a.txt";
