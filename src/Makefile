@@ -34,7 +34,7 @@ EXTRAFLAGS += -O0
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = unittest_bidir_search_bwd_fwd gramtools
+TESTS = slow_unittest_bidir_search_bwd_fwd unittest_bidir_search_bwd_fwd gramtools
 
 # A sample Makefile for building Google Test and using it in user
 # tests.  Please tweak it to suit your environment and project.  You
@@ -71,7 +71,7 @@ EXTRAFLAGS += -O0
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = unittest_bidir_search_bwd_fwd gramtools
+TESTS = slow_unittest_bidir_search_bwd_fwd unittest_bidir_search_bwd_fwd gramtools
 
 # A sample Makefile for building Google Test and using it in user
 # tests.  Please tweak it to suit your environment and project.  You
@@ -108,7 +108,7 @@ EXTRAFLAGS += -O0
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = unittest_bidir_search_bwd_fwd gramtools
+TESTS = slow_unittest_bidir_search_bwd_fwd unittest_bidir_search_bwd_fwd gramtools
 #TESTS = gramtools
 
 # All Google Test headers.  Usually you shouldn't change this
@@ -116,6 +116,7 @@ TESTS = unittest_bidir_search_bwd_fwd gramtools
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 SDSL_HEADERS= /home/sm0179/include/
+#SDSL_HEADERS= /home/zam/bin/include/
 VBWT_HEADERS= ../include/
 #SDSL_HEADERS= /home/zam/include/
 #VBWT_HEADERS= /home/zam/dev/git/VBWT/include/
@@ -198,5 +199,11 @@ gramtools: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_
 unittest_bidir_search_bwd_fwd.o : $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp
 
+slow_unittest_bidir_search_bwd_fwd.o : $(USER_DIR)/test/slow_unittest_bidir_search_bwd_fwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/slow_unittest_bidir_search_bwd_fwd.cpp
+
 unittest_bidir_search_bwd_fwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o unittest_bidir_search_bwd_fwd.o 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L$(GTEST_DIR) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
+
+slow_unittest_bidir_search_bwd_fwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o slow_unittest_bidir_search_bwd_fwd.o 
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L$(GTEST_DIR) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
