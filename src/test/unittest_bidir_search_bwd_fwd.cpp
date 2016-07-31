@@ -150,6 +150,10 @@ TEST(BackwardSearchTest, OneSNP){
   EXPECT_EQ(true,first_del);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
+  EXPECT_EQ(sites.front().front().first, 5);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
@@ -160,8 +164,9 @@ TEST(BackwardSearchTest, OneSNP){
 
 TEST(BackwardSearchTest, TwoSNPs){
 
+  //prg = catttacaca5g6t5aactag7a8g7agcagggt
   test_file2="../test_cases/two_snps.txt";
-  query="ttacacagaactagaagcag";
+  query="ttacacagaactagaagcag";//aligns across both SNPs, both allele 1
   mask_file="../test_cases/two_snps_mask_a.txt";
   ifstream g(mask_file);
 
@@ -191,6 +196,14 @@ TEST(BackwardSearchTest, TwoSNPs){
   EXPECT_EQ(true,first_del);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
+  EXPECT_EQ(sites.front().front().first, 7);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);
+  EXPECT_EQ(sites.back().front().first, 5);
+  EXPECT_EQ(sites.back().front().second.front(), 1);
+  EXPECT_EQ(sites.back().front().second.size(), 1);
+
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
