@@ -34,7 +34,7 @@ TEST(BackwardSearchTest, NoVariants1){
   //dummy mask
   int a;
   mask_a.clear();
-  for (a=0; a< query.length(); a++)
+  for (a=0; a< temp.length(); a++)
     {
       mask_a.push_back(0);
     }
@@ -62,7 +62,7 @@ TEST(BackwardSearchTest, NoVariants1){
        if (q[i]=='T' or q[i]=='t') p.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);
+    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,4,first_del, precalc);
 
     uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
     EXPECT_EQ(false,first_del);
@@ -75,7 +75,7 @@ TEST(BackwardSearchTest, NoVariants1){
 
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
-    res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
+    res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,4,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
     EXPECT_EQ(false,first_del);
