@@ -369,7 +369,10 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
 TEST(BackwardSearchTest, Two_long_sites){
 
 
+  //prg = acgacacat5gatag6tagga6gctcg6gctct5gctcgatgactagatagatag7cga8cgc8tga8tgc7ggcaacatctacga
   test_file2="../test_cases/two_long_sites.txt";
+
+  //read aligns from middle of  allele 3 of site 5 and allele 1 of site 7
   query="gctcggctcgatgactagatagatagcgaggcaac";
   mask_file="../test_cases/two_long_sites_mask_a.txt";
   ifstream g(mask_file);
@@ -403,6 +406,16 @@ TEST(BackwardSearchTest, Two_long_sites){
   EXPECT_EQ(true,first_del);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
+
+  EXPECT_EQ(sites.front().front().first, 7);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);
+
+  //note this unit test allows for an implementation limitation
+  //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
+  EXPECT_EQ(sites.front().back().first, 5);
+  //should really say it has overlapped allele 3
+  EXPECT_EQ(sites.front().back().second.size(), 0);
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
