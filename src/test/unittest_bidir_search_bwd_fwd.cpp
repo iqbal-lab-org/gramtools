@@ -296,6 +296,76 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
 }
 
 
+TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region){
+
+  //prg=catttacaca5g6t5aactagagagcaacagaactctct
+  test_file2="../test_cases/two_matches_var_other_allele_nonvar.txt";
+  query="acataac";//one match crosses allele 2, and the other in nonvar
+  mask_file="../test_cases/two_matches_var_nonvar_mask_a.txt";
+  ifstream g(mask_file);
+
+  int a;
+  mask_a.clear();
+  while (g>>a) mask_a.push_back(a);
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
+
+  std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
+  std::list<std::pair<uint64_t,uint64_t>>::iterator it;
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+  bool first_del=false;
+  bool precalc=false;
+  q=query;
+  for (uint16_t i=0;i<q.length();i++) {
+       if (q[i]=='A' or q[i]=='a') p.push_back(1);
+       if (q[i]=='C' or q[i]=='c') p.push_back(2);
+       if (q[i]=='G' or q[i]=='g') p.push_back(3);
+       if (q[i]=='T' or q[i]=='t') p.push_back(4);
+  }
+
+  std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del, precalc);
+
+  uint64_t no_occ=0;
+  for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+    no_occ+=(*it).second-(*it).first;
+  
+  EXPECT_TRUE(first_del==false);
+  EXPECT_EQ(2,sa_intervals.size());
+  EXPECT_EQ(no_occ,2);
+
+  //first SA_interval is in non-variable region
+  EXPECT_EQ(sites.front().size(), 0);
+  //second SA  overlaps a site
+  EXPECT_EQ(sites.back().front().first, 5);
+  EXPECT_EQ(sites.back().front().second.front(), 2);
+  EXPECT_EQ(sites.back().size(), 1);
+
+  
+
+
+  sa_intervals.clear();
+  sa_intervals_rev.clear();
+  sites.clear();
+
+  csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
+  first_del=false;
+  res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del, precalc);  
+
+  no_occ=0;
+  for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
+    no_occ+=(*it).second-(*it).first;
+
+  EXPECT_TRUE(first_del==false);
+  EXPECT_EQ(2,sa_intervals.size());
+  EXPECT_EQ(no_occ,2);
+
+  sa_intervals.clear();
+  sa_intervals_rev.clear();
+  sites.clear();
+  p.clear();
+}
+
+
 TEST(BackwardSearchTest, Two_long_sites){
 
 
