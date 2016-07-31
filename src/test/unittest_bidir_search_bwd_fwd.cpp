@@ -32,7 +32,7 @@ TEST(BackwardSearchTest, NoVariants1){
   substrings.push_back(temp);
 
   //dummy mask
-  int a;
+  uint32_t a;
   mask_a.clear();
   for (a=0; a< temp.length(); a++)
     {
@@ -40,7 +40,6 @@ TEST(BackwardSearchTest, NoVariants1){
     }
 
 
-  bool precalc=false;
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
 
@@ -62,13 +61,17 @@ TEST(BackwardSearchTest, NoVariants1){
        if (q[i]=='T' or q[i]=='t') p.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,csa.size(),0,csa.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,4,first_del, precalc);
+    std::vector<uint8_t>::iterator res_it=
+      bidir_search_bwd(csa,0,csa.size(),0,csa.size(),
+		       p.begin(),p.end(), 
+		       sa_intervals,sa_intervals_rev,sites,
+		       mask_a,4,first_del, precalc);
 
     uint64_t no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
-
+   
     sa_intervals.clear();
     sa_intervals_rev.clear();
     sites.clear();
@@ -78,7 +81,7 @@ TEST(BackwardSearchTest, NoVariants1){
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,4,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
-    EXPECT_EQ(false,first_del);
+    EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
 
@@ -236,7 +239,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
     no_occ+=(*it).second-(*it).first;
   
-  EXPECT_EQ(false,first_del);
+  EXPECT_TRUE(first_del==false);
   EXPECT_EQ(2,sa_intervals.size());
   EXPECT_EQ(no_occ,2);
 
@@ -252,7 +255,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
     no_occ+=(*it).second-(*it).first;
 
-  EXPECT_EQ(false,first_del);
+  EXPECT_TRUE(first_del==false);
   EXPECT_EQ(2,sa_intervals.size());
   EXPECT_EQ(no_occ,2);
 
@@ -360,7 +363,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it) 
     no_occ+=(*it).second-(*it).first;
 
-  EXPECT_EQ(false,first_del);
+  EXPECT_TRUE(first_del==false);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,2);
 
@@ -377,7 +380,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
     no_occ+=(*it).second-(*it).first;
 
-  EXPECT_EQ(false,first_del);
+  EXPECT_TRUE(first_del==false);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,2);
 
@@ -483,7 +486,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it) 
     no_occ+=(*it).second-(*it).first;
 
-  EXPECT_EQ(false,first_del);
+  EXPECT_TRUE(first_del==false);
   EXPECT_EQ(3,sa_intervals.size());
   EXPECT_EQ(no_occ,3);
 
@@ -499,7 +502,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
     no_occ+=(*it).second-(*it).first;
 
-  EXPECT_EQ(false,first_del);
+  EXPECT_TRUE(first_del==false);
   EXPECT_EQ(3,sa_intervals.size());
   EXPECT_EQ(no_occ,3);
 
