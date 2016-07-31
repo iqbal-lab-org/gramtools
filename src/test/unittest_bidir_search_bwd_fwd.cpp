@@ -199,9 +199,9 @@ TEST(BackwardSearchTest, TwoSNPs){
   EXPECT_EQ(sites.front().front().first, 7);
   EXPECT_EQ(sites.front().front().second.front(), 1);
   EXPECT_EQ(sites.front().front().second.size(), 1);
-  EXPECT_EQ(sites.back().front().first, 5);
-  EXPECT_EQ(sites.back().front().second.front(), 1);
-  EXPECT_EQ(sites.back().front().second.size(), 1);
+  EXPECT_EQ(sites.front().back().first, 5);
+  EXPECT_EQ(sites.front().back().second.front(), 1);
+  EXPECT_EQ(sites.front().back().second.size(), 1);
 
 
 
