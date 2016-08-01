@@ -520,7 +520,9 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 
+  //prg = gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7ccagctgctccacacagaga
   test_file2="../test_cases/repeated_snp_on_both_edges.txt";
+  //read aligns across sites 5 and 7, allele 1 in both cases
   query="tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
   mask_file="../test_cases/match_within_long_site_mask_a.txt";
   ifstream g(mask_file);
@@ -555,6 +557,14 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
 
+  EXPECT_EQ(sites.front().front().first, 7);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);
+  EXPECT_EQ(sites.front().back().first, 5);
+  EXPECT_EQ(sites.front().back().second.front(), 1);
+  EXPECT_EQ(sites.front().back().second.size(), 1);
+
+
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
@@ -570,6 +580,13 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   EXPECT_EQ(true,first_del);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
+
+  EXPECT_EQ(sites.front().front().first, 5);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);
+  EXPECT_EQ(sites.front().back().first, 7);
+  EXPECT_EQ(sites.front().back().second.front(), 1);
+  EXPECT_EQ(sites.front().back().second.size(), 1);
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
