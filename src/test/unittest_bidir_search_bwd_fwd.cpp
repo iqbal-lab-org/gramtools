@@ -85,6 +85,8 @@ TEST(BackwardSearchTest, NoVariants1){
     EXPECT_TRUE(first_del==false);
     EXPECT_EQ(1,sa_intervals.size());
     EXPECT_EQ(no_occ,occ_expt);
+    EXPECT_EQ(1, sites.size());
+    EXPECT_EQ(sites.front().size(),0);
 
     sa_intervals.clear();
     sa_intervals_rev.clear();
@@ -218,6 +220,15 @@ TEST(BackwardSearchTest, TwoSNPs){
   EXPECT_EQ(true,first_del);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
+
+  EXPECT_EQ(sites.front().front().first, 5);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);
+  EXPECT_EQ(sites.front().back().first, 7);
+  EXPECT_EQ(sites.front().back().second.front(), 1);
+  EXPECT_EQ(sites.front().back().second.size(), 1);//fails - get 3
+
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
@@ -583,10 +594,10 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 
   EXPECT_EQ(sites.front().front().first, 5);
   EXPECT_EQ(sites.front().front().second.front(), 1);
-  EXPECT_EQ(sites.front().front().second.size(), 1);
+  EXPECT_EQ(sites.front().front().second.size(), 1);//currently fails in unit test
   EXPECT_EQ(sites.front().back().first, 7);
   EXPECT_EQ(sites.front().back().second.front(), 1);
-  EXPECT_EQ(sites.front().back().second.size(), 1);
+  EXPECT_EQ(sites.front().back().second.size(), 1);//currently fails
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
