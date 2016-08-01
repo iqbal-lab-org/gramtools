@@ -25,7 +25,7 @@ vector<string> generate_all_substrings(string q);
 TEST(BackwardSearchTest, NoVariantsSlowTest2){
 
   //PRG
-  test_file2="../test_cases/36a.txt";
+  test_file2="../test_cases/13a.txt";
 
   //generate all substrings of PRG, use them all as queries
   ifstream ff(test_file2);
