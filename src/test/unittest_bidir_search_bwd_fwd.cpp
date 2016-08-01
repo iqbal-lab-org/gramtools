@@ -443,9 +443,10 @@ TEST(BackwardSearchTest, Two_long_sites){
 TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 
 
-
+  //prg=gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7tcagctgctccacacagaga
   test_file2="../test_cases/match_within_long_site.txt";
-  //  query="tagacacacagtgtcgcctcgtcggctttgagtggtgctagacctca";
+
+  //read aligns in allele 2 of site 5, and in non-var region
   query="ctgctccacacagaga";
   mask_file="../test_cases/match_within_long_site_mask_a.txt";
   ifstream g(mask_file);
@@ -479,6 +480,18 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   EXPECT_TRUE(first_del==false);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,2);
+
+
+
+  //first SA_interval is in non-variable region
+  EXPECT_EQ(sites.front().size(), 0);
+  //second overlaps a site, HOWEVER it does not cross the digit 5.
+  //note this unit test allows for an implementation limitation
+  //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
+  EXPECT_EQ(sites.back().size(), 0);
+
+
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();

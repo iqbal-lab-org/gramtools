@@ -33,15 +33,13 @@ TEST(BackwardSearchTest, NoVariantsSlowTest2){
   substrings=generate_all_substrings(prg);
 
   //dummy mask
-  int a;
+  uint32_t a;
   mask_a.clear();
   for (a=0; a< prg.length(); a++)
     {
       mask_a.push_back(0); 
     }
 
-
-  bool precalc=false;
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa 
     =csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",true, false);
@@ -110,7 +108,7 @@ TEST(BackwardSearchTest, NoVariantsABCABCTest3){
   substrings=generate_all_substrings(prg);
 
   //dummy mask
-  int a;
+  uint32_t a;
   mask_a.clear();
   for (a=0; a< prg.length(); a++)
     {
@@ -186,7 +184,7 @@ TEST(BackwardSearchTest, NoVariantsACTG4){
   substrings=generate_all_substrings(prg);
 
   //dummy mask
-  int a;
+  uint32_t a;
   mask_a.clear();
   for (a=0; a< prg.length(); a++)
     {
@@ -262,7 +260,7 @@ TEST(BackwardSearchTest, NoVariantsSlow_MSP34_200bp_Test5){
   substrings=generate_all_substrings(prg);
 
   //dummy mask
-  int a;
+  uint32_t a;
   mask_a.clear();
   for (a=0; a< prg.length(); a++)
     {
