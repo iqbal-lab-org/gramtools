@@ -627,7 +627,9 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 
 TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 
+  //prg=acgacacat5gatag6tagga6gctcg6gctct5gctcgtgataatgactagatagatag7cga8cgc8tga8tgc7taggcaacatctacga
   test_file2="../test_cases/multiple_matches_multiple_sites.txt";
+  //read aligns over allele 1 of site 5, the nonvariableregion and allele 3 of site 7
   query="tgata";
   mask_file="../test_cases/multiple_matches_multiple_sites_mask_a.txt";
   ifstream g(mask_file);
@@ -642,6 +644,8 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+  std::vector<std::pair<uint32_t, std::vector<int> > >::iterator v_it;
+  
   bool first_del=false;
   bool precalc=false;
   q=query;
@@ -660,6 +664,21 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   EXPECT_TRUE(first_del==false);
   EXPECT_EQ(3,sa_intervals.size());
   EXPECT_EQ(no_occ,3);
+  v_it = sites.front().begin();
+  //note this unit test allows for an implementation limitation
+  //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
+  //should really notice the read has overlapped allele 3 of site 7
+
+  
+  EXPECT_EQ((*v_it).first, 7);
+  //  EXPECT_EQ(sites.front().front().second.front(), 3);
+  EXPECT_EQ(sites.front().front().second.size(), 0);
+
+  EXPECT_EQ(sites.front().back().first, 5);
+  EXPECT_EQ(sites.front().front().second.front(), 1);
+  EXPECT_EQ(sites.front().back().second.size(), 1);
+
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
