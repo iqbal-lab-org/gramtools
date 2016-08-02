@@ -77,8 +77,10 @@ TEST(BackwardSearchTest, NoVariants1){
     sa_intervals_rev.clear();
     sites.clear();
 
+    /*
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
+
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,4,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
@@ -88,9 +90,11 @@ TEST(BackwardSearchTest, NoVariants1){
     EXPECT_EQ(1, sites.size());
     EXPECT_EQ(sites.front().size(),0);
 
+
     sa_intervals.clear();
     sa_intervals_rev.clear();
     sites.clear();
+    */
     p.clear();
   }
 
@@ -147,6 +151,7 @@ TEST(BackwardSearchTest, OneSNP){
 
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
+  /*
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del,precalc);  
 
   no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
@@ -156,7 +161,7 @@ TEST(BackwardSearchTest, OneSNP){
   EXPECT_EQ(sites.front().front().first, 5);
   EXPECT_EQ(sites.front().front().second.front(), 1);
   EXPECT_EQ(sites.front().front().second.size(), 1);
-
+  */
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
@@ -212,6 +217,7 @@ TEST(BackwardSearchTest, TwoSNPs){
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
@@ -233,6 +239,7 @@ TEST(BackwardSearchTest, TwoSNPs){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -288,6 +295,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del, precalc);  
@@ -303,6 +311,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -358,6 +367,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,6,first_del, precalc);  
@@ -373,6 +383,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -432,6 +443,7 @@ TEST(BackwardSearchTest, Two_long_sites){
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
@@ -447,6 +459,7 @@ TEST(BackwardSearchTest, Two_long_sites){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -508,6 +521,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
 
@@ -524,6 +538,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -580,6 +595,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false,false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
@@ -602,6 +618,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -648,6 +665,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   sa_intervals_rev.clear();
   sites.clear();
 
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
   res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,8,first_del, precalc);  
@@ -663,6 +681,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 
@@ -705,7 +724,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
-
+  /*
   csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2,"int_alphabet_file","memory_log_file","csa_file",false, false);
   first_del=false;
 
@@ -722,6 +741,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
   sa_intervals.clear();
   sa_intervals_rev.clear();
   sites.clear();
+  */
   p.clear();
 }
 

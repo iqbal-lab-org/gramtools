@@ -60,37 +60,39 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
 		      uint64_t i=(*z).first;
 		      uint32_t num=(*z).second;
 		      
-					if (num==prev_num) ignore=true;
-					else ignore=false;
+		      if ( (num==prev_num)|| (num%2==0 && num==prev_num+1)) ignore=true;
+		      else ignore=false;
 
-					left_new=(*it).first;
-					right_new=(*it).second;
+		      left_new=(*it).first;
+		      right_new=(*it).second;
+		      
+		      //need original [l,r] to for the next loop iterations
 
-					//need original [l,r] to for the next loop iterations
+		      left_rev_new=(*it_rev).first;
+		      right_rev_new=(*it_rev).second;
 
-					left_rev_new=(*it_rev).first;
-					right_rev_new=(*it_rev).second;
+		      if (num!=prev_num && num%2==1) {
+			if (z+1!=zend && num==(*(z+1)).second) {
+			  left_new=csa_rev.C[csa_rev.char2comp[num]]; //need to modify left_rev_new as well?
+			  right_new=left_new+2;
+			}
+			else {
+			  left_new=i;
+			  right_new=i+1;
+			}
+		      }
+		      
+		      last=skip(csa_rev,left_new,right_new,left_rev_new,right_rev_new,num);
 
-					if (num!=prev_num && num%2==1) {
-						if (z+1!=zend && num==(*(z+1)).second) {
-							left_new=csa_rev.C[csa_rev.char2comp[num]]; //need to modify left_rev_new as well?
-							right_new=left_new+2;
-						}
-						else {
-							left_new=i;
-							right_new=i+1;
-						}
-					}
-
-					last=skip(csa_rev,left_new,right_new,left_rev_new,right_rev_new,num);
-
-					// how to alternate between forward and backward?
-					if (it==sa_intervals.begin() && first_del==false && !ignore) {
-						sa_intervals.push_back(std::make_pair(left_new,right_new));
-						sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
-						sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>>(1,get_location(csa_rev,i,num,last,allele_empty,mask_a)));
-					}		    
-					//there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
+		      // how to alternate between forward and backward?
+		      if (it==sa_intervals.begin() && first_del==false && !ignore) {
+			sa_intervals.push_back(std::make_pair(left_new,right_new));
+			sa_intervals_rev.push_back(std::make_pair(left_rev_new,right_rev_new));
+			sites.push_back( std::vector<std::pair<uint32_t, std::vector<int>>>(1,get_location(csa_rev,i,num,last,allele_empty,mask_a)));
+					 allele_empty.clear();
+					 
+					 }		    
+					 //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
 					//can delete them here or in top a fcn when calculating coverages
 					else {
 						if (ignore) {
@@ -101,6 +103,7 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
 							*it=std::make_pair(left_new,right_new);
 							*it_rev=std::make_pair(left_rev_new,right_rev_new);
 							(*it_s).push_back(get_location(csa_rev,i,num,last,allele_empty,mask_a));
+							allele_empty.clear();
 						}
 					}
 					prev_num=num;  
