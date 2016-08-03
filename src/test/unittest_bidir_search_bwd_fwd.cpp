@@ -643,8 +643,11 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
+
+  //each element on the list corresponds to a SA interval
+  //these elements are vectors of pairs (pair=(site, list of alleles))
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
-  std::vector<std::pair<uint32_t, std::vector<int> > >::iterator v_it;
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator v_it;
   
   bool first_del=false;
   bool precalc=false;
@@ -664,20 +667,32 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   EXPECT_TRUE(first_del==false);
   EXPECT_EQ(3,sa_intervals.size());
   EXPECT_EQ(no_occ,3);
-  v_it = sites.front().begin();
+  v_it = sites.begin();
+
   //note this unit test allows for an implementation limitation
   //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
-  //should really notice the read has overlapped allele 3 of site 7
+  //should really notice the read has overlapped allele 3 of site 7, but it does not.
 
+
+  //first SA interval will be the match in the nonvariable region.
+  //so we should get a vector of length zero, as it crosses no sites.
+  EXPECT_EQ( (*v_it).size(), 0);
   
-  EXPECT_EQ((*v_it).first, 7);
+  //move to next SA interval - next element of list (sites)
+  ++v_it;
+  
+  //this will be the overlap with site 7
+  EXPECT_EQ( (*v_it).size(), 1);
+  EXPECT_EQ((*v_it).front().first, 7);
   //  EXPECT_EQ(sites.front().front().second.front(), 3);
-  EXPECT_EQ(sites.front().front().second.size(), 0);
+  EXPECT_EQ((*v_it).front().second.size(), 0);
 
-  EXPECT_EQ(sites.front().back().first, 5);
-  EXPECT_EQ(sites.front().front().second.front(), 1);
-  EXPECT_EQ(sites.front().back().second.size(), 1);
-
+  //next SA interval - overlap with site 5
+  ++v_it;
+  EXPECT_EQ( (*v_it).size(), 1);
+  EXPECT_EQ((*v_it).front().first, 5);
+  EXPECT_EQ( (*v_it).front().second.front(), 1);
+  EXPECT_EQ((*v_it).front().second.size(), 1);
 
 
   sa_intervals.clear();
