@@ -80,7 +80,6 @@ TEST(BackwardSearchTest, NoVariants1){
     /*
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
-
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,4,first_del, precalc);  
 
     no_occ=(*sa_intervals.begin()).second-(*sa_intervals.begin()).first;
