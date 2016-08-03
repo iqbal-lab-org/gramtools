@@ -647,7 +647,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   //each element on the list corresponds to a SA interval
   //these elements are vectors of pairs (pair=(site, list of alleles))
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
-  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator v_it;
+  std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator list_it;
   
   bool first_del=false;
   bool precalc=false;
@@ -667,7 +667,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
   EXPECT_TRUE(first_del==false);
   EXPECT_EQ(3,sa_intervals.size());
   EXPECT_EQ(no_occ,3);
-  v_it = sites.begin();
+  list_it = sites.begin();
 
   //note this unit test allows for an implementation limitation
   //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
@@ -676,23 +676,23 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 
   //first SA interval will be the match in the nonvariable region.
   //so we should get a vector of length zero, as it crosses no sites.
-  EXPECT_EQ( (*v_it).size(), 0);
+  EXPECT_EQ( (*list_it).size(), 0);
   
   //move to next SA interval - next element of list (sites)
-  ++v_it;
+  ++list_it;
   
   //this will be the overlap with site 7
-  EXPECT_EQ( (*v_it).size(), 1);
-  EXPECT_EQ((*v_it).front().first, 7);
+  EXPECT_EQ( (*list_it).size(), 1);
+  EXPECT_EQ((*list_it).front().first, 7);
   //  EXPECT_EQ(sites.front().front().second.front(), 3);
-  EXPECT_EQ((*v_it).front().second.size(), 0);
+  EXPECT_EQ((*list_it).front().second.size(), 0);
 
   //next SA interval - overlap with site 5
-  ++v_it;
-  EXPECT_EQ( (*v_it).size(), 1);
-  EXPECT_EQ((*v_it).front().first, 5);
-  EXPECT_EQ( (*v_it).front().second.front(), 1);
-  EXPECT_EQ((*v_it).front().second.size(), 1);
+  ++list_it;
+  EXPECT_EQ( (*list_it).size(), 1);
+  EXPECT_EQ((*list_it).front().first, 5);
+  EXPECT_EQ( (*list_it).front().second.front(), 1);
+  EXPECT_EQ((*list_it).front().second.size(), 1);
 
 
   sa_intervals.clear();
@@ -722,7 +722,9 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 TEST(BackwardSearchTest, One_match_many_sites){
 
 
+  //prg=agggccta5c6t5acatgatc7a8g7tgatca9c10a9cata11g12t11aggtcgct13c14g13ggtc15atc16cat15ttcg
   test_file2="../test_cases/One_match_many_sites.txt";
+  //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
   query="cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
   mask_file="../test_cases/One_match_many_sites_mask_a.txt";
   ifstream g(mask_file);
@@ -736,6 +738,8 @@ TEST(BackwardSearchTest, One_match_many_sites){
   std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
   std::list<std::pair<uint64_t,uint64_t>>::iterator it;
   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+  
   bool first_del=false;
   bool precalc=false;
   q=query;
@@ -754,6 +758,48 @@ TEST(BackwardSearchTest, One_match_many_sites){
   EXPECT_EQ(true,first_del);
   EXPECT_EQ(1,sa_intervals.size());
   EXPECT_EQ(no_occ,1);
+  std::vector<std::pair<uint32_t, std::vector<int> > >::iterator  v_it = sites.front().begin();
+
+  //here's what we are checking
+  //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
+
+
+  EXPECT_EQ(sites.front().size(), 6);
+  
+  EXPECT_EQ((*v_it).first, 15);
+  EXPECT_EQ((*v_it).second.front(), 2);
+  EXPECT_EQ((*v_it).second.size(), 1);
+
+  ++v_it;
+  EXPECT_EQ((*v_it).first, 13);
+  EXPECT_EQ( (*v_it).second.front(), 2);
+  EXPECT_EQ((*v_it).second.size(), 1);
+
+  //next SA interval - overlap with site 11
+  ++v_it;
+  EXPECT_EQ((*v_it).first, 11);
+  EXPECT_EQ( (*v_it).second.front(), 1);
+	     EXPECT_EQ((*v_it).second.size(), 1);
+
+  //next SA interval - overlap with site 9
+  ++v_it;
+  EXPECT_EQ((*v_it).first, 9);
+  EXPECT_EQ( (*v_it).second.front(), 1);
+  EXPECT_EQ((*v_it).second.size(), 1);
+
+  //next SA interval - overlap with site 7
+  ++v_it;
+  EXPECT_EQ((*v_it).first, 7);
+  EXPECT_EQ( (*v_it).second.front(), 2);
+  EXPECT_EQ((*v_it).second.size(), 1);
+	     
+	     
+  //next SA interval - overlap with site 5
+  ++v_it;
+  EXPECT_EQ((*v_it).first, 5);
+  EXPECT_EQ( (*v_it).second.front(), 1);
+  EXPECT_EQ((*v_it).second.size(), 1);
+
 
   sa_intervals.clear();
   sa_intervals_rev.clear();
@@ -777,7 +823,7 @@ TEST(BackwardSearchTest, One_match_many_sites){
   sites.clear();
   */
   p.clear();
-}
+	     }
 
 
 
