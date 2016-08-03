@@ -80,6 +80,7 @@ TEST(BackwardSearchTest, NoVariantsSlowTest2){
     sa_intervals_rev.clear();
     sites.clear();
 
+    /*
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
@@ -92,6 +93,7 @@ TEST(BackwardSearchTest, NoVariantsSlowTest2){
     sa_intervals.clear();
     sa_intervals_rev.clear();
     sites.clear();
+    */
     p.clear();
   }
 }
@@ -156,6 +158,7 @@ TEST(BackwardSearchTest, NoVariantsABCABCTest3){
     sa_intervals_rev.clear();
     sites.clear();
 
+    /*
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
@@ -168,6 +171,7 @@ TEST(BackwardSearchTest, NoVariantsABCABCTest3){
     sa_intervals.clear();
     sa_intervals_rev.clear();
     sites.clear();
+    */
     p.clear();
   }
 }
@@ -232,6 +236,7 @@ TEST(BackwardSearchTest, NoVariantsACTG4){
     sa_intervals_rev.clear();
     sites.clear();
 
+    /*
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
@@ -244,6 +249,7 @@ TEST(BackwardSearchTest, NoVariantsACTG4){
     sa_intervals.clear();
     sa_intervals_rev.clear();
     sites.clear();
+    */ 
     p.clear();
   }
 }
@@ -308,6 +314,7 @@ TEST(BackwardSearchTest, NoVariantsSlow_MSP34_200bp_Test5){
     sa_intervals_rev.clear();
     sites.clear();
 
+    /*
     csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_rev=csa_constr(test_file2, "int_alphabet_file","memory_log_file","csa_file",false, false);
     first_del=false;
     res_it=bidir_search_fwd(csa_rev,0,csa_rev.size(),0,csa_rev.size(),p.begin(),p.end(), sa_intervals,sa_intervals_rev,sites,mask_a,5,first_del, precalc);  
@@ -320,6 +327,7 @@ TEST(BackwardSearchTest, NoVariantsSlow_MSP34_200bp_Test5){
     sa_intervals.clear();
     sa_intervals_rev.clear();
     sites.clear();
+    */
     p.clear();
   }
 }
