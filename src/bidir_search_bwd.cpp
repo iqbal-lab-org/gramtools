@@ -43,7 +43,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	while (pat_it>pat_begin && !sa_intervals.empty()) {
 		--pat_it;
 		c=*pat_it;
-		// k++;
+		k++;
 		//if (sa_intervals.size()==0) cout<<k<<" "<<unsigned(c)<<endl;
 
 		assert(sa_intervals.size()==sa_intervals_rev.size());
@@ -71,7 +71,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 
 
 
-					if ((num==prev_num) || (num%2==0 && num==prev_num+1)) ignore=true;
+					if ((num==prev_num) || (num%2==0 && num==prev_num+1 && last==false)) ignore=true;
 					else ignore=false;
 
 					left_new=(*it).first;
