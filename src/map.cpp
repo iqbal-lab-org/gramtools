@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
 	  
 	  //add N's
 	  int flag=0;
-	  //cout<<q->seq<<endl;
+	  cout<<q->seq<<endl;
 	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
 	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
 	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
 			      auto site=site_pair.first;
 			      auto allele=site_pair.second;
 			      if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
-			      if (allele.empty()) covgs[(site-5)/2][mask_a[csa[ind]]-1]++;
+			      if (allele.empty() && mask_a[csa[ind]]>0) covgs[(site-5)/2][mask_a[csa[ind]]-1]++; //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker
 			      else 
 				for (auto al:allele)
 				  covgs[(site-5)/2][al-1]++;
