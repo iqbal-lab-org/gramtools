@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 	//			break;
 
 			case 'p': case 'c': case 'i': case 's': case 'a': case 'b': case 'v': case 'r': case 'l': case 'k': case 'f':
-				int i;
+				uint16_t i;
 				for (i=0;i<pars.size();i++)
 				{
 					if (long_options[i].val==c)
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
 	timestamp();
 	cout<<"Start CSA construction"<<endl;
-	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(_prg,_binoutput,_log,_csa,true);
+	csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa=csa_constr(_prg,_binoutput,_log,_csa,true, true);
 	timestamp();
 	cout<<"End CSA construction"<<endl;
 
@@ -156,6 +156,7 @@ int main(int argc, char* argv[]) {
 	get_precalc_kmers(csa,kmer_idx,kmer_idx_rev,kmer_sites,kmers_in_ref,mask_a,_kfile,maxx,k);
 
 	//precalc_kmer_matches(csa,k,kmer_idx,kmer_idx_rev,kmer_sites,mask_a,maxx,kmers_in_ref,_kfile);
+	cout << "About to start mapping:"<<endl;
 	timestamp();
 
 	std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
@@ -164,8 +165,9 @@ int main(int argc, char* argv[]) {
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator res_it;
 
-	std::vector<uint8_t> p;
-	p.reserve(100);	
+
+	std::vector<uint8_t> p;//p is the read in integer alphabet
+	p.reserve(200);	
 	for (auto q: inputReads)
 	{
 	  
@@ -174,15 +176,18 @@ int main(int argc, char* argv[]) {
 	  
 	  //add N's
 	  int flag=0;
-	  cout<<q->seq<<endl;
-	  for (int i=0,seqlen=strlen(q->seq);i<seqlen;i++) {
+
+	  //cout<<q->seq<<endl;
+	  int seqlen=strlen(q->seq);
+	  for (int i=0;i<seqlen;i++) {
+	
 	    if (q->seq[i]=='A' or q->seq[i]=='a') p.push_back(1);
 	    else if (q->seq[i]=='C' or q->seq[i]=='c') p.push_back(2);
 	    else if (q->seq[i]=='G' or q->seq[i]=='g') p.push_back(3);
 	    else if (q->seq[i]=='T' or q->seq[i]=='t') p.push_back(4);
 	    else {flag=1;}; 
-			  
 	  }
+
 	  if (flag==1)
 	    {
 	      continue;
@@ -196,20 +201,31 @@ int main(int argc, char* argv[]) {
 		  it=sa_intervals.begin();
 		  it_rev=sa_intervals_rev.begin();
 
-		  if (kmers_in_ref.find(kmer)!=kmers_in_ref.end()) first_del=false;
+		  //kmers in ref means kmers that do not cross any numbers 
+		  //These are either in non-variable region, or are entirely within alleles
+		  if (kmers_in_ref.find(kmer)!=kmers_in_ref.end())
+		    {
+		      //then the kmer does overlap a number, by definition.
+		      first_del=false;//no need to ignore first SA interval (if it was in the nonvar bit would ignore)
+		    }
 		  else first_del=true;
 
-		  res_it=bidir_search_bwd(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, p.begin(),p.begin()+p.size()-k, sa_intervals, sa_intervals_rev, sites, mask_a, maxx, first_del);
+		  bool precalc_done=true;
+		  res_it = bidir_search_bwd(csa, (*it).first, (*it).second, 
+					    (*it_rev).first, (*it_rev).second, 
+					    p.begin(),p.begin()+p.size()-k, 
+					    sa_intervals, sa_intervals_rev, 
+					    sites, mask_a, maxx, first_del, precalc_done);
 
 		  no_occ=0;
-		  //for (it=sa_intervals.begin();it!=sa_intervals.end();++it)
-		  //  no_occ+=(*it).second-(*it).first;
+
 		  if (sa_intervals.size()==1)
+		    //proxy for mapping is "unique horizontally"
 		    {
 		      it=sa_intervals.begin();
 		      no_occ=(*it).second-(*it).first; 
 		      no_mapped++;
-		      if (first_del==false) sites.clear();
+		      if (first_del==false) sites.clear();//becasue sites has one element with an empty vector
 		      for (auto ind=(*it).first;ind<(*it).second;ind++) {
 			if (sites.empty()) {
 			  if (mask_a[csa[ind]]!=0) {
@@ -217,8 +233,13 @@ int main(int argc, char* argv[]) {
 			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
 			  }
 			}
-			else {
-			  if (no_occ>1) assert(sites.front().back().second.size()==0);
+			else {//first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
+
+			  //if no_occ>1, two matches both starting at the end marker. If one crossed the start marker,
+			  //sorina would have split into two SAs and here we are in one.
+			  //so neither crosses the start marker, both start at the end. Since she only updates sites
+			  //when you cross the left marker, it should be true that sites.front().back().second.size==0
+			  if (!(sites.empty())&& (no_occ>1)) assert(sites.front().back().second.size()==0);//vertically non-unique
 			  for (auto it_s : sites) {
 			    for (auto site_pair : it_s) {
 			      auto site=site_pair.first;
@@ -233,24 +254,33 @@ int main(int argc, char* argv[]) {
 			}
 		      }
 		    }
-		  else no_occ=0;
+		  else 
+		    {
+		      no_occ=0;
+		    }
 		  sa_intervals.clear();
 		  sa_intervals_rev.clear();
 		  sites.clear();
 	  }
-	  else no_occ=0;
-	  
+	  else
+	    {
+	      no_occ=0;
+	    }
 	  //cout<<no_occ<<endl;
 	  //clear p, sa_intervals etc
 	  
 	  no_reads++;
 	  p.clear();
 	}
-	
+
+
+	cout << "Finished mapping:"<<endl;
+	timestamp();
+
 	cout<<no_mapped<<endl;
 
-	for (int i=0;i<covgs.size();i++) {
-		for (int j=0;j<covgs[i].size();j++)
+	for (uint32_t i=0;i<covgs.size();i++) {
+		for (uint32_t j=0;j<covgs[i].size();j++)
 			out<<covgs[i][j]<<" ";
 		out<<endl;
 	}

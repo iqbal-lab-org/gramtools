@@ -1,0 +1,17 @@
+Let's assume a line from the .precalc file contains this:
+
+4 3 1 1 2 4 1 1 1 |1|2822259 2822282 2856211 2856212 2856211 2856212 |267393 267425 3413494 3413498 3413494 3413498 ||161 @161 1 @|161 @161 3 @|
+Fields are separated by '|' characters
+1st field is the  KMER: TGAACTAAA
+2nd field: whether the kmer is in kmers_in_ref or not
+3rd field: pairs of numbers extracted from kmer_idx[kmer]
+4th field: pairs of numbers extracted from  kmer_idx_rev
+Fields 5th onwards: every pair of numbers in 3rd/4th field is an interval,
+in this example we've got 3 intervals, that's why we've got 3 more fields
+after 4th field (5th 6th and 7th). So each of those fields is a vector of
+pairs (number,(vector of numbers)). Extracted from kmer_sites.
+
+Pairs are separated by '@'. So between @'s you will find numbers separated by spaces, where the
+first number is the firsts element of the pair and the rest of the numbers are
+the numbers inside the vector those 3 fields (5, 6 and 7) can be encoded like:
+[   [], [ pair(161,[]) , pair(161,[1]) ] , [pair(161,[]), pair(161,[3] ) ]    ]

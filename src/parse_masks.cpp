@@ -54,6 +54,6 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
 
   cout<<endl<<mask_s.size()<<" "<<mask_a.size()<<endl;
 
-  cout<<"Covgs dim"<<covgs.size()<<" "<<covgs.front().size()<<" "<<covgs.back().size()<<endl;
+  //  cout<<"Covgs dim"<<covgs.size()<<" "<<covgs.front().size()<<" "<<covgs.back().size()<<endl;
   return(no_sites+1); //no_sites is last odd number in mask_sites, but alphabet size is the even number corresponding to it
 }

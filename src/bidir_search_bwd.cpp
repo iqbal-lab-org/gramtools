@@ -9,16 +9,18 @@ using namespace sdsl;
 
 // should make csa template to have control from cmd line over SA sampling density
 std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-		uint64_t left, uint64_t right,
-		uint64_t left_rev, uint64_t right_rev,
-		std::vector<uint8_t>::iterator pat_begin, 
-		std::vector<uint8_t>::iterator pat_end,
-		std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
-		std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
-		std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
-		std::vector<int> &mask_a, uint64_t maxx, bool& first_del)
+						uint64_t left, uint64_t right,
+						uint64_t left_rev, uint64_t right_rev,
+						std::vector<uint8_t>::iterator pat_begin, 
+						std::vector<uint8_t>::iterator pat_end,
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
+						std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
+						std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
+						bool kmer_precalc_done
+						)
 {
-	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s,it_s_end;//you have it, it_s , it_rev - maybe nice to comment what they are / change their names to be more readable
+	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator pat_it=pat_end;
 	std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev,it_end,it_rev_end;
 	uint8_t c;
@@ -47,19 +49,19 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 		//if (sa_intervals.size()==0) cout<<k<<" "<<unsigned(c)<<endl;
 
 		assert(sa_intervals.size()==sa_intervals_rev.size());
-		assert(sa_intervals.size()==sites.size());//each interval has a corresponding vector of sites/alleles crossed; what about the first interval? (corresp to matches in the ref)
+
+		//each interval has a corresponding vector of sites/alleles crossed; 
+		//what about the first interval? (corresp to matches in the ref)
+		assert(sa_intervals.size()==sites.size());
 
 		it=sa_intervals.begin();
 		it_rev=sa_intervals_rev.begin();
 		it_s=sites.begin();
 
-		//it_end=sa_intervals.end(); // make these constant iterators
-		//it_rev_end=sa_intervals_rev.end();
-		//it_s_end=sites.end();
 		init_list_size=sa_intervals.size();
 		j=0;
 
-		if (pat_it!=pat_end-1) {
+		if ( (pat_it!=pat_end-1) or (kmer_precalc_done==true) ) {
 			while(j<init_list_size) {
 				//don't do this for first letter searched
 				std::vector<std::pair<uint64_t,uint64_t>> res=csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
@@ -151,18 +153,23 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 				++it_s;
 			}
 			else {
-				if (it==sa_intervals.begin()) first_del=true;
-				//might need to see first_del from top fcns to check if there are matches in the reference
-				it=sa_intervals.erase(it);
-				it_rev=sa_intervals_rev.erase(it_rev);
-				it_s=sites.erase(it_s);
+			  if (it==sa_intervals.begin()) 
+			    {
+			      //printf("First del true\n");
+			      first_del=true;
+			    }
+
+			  it=sa_intervals.erase(it);
+			  it_rev=sa_intervals_rev.erase(it_rev);
+			  it_s=sites.erase(it_s);
 			}
 		}
-	}
-
+	    }
+	
 	if (pat_it!=pat_begin) return(pat_it); // where it got stuck
 	else {
-		if (!sa_intervals.empty()) return(pat_end);
-		else return(pat_begin); //where it got stuck
+	  if (!sa_intervals.empty()) return(pat_end);
+	  else return(pat_begin); //where it got stuck
 	}
 }			     			     			          
+	
