@@ -1,0 +1,6 @@
+[submodule "sdsl-lite"]
+	path = sdsl-lite
+	url = https://github.com/sm0179/sdsl-lite.git
+[submodule "googletest"]
+	path = googletest
+	url = https://github.com/sm0179/googletest
