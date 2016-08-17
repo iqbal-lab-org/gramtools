@@ -15,12 +15,12 @@
 
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
-GTEST_DIR = /home/sm0179/gtest-1.7.0
+GTEST_DIR = ./googletest
 
 # Where to find user code.
-USER_DIR = .
-UTILS_DIR=../utils
-UTILS_INC=-I../utils -I /data2/apps/htslib -I /data2/apps
+USER_DIR = ./src
+UTILS_DIR=./utils
+UTILS_INC=-I ./utils -I /data2/apps/htslib -I /data2/apps
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -41,14 +41,14 @@ TESTS = slow_unittest_bidir_search_bwd_fwd unittest_bidir_search_bwd_fwd gramtoo
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
-SDSL_HEADERS= /home/sm0179/include/
+SDSL_HEADERS= ./include/
 #SDSL_HEADERS= /home/zam/bin/include/
-VBWT_HEADERS= ../include/
+VBWT_HEADERS= ./include/
 #SDSL_HEADERS= /home/zam/include/
 #VBWT_HEADERS= /home/zam/dev/git/VBWT/include/
 BOOST_HEADERS= /data2/apps/boost_1_60_0/
 
-LIBS=/home/sm0179/lib/ 
+LIBS=./lib/ 
 LIBS2=/data2/apps/htslib/
 
 
@@ -115,7 +115,7 @@ csa_construction.o: $(USER_DIR)/csa_construction.cpp $(VBWT_HEADERS)/bwt_search.
 map.o: $(USER_DIR)/map.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) -c $(USER_DIR)/map.cpp -lsdsl -ldivsufsort -ldivsufsort64
 
-gramtools: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o precalc_kmer_matches.o parse_masks.o csa_construction.o map.o precalc_gen.hpp
+gramtools: bidir_search.o skip.o get_location.o bidir_search_bwd.o bidir_search_fwd.o precalc_kmer_matches.o parse_masks.o csa_construction.o map.o ./src/precalc_gen.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -L $(LIBS) -L $(LIBS2) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lhts -lz
 
 
@@ -129,7 +129,7 @@ slow_unittest_bidir_search_bwd_fwd.o : $(USER_DIR)/test/slow_unittest_bidir_sear
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/slow_unittest_bidir_search_bwd_fwd.cpp
 
 unittest_bidir_search_bwd_fwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o unittest_bidir_search_bwd_fwd.o 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L$(GTEST_DIR) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
 
 slow_unittest_bidir_search_bwd_fwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o slow_unittest_bidir_search_bwd_fwd.o 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L$(GTEST_DIR) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
