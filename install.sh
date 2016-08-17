@@ -1,7 +1,8 @@
 #!/bin/bash
 
-git clone --recursive https://github.com/simongog/sdsl-lite.git
 cd sdsl-lite
-./install.sh 
+./install.sh ..
 
-git clone --recursive https://github.com/google/googletest.git
+cd ..
+g++ -isystem ./googletest/include -I./googletest -pthread -c ./googletest/src/gtest-all.cc
+ar -rv ./lib/libgtest.a gtest-all.o
