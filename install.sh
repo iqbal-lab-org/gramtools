@@ -6,3 +6,7 @@ cd sdsl-lite
 cd ..
 g++ -isystem ./googletest/include -I./googletest -pthread -c ./googletest/src/gtest-all.cc
 ar -rv ./lib/libgtest.a gtest-all.o
+
+cd htslib
+make
+make prefix=.. install
