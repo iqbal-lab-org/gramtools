@@ -32,8 +32,23 @@ when the program finishes the shutdown process causes a crash. We're looking int
 
 Sorina, Carlos, Gil, Zam
 
-# Compiling
-You need C++11. Go into the src/ directory and type `make`.
+# Build
+You need C++11 and the boost library installed. Download with:
+```
+git clone --recursive https://github.com/iqbal-lab/gramtools
+```
+
+Run installation script:
+
+```
+bash install.sh
+```
+
+Add ~/gramtools/lib to your LD_LIBRARY_PATH. Gramtools needs the boost/functional/hash.hpp header, so you will need to modify the BOOST_HEADERS variable in the Makefile with the path to your boost installation, something like path/to/boost_1_xx_x. Then you can compile:
+
+```
+make
+```
 
 # Usage
 
