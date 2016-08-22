@@ -23,7 +23,7 @@ vector<string> generate_all_substrings(string q);
 TEST(BackwardSearchTest, NoVariants1){
 
   //PRG
-  test_file2="../test_cases/one_byte.txt";
+  test_file2="./test_cases/one_byte.txt";
 
   //generate all substrings of PRG, use them all as queries
   string temp;
@@ -109,9 +109,9 @@ TEST(BackwardSearchTest, OneSNP){
 
 
   //PRG = catttacaca5g6t5aactagagagca
-  test_file2="../test_cases/one_snp.txt";
+  test_file2="./test_cases/one_snp.txt";
   query="ttacacagaactagagag";//aligns across SNP allele 1 (and both flanks)
-  mask_file="../test_cases/one_snp_mask_a.txt";
+  mask_file="./test_cases/one_snp_mask_a.txt";
   ifstream g(mask_file);
   bool precalc=false;
 
@@ -172,9 +172,9 @@ TEST(BackwardSearchTest, OneSNP){
 TEST(BackwardSearchTest, TwoSNPs){
 
   //prg = catttacaca5g6t5aactag7a8g7agcagggt
-  test_file2="../test_cases/two_snps.txt";
+  test_file2="./test_cases/two_snps.txt";
   query="ttacacagaactagaagcag";//aligns across both SNPs, both allele 1
-  mask_file="../test_cases/two_snps_mask_a.txt";
+  mask_file="./test_cases/two_snps_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -246,9 +246,9 @@ TEST(BackwardSearchTest, TwoSNPs){
 TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
 
   //prg=catttacaca5g6t5aactagagagcaacagaactctct
-  test_file2="../test_cases/two_matches_var_nonvar.txt";
+  test_file2="./test_cases/two_matches_var_nonvar.txt";
   query="acagaac";//one match crosses allele 1, and the other in nonvar
-  mask_file="../test_cases/two_matches_var_nonvar_mask_a.txt";
+  mask_file="./test_cases/two_matches_var_nonvar_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -318,9 +318,9 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region){
 TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region){
 
   //prg=catttacaca5g6t5aactagagagcaacataactctct
-  test_file2="../test_cases/two_matches_var_other_allele_nonvar.txt";
+  test_file2="./test_cases/two_matches_var_other_allele_nonvar.txt";
   query="acataac";//one match crosses allele 2, and the other in nonvar
-  mask_file="../test_cases/two_matches_var_nonvar_mask_a.txt";
+  mask_file="./test_cases/two_matches_var_nonvar_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -391,11 +391,11 @@ TEST(BackwardSearchTest, Two_long_sites){
 
 
   //prg = acgacacat5gatag6tagga6gctcg6gctct5gctcgatgactagatagatag7cga8cgc8tga8tgc7ggcaacatctacga
-  test_file2="../test_cases/two_long_sites.txt";
+  test_file2="./test_cases/two_long_sites.txt";
 
   //read aligns from middle of  allele 3 of site 5 and allele 1 of site 7
   query="gctcggctcgatgactagatagatagcgaggcaac";
-  mask_file="../test_cases/two_long_sites_mask_a.txt";
+  mask_file="./test_cases/two_long_sites_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -467,11 +467,11 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 
 
   //prg=gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7tcagctgctccacacagaga
-  test_file2="../test_cases/match_within_long_site.txt";
+  test_file2="./test_cases/match_within_long_site.txt";
 
   //read aligns in allele 2 of site 5, and in non-var region
   query="ctgctccacacagaga";
-  mask_file="../test_cases/match_within_long_site_mask_a.txt";
+  mask_file="./test_cases/match_within_long_site_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -546,10 +546,10 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside){
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 
   //prg = gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7ccagctgctccacacagaga
-  test_file2="../test_cases/repeated_snp_on_both_edges.txt";
+  test_file2="./test_cases/repeated_snp_on_both_edges.txt";
   //read aligns across sites 5 and 7, allele 1 in both cases
   query="tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
-  mask_file="../test_cases/match_within_long_site_mask_a.txt";
+  mask_file="./test_cases/match_within_long_site_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -627,10 +627,10 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site){
 TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites){
 
   //prg=acgacacat5gatag6tagga6gctcg6gctct5gctcgtgataatgactagatagatag7cga8cgc8tga8tgc7taggcaacatctacga
-  test_file2="../test_cases/multiple_matches_multiple_sites.txt";
+  test_file2="./test_cases/multiple_matches_multiple_sites.txt";
   //read aligns over allele 1 of site 5, the nonvariableregion and allele 3 of site 7
   query="tgata";
-  mask_file="../test_cases/multiple_matches_multiple_sites_mask_a.txt";
+  mask_file="./test_cases/multiple_matches_multiple_sites_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
@@ -722,10 +722,10 @@ TEST(BackwardSearchTest, One_match_many_sites){
 
 
   //prg=agggccta5c6t5acatgatc7a8g7tgatca9c10a9cata11g12t11aggtcgct13c14g13ggtc15atc16cat15ttcg
-  test_file2="../test_cases/One_match_many_sites.txt";
+  test_file2="./test_cases/One_match_many_sites.txt";
   //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
   query="cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
-  mask_file="../test_cases/One_match_many_sites_mask_a.txt";
+  mask_file="./test_cases/One_match_many_sites_mask_a.txt";
   ifstream g(mask_file);
 
   int a;
