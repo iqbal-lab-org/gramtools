@@ -25,7 +25,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
   if (num%2==1) {
     uint64_t num_begin = csa.C[csa.char2comp[num]];
 
-    site_end=std::max(csa[num_begin],csa[num_begin+1]); 
+    site_end=std::max(csa[num_begin],csa[num_begin+1]);
     site_start=std::min(csa[num_begin],csa[num_begin+1]);
 
     if (csa[num_begin]>csa[num_begin+1]) {
@@ -64,7 +64,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
       //allele.push_back(1);
 
       left=num_begin;
-      right=csa.C[csa.char2comp[num+2]];      
+      right=csa.C[csa.char2comp[num+2]];
 
       left_rev=left;
       right_rev=right;
@@ -91,7 +91,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
     if (csa[num_begin]<csa[num_begin+1]) {
       left=num_begin;
       right=num_begin+1;
-    
+
       //left_rev=site_end;
       //right_rev=site_end+1;
       left_rev=num_begin+1;
@@ -100,7 +100,7 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
     else {
       left=num_begin+1;
       right=num_begin+2;
-      
+
       //left_rev=site_end;
       //right_rev=site_end+1;
       left_rev=num_begin;

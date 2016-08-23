@@ -34,6 +34,7 @@ Sorina, Carlos, Gil, Zam
 
 # Build
 You need C++11 and the boost library installed. Download with:
+
 ```
 git clone --recursive https://github.com/iqbal-lab/gramtools
 ```
@@ -41,10 +42,18 @@ git clone --recursive https://github.com/iqbal-lab/gramtools
 Run installation script:
 
 ```
-bash install.sh
+./install.sh
 ```
 
-Add ~/gramtools/lib to your LD_LIBRARY_PATH. Gramtools needs the boost/functional/hash.hpp header, so you will need to modify the BOOST_HEADERS variable in the Makefile with the path to your boost installation, something like path/to/boost_1_xx_x. Then you can compile:
+Add the ``lib`` directory to your LD_LIBRARY_PATH using, e.g.
+
+```
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib
+```
+
+Gramtools needs the boost/functional/hash.hpp header, so you may need to modify
+the BOOST_HEADERS variable in the Makefile with the path to your boost
+installation, something like path/to/boost_1_xx_x. Then you can compile:
 
 ```
 make
