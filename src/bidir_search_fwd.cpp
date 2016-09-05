@@ -82,7 +82,7 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
 			}
 		      }
 		      
-		      last=skip(csa_rev,left_new,right_new,left_rev_new,right_rev_new,num);
+		      last=skip(csa_rev,left_new,right_new,left_rev_new,right_rev_new,num,maxx);
 
 		      // how to alternate between forward and backward?
 		      if (it==sa_intervals.begin() && first_del==false && !ignore) {

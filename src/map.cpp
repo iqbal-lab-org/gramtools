@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 	uint64_t no_mapped=0;
 	int inc=0;
 	int no_occ=0;
-	bool first_del=false;
+	bool invalid, first_del=false;
 
 	int k=atoi(_ksize.c_str()); //verify input
 	get_precalc_kmers(csa,kmer_idx,kmer_idx_rev,kmer_sites,kmers_in_ref,mask_a,_kfile,maxx,k);
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 	  //add N's
 	  int flag=0;
 
-	  //cout<<q->seq<<endl;
+	  cout<<q->seq<<endl;
 	  int seqlen=strlen(q->seq);
 	  for (int i=0;i<seqlen;i++) {
 	
@@ -240,15 +240,25 @@ int main(int argc, char* argv[]) {
 			  //so neither crosses the start marker, both start at the end. Since she only updates sites
 			  //when you cross the left marker, it should be true that sites.front().back().second.size==0
 			  if (!(sites.empty())&& (no_occ>1)) assert(sites.front().back().second.size()==0);//vertically non-unique
+			  invalid=false;
 			  for (auto it_s : sites) {
 			    for (auto site_pair : it_s) {
 			      auto site=site_pair.first;
 			      auto allele=site_pair.second;
-			      if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
-			      if (allele.empty() && mask_a[csa[ind]]>0) covgs[(site-5)/2][mask_a[csa[ind]]-1]++; //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker
-			      else 
-				for (auto al:allele)
-				  covgs[(site-5)/2][al-1]++;
+			      if (it_s!=sites.back() && it_s!=sites.front() && allele.empty()) invalid=true;
+			    }
+			  }
+			  if(!invalid) {
+			    for (auto it_s : sites) {
+			      for (auto site_pair : it_s) {
+				auto site=site_pair.first;
+				auto allele=site_pair.second;
+				if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
+				if ((allele.empty()) && (mask_a[csa[ind]]>0)) covgs[(site-5)/2][mask_a[csa[ind]]-1]++; //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker
+				else 
+				  for (auto al:allele)
+				    covgs[(site-5)/2][al-1]++;
+			      }
 			    }
 			  }
 			}

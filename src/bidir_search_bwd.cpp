@@ -29,6 +29,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 	std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
 	std::vector<int> allele_empty;
 	uint64_t init_list_size,j;
+	std::vector<std::pair<uint32_t, std::vector<int>>> vec_item;
 
 	assert(left<right);
 	assert(right<=csa.size());
@@ -67,13 +68,18 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 				std::vector<std::pair<uint64_t,uint64_t>> res=csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
 				//might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
 				uint32_t prev_num=0;
+				uint32_t last_begin=0;
+                                bool sec_to_last=false;
 				for (auto z=res.begin(),zend=res.end();z!=zend;++z) { 
 					uint64_t i=(*z).first;
 					uint32_t num=(*z).second;
 
-
-
-					if ((num==prev_num) || (num%2==0 && num==prev_num+1 && last==false)) ignore=true;
+					if ((num%2==1) && (num!=prev_num)) {
+					  sec_to_last=false;
+					  last_begin=0;
+					}
+				       
+					if (((num==prev_num) && (num%2==0)) || ((num%2==0) && (num==prev_num+1) && (num==last_begin+1))) ignore=true;
 					else ignore=false;
 
 					left_new=(*it).first;
@@ -84,19 +90,26 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 					left_rev_new=(*it_rev).first;
 					right_rev_new=(*it_rev).second;
 
-					if (num!=prev_num && num%2==1) {
+					if (num%2==1) {
+					  /*
 						if (z+1!=zend && num==(*(z+1)).second) {
 							left_new=csa.C[csa.char2comp[num]]; //need to modify left_rev_new as well?
 							right_new=left_new+2;
 						}
 						else {
+					  */
 							left_new=i;
 							right_new=i+1;
-						}
+							//	}
 					}
 
-					last=skip(csa,left_new,right_new,left_rev_new,right_rev_new,num);
-
+					last=skip(csa,left_new,right_new,left_rev_new,right_rev_new,num,maxx);
+					
+					if ((!last) && (num%2==1)) {
+					  last_begin=num;
+					  if ((z+1!=zend) && (num==(*(z+1)).second)) sec_to_last=true;
+					}
+ 
 					// how to alternate between forward and backward?
 					if (it==sa_intervals.begin() && first_del==false && !ignore) {
 						sa_intervals.push_back(std::make_pair(left_new,right_new));
@@ -110,7 +123,11 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 					//can delete them here or in top a fcn when calculating coverages
 					else {
 						if (ignore) {
-						  if (num%2==0) sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
+						  if ((num==last_begin+1) && (sec_to_last)) {
+						    vec_item=*(std::prev(sites.end(),2));
+						    vec_item.back()=get_location(csa,i,num,last,vec_item.back().second,mask_a);
+						  }
+						  else sites.back().back()=get_location(csa,i,num,last,sites.back().back().second,mask_a);
 							//else ?, assert sites.first=num
 						}
 						else {
@@ -120,7 +137,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 							  //assert((*it_s).back().second.empty());
 							  (*it_s).back()=get_location(csa,i,num,last,(*it_s).back().second,mask_a);
 							}
-							else
+							else 
 							  (*it_s).push_back(get_location(csa,i,num,last,allele_empty,mask_a));
 							allele_empty.clear();
 							allele_empty.reserve(3500);
