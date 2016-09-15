@@ -28,7 +28,7 @@ OBJECTS=bidir_search.o skip.o get_location.o bidir_search_bwd.o \
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
-SDSL_HEADERS= ./include/
+#SDSL_HEADERS= ./include/
 VBWT_HEADERS= ./include/
 # If Boost is not installed system wide, specify the prefix here.
 BOOST_HEADERS= /data2/apps/boost_1_60_0/
@@ -43,24 +43,24 @@ clean :
 	rm -f $(TESTS) gramtools *.o
 
 %.o : $(USER_DIR)/%.cpp $(VBWT_HEADERS)/bwt_search.h 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) \
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(BOOST_HEADERS) -I $(VBWT_HEADERS) \
 		-L $(LIBS) -c $< -lsdsl -ldivsufsort -ldivsufsort64 -o $@
 
 gramtools: $(OBJECTS) ./src/precalc_gen.hpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) \
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(BOOST_HEADERS) -I $(VBWT_HEADERS) \
 		-I $(BOOST_HEADERS) -L $(LIBS) $^ -o $@ \
 		-lsdsl -ldivsufsort -ldivsufsort64 -lhts -lz
 
 # TODO refactor these rules to make them more comprehensible.
 
 unittest_bidir_search_bwd_fwd.o : $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/unittest_bidir_search_bwd_fwd.cpp
 
 slow_unittest_bidir_search_bwd_fwd.o : $(USER_DIR)/test/slow_unittest_bidir_search_bwd_fwd.cpp $(VBWT_HEADERS)/bwt_search.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/slow_unittest_bidir_search_bwd_fwd.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(VBWT_HEADERS) -I $(BOOST_HEADERS) -c $(USER_DIR)/test/slow_unittest_bidir_search_bwd_fwd.cpp
 
 unittest_bidir_search_bwd_fwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o unittest_bidir_search_bwd_fwd.o 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(VBWT_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
 
 slow_unittest_bidir_search_bwd_fwd : bidir_search.o skip.o get_location.o csa_construction.o bidir_search_bwd.o bidir_search_fwd.o slow_unittest_bidir_search_bwd_fwd.o 
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(SDSL_HEADERS) -I $(VBWT_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -I $(VBWT_HEADERS) -L $(LIBS) $^ -o $@ -lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
