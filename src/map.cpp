@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 	std::vector<uint64_t> mask_s;
 	std::vector<int> mask_a;
 
-	std::vector<std::vector<int> > covgs;
+	std::vector<std::vector<float> > covgs;
 	std::string q;
 
 	SeqRead inputReads(_input.c_str()); 
@@ -163,8 +163,9 @@ int main(int argc, char* argv[]) {
 	std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
+	std::unordered_set<int> repeats;
 	std::vector<uint8_t>::iterator res_it;
-
+	int in_sites;
 
 	std::vector<uint8_t> p;//p is the read in integer alphabet
 	p.reserve(200);	
@@ -177,7 +178,7 @@ int main(int argc, char* argv[]) {
 	  //add N's
 	  int flag=0;
 
-	  cout<<q->seq<<endl;
+	  //cout<<q->seq<<endl;
 	  int seqlen=strlen(q->seq);
 	  for (int i=0;i<seqlen;i++) {
 	
@@ -225,11 +226,22 @@ int main(int argc, char* argv[]) {
 		      it=sa_intervals.begin();
 		      no_occ=(*it).second-(*it).first; 
 		      no_mapped++;
-		      if (first_del==false) sites.clear();//becasue sites has one element with an empty vector
+		      if (first_del==false) {
+			sites.clear();//becasue sites has one element with an empty vector
+			repeats.clear();
+			in_sites=0;
+			for (auto ind=(*it).first;ind<(*it).second;ind++) {
+			  if (mask_a[csa[ind]]!=0) {
+			    in_sites++;
+			    if (repeats.count(mask_s[csa[ind]])==0) repeats.insert(mask_s[csa[ind]]);
+			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
+			  }
+			}
+		      }
 		      for (auto ind=(*it).first;ind<(*it).second;ind++) {
 			if (sites.empty()) {
 			  if (mask_a[csa[ind]]!=0) {
-			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]++;
+			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]=covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]+1/(no_occ-in_sites+repeats.size());
 			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
 			  }
 			}
