@@ -13,6 +13,7 @@ using namespace sdsl;
 using namespace std;
 
 //make SA sampling density and ISA sampling density customizable
+//make void fcn and pass csa by reference? return ii?
 
 csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> csa_constr(std::string fname, 
 								   std::string int_al_fname, 

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <cassert>
 #include <iostream>
 
 using namespace std;
@@ -51,7 +52,9 @@ uint64_t parse_masks(std::vector<uint64_t>& mask_s, std::vector<int>& mask_a, st
     mask_s.push_back(0);
     mask_a.push_back(0);
     }*/
-
+  
+  assert(mask_s.size()==mask_a.size());
+  //assert(mask_s.size()==prg_int.size())?
   cout<<endl<<mask_s.size()<<" "<<mask_a.size()<<endl;
 
   //  cout<<"Covgs dim"<<covgs.size()<<" "<<covgs.front().size()<<" "<<covgs.back().size()<<endl;
