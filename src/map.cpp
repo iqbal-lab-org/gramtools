@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 			if (sites.empty()) {
 			  if (mask_a[csa[ind]]!=0) {
 			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]=covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]+1/(no_occ-in_sites+repeats.size());
-			    assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
+                            assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
 			  }
 			}
 			else {//first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
@@ -251,13 +251,13 @@ int main(int argc, char* argv[]) {
 			  //sorina would have split into two SAs and here we are in one.
 			  //so neither crosses the start marker, both start at the end. Since she only updates sites
 			  //when you cross the left marker, it should be true that sites.front().back().second.size==0
-			  if (!(sites.empty())&& (no_occ>1)) assert(sites.front().back().second.size()==0);//vertically non-unique
+			  if (!(sites.empty())&& (no_occ>1)) assert(sites.front().back().second.size()==0);//vertically non-unique   \\\
 			  invalid=false;
 			  for (auto it_s : sites) {
 			    for (auto site_pair : it_s) {
 			      auto site=site_pair.first;
 			      auto allele=site_pair.second;
-			      if (it_s!=sites.back() && it_s!=sites.front() && allele.empty()) invalid=true;
+			      if (site_pair!=it_s.back() && site_pair!=it_s.front() && allele.empty()) invalid=true;
 			    }
 			  }
 			  if(!invalid) {
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
 			      for (auto site_pair : it_s) {
 				auto site=site_pair.first;
 				auto allele=site_pair.second;
-				if (it_s!=sites.back() && it_s!=sites.front()) assert(allele.size()==1);
+				if (site_pair!=it_s.back() && site_pair!=it_s.front()) assert(allele.size()==1);
 				if ((allele.empty()) && (mask_a[csa[ind]]>0)) covgs[(site-5)/2][mask_a[csa[ind]]-1]++; //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker
 				else 
 				  for (auto al:allele)
