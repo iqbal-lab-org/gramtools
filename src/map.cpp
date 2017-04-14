@@ -18,19 +18,20 @@ void timestamp() {
 }
 
 
-const std::string usage_statment = "\ngramtools usage:\n"
-	"All paramaters must be specified.\n\n"
-	"--prg    -p   input file containing linear prg\n"
-	"--csa    -c   output file where CSA is stored\n"
-	"--input  -i   input FASTA/FASTQ file to be mapped\n"
-	"--ps     -s   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which site\n"
-	"--pa     -a   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which allele\n"
-	"--co     -v   name of output file where coverages on each allele are printed\n"
-	"--ro     -r   name of output file where reads that have been processed are printed\n"
-	"--po     -b   output filename of binary file containing the prg in integer alphabet\n"
-	"--log    -l   Output memory log file for CSA\n"
-	"--ksize  -k   size of precalculated kmers\n"
-	"--kfile  -f   input  file listing all kmers in PRG\n";
+const std::string usage_statment =
+    "\ngramtools usage:\n"
+    "All paramaters must be specified.\n\n"
+    "--prg    -p   input file containing linear prg\n"
+    "--csa    -c   output file where CSA is stored\n"
+    "--input  -i   input FASTA/FASTQ file to be mapped\n"
+    "--ps     -s   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which site\n"
+    "--pa     -a   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which allele\n"
+    "--co     -v   name of output file where coverages on each allele are printed\n"
+    "--ro     -r   name of output file where reads that have been processed are printed\n"
+    "--po     -b   output filename of binary file containing the prg in integer alphabet\n"
+    "--log    -l   Output memory log file for CSA\n"
+    "--ksize  -k   size of precalculated kmers\n"
+    "--kfile  -f   input  file listing all kmers in PRG\n";
 
 /**
 	argv[1] -  file containing linear prg
@@ -45,75 +46,61 @@ const std::string usage_statment = "\ngramtools usage:\n"
 	argv[10] - size of precalculated kmers
 	argv[11] - kmer file
 */
-
-
 int main(int argc, char* argv[])
 {
-	std::string _prg = "", _csa = "", _input = "", _sitemask = "", _allmask = "", _covoutput = "", _readoutput = "", _binoutput = "", _log = "", _ksize = "", _kfile = "";
-	std::vector<std::string *> pars = {&_prg, &_csa, &_input, &_sitemask, &_allmask, &_covoutput, &_readoutput, &_binoutput, &_log, &_ksize, &_kfile};
-	int c;
+	std::string _prg = "", _csa = "", _input = "", _sitemask = "", _allmask = "",
+	            _covoutput = "", _readoutput = "", _binoutput = "", _log = "",
+	            _ksize = "", _kfile = "";
+	std::vector<std::string *> pars = {
+		&_prg, &_csa, &_input, &_sitemask, &_allmask,
+		&_covoutput, &_readoutput, &_binoutput, &_log,
+		&_ksize, &_kfile
+	};
 
 	while (1)
 	{
 		static struct option long_options[] =
 		{
-			/* These options set a flag. */
-			//	{"verbose", no_argument,       &verbose_flag, 1},
-			//	{"brief",   no_argument,       &verbose_flag, 0},
-			/* These options don’t set a flag.
-			 *              We distinguish them by their indices. */
-			{"prg",     required_argument, 0, 'p'},
-			{"csa",     required_argument, 0, 'c'},
-			{"input",   required_argument, 0, 'i'},
-			{"ps"  ,    required_argument, 0, 's'},
-			{"pa"  ,    required_argument, 0, 'a'},
-			{"co"  ,    required_argument, 0, 'v'},
-			{"ro"  ,    required_argument, 0, 'r'},
-			{"po"  ,    required_argument, 0, 'b'},
-			{"log"  ,    required_argument, 0, 'l'},
-			{"ksize"  ,    required_argument, 0, 'k'},
-			{"kfile"  ,    required_argument, 0, 'f'},
+			{"prg",   required_argument, 0, 'p'},
+			{"csa",   required_argument, 0, 'c'},
+			{"input", required_argument, 0, 'i'},
+			{"ps",    required_argument, 0, 's'},
+			{"pa",    required_argument, 0, 'a'},
+			{"co",    required_argument, 0, 'v'},
+			{"ro",    required_argument, 0, 'r'},
+			{"po",    required_argument, 0, 'b'},
+			{"log",   required_argument, 0, 'l'},
+			{"ksize", required_argument, 0, 'k'},
+			{"kfile", required_argument, 0, 'f'},
 			{0, 0, 0, 0}
 		};
 
-		/* getopt_long stores the option index here. */
+		// getopt_long stores the option index here.
 		int option_index = 0;
-		c = getopt_long (argc, argv, "p:c:i:s:a:b:v:r:l:k:f:", long_options, &option_index);
-
-		/* Detect the end of the options. */
+		int c = getopt_long(argc, argv, "p:c:i:s:a:b:v:r:l:k:f:", long_options, &option_index);
+		// Detect the end of the options.
 		if (c == -1)
 			break;
 
 		switch (c)
 		{
-			//		case 0:
-			//			/* If this option set a flag, do nothing else now. */
-			//			if (long_options[option_index].flag != 0)
-			//				break;
-			//			printf ("option %s", long_options[option_index].name);
-			//			if (optarg)
-			//				printf (" with arg %s", optarg);
-			//			printf ("\n");
-			//			break;
+		case 'p': case 'c': case 'i': case 's': case 'a': case 'b': case 'v': case 'r': case 'l': case 'k': case 'f':
+			for (int i = 0; i < pars.size(); i++)
+			{
+				if (long_options[i].val == c)
+					*pars[i] = optarg;
+			}
+			break;
 
-			case 'p': case 'c': case 'i': case 's': case 'a': case 'b': case 'v': case 'r': case 'l': case 'k': case 'f':
-				uint16_t i;
-				for (i = 0; i < pars.size(); i++)
-				{
-					if (long_options[i].val == c)
-						*pars[i] = optarg;
-				}
-				break;
+		case '?':
+			// Error message already printed by getopt_long.
+			std::cout << "Error parsing arguments\n" << usage_statment;
+			break;
 
-			case '?':
-				/* getopt_long already printed an error message. */
-				std::cout << "Error parsing arguments\n" << usage_statment;
-				break;
-
-			default:
-				std::cout << "Error parsing arguments\n" << usage_statment;
-				abort();
-				break;
+		default:
+			std::cout << "Error parsing arguments\n" << usage_statment;
+			abort();
+			break;
 		}
 	}
 
@@ -310,5 +297,5 @@ int main(int argc, char* argv[])
 
 	out.close();
 	out2.close();
-	return (0);
+	return 0;
 }
