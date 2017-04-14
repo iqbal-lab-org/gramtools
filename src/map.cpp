@@ -35,6 +35,7 @@ const std::string usage_statment =
     "--ksize  -k   size of precalculated kmers\n"
     "--kfile  -f   input  file listing all kmers in PRG\n";
 
+
 /**
 	argv[1] -  file containing linear prg
 	argv[2] -  file where CSA is stored
@@ -117,9 +118,7 @@ int main(int argc, char* argv[])
 
 	std::vector<uint64_t> mask_s;
 	std::vector<int> mask_a;
-
 	std::vector<std::vector<int> > covgs;
-	std::string q;
 
 	SeqRead inputReads(_input.c_str());
 	std::ofstream out(_covoutput);
