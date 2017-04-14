@@ -1,5 +1,3 @@
-#include "sdsl/suffix_arrays.hpp"
-#include "sdsl/wavelet_trees.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -7,11 +5,9 @@
 #include <time.h>
 #include <vector>
 #include "bwt_search.h"
-#include <seqread.hpp>
+//#include <seqread.hpp>
 #include "precalc_gen.hpp"
 #include <getopt.h>
-
-using namespace sdsl;
 
 void timestamp();
 
@@ -308,11 +304,4 @@ int main(int argc, char* argv[])
 	out.close();
 	out2.close();
 	return (0);
-}
-
-void timestamp() {
-	time_t ltime;
-	ltime = time(NULL);
-	printf("\n-----\n%s", asctime(localtime(&ltime)));
-	fflush(stdout);
 }
