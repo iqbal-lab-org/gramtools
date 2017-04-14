@@ -9,7 +9,14 @@
 #include "precalc_gen.hpp"
 #include <getopt.h>
 
-void timestamp();
+
+void timestamp() {
+	time_t ltime;
+	ltime = time(NULL);
+	printf("\n-----\n%s", asctime(localtime(&ltime)));
+	fflush(stdout);
+}
+
 
 const std::string usage_statment = "\ngramtools usage:\n"
 	"All paramaters must be specified.\n\n"
