@@ -5,7 +5,7 @@
 #include <time.h>
 #include <vector>
 #include "bwt_search.h"
-//#include <seqread.hpp>
+#include <seqread.hpp>
 #include "precalc_gen.hpp"
 #include <getopt.h>
 
