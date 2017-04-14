@@ -11,7 +11,6 @@
 #include "precalc_gen.hpp"
 #include <getopt.h>
 
-using namespace std;
 using namespace sdsl;
 
 void timestamp();
@@ -30,18 +29,19 @@ const std::string usage_statment = "\ngramtools usage:\n"
 	"--ksize  -k   size of precalculated kmers\n"
 	"--kfile  -f   input  file listing all kmers in PRG\n";
 
-
-//argv[1] -  file containing linear prg
-//argv[2] -  file where CSA is stored
-//argv[3] -  file containing reads to be mapped (one read per line)
-//argv[4] -  file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which site
-//argv[5] -  file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which allele
-//argv[6] -  name of output file where coverages on each allele are printed
-//argv[7] -  name of output file where reads that have been processed are printed
-//argv[8] -  name of binary file where the prg in integer alphabet is written
-//argv[9] -  memory log file for CSA
-//argv[10] - size of precalculated kmers
-//argv[11] - kmer file
+/**
+	argv[1] -  file containing linear prg
+	argv[2] -  file where CSA is stored
+	argv[3] -  file containing reads to be mapped (one read per line)
+	argv[4] -  file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which site
+	argv[5] -  file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which allele
+	argv[6] -  name of output file where coverages on each allele are printed
+	argv[7] -  name of output file where reads that have been processed are printed
+	argv[8] -  name of binary file where the prg in integer alphabet is written
+	argv[9] -  memory log file for CSA
+	argv[10] - size of precalculated kmers
+	argv[11] - kmer file
+*/
 
 int main(int argc, char* argv[]) {
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 	for (auto i : pars)
 		if (*i == "")
 		{
-			std::cout << "You must specify all parameters" << usage_statment;
+			std::cout << "All paramaters not specified.\n" << usage_statment;
 			exit(-1);
 		}
 
