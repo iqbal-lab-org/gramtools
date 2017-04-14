@@ -16,20 +16,19 @@ using namespace sdsl;
 
 void timestamp();
 
-
-char *HELP = "\ngramtools usage:\n\
-\n	  --prg   -p   input file containing linear prg                                                                                                     \
-\n	  --csa   -c   output file where CSA is stored                                                                                                       \
-\n	  --input -i   input FASTA/FASTQ file to be mapped                                                                         \
-\n	  --ps    -s   input file containing mask over the                                                                        \      \n                        linear prg that indicates at each                                                                       \      \n                        position whether you are inside a                                                                       \      \n                        site and if so, which site   \
-\n	  --pa    -a   input file containing mask over the                                                                        \      \n                        linear prg that indicates at each                                                                       \      \n                        position whether you are inside a                                                                       \      \n                        site and if so, which allele   \
-\n	  --co    -v   name of output file where coverages on each allele are printed                                                                 \
-\n	  --ro    -r   name of output file where reads that have been processed are printed                                                           \
-\n	  --po    -b   output filename of binary file containing the prg in integer alphabet                                                                \
-\n	  --log   -l   Output memory log file for CSA                                                                                                        \
-\n	  --ksize -k   size of precalculated kmers                                                                                                    \
-\n	  --kfile -f   input  file listing all kmers in PRG                                                                                                                     \
-\n";
+const std::string usage_statment = "\ngramtools usage:\n"
+	"All paramaters must be specified.\n\n"
+	"--prg    -p   input file containing linear prg\n"
+	"--csa    -c   output file where CSA is stored\n"
+	"--input  -i   input FASTA/FASTQ file to be mapped\n"
+	"--ps     -s   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which site\n"
+	"--pa     -a   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which allele\n"
+	"--co     -v   name of output file where coverages on each allele are printed\n"
+	"--ro     -r   name of output file where reads that have been processed are printed\n"
+	"--po     -b   output filename of binary file containing the prg in integer alphabet\n"
+	"--log    -l   Output memory log file for CSA\n"
+	"--ksize  -k   size of precalculated kmers\n"
+	"--kfile  -f   input  file listing all kmers in PRG\n";
 
 
 //argv[1] -  file containing linear prg
@@ -104,11 +103,11 @@ int main(int argc, char* argv[]) {
 
 		case '?':
 			/* getopt_long already printed an error message. */
-			std::cout << "Error parsing arguments\n" << HELP;
+			std::cout << "Error parsing arguments\n" << usage_statment;
 			break;
 
 		default:
-			std::cout << "Error parsing arguments\n" << HELP;
+			std::cout << "Error parsing arguments\n" << usage_statment;
 			abort ();
 			break;
 		}
@@ -117,7 +116,7 @@ int main(int argc, char* argv[]) {
 	for (auto i : pars)
 		if (*i == "")
 		{
-			std::cout << "You must specify all parameters" << HELP;
+			std::cout << "You must specify all parameters" << usage_statment;
 			exit(-1);
 		}
 
