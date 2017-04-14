@@ -43,12 +43,12 @@ const std::string usage_statment = "\ngramtools usage:\n"
 	argv[11] - kmer file
 */
 
-int main(int argc, char* argv[]) {
 
-	int c;
-
+int main(int argc, char* argv[])
+{
 	std::string _prg = "", _csa = "", _input = "", _sitemask = "", _allmask = "", _covoutput = "", _readoutput = "", _binoutput = "", _log = "", _ksize = "", _kfile = "";
-	std::vector<std::string *>pars = {&_prg, &_csa, &_input, &_sitemask, &_allmask, &_covoutput, &_readoutput, &_binoutput, &_log, &_ksize, &_kfile};
+	std::vector<std::string *> pars = {&_prg, &_csa, &_input, &_sitemask, &_allmask, &_covoutput, &_readoutput, &_binoutput, &_log, &_ksize, &_kfile};
+	int c;
 
 	while (1)
 	{
@@ -72,6 +72,7 @@ int main(int argc, char* argv[]) {
 			{"kfile"  ,    required_argument, 0, 'f'},
 			{0, 0, 0, 0}
 		};
+
 		/* getopt_long stores the option index here. */
 		int option_index = 0;
 		c = getopt_long (argc, argv, "p:c:i:s:a:b:v:r:l:k:f:", long_options, &option_index);
@@ -82,43 +83,45 @@ int main(int argc, char* argv[]) {
 
 		switch (c)
 		{
-		//		case 0:
-		//			/* If this option set a flag, do nothing else now. */
-		//			if (long_options[option_index].flag != 0)
-		//				break;
-		//			printf ("option %s", long_options[option_index].name);
-		//			if (optarg)
-		//				printf (" with arg %s", optarg);
-		//			printf ("\n");
-		//			break;
+			//		case 0:
+			//			/* If this option set a flag, do nothing else now. */
+			//			if (long_options[option_index].flag != 0)
+			//				break;
+			//			printf ("option %s", long_options[option_index].name);
+			//			if (optarg)
+			//				printf (" with arg %s", optarg);
+			//			printf ("\n");
+			//			break;
 
-		case 'p': case 'c': case 'i': case 's': case 'a': case 'b': case 'v': case 'r': case 'l': case 'k': case 'f':
-			uint16_t i;
-			for (i = 0; i < pars.size(); i++)
-			{
-				if (long_options[i].val == c)
-					*pars[i] = optarg;
-			}
-			break;
+			case 'p': case 'c': case 'i': case 's': case 'a': case 'b': case 'v': case 'r': case 'l': case 'k': case 'f':
+				uint16_t i;
+				for (i = 0; i < pars.size(); i++)
+				{
+					if (long_options[i].val == c)
+						*pars[i] = optarg;
+				}
+				break;
 
-		case '?':
-			/* getopt_long already printed an error message. */
-			std::cout << "Error parsing arguments\n" << usage_statment;
-			break;
+			case '?':
+				/* getopt_long already printed an error message. */
+				std::cout << "Error parsing arguments\n" << usage_statment;
+				break;
 
-		default:
-			std::cout << "Error parsing arguments\n" << usage_statment;
-			abort ();
-			break;
+			default:
+				std::cout << "Error parsing arguments\n" << usage_statment;
+				abort();
+				break;
 		}
 	}
 
 	for (auto i : pars)
+	{
 		if (*i == "")
 		{
 			std::cout << "All paramaters not specified.\n" << usage_statment;
 			exit(-1);
 		}
+	}
 
 	std::vector<uint64_t> mask_s;
 	std::vector<int> mask_a;
