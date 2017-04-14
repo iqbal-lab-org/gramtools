@@ -242,7 +242,6 @@ int main(int argc, char* argv[]) {
 						invalid = false;
 						for (auto it_s : sites) {
 							for (auto site_pair : it_s) {
-								auto site = site_pair.first;
 								auto allele = site_pair.second;
 								if (it_s != sites.back() && it_s != sites.front() && allele.empty()) invalid = true;
 							}
