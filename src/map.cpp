@@ -1,13 +1,15 @@
+#include <getopt.h>
+#include <time.h>
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
 #include <cstdint>
-#include <time.h>
 #include <vector>
-#include "bwt_search.h"
+
 #include <seqread.hpp>
+#include "bwt_search.h"
 #include "precalc_gen.hpp"
-#include <getopt.h>
 
 
 void timestamp() {
@@ -85,7 +87,7 @@ int main(int argc, char* argv[])
 		switch (c)
 		{
 		case 'p': case 'c': case 'i': case 's': case 'a': case 'b': case 'v': case 'r': case 'l': case 'k': case 'f':
-			for (int i = 0; i < pars.size(); i++)
+			for (unsigned int i = 0; i < pars.size(); i++)
 			{
 				if (long_options[i].val == c)
 					*pars[i] = optarg;
@@ -147,7 +149,6 @@ int main(int argc, char* argv[])
 	int k = atoi(_ksize.c_str()); //verify input
 	get_precalc_kmers(csa, kmer_idx, kmer_idx_rev, kmer_sites, kmers_in_ref, mask_a, _kfile, maxx, k);
 
-	//precalc_kmer_matches(csa,k,kmer_idx,kmer_idx_rev,kmer_sites,mask_a,maxx,kmers_in_ref,_kfile);
 	cout << "About to start mapping:" << endl;
 	timestamp();
 
@@ -162,7 +163,6 @@ int main(int argc, char* argv[])
 	p.reserve(200);
 	for (auto q : inputReads)
 	{
-
 		//logging
 		if (!(inc++ % 10)) { out2 << no_reads << endl; }
 
