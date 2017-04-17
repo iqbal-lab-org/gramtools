@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 	std::list<std::pair<uint64_t,uint64_t>> sa_intervals, sa_intervals_rev;
 	std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev;
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
-	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
+	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_ss;
 	std::unordered_set<int> repeats;
 	std::vector<uint8_t>::iterator res_it;
 	int in_sites;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
 	  //add N's
 	  int flag=0;
 
-	  //cout<<q->seq<<endl;
+	  cout<<q->seq<<endl;
 	  int seqlen=strlen(q->seq);
 	  for (int i=0;i<seqlen;i++) {
 	
@@ -220,14 +220,14 @@ int main(int argc, char* argv[]) {
 
 		  no_occ=0;
 
-		  if (sa_intervals.size()==1)
+		  if (sa_intervals.size()<=10)
 		    //proxy for mapping is "unique horizontally"
 		    {
 		      it=sa_intervals.begin();
 		      no_occ=(*it).second-(*it).first; 
 		      no_mapped++;
 		      if (first_del==false) {
-			sites.clear();//becasue sites has one element with an empty vector
+			assert(sites.front().empty());//becasue matches are all in non variable part of PRG
 			repeats.clear();
 			in_sites=0;
 			for (auto ind=(*it).first;ind<(*it).second;ind++) {
@@ -238,44 +238,61 @@ int main(int argc, char* argv[]) {
 			  }
 			}
 		      }
-		      for (auto ind=(*it).first;ind<(*it).second;ind++) {
-			if (sites.empty()) {
-			  if (mask_a[csa[ind]]!=0) {
-			    covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]=covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]+1/(no_occ-in_sites+repeats.size());
-                            assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
-			  }
-			}
-			else {//first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
+		     
+		      it_ss=sites.begin();
 
+		      while (it!=sa_intervals.end() && it_ss!=sites.end()) {
+		       auto it_s=*it_ss;
+		       for (auto ind=(*it).first;ind<(*it).second;ind++) {
+			 if (it==sa_intervals.begin() && sites.front().empty() && mask_a[csa[ind]]!=0) {
+			   assert(first_del==false);
+			   covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]=covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]+1/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
+                           assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
+			 }
+			 else if ((it==sa_intervals.begin() && first_del==true) || (it!=sa_intervals.begin())) { //first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
 			  //if no_occ>1, two matches both starting at the end marker. If one crossed the start marker,
 			  //sorina would have split into two SAs and here we are in one.
 			  //so neither crosses the start marker, both start at the end. Since she only updates sites
 			  //when you cross the left marker, it should be true that sites.front().back().second.size==0
-			  if (!(sites.empty())&& (no_occ>1)) assert(sites.front().back().second.size()==0);//vertically non-unique   \\\
-			  invalid=false;
-			  for (auto it_s : sites) {
-			    for (auto site_pair : it_s) {
+			   if (it==sa_intervals.begin() && first_del==true) {
+			     assert(!sites.empty());
+			     if (((*it).second-(*it).first)>1) assert(sites.front().back().second.size()==0);//vertically non-unique
+			   }
+
+			   invalid=false;
+			   for (auto site_pair : it_s) {
 			      auto site=site_pair.first;
 			      auto allele=site_pair.second;
 			      if (site_pair!=it_s.back() && site_pair!=it_s.front() && allele.empty()) invalid=true;
-			    }
-			  }
-			  if(!invalid) {
-			    for (auto it_s : sites) {
+			   }
+			   
+			   if(!invalid) {
+			      if ((it!=sa_intervals.begin()) && (((*it).second-(*it).first)>1)) assert(it_s.back().second.size()==0); //vertically non-unique 
 			      for (auto site_pair : it_s) {
 				auto site=site_pair.first;
 				auto allele=site_pair.second;
 				if (site_pair!=it_s.back() && site_pair!=it_s.front()) assert(allele.size()==1);
-				if ((allele.empty()) && (mask_a[csa[ind]]>0)) covgs[(site-5)/2][mask_a[csa[ind]]-1]++; //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker
+				if ((allele.empty()) && (mask_a[csa[ind]]>0)) { //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker 
+				  if (first_del=false) 
+				    covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1); 
+				  else
+				    covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1/sa_intervals.size();
+				}
 				else 
-				  for (auto al:allele)
-				    covgs[(site-5)/2][al-1]++;
+				  for (auto al:allele) {
+				    if (first_del=false)
+				      covgs[(site-5)/2][al-1]=covgs[(site-5)/2][al-1]+1/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1);
+				    else
+				      covgs[(site-5)/2][al-1]=covgs[(site-5)/2][al-1]+1/sa_intervals.size();
+				  }
 			      }
-			    }
-			  }
-			}
+			   }
+			 }
+		       }
+		       ++it;
+		       ++it_ss;
 		      }
-		    }
+	          }
 		  else 
 		    {
 		      no_occ=0;
