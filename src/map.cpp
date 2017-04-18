@@ -173,12 +173,12 @@ int main(int argc, char* argv[]) {
 	{
 	  
 	  //logging
-	  if (!(inc++%10)) { out2<<no_reads<<endl; }
+	  if (!(inc++%100000)) { out2<<no_reads<<endl; }
 	  
 	  //add N's
 	  int flag=0;
 
-	  cout<<q->seq<<endl;
+	  //cout<<q->seq<<endl;
 	  int seqlen=strlen(q->seq);
 	  for (int i=0;i<seqlen;i++) {
 	
@@ -273,8 +273,8 @@ int main(int argc, char* argv[]) {
 				if (site_pair!=it_s.back() && site_pair!=it_s.front()) assert(allele.size()==1);
 				if (site_pair==it_s.back() && allele.empty()) {
 				  for (auto ind=(*it).first;ind<(*it).second;ind++) 
-				    if (mask_a[csa[ind]]>0) {
-				      if (first_del==false) {
+				    if (mask_a[csa[ind]]>0) { //mask_a[csa[ind]] can be 0 here if one match in the SA-interval is coming from a skipped start-site marker
+				      if (first_del==false) { //take into account the number of matches in the reference seq
 					assert((no_occ-in_sites+repeats.size()+sa_intervals.size()-1)>0);
 					covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1);
 				      }
