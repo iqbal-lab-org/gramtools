@@ -242,53 +242,60 @@ int main(int argc, char* argv[]) {
 		      it_ss=sites.begin();
 
 		      while (it!=sa_intervals.end() && it_ss!=sites.end()) {
-		       auto it_s=*it_ss;
-		       for (auto ind=(*it).first;ind<(*it).second;ind++) {
-			 if (it==sa_intervals.begin() && sites.front().empty() && mask_a[csa[ind]]!=0) {
+		       	if (it==sa_intervals.begin() && sites.front().empty()) {
 			   assert(first_del==false);
-			   covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]=covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
-                           assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
+			   for (auto ind=(*it).first;ind<(*it).second;ind++) 
+			     if (mask_a[csa[ind]]!=0) {
+			       covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]=covgs[(mask_s[csa[ind]]-5)/2][mask_a[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
+			       assert(mask_a[csa[ind]]==mask_a[csa[ind]+p.size()-1]);
+			     }
 			 }
 			 else if ((it==sa_intervals.begin() && first_del==true) || (it!=sa_intervals.begin())) { //first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
 			  //if no_occ>1, two matches both starting at the end marker. If one crossed the start marker,
 			  //sorina would have split into two SAs and here we are in one.
 			  //so neither crosses the start marker, both start at the end. Since she only updates sites
 			  //when you cross the left marker, it should be true that sites.front().back().second.size==0
-			   if (it==sa_intervals.begin() && first_del==true) {
-			     assert(!sites.empty());
-			     if (((*it).second-(*it).first)>1) assert(sites.front().back().second.size()==0);//vertically non-unique
-			   }
-
+			   auto it_s=*it_ss;
+			   assert(!it_s.empty());
+			   
 			   invalid=false;
 			   for (auto site_pair : it_s) {
 			      auto site=site_pair.first;
 			      auto allele=site_pair.second;
-			      if (site_pair!=it_s.back() && site_pair!=it_s.front() && allele.empty()) invalid=true;
+			      if (site_pair!=it_s.back() && allele.empty()) invalid=true; 
 			   }
 			   
 			   if(!invalid) {
-			      if ((it!=sa_intervals.begin()) && (((*it).second-(*it).first)>1)) assert(it_s.back().second.size()==0); //vertically non-unique 
-			      for (auto site_pair : it_s) {
+			     if (((*it).second-(*it).first)>1) assert(it_s.back().second.size()==0); //vertically non-unique 
+			     for (auto site_pair : it_s) {
 				auto site=site_pair.first;
 				auto allele=site_pair.second;
 				if (site_pair!=it_s.back() && site_pair!=it_s.front()) assert(allele.size()==1);
-				if ((allele.empty()) && (mask_a[csa[ind]]>0)) { //mask_a[csa[ind]] can be 0 here if the match is coming from a skipped start_site marker 
-				  if (first_del=false) 
-				    covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1); 
-				  else
-				    covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1.0/sa_intervals.size();
+				if (site_pair==it_s.back() && allele.empty()) {
+				  for (auto ind=(*it).first;ind<(*it).second;ind++) 
+				    if (mask_a[csa[ind]]>0) {
+				      if (first_del==false) {
+					assert((no_occ-in_sites+repeats.size()+sa_intervals.size()-1)>0);
+					covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1);
+				      }
+				      else
+					covgs[(site-5)/2][mask_a[csa[ind]]-1]=covgs[(site-5)/2][mask_a[csa[ind]]-1]+1.0/sa_intervals.size();
+				    }
 				}
-				else 
+			        else if (!allele.empty()) {
+				  assert(!allele.empty());
 				  for (auto al:allele) {
-				    if (first_del=false)
+				    if (first_del==false) {
+				      assert((no_occ-in_sites+repeats.size()+sa_intervals.size()-1)>0);
 				      covgs[(site-5)/2][al-1]=covgs[(site-5)/2][al-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1);
+				    }
 				    else
 				      covgs[(site-5)/2][al-1]=covgs[(site-5)/2][al-1]+1.0/sa_intervals.size();
 				  }
+				}
 			      }
 			   }
-			 }
-		       }
+			 }		       
 		       ++it;
 		       ++it_ss;
 		      }
