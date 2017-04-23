@@ -32,7 +32,7 @@ const std::string usage_statment =
                 "--po     -b   output filename of binary file containing the prg in integer alphabet\n"
                 "--log    -l   Output memory log file for CSA\n"
                 "--ksize  -k   size of precalculated kmers\n"
-                "--kfile  -f   input  file listing all kmers in PRG\n";
+                "--kfile  -f   input file listing all kmers in PRG\n";
 
 
 /**
@@ -49,13 +49,16 @@ const std::string usage_statment =
 	argv[11] - kmer file
 */
 int main(int argc, char *argv[]) {
-    std::string _prg = "", _csa = "", _input = "", _sitemask = "", _allmask = "",
-            _covoutput = "", _readoutput = "", _binoutput = "", _log = "",
-            _ksize = "", _kfile = "";
+    std::string linear_prg_fname, csa_fname, fasta_fname,
+            site_mask_fname, allele_mask_fname,
+            out_allele_coverage_fname, out_reads_fname, out_prg_fname,
+            memory_log_fname, precalc_kmers_size, kmer_fname;
+
     std::vector<std::string *> pars = {
-            &_prg, &_csa, &_input, &_sitemask, &_allmask,
-            &_covoutput, &_readoutput, &_binoutput, &_log,
-            &_ksize, &_kfile
+            &linear_prg_fname, &csa_fname, &fasta_fname,
+            &site_mask_fname, &allele_mask_fname,
+            &out_allele_coverage_fname, &out_reads_fname, &out_prg_fname,
+            &memory_log_fname, &precalc_kmers_size, &kmer_fname
     };
 
     while (1) {
@@ -122,24 +125,22 @@ int main(int argc, char *argv[]) {
     std::vector<int> mask_a;
     std::vector<std::vector<int> > covgs;
 
-    SeqRead inputReads(_input.c_str());
-    std::ofstream out(_covoutput);
-    std::ofstream out2(_readoutput);
+    SeqRead inputReads(fasta_fname.c_str());
+    std::ofstream out(out_allele_coverage_fname);
+    std::ofstream out2(out_reads_fname);
 
     sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
     sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
     sequence_set<std::vector<uint8_t>> kmers_in_ref;
 
-    //not using mask_s anymore?
-
     timestamp();
     cout << "Start CSA construction" << endl;
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(_prg, _binoutput, _log, _csa, true,
+    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(linear_prg_fname, out_prg_fname, memory_log_fname, csa_fname, true,
                                                                                 true);
     timestamp();
     cout << "End CSA construction" << endl;
 
-    uint64_t maxx = parse_masks(mask_s, mask_a, _sitemask, _allmask, covgs);
+    uint64_t maxx = parse_masks(mask_s, mask_a, site_mask_fname, allele_mask_fname, covgs);
 
     std::vector<std::vector<string> > site_reads(covgs.size(), std::vector<string>(1));
     int no_reads = 0;
@@ -148,8 +149,8 @@ int main(int argc, char *argv[]) {
     uint64_t no_occ = 0;
     bool first_del;
 
-    int k = atoi(_ksize.c_str()); //verify input
-    get_precalc_kmers(csa, kmer_idx, kmer_idx_rev, kmer_sites, kmers_in_ref, mask_a, _kfile, maxx, k);
+    int k = atoi(precalc_kmers_size.c_str()); //verify input
+    get_precalc_kmers(csa, kmer_idx, kmer_idx_rev, kmer_sites, kmers_in_ref, mask_a, kmer_fname, maxx, k);
 
     cout << "About to start mapping:" << endl;
     timestamp();
@@ -169,7 +170,7 @@ int main(int argc, char *argv[]) {
         int flag = 0;
 
         cout << q->seq << endl;
-        auto seqlen = strlen(q->seq);
+        size_t seqlen = strlen(q->seq);
         for (int i = 0; i < seqlen; i++) {
 
             if (q->seq[i] == 'A' or q->seq[i] == 'a')
