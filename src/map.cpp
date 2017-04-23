@@ -51,28 +51,28 @@ const std::string usage_statment =
 int main(int argc, char *argv[]) {
     std::string linear_prg_fname, csa_fname, fasta_fname,
             site_mask_fname, allele_mask_fname,
-            out_allele_coverage_fname, out_reads_fname, out_prg_fname,
-            memory_log_fname, precalc_kmers_size, kmer_fname;
+            allele_coverage_fname, reads_fname, out_prg_fname,
+            memory_log_fname, input_kmers_size, kmer_fname;
 
     std::vector<std::string *> pars = {
             &linear_prg_fname, &csa_fname, &fasta_fname,
             &site_mask_fname, &allele_mask_fname,
-            &out_allele_coverage_fname, &out_reads_fname, &out_prg_fname,
-            &memory_log_fname, &precalc_kmers_size, &kmer_fname
+            &allele_coverage_fname, &reads_fname, &out_prg_fname,
+            &memory_log_fname, &input_kmers_size, &kmer_fname
     };
 
     while (1) {
         static struct option long_options[] =
                 {
-                        {"prg", required_argument,   0, 'p'},
-                        {"csa", required_argument,   0, 'c'},
+                        {"prg",   required_argument, 0, 'p'},
+                        {"csa",   required_argument, 0, 'c'},
                         {"input", required_argument, 0, 'i'},
-                        {"ps", required_argument,    0, 's'},
-                        {"pa", required_argument,    0, 'a'},
-                        {"co", required_argument,    0, 'v'},
-                        {"ro", required_argument,    0, 'r'},
-                        {"po", required_argument,    0, 'b'},
-                        {"log", required_argument,   0, 'l'},
+                        {"ps",    required_argument, 0, 's'},
+                        {"pa",    required_argument, 0, 'a'},
+                        {"co",    required_argument, 0, 'v'},
+                        {"ro",    required_argument, 0, 'r'},
+                        {"po",    required_argument, 0, 'b'},
+                        {"log",   required_argument, 0, 'l'},
                         {"ksize", required_argument, 0, 'k'},
                         {"kfile", required_argument, 0, 'f'},
                         {0, 0,                       0, 0}
@@ -121,38 +121,27 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::vector<uint64_t> mask_s;
-    std::vector<int> mask_a;
-    std::vector<std::vector<int> > covgs;
-
-    SeqRead inputReads(fasta_fname.c_str());
-    std::ofstream out(out_allele_coverage_fname);
-    std::ofstream out2(out_reads_fname);
-
-    sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
-    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
-    sequence_set<std::vector<uint8_t>> kmers_in_ref;
-
     timestamp();
     cout << "Start CSA construction" << endl;
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(linear_prg_fname, out_prg_fname, memory_log_fname, csa_fname, true,
-                                                                                true);
+    auto csa = csa_constr(linear_prg_fname, out_prg_fname,
+                          memory_log_fname, csa_fname, true, true);
     timestamp();
     cout << "End CSA construction" << endl;
 
-    uint64_t maxx = parse_masks(mask_s, mask_a, site_mask_fname, allele_mask_fname, covgs);
+    std::vector<uint64_t> mask_sites;
+    std::vector<int> mask_allele;
+    std::vector<std::vector<int> > covgs;
+    uint64_t maxx = parse_masks(mask_sites, mask_allele, site_mask_fname, allele_mask_fname, covgs);
 
     std::vector<std::vector<string> > site_reads(covgs.size(), std::vector<string>(1));
-    int no_reads = 0;
-    uint64_t no_mapped = 0;
-    int inc = 0;
-    uint64_t no_occ = 0;
-    bool first_del;
 
-    int k = atoi(precalc_kmers_size.c_str()); //verify input
-    get_precalc_kmers(csa, kmer_idx, kmer_idx_rev, kmer_sites, kmers_in_ref, mask_a, kmer_fname, maxx, k);
+    int kmers_size = std::atoi(input_kmers_size.c_str());
+    sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
+    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
+    sequence_set<std::vector<uint8_t>> kmers_in_ref;
+    get_precalc_kmers(csa, kmer_idx, kmer_idx_rev, kmer_sites, kmers_in_ref, mask_allele, kmer_fname, maxx, kmers_size);
 
-    cout << "About to start mapping:" << endl;
+    cout << "Start mapping" << endl;
     timestamp();
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
@@ -160,39 +149,44 @@ int main(int argc, char *argv[]) {
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 
-    std::vector<uint8_t> readin_integer_alphabet;
-    readin_integer_alphabet.reserve(200);
-    for (auto q : inputReads) {
-        //logging
-        if (!(inc++ % 10)) { out2 << no_reads << endl; }
+    std::vector<uint8_t> readin_integer_seq;
+    readin_integer_seq.reserve(200);
 
-        //add N's
-        int flag = 0;
+    SeqRead input_festa(fasta_fname.c_str());
+    std::ofstream reads_fhandle(reads_fname);
+    uint64_t count_mapped = 0;
+    int count_reads = 0;
+    int inc = 0;
 
-        cout << q->seq << endl;
-        size_t seqlen = strlen(q->seq);
-        for (int i = 0; i < seqlen; i++) {
+    for (auto festa_read: input_festa) {
+        if (!(inc++ % 10))
+            reads_fhandle << count_reads << endl;
+        cout << festa_read->seq << endl;
 
-            if (q->seq[i] == 'A' or q->seq[i] == 'a')
-                readin_integer_alphabet.push_back(1);
-            else if (q->seq[i] == 'C' or q->seq[i] == 'c')
-                readin_integer_alphabet.push_back(2);
-            else if (q->seq[i] == 'G' or q->seq[i] == 'g')
-                readin_integer_alphabet.push_back(3);
-            else if (q->seq[i] == 'T' or q->seq[i] == 't')
-                readin_integer_alphabet.push_back(4);
-            else { flag = 1; };
+        bool invalid_base_flag = false;
+        for (int i = 0; i < strlen(festa_read->seq); i++) {
+            if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
+                readin_integer_seq.push_back(1);
+            else if (festa_read->seq[i] == 'C' or festa_read->seq[i] == 'c')
+                readin_integer_seq.push_back(2);
+            else if (festa_read->seq[i] == 'G' or festa_read->seq[i] == 'g')
+                readin_integer_seq.push_back(3);
+            else if (festa_read->seq[i] == 'T' or festa_read->seq[i] == 't')
+                readin_integer_seq.push_back(4);
+            else
+                invalid_base_flag = true;
         }
 
-        if (flag == 1) {
+        if (invalid_base_flag)
             continue;
-        }
-        //is there a way to avoid making this copy?
-        std::vector<uint8_t> kmer(readin_integer_alphabet.begin() + readin_integer_alphabet.size() - k,
-                                  readin_integer_alphabet.end());
+
+        // is there a way to avoid making this copy?
+        auto kmer_start_it = readin_integer_seq.begin() + readin_integer_seq.size() - kmers_size;
+        auto kmer_end_it = readin_integer_seq.end();
+        std::vector<uint8_t> kmer(kmer_start_it, kmer_end_it);
+
         if (kmer_idx.find(kmer) != kmer_idx.end() && kmer_idx_rev.find(kmer) != kmer_idx_rev.end() &&
-            kmer_sites.find(kmer) != kmer_sites.end())
-        {
+            kmer_sites.find(kmer) != kmer_sites.end()) {
             sa_intervals = kmer_idx[kmer];
             sa_intervals_rev = kmer_idx_rev[kmer];
             sites = kmer_sites[kmer];
@@ -200,29 +194,34 @@ int main(int argc, char *argv[]) {
             it = sa_intervals.begin();
             it_rev = sa_intervals_rev.begin();
 
-            //kmers in ref means kmers that do not cross any numbers
-            //These are either in non-variable region, or are entirely within alleles
-            first_del = !(kmers_in_ref.find(kmer) != kmers_in_ref.end());
-
+            // kmers in ref means kmers that do not cross any numbers
+            // These are either in non-variable region, or are entirely within alleles
+            bool first_del = !(kmers_in_ref.find(kmer) != kmers_in_ref.end());
             bool precalc_done = true;
+
             bidir_search_bwd(csa, (*it).first, (*it).second,
                              (*it_rev).first, (*it_rev).second,
-                             readin_integer_alphabet.begin(), readin_integer_alphabet.begin() + readin_integer_alphabet.size() - k,
+                             readin_integer_seq.begin(),
+                             readin_integer_seq.begin() + readin_integer_seq.size() - kmers_size,
                              sa_intervals, sa_intervals_rev,
-                             sites, mask_a, maxx, first_del, precalc_done);
+                             sites, mask_allele, maxx, first_del, precalc_done);
 
             if (sa_intervals.size() == 1)
                 //proxy for mapping is "unique horizontally"
             {
+                if (!first_del)
+                    // becasue sites has one element with an empty vector
+                    sites.clear();
+
+                count_mapped++;
+                uint64_t no_occ = (*it).second - (*it).first;
                 it = sa_intervals.begin();
-                no_occ = (*it).second - (*it).first;
-                no_mapped++;
-                if (!first_del) sites.clear(); //becasue sites has one element with an empty vector
+
                 for (auto ind = (*it).first; ind < (*it).second; ind++) {
                     if (sites.empty()) {
-                        if (mask_a[csa[ind]] != 0) {
-                            covgs[(mask_s[csa[ind]] - 5) / 2][mask_a[csa[ind]] - 1]++;
-                            assert(mask_a[csa[ind]] == mask_a[csa[ind] + readin_integer_alphabet.size() - 1]);
+                        if (mask_allele[csa[ind]] != 0) {
+                            covgs[(mask_sites[csa[ind]] - 5) / 2][mask_allele[csa[ind]] - 1]++;
+                            assert(mask_allele[csa[ind]] == mask_allele[csa[ind] + readin_integer_seq.size() - 1]);
                         }
                     } else {
                         // first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
@@ -232,7 +231,8 @@ int main(int argc, char *argv[]) {
                         // so neither crosses the start marker, both start at the end. Since she only updates sites
                         // when you cross the left marker, it should be true that sites.front().back().second.size==0
                         if (!(sites.empty()) && (no_occ > 1))
-                            assert(sites.front().back().second.size() == 0); //vertically non-unique
+                            // vertically non-unique
+                            assert(sites.front().back().second.size() == 0);
                         bool invalid = false;
                         for (auto it_s : sites) {
                             for (auto site_pair : it_s) {
@@ -250,8 +250,8 @@ int main(int argc, char *argv[]) {
                                         assert(allele.size() == 1);
                                     // mask_a[csa[ind]] can be 0 here if the match is
                                     // coming from a skipped start_site marker
-                                    if ((allele.empty()) && (mask_a[csa[ind]] > 0))
-                                        covgs[(site - 5) / 2][mask_a[csa[ind]] - 1]++;
+                                    if ((allele.empty()) && (mask_allele[csa[ind]] > 0))
+                                        covgs[(site - 5) / 2][mask_allele[csa[ind]] - 1]++;
                                     else
                                         for (auto al : allele)
                                             covgs[(site - 5) / 2][al - 1]++;
@@ -265,24 +265,23 @@ int main(int argc, char *argv[]) {
             sa_intervals_rev.clear();
             sites.clear();
         }
-        no_reads++;
-        readin_integer_alphabet.clear();
+        count_reads++;
+        readin_integer_seq.clear();
     }
-
+    reads_fhandle.close();
     cout << "Finished mapping:" << endl;
     timestamp();
 
-    cout << no_mapped << endl;
+    cout << count_mapped << endl;
 
+    std::ofstream allele_coverage_fhandle(allele_coverage_fname);
     for (uint32_t i = 0; i < covgs.size(); i++) {
         for (uint32_t j = 0; j < covgs[i].size(); j++)
-            out << covgs[i][j] << " ";
-        out << endl;
+            allele_coverage_fhandle << covgs[i][j] << " ";
+        allele_coverage_fhandle << endl;
     }
+    allele_coverage_fhandle.close();
 
     timestamp();
-
-    out.close();
-    out2.close();
     return 0;
 }
