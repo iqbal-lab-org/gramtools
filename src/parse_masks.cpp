@@ -5,12 +5,12 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
+//using namespace std;
 using namespace sdsl;
 
 //need to add assertions
 
-uint64_t parse_masks(std::vector<uint64_t> &mask_s, std::vector<int> &mask_a, string sites_fname, string alleles_fname,
+uint64_t parse_masks(std::vector<uint64_t> &mask_s, std::vector<int> &mask_a, std::string sites_fname, std::string alleles_fname,
                      std::vector<std::vector<int>> &covgs) {
     int no_alleles, a;
     uint64_t d, no_sites;
@@ -51,7 +51,7 @@ uint64_t parse_masks(std::vector<uint64_t> &mask_s, std::vector<int> &mask_a, st
       mask_a.push_back(0);
       }*/
 
-    cout << endl << mask_s.size() << " " << mask_a.size() << endl;
+    std::cout << std::endl << mask_s.size() << " " << mask_a.size() << std::endl;
 
     //  cout<<"Covgs dim"<<covgs.size()<<" "<<covgs.front().size()<<" "<<covgs.back().size()<<endl;
     return (no_sites +
