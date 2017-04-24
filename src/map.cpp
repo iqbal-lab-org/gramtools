@@ -123,22 +123,7 @@ int main(int argc, char *argv[]) {
                           memory_log_fname, csa_fname, true, true);
     timestamp();
     cout << "End CSA construction" << endl;
-
-    /*
-     * TODO: A class is best here because both covgs and mask_allele
-     * are generated from a single reading pass. What is covgs? Is it a mask?
-     * If covgs and mask_allele and weren't generated at the same time then
-     * two separate procedural functions would be best.
-     *
-     * MasksParser masks(site_mask_fname, allele_mask_fname)
-     *
-     * Then the different masks are accessed as attributes:
-     *
-     * masks.sites;
-     * masks.allele;
-     * masks.covgs;
-     */
-
+    
     MasksParser masks(site_mask_fname, allele_mask_fname);
     // Temporary local assignment for testing
     std::vector<uint64_t> mask_sites = masks.sites;
