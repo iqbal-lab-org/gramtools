@@ -118,11 +118,11 @@ int main(int argc, char *argv[]) {
     }
 
     timestamp();
-    cout << "Start CSA construction" << endl;
+    std::cout << "Start CSA construction" << endl;
     auto csa = csa_constr(linear_prg_fname, out_prg_fname,
                           memory_log_fname, csa_fname, true, true);
     timestamp();
-    cout << "End CSA construction" << endl;
+    std::cout << "End CSA construction" << endl;
 
     MasksParser masks(site_mask_fname, allele_mask_fname);
     // TODO: Remove: Temporary local assignment inplace for testing
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
                       kmer_sites, kmers_in_ref, mask_allele,
                       kmer_fname, max_alphabet_num, kmers_size);
 
-    cout << "Start mapping" << endl;
+    std::cout << "Start mapping" << std::endl;
     timestamp();
 
     // TODO: This shouldn't be an 8-bit int, 2-bits per element will do.
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
             reads_fhandle << count_reads << endl;
 
         // TODO: This should be its own function.
-        cout << festa_read->seq << endl;
+        std::cout << festa_read->seq << std::endl;
         bool invalid_base_flag = false;
         for (int i = 0; i < strlen(festa_read->seq); i++) {
             if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
@@ -270,16 +270,16 @@ int main(int argc, char *argv[]) {
         readin_integer_seq.clear();
     }
     reads_fhandle.close();
-    cout << "Finished mapping:" << endl;
+    std::cout << "Finished mapping:" << std::endl;
     timestamp();
 
-    cout << count_mapped << endl;
+    std::cout << count_mapped << std::endl;
 
     std::ofstream allele_coverage_fhandle(allele_coverage_fname);
     for (uint32_t i = 0; i < allele_coverage.size(); i++) {
         for (uint32_t j = 0; j < allele_coverage[i].size(); j++)
             allele_coverage_fhandle << allele_coverage[i][j] << " ";
-        allele_coverage_fhandle << endl;
+        allele_coverage_fhandle << std::endl;
     }
     allele_coverage_fhandle.close();
 
