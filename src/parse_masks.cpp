@@ -29,7 +29,7 @@ void MasksParser::parse_sites(const std::string &sites_fname) {
     // cout<<"Covgs dim"<<covgs.size()<<" "<<covgs.front().size()<<" "<<covgs.back().size()<<endl;
     // no_sites is last odd number in mask_sites, but alphabet size
     // is the even number corresponding to it
-    MasksParser::maxx = count_sites + 1;
+    MasksParser::max_alphabet_num = count_sites + 1;
 }
 
 

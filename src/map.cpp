@@ -123,20 +123,20 @@ int main(int argc, char *argv[]) {
                           memory_log_fname, csa_fname, true, true);
     timestamp();
     cout << "End CSA construction" << endl;
-    
+
     MasksParser masks(site_mask_fname, allele_mask_fname);
     // Temporary local assignment for testing
     std::vector<uint64_t> mask_sites = masks.sites;
     std::vector<int> mask_allele = masks.allele;
     std::vector<std::vector<int> > allele_coverage = masks.allele_coverage;
-    uint64_t maxx = masks.maxx;
+    uint64_t max_alphabet_num = masks.max_alphabet_num;
 
     /*
     std::vector<uint64_t> mask_sites;
     std::vector<int> mask_allele;
     std::vector<std::vector<int> > allele_coverage;
-    uint64_t maxx = parse_masks(mask_sites, mask_allele, site_mask_fname,
-                                allele_mask_fname, allele_coverage);
+    uint64_t max_alphabet_num = parse_masks(mask_sites, mask_allele, site_mask_fname,
+                                            allele_mask_fname, allele_coverage);
     */
 
     int kmers_size = std::atoi(input_kmers_size.c_str());
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     sequence_set<std::vector<uint8_t>> kmers_in_ref;
     get_precalc_kmers(csa, kmer_idx, kmer_idx_rev,
                       kmer_sites, kmers_in_ref, mask_allele,
-                      kmer_fname, maxx, kmers_size);
+                      kmer_fname, max_alphabet_num, kmers_size);
 
     cout << "Start mapping" << endl;
     timestamp();
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
                              readin_integer_seq.begin(),
                              readin_integer_seq.begin() + readin_integer_seq.size() - kmers_size,
                              sa_intervals, sa_intervals_rev,
-                             sites, mask_allele, maxx, first_del, precalc_done);
+                             sites, mask_allele, max_alphabet_num, first_del, precalc_done);
 
             if (sa_intervals.size() == 1)
                 //proxy for mapping is "unique horizontally"
