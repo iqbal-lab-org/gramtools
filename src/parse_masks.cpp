@@ -36,7 +36,7 @@ void MasksParser::parse_sites(const std::string &sites_fname) {
 void MasksParser::parse_allele(const std::string &alleles_fname) {
     std::ifstream fhandle(alleles_fname);
     int count_allele = 0;
-    int a, i = 0;
+    int a;
     // TODO: Assert at least 2 alleles at each site
     while (fhandle >> a) {
         if (a > count_allele)
@@ -45,7 +45,6 @@ void MasksParser::parse_allele(const std::string &alleles_fname) {
             MasksParser::allele_coverage.push_back(std::vector<int>(count_allele, 0));
             count_allele = a;
         }
-        i++;
         MasksParser::allele.push_back(a);
     }
     fhandle.close();

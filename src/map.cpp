@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
     cout << "End CSA construction" << endl;
 
     MasksParser masks(site_mask_fname, allele_mask_fname);
-    // Temporary local assignment for testing
+    // TODO: Remove: Temporary local assignment inplace for testing
     std::vector<uint64_t> mask_sites = masks.sites;
     std::vector<int> mask_allele = masks.allele;
     std::vector<std::vector<int> > allele_coverage = masks.allele_coverage;
