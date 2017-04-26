@@ -1,13 +1,14 @@
 import re
-from Bio import SeqIO, Seq
+import sys
 import argparse
 import array
-import sys
 import random
+
+from Bio import SeqIO, Seq
 
 
 class Chain:
-    """Chain of Variantblocks, container  class, contains all genome split
+    """Chain of Variantblocks, container class, contains all genome split
     into VBlocks, like a linked list.
     """
     def __init__(self):
