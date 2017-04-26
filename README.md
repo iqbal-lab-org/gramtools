@@ -72,7 +72,7 @@ This will create my_species.prg, my_species.prg.fa, my_species.prg.mask_alleles 
 ```
 python utils/variantKmers.py -f my_species.prg.fa  -k 9 -n > my_species.kmers.txt
 ```
-
+(Requires Python2.7 and Biopython.)
 * Map reads to the PRG, putting output in directory out/
 
 ```
