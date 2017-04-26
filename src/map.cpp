@@ -131,14 +131,6 @@ int main(int argc, char *argv[]) {
     std::vector<std::vector<int> > allele_coverage = masks.allele_coverage;
     uint64_t max_alphabet_num = masks.max_alphabet_num;
 
-    /*
-    std::vector<uint64_t> mask_sites;
-    std::vector<int> mask_allele;
-    std::vector<std::vector<int> > allele_coverage;
-    uint64_t max_alphabet_num = parse_masks(mask_sites, mask_allele, site_mask_fname,
-                                            allele_mask_fname, allele_coverage);
-    */
-
     int kmers_size = std::atoi(input_kmers_size.c_str());
     sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
     sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
