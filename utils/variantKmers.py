@@ -18,7 +18,8 @@ class Chain:
         # Pointer to last block
         self.lastBlock = None
 
-    def addVariantBlock(self, b):   # Adding  a block to the linked list
+    def addVariantBlock(self, b):
+        """Adding  a block to the linked list."""
         if not self.firstBlock:
             self.firstBlock = self.lastBlock = b
         else:
@@ -174,7 +175,7 @@ class Chain:
             self.addVariantBlock(VariantBlock([lastsequence], 0))
 
     def parseFasta(self, f):
-        '''Feeds that chain with a fasta file'''
+        """Feeds that chain with a fasta file."""
         return self.parseString(str(SeqIO.read(f, 'fasta').seq))
 
 
@@ -240,10 +241,10 @@ if __name__ == "__main__":
         a.write(">randGenome\n{0}\n".format(rgen))
         a.close()
 
-        a = open("randomReads.fastq","w")
+        a = open("randomReads.fastq", "w")
         for i in xrange(options.nreads):
-            posic = random.randint(0,len(rgen)-150)
-            if random.randint(0,1):
+            posic = random.randint(0, len(rgen)-150)
+            if random.randint(0, 1):
                 # a.write("@{0}\n{1}\n+\n{2}\n".format(i,str(Seq.Seq(rgen[posic:posic+150]).reverse_complement()),'H'*150))
                 a.write("@{0}\n{1}\n+\n{2}\n".format(
                     i, rgen[posic:posic+150], 'H'*150))
