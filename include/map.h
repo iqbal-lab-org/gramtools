@@ -1,7 +1,3 @@
-//
-// Created by robyn on 27/04/17.
-//
-
 #ifndef GRAMTOOLS_MAP_H
 #define GRAMTOOLS_MAP_H
 
