@@ -23,8 +23,9 @@ namespace po = boost::program_options;
 
 
 int main(int argc, const char *const *argv) {
-    Parameters params = parse_command_line_parameters(argc, argv);
+    auto params = parse_command_line_parameters(argc, argv);
 
+    // TODO: implement Boost logging
     timestamp();
     std::cout << "Start CSA construction" << std::endl;
     auto csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
@@ -33,18 +34,13 @@ int main(int argc, const char *const *argv) {
     std::cout << "End CSA construction" << std::endl;
 
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
-    // TODO: Remove: Temporary local assignment inplace for testing
-    std::vector<uint64_t> mask_sites = masks.sites;
-    std::vector<int> mask_allele = masks.allele;
-    std::vector<std::vector<int> > allele_coverage = masks.allele_coverage;
-    uint64_t max_alphabet_num = masks.max_alphabet_num;
 
     sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
     sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
     sequence_set<std::vector<uint8_t>> kmers_in_ref;
     get_precalc_kmers(csa, kmer_idx, kmer_idx_rev,
-                      kmer_sites, kmers_in_ref, mask_allele,
-                      params.prg_kmers_fpath, max_alphabet_num, params.kmers_size);
+                      kmer_sites, kmers_in_ref, masks.allele,
+                      params.prg_kmers_fpath, masks.max_alphabet_num, params.kmers_size);
 
     std::cout << "Start mapping" << std::endl;
     timestamp();
@@ -106,7 +102,7 @@ int main(int argc, const char *const *argv) {
                              readin_integer_seq.begin(),
                              readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
                              sa_intervals, sa_intervals_rev,
-                             sites, mask_allele, max_alphabet_num, first_del, precalc_done);
+                             sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done);
 
             if (sa_intervals.size() == 1)
                 //proxy for mapping is "unique horizontally"
@@ -121,9 +117,9 @@ int main(int argc, const char *const *argv) {
 
                 for (auto ind = (*it).first; ind < (*it).second; ind++) {
                     if (sites.empty()) {
-                        if (mask_allele[csa[ind]] != 0) {
-                            allele_coverage[(mask_sites[csa[ind]] - 5) / 2][mask_allele[csa[ind]] - 1]++;
-                            assert(mask_allele[csa[ind]] == mask_allele[csa[ind] + readin_integer_seq.size() - 1]);
+                        if (masks.allele[csa[ind]] != 0) {
+                            masks.allele_coverage[(masks.sites[csa[ind]] - 5) / 2][masks.allele[csa[ind]] - 1]++;
+                            assert(masks.allele[csa[ind]] == masks.allele[csa[ind] + readin_integer_seq.size() - 1]);
                         }
                     } else {
                         // first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
@@ -153,11 +149,11 @@ int main(int argc, const char *const *argv) {
                                         assert(allele.size() == 1);
                                     // mask_a[csa[ind]] can be 0 here if the match is
                                     // coming from a skipped start_site marker
-                                    if ((allele.empty()) && (mask_allele[csa[ind]] > 0))
-                                        allele_coverage[(site - 5) / 2][mask_allele[csa[ind]] - 1]++;
+                                    if ((allele.empty()) && (masks.allele[csa[ind]] > 0))
+                                        masks.allele_coverage[(site - 5) / 2][masks.allele[csa[ind]] - 1]++;
                                     else
                                         for (auto al : allele)
-                                            allele_coverage[(site - 5) / 2][al - 1]++;
+                                            masks.allele_coverage[(site - 5) / 2][al - 1]++;
                                 }
                             }
                         }
@@ -175,9 +171,9 @@ int main(int argc, const char *const *argv) {
     std::cout << count_mapped << std::endl;
 
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
-    for (uint32_t i = 0; i < allele_coverage.size(); i++) {
-        for (uint32_t j = 0; j < allele_coverage[i].size(); j++)
-            allele_coverage_fhandle << allele_coverage[i][j] << " ";
+    for (uint32_t i = 0; i < masks.allele_coverage.size(); i++) {
+        for (uint32_t j = 0; j < masks.allele_coverage[i].size(); j++)
+            allele_coverage_fhandle << masks.allele_coverage[i][j] << " ";
         allele_coverage_fhandle << std::endl;
     }
     allele_coverage_fhandle.close();
