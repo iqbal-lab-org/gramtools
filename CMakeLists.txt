@@ -22,7 +22,7 @@ add_executable(
         ${SOURCE}/csa_construction.cpp
         ${SOURCE}/parse_masks.cpp
         ${SOURCE}/precalc_kmer_matches.cpp
-)
+        include/map.h)
 
 set(LIBS sdsl hts divsufsort divsufsort64 pthread gtest z)
 SET(LIBS_PATHS "")
@@ -31,4 +31,7 @@ FOREACH(LIB ${LIBS})
     LIST(APPEND LIBS_PATHS ${PATH_${LIB}})
 ENDFOREACH(LIB)
 
-target_link_libraries(gramtools ${LIBS_PATHS})
+find_package(Boost COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
+target_link_libraries(gramtools ${LIBS_PATHS} ${Boost_LIBRARIES})

@@ -6,138 +6,45 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/program_options/option.hpp>
+#include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/program_options/parsers.hpp>
+
 #include <seqread.hpp>
 #include "bwt_search.h"
 #include "parse_masks.h"
 #include "precalc_gen.hpp"
+#include "map.h"
 
 
-void timestamp();
+namespace po = boost::program_options;
 
 
-const std::string usage_statment =
-        "\ngramtools usage:\n"
-                "All paramaters must be specified.\n\n"
-                "--prg    -p   input file containing linear prg\n"
-                "--csa    -c   output file where CSA is stored\n"
-                "--input  -i   input FASTA/FASTQ file to be mapped\n"
-                "--ps     -s   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which site\n"
-                "--pa     -a   input file containing mask over the\n\t\tlinear prg that indicates at each\n\t\tposition whether you are inside a\n\t\tsite and if so, which allele\n"
-                "--co     -v   name of output file where coverages on each allele are printed\n"
-                "--ro     -r   name of output file where reads that have been processed are printed\n"
-                "--po     -b   output filename of binary file containing the prg in integer alphabet\n"
-                "--log    -l   Output memory log file for CSA\n"
-                "--ksize  -k   size of precalculated kmers\n"
-                "--kfile  -f   input file listing all kmers in PRG\n";
-
-
-/**
-	argv[1] -  file containing linear prg
-	argv[2] -  file where CSA is stored
-	argv[3] -  file containing reads to be mapped (one read per line)
-	argv[4] -  file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which site
-	argv[5] -  file containing mask over the linear prg that indicates at each position whether you are inside a site and if so, which allele
-	argv[6] -  name of output file where coverages on each allele are printed
-	argv[7] -  name of output file where reads that have been processed are printed
-	argv[8] -  name of binary file where the prg in integer alphabet is written
-	argv[9] -  memory log file for CSA
-	argv[10] - size of pre-calculated kmers
-	argv[11] - kmer file
-*/
-int main(int argc, char *argv[]) {
-    std::string linear_prg_fname, csa_fname, fasta_fname,
-            site_mask_fname, allele_mask_fname,
-            allele_coverage_fname, reads_fname, out_prg_fname,
-            memory_log_fname, input_kmers_size, kmer_fname;
-
-    std::vector<std::string *> pars = {
-            &linear_prg_fname, &csa_fname, &fasta_fname,
-            &site_mask_fname, &allele_mask_fname,
-            &allele_coverage_fname, &reads_fname, &out_prg_fname,
-            &memory_log_fname, &input_kmers_size, &kmer_fname
-    };
-
-    while (1) {
-        static struct option long_options[] =
-                {
-                        {"prg",   required_argument, 0, 'p'},
-                        {"csa",   required_argument, 0, 'c'},
-                        {"input", required_argument, 0, 'i'},
-                        {"ps",    required_argument, 0, 's'},
-                        {"pa",    required_argument, 0, 'a'},
-                        {"co",    required_argument, 0, 'v'},
-                        {"ro",    required_argument, 0, 'r'},
-                        {"po",    required_argument, 0, 'b'},
-                        {"log",   required_argument, 0, 'l'},
-                        {"ksize", required_argument, 0, 'k'},
-                        {"kfile", required_argument, 0, 'f'},
-                        {0, 0,                       0, 0}
-                };
-
-        // getopt_long stores the option index here.
-        int option_index = 0;
-        int c = getopt_long(argc, argv, "p:c:i:s:a:b:v:r:l:k:f:", long_options, &option_index);
-        // Detect the end of the options.
-        if (c == -1)
-            break;
-
-        switch (c) {
-            case 'p':
-            case 'c':
-            case 'i':
-            case 's':
-            case 'a':
-            case 'b':
-            case 'v':
-            case 'r':
-            case 'l':
-            case 'k':
-            case 'f':
-                for (unsigned int i = 0; i < pars.size(); i++) {
-                    if (long_options[i].val == c)
-                        *pars[i] = optarg;
-                }
-                break;
-
-            case '?':
-                // Error message already printed by getopt_long.
-                std::cout << "Error parsing arguments\n" << usage_statment;
-                break;
-
-            default:
-                std::cout << "Error parsing arguments\n" << usage_statment;
-                abort();
-        }
-    }
-
-    for (auto i : pars) {
-        if (*i == "") {
-            std::cout << "All paramaters not specified.\n" << usage_statment;
-            exit(-1);
-        }
-    }
+int main(int argc, const char *const *argv) {
+    Parameters params = parse_command_line_parameters(argc, argv);
 
     timestamp();
-    std::cout << "Start CSA construction" << endl;
-    auto csa = csa_constr(linear_prg_fname, out_prg_fname,
-                          memory_log_fname, csa_fname, true, true);
+    std::cout << "Start CSA construction" << std::endl;
+    auto csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
+                          params.csa_memory_log_fpath, params.csa_fpath, true, true);
     timestamp();
-    std::cout << "End CSA construction" << endl;
+    std::cout << "End CSA construction" << std::endl;
 
-    MasksParser masks(site_mask_fname, allele_mask_fname);
+    MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     // TODO: Remove: Temporary local assignment inplace for testing
     std::vector<uint64_t> mask_sites = masks.sites;
     std::vector<int> mask_allele = masks.allele;
     std::vector<std::vector<int> > allele_coverage = masks.allele_coverage;
     uint64_t max_alphabet_num = masks.max_alphabet_num;
 
-    int kmers_size = std::atoi(input_kmers_size.c_str());
     sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
     sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
     sequence_set<std::vector<uint8_t>> kmers_in_ref;
     get_precalc_kmers(csa, kmer_idx, kmer_idx_rev,
                       kmer_sites, kmers_in_ref, mask_allele,
-                      kmer_fname, max_alphabet_num, kmers_size);
+                      params.prg_kmers_fpath, max_alphabet_num, params.kmers_size);
 
     std::cout << "Start mapping" << std::endl;
     timestamp();
@@ -146,15 +53,15 @@ int main(int argc, char *argv[]) {
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
 
-    SeqRead input_festa(fasta_fname.c_str());
-    std::ofstream reads_fhandle(reads_fname);
+    SeqRead input_festa(params.festa_fpath.c_str());
+    std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_mapped = 0;
     int count_reads = 0;
     int inc = 0;
 
     for (auto festa_read: input_festa) {
         if (!(inc++ % 10))
-            reads_fhandle << count_reads << endl;
+            reads_fhandle << count_reads << std::endl;
 
         // TODO: This should be its own function.
         std::cout << festa_read->seq << std::endl;
@@ -175,7 +82,7 @@ int main(int argc, char *argv[]) {
             continue;
 
         // is there a way to avoid making this copy?
-        auto kmer_start_it = readin_integer_seq.begin() + readin_integer_seq.size() - kmers_size;
+        auto kmer_start_it = readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size;
         auto kmer_end_it = readin_integer_seq.end();
         std::vector<uint8_t> kmer(kmer_start_it, kmer_end_it);
 
@@ -197,7 +104,7 @@ int main(int argc, char *argv[]) {
             bidir_search_bwd(csa, (*it).first, (*it).second,
                              (*it_rev).first, (*it_rev).second,
                              readin_integer_seq.begin(),
-                             readin_integer_seq.begin() + readin_integer_seq.size() - kmers_size,
+                             readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
                              sa_intervals, sa_intervals_rev,
                              sites, mask_allele, max_alphabet_num, first_del, precalc_done);
 
@@ -267,7 +174,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << count_mapped << std::endl;
 
-    std::ofstream allele_coverage_fhandle(allele_coverage_fname);
+    std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
     for (uint32_t i = 0; i < allele_coverage.size(); i++) {
         for (uint32_t j = 0; j < allele_coverage[i].size(); j++)
             allele_coverage_fhandle << allele_coverage[i][j] << " ";
@@ -277,6 +184,56 @@ int main(int argc, char *argv[]) {
 
     timestamp();
     return 0;
+}
+
+
+Parameters parse_command_line_parameters(int argc, const char *const *argv) {
+    Parameters params;
+    po::options_description description("All parameters must be specified");
+    description.add_options()
+            ("help", "produce help message")
+            ("prg,p", po::value<std::string>(&params.prg_fpath)->required(),
+             "input file containing linear prg")
+            ("csa,c", po::value<std::string>(&params.csa_fpath)->required(),
+             "output file where CSA is stored")
+            ("input,i", po::value<std::string>(&params.festa_fpath)->required(),
+             "input FASTA/FASTQ file to be mapped")
+            ("ps,s", po::value<std::string>(&params.site_mask_fpath)->required(),
+             "input file containing mask over the linear prg that indicates at "
+                     "each position whether you are inside a site and if so, which site")
+            ("pa,c", po::value<std::string>(&params.allele_mask_fpath)->required(),
+             "input file containing mask over the linear prg that indicates at "
+                     "each position whether you are inside a allele and if so, which allele")
+            ("co,v", po::value<std::string>(&params.allele_coverage_fpath)->required(),
+             "name of output file where coverages on each allele are printed")
+            ("ro,r", po::value<std::string>(&params.processed_reads_fpath)->required(),
+             "name of output file where reads that have been processed are printed")
+            ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath)->required(),
+             "output filename of binary file containing the prg in integer alphabet")
+            ("log,l", po::value<std::string>(&params.csa_memory_log_fpath)->required(),
+             "output memory log file for CSA")
+            ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath)->required(),
+             "input file listing all kmers in PRG")
+            ("ksize,k", po::value<int>(&params.kmers_size)->required(),
+             "size of pre-calculated kmers");
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, description), vm);
+
+    try {
+        po::notify(vm);
+    } catch (std::exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cout << description << std::endl;
+        exit(-1);
+    }
+
+    if (vm.count("help")) {
+        std::cout << description << std::endl;
+        exit(0);
+    }
+
+    return params;
 }
 
 
