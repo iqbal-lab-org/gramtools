@@ -1,6 +1,9 @@
 bin
 cmake-build-debug
 *.sublime-*
-include
 lib
 .idea
+include/htslib
+include/sdsl
+include/divsufsort.h
+include/divsufsort64.h
