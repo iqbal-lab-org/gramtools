@@ -1,6 +1,3 @@
-#include <getopt.h>
-#include <time.h>
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -26,11 +23,9 @@ int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
 
     // TODO: implement Boost logging
-    timestamp();
     std::cout << "Start CSA construction" << std::endl;
     auto csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
                           params.csa_memory_log_fpath, params.csa_fpath, true, true);
-    timestamp();
     std::cout << "End CSA construction" << std::endl;
 
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
@@ -43,7 +38,6 @@ int main(int argc, const char *const *argv) {
                       params.prg_kmers_fpath, masks.max_alphabet_num, params.kmers_size);
 
     std::cout << "Start mapping" << std::endl;
-    timestamp();
 
     // TODO: This shouldn't be an 8-bit int, 2-bits per element will do.
     std::vector<uint8_t> readin_integer_seq;
@@ -166,8 +160,6 @@ int main(int argc, const char *const *argv) {
     }
     reads_fhandle.close();
     std::cout << "Finished mapping:" << std::endl;
-    timestamp();
-
     std::cout << count_mapped << std::endl;
 
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
@@ -177,8 +169,6 @@ int main(int argc, const char *const *argv) {
         allele_coverage_fhandle << std::endl;
     }
     allele_coverage_fhandle.close();
-
-    timestamp();
     return 0;
 }
 
@@ -230,12 +220,4 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     }
 
     return params;
-}
-
-
-void timestamp() {
-    time_t ltime;
-    ltime = time(NULL);
-    printf("\n-----\n%s", asctime(localtime(&ltime)));
-    fflush(stdout);
 }

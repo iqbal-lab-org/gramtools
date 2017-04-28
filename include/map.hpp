@@ -17,6 +17,5 @@ struct Parameters{
 
 
 Parameters parse_command_line_parameters(int argc, const char *const *argv);
-void timestamp();
 
 #endif //GRAMTOOLS_MAP_H
