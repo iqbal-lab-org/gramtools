@@ -34,6 +34,9 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa);
 
 
+bool convert_festa_to_int_seq(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq);
+
+
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq, Parameters &params,
                             MasksParser &masks, int &count_reads, KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
                             KmerSites &kmer_sites, KmersRef &kmers_in_ref, uint64_t &count_mapped, CSA &csa);
@@ -151,26 +154,14 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
                             KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
                             KmerSites &kmer_sites, KmersRef &kmers_in_ref,
                             uint64_t &count_mapped, CSA &csa) {
+
     std::cout << festa_read->seq << std::endl;
-    bool invalid_base_flag = false;
-    for (int i = 0; i < strlen(festa_read->seq); i++) {
-        if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
-            readin_integer_seq.push_back(1);
-        else if (festa_read->seq[i] == 'C' or festa_read->seq[i] == 'c')
-            readin_integer_seq.push_back(2);
-        else if (festa_read->seq[i] == 'G' or festa_read->seq[i] == 'g')
-            readin_integer_seq.push_back(3);
-        else if (festa_read->seq[i] == 'T' or festa_read->seq[i] == 't')
-            readin_integer_seq.push_back(4);
-        else
-            invalid_base_flag = true;
-    }
+    bool invalid_base_flag = convert_festa_to_int_seq(festa_read, readin_integer_seq);
     if (invalid_base_flag)
-        // TODO: should readin_integer_seq be cleared here?
-        // TODO: should count_reads be incremented?
+        // TODO: should readin_integer_seq and count_reads be modified here?
         return;
 
-    // is there a way to avoid making this copy?
+    // TODO: is there a way to avoid making this copy?
     auto kmer_start_it = readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size;
     auto kmer_end_it = readin_integer_seq.end();
     std::vector<uint8_t> kmer(kmer_start_it, kmer_end_it);
@@ -267,6 +258,25 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
 
     count_reads++;
     readin_integer_seq.clear();
+}
+
+
+bool convert_festa_to_int_seq(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq){
+    bool invalid_base_flag = false;
+    for (int i = 0; i < strlen(festa_read->seq); i++) {
+        if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
+            readin_integer_seq.push_back(1);
+        else if (festa_read->seq[i] == 'C' or festa_read->seq[i] == 'c')
+            readin_integer_seq.push_back(2);
+        else if (festa_read->seq[i] == 'G' or festa_read->seq[i] == 'g')
+            readin_integer_seq.push_back(3);
+        else if (festa_read->seq[i] == 'T' or festa_read->seq[i] == 't')
+            readin_integer_seq.push_back(4);
+        else
+            // TODO: should there be a break here?
+            invalid_base_flag = true;
+    }
+    return invalid_base_flag;
 }
 
 
