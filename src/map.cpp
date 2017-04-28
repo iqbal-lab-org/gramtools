@@ -16,7 +16,7 @@
 #include "bwt_search.h"
 #include "parse_masks.h"
 #include "precalc_gen.hpp"
-#include "map.h"
+#include "map.hpp"
 
 
 namespace po = boost::program_options;

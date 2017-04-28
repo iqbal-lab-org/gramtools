@@ -21,8 +21,7 @@ add_executable(
         ${SOURCE}/bidir_search.cpp
         ${SOURCE}/csa_construction.cpp
         ${SOURCE}/parse_masks.cpp
-        ${SOURCE}/precalc_kmer_matches.cpp
-        include/map.h)
+        ${SOURCE}/precalc_kmer_matches.cpp)
 
 set(LIBS sdsl hts divsufsort divsufsort64 pthread gtest z)
 SET(LIBS_PATHS "")
