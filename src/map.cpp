@@ -166,7 +166,8 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
             invalid_base_flag = true;
     }
     if (invalid_base_flag)
-        //continue;
+        // TODO: should readin_integer_seq be cleared here?
+        // TODO: should count_reads be incremented?
         return;
 
     // is there a way to avoid making this copy?
@@ -202,7 +203,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
                      sa_intervals, sa_intervals_rev,
                      sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done);
 
-    //proxy for mapping is "unique horizontally"
+    // proxy for mapping is "unique horizontally"
     if (sa_intervals.size() != 1){
         count_reads++;
         readin_integer_seq.clear();
