@@ -15,7 +15,7 @@
 
 #include <seqread.hpp>
 #include "bwt_search.h"
-#include "parse_masks.h"
+#include "masks.hpp"
 #include "precalc_gen.hpp"
 #include "map.hpp"
 

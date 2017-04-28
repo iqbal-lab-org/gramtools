@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "parse_masks.h"
+#include "masks.hpp"
 
 
 MasksParser::MasksParser(const std::string &sites_fname, const std::string &alleles_fname) {
