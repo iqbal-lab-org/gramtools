@@ -19,20 +19,26 @@
 namespace po = boost::program_options;
 
 
+typedef csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> CSA;
+typedef sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> KmerIdx;
+typedef sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> KmerSites;
+typedef sequence_set<std::vector<uint8_t>> KmersRef;
+
+
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
 
     // TODO: implement Boost logging
     std::cout << "Start CSA construction" << std::endl;
-    auto csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
+    CSA csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
                           params.csa_memory_log_fpath, params.csa_fpath, true, true);
     std::cout << "End CSA construction" << std::endl;
 
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
 
-    sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx, kmer_idx_rev;
-    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites;
-    sequence_set<std::vector<uint8_t>> kmers_in_ref;
+    KmerIdx kmer_idx, kmer_idx_rev;
+    KmerSites kmer_sites;
+    KmersRef kmers_in_ref;
     get_precalc_kmers(csa, kmer_idx, kmer_idx_rev,
                       kmer_sites, kmers_in_ref, masks.allele,
                       params.prg_kmers_fpath, masks.max_alphabet_num, params.kmers_size);
