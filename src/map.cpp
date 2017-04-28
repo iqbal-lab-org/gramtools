@@ -29,13 +29,14 @@ int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
 
     // TODO: implement Boost logging
-    std::cout << "Start CSA construction" << std::endl;
+    std::cout << "Constructing CSA" << std::endl;
     CSA csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
                           params.csa_memory_log_fpath, params.csa_fpath, true, true);
-    std::cout << "End CSA construction" << std::endl;
 
+    std::cout << "Parsing sites and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
 
+    std::cout << "Precalculating K-mers" << std::endl;
     KmerIdx kmer_idx, kmer_idx_rev;
     KmerSites kmer_sites;
     KmersRef kmers_in_ref;
@@ -44,16 +45,14 @@ int main(int argc, const char *const *argv) {
                       params.prg_kmers_fpath, masks.max_alphabet_num, params.kmers_size);
 
     std::cout << "Start mapping" << std::endl;
-
-    // TODO: This shouldn't be an 8-bit int, 2-bits per element will do.
-    std::vector<uint8_t> readin_integer_seq;
-    readin_integer_seq.reserve(200);
-
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_mapped = 0;
     int count_reads = 0;
     int inc = 0;
+
+    std::vector<uint8_t> readin_integer_seq;
+    readin_integer_seq.reserve(200);
 
     for (auto festa_read: input_festa) {
         if (!(inc++ % 10))
@@ -165,9 +164,10 @@ int main(int argc, const char *const *argv) {
         readin_integer_seq.clear();
     }
     reads_fhandle.close();
-    std::cout << "Finished mapping:" << std::endl;
+    std::cout << "Mapping finished" << std::endl;
     std::cout << count_mapped << std::endl;
 
+    std::cout << "Writing allele coverage to file" << std::endl;
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
     for (uint32_t i = 0; i < masks.allele_coverage.size(); i++) {
         for (uint32_t j = 0; j < masks.allele_coverage[i].size(); j++)
