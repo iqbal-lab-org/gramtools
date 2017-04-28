@@ -53,6 +53,7 @@ int main(int argc, const char *const *argv) {
 
     std::cout << "Parsing sites and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
+    // TODO: should allele_coverage be separated from the masks data structure?
 
     std::cout << "Pre-calculating K-mers" << std::endl;
     KmerIdx kmer_idx, kmer_idx_rev;
