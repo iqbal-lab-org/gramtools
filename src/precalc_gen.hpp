@@ -1,4 +1,7 @@
-#include <algorithm> 
+#ifndef GRAMTOOLS_PRECALC_GEN_HPP
+#define GRAMTOOLS_PRECALC_GEN_HPP
+
+#include <algorithm>
 #include "bwt_search.h"
 #include <cctype>
 #include <cstdint>
@@ -15,6 +18,12 @@
 #include <vector>  
 #include <sys/stat.h>
 #include <unistd.h>
+
+
+typedef sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> KmerIdx;
+typedef sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> KmerSites;
+typedef sequence_set<std::vector<uint8_t>> KmersRef;
+
 
 inline bool fexists (const std::string& name) {
 	ifstream f(name.c_str());
@@ -310,3 +319,4 @@ void get_precalc_kmers(
 	std::cout << "DONE!\n";
 }
 
+#endif //GRAMTOOLS_PRECALC_GEN_HPP

@@ -23,27 +23,6 @@
 namespace po = boost::program_options;
 
 
-typedef csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> CSA;
-typedef sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> KmerIdx;
-typedef sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> KmerSites;
-typedef sequence_set<std::vector<uint8_t>> KmersRef;
-
-
-uint64_t map_festa(Parameters &params, MasksParser &masks,
-                   KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
-                   KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa);
-
-
-bool convert_festa_to_int_seq(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq);
-
-
-void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq, Parameters &params,
-                            MasksParser &masks, int &count_reads, KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
-                            KmerSites &kmer_sites, KmersRef &kmers_in_ref, uint64_t &count_mapped, CSA &csa);
-
-void output_allele_coverage(Parameters &params, MasksParser &masks);
-
-
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
 
