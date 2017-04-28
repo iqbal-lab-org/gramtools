@@ -25,6 +25,11 @@ typedef sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint3
 typedef sequence_set<std::vector<uint8_t>> KmersRef;
 
 
+uint64_t map_festa(Parameters &params, MasksParser &masks,
+                   KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
+                   KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa);
+
+
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq, Parameters &params,
                             MasksParser &masks, int &count_reads, KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
                             KmerSites &kmer_sites, KmersRef &kmers_in_ref, uint64_t &count_mapped, CSA &csa);
@@ -51,28 +56,10 @@ int main(int argc, const char *const *argv) {
                       kmer_sites, kmers_in_ref, masks.allele,
                       params.prg_kmers_fpath, masks.max_alphabet_num, params.kmers_size);
 
-    std::cout << "Start mapping" << std::endl;
-    SeqRead input_festa(params.festa_fpath.c_str());
-    std::ofstream reads_fhandle(params.processed_reads_fpath);
-    uint64_t count_mapped = 0;
-    int count_reads = 0;
-    int inc = 0;
-
-    std::vector<uint8_t> readin_integer_seq;
-    readin_integer_seq.reserve(200);
-
-    for (auto festa_read: input_festa) {
-        if (!(inc++ % 10))
-            reads_fhandle << count_reads << std::endl;
-
-        process_festa_sequence(festa_read, readin_integer_seq, params,
-                               masks, count_reads, kmer_idx, kmer_idx_rev,
-                               kmer_sites, kmers_in_ref, count_mapped, csa);
-
-    }
-    reads_fhandle.close();
-    std::cout << "Mapping finished" << std::endl;
-    std::cout << count_mapped << std::endl;
+    std::cout << "Mapping" << std::endl;
+    uint64_t count_mapped = map_festa(params, masks, kmer_idx, kmer_idx_rev,
+                                      kmer_sites, kmers_in_ref, csa);
+    std::cout << "Count mapped: " << count_mapped << std::endl;
 
     std::cout << "Writing allele coverage to file" << std::endl;
     output_allele_coverage(params, masks);
@@ -130,8 +117,35 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
 }
 
 
-void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq, Parameters &params,
-                            MasksParser &masks, int &count_reads, KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
+uint64_t map_festa(Parameters &params, MasksParser &masks,
+                   KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
+                   KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa){
+    SeqRead input_festa(params.festa_fpath.c_str());
+    std::ofstream reads_fhandle(params.processed_reads_fpath);
+    uint64_t count_mapped = 0;
+    int count_reads = 0;
+    int inc = 0;
+
+    std::vector<uint8_t> readin_integer_seq;
+    readin_integer_seq.reserve(200);
+
+    for (auto festa_read: input_festa) {
+        if (!(inc++ % 10))
+            reads_fhandle << count_reads << std::endl;
+
+        process_festa_sequence(festa_read, readin_integer_seq, params,
+                               masks, count_reads, kmer_idx, kmer_idx_rev,
+                               kmer_sites, kmers_in_ref, count_mapped, csa);
+
+    }
+    reads_fhandle.close();
+    return count_mapped;
+}
+
+
+void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
+                            Parameters &params, MasksParser &masks, int &count_reads,
+                            KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
                             KmerSites &kmer_sites, KmersRef &kmers_in_ref,
                             uint64_t &count_mapped, CSA &csa){
     std::cout << festa_read->seq << std::endl;
