@@ -288,5 +288,4 @@ void output_allele_coverage(Parameters &params, MasksParser &masks) {
             allele_coverage_fhandle << masks.allele_coverage[i][j] << " ";
         allele_coverage_fhandle << std::endl;
     }
-    allele_coverage_fhandle.close();
 }
