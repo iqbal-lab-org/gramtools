@@ -24,6 +24,8 @@ typedef sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_
 typedef sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> KmerSites;
 typedef sequence_set<std::vector<uint8_t>> KmersRef;
 
+void output_allele_coverage(Parameters &params, MasksParser &masks);
+
 
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
@@ -168,6 +170,12 @@ int main(int argc, const char *const *argv) {
     std::cout << count_mapped << std::endl;
 
     std::cout << "Writing allele coverage to file" << std::endl;
+    output_allele_coverage(params, masks);
+    return 0;
+}
+
+
+void output_allele_coverage(Parameters &params, MasksParser &masks){
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
     for (uint32_t i = 0; i < masks.allele_coverage.size(); i++) {
         for (uint32_t j = 0; j < masks.allele_coverage[i].size(); j++)
@@ -175,7 +183,7 @@ int main(int argc, const char *const *argv) {
         allele_coverage_fhandle << std::endl;
     }
     allele_coverage_fhandle.close();
-    return 0;
+
 }
 
 
