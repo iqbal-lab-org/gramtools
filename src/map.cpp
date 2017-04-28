@@ -1,3 +1,7 @@
+/* TODO:
+ *  *   implement boost logging
+*/
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -40,15 +44,14 @@ void output_allele_coverage(Parameters &params, MasksParser &masks);
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
 
-    // TODO: implement Boost logging
     std::cout << "Constructing CSA" << std::endl;
     CSA csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
-                          params.csa_memory_log_fpath, params.csa_fpath, true, true);
+                         params.csa_memory_log_fpath, params.csa_fpath, true, true);
 
     std::cout << "Parsing sites and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
 
-    std::cout << "Precalculating K-mers" << std::endl;
+    std::cout << "Pre-calculating K-mers" << std::endl;
     KmerIdx kmer_idx, kmer_idx_rev;
     KmerSites kmer_sites;
     KmersRef kmers_in_ref;
@@ -119,7 +122,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
 
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
-                   KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa){
+                   KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa) {
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_mapped = 0;
@@ -147,7 +150,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
                             Parameters &params, MasksParser &masks, int &count_reads,
                             KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
                             KmerSites &kmer_sites, KmersRef &kmers_in_ref,
-                            uint64_t &count_mapped, CSA &csa){
+                            uint64_t &count_mapped, CSA &csa) {
     std::cout << festa_read->seq << std::endl;
     bool invalid_base_flag = false;
     for (int i = 0; i < strlen(festa_read->seq); i++) {
@@ -255,7 +258,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
 }
 
 
-void output_allele_coverage(Parameters &params, MasksParser &masks){
+void output_allele_coverage(Parameters &params, MasksParser &masks) {
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
     for (uint32_t i = 0; i < masks.allele_coverage.size(); i++) {
         for (uint32_t j = 0; j < masks.allele_coverage[i].size(); j++)
@@ -263,5 +266,4 @@ void output_allele_coverage(Parameters &params, MasksParser &masks){
         allele_coverage_fhandle << std::endl;
     }
     allele_coverage_fhandle.close();
-
 }
