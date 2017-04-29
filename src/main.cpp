@@ -2,13 +2,8 @@
  *  *   implement boost logging
 */
 
-#include <fstream>
 #include <iostream>
-#include <vector>
 
-#include <boost/program_options/option.hpp>
-#include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
