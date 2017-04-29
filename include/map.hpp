@@ -1,7 +1,7 @@
 #ifndef GRAMTOOLS_MAP_HPP
 #define GRAMTOOLS_MAP_HPP
 
-#include "precalc_gen.hpp"
+#include "kmers.hpp"
 #include "bwt_search.h"
 
 
