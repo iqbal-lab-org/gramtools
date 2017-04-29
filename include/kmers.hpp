@@ -1,9 +1,9 @@
 #ifndef GRAMTOOLS_KMERS_HPP
 #define GRAMTOOLS_KMERS_HPP
 
-typedef sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> KmerIdx;
-typedef sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> KmerSites;
-typedef sequence_set<std::vector<uint8_t>> KmersRef;
+using KmerIdx = sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>>;
+using KmerSites = sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>;
+using KmersRef = sequence_set<std::vector<uint8_t>>;
 
 
 inline bool fexists (const std::string& name);

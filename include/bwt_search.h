@@ -13,7 +13,7 @@ using namespace sdsl;
 using namespace std;
 
 
-typedef csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> CSA;
+using CSA = csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216>;
 
 template < typename SEQUENCE > struct seq_hash
 			       {
