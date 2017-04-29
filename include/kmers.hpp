@@ -60,16 +60,16 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 	);
 
 
-struct KmerData{
+struct KmersData{
 	KmerIdx index, index_reverse;
 	KmerSites sites;
 	KmersRef in_reference;
 };
 
 
-KmerData get_kmer(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-				  std::vector<int> &mask_a, std::string kmer_fname,
-				  uint64_t maxx, int k);
+KmersData get_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
+				    std::vector<int> &mask_a, std::string kmer_fname,
+				    uint64_t maxx, int k);
 
 
 #endif //GRAMTOOLS_KMERS_HPP

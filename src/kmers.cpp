@@ -275,9 +275,9 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 }
 
 
-KmerData get_kmer(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-                  std::vector<int> &mask_a, std::string kmer_fname,
-                  uint64_t maxx, int k){
+KmersData get_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
+                   std::vector<int> &mask_a, std::string kmer_fname,
+                   uint64_t maxx, int k){
 
     if (!fexists(std::string(kmer_fname)+".precalc"))
     {
@@ -288,9 +288,9 @@ KmerData get_kmer(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
     }
 
     std::cout << "Reading K-mers" << std::endl;
-    KmerData kmer;
-    read_precalc_kmers(std::string(kmer_fname)+".precalc" , kmer.kmer_index,
-                       kmer.index_reverse, kmer.sites,
-                       kmer.in_reference);
-    return kmer;
+    KmersData kmers;
+    read_precalc_kmers(std::string(kmer_fname)+".precalc" , kmers.index,
+                       kmers.index_reverse, kmers.sites,
+                       kmers.in_reference);
+    return kmers;
 }

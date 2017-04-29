@@ -16,8 +16,8 @@
 
 
 uint64_t map_festa(Parameters &params, MasksParser &masks,
-                   KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
-                   KmerSites &kmer_sites, KmersRef &kmers_in_ref, CSA &csa) {
+                   KmersData &kmers, CSA &csa) {
+
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_mapped = 0;
@@ -32,8 +32,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
             reads_fhandle << count_reads << std::endl;
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
-                               masks, count_reads, kmer_idx, kmer_idx_rev,
-                               kmer_sites, kmers_in_ref, count_mapped, csa);
+                               masks, count_reads, kmers, count_mapped, csa);
 
     }
     reads_fhandle.close();
@@ -43,9 +42,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads,
-                            KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
-                            KmerSites &kmer_sites, KmersRef &kmers_in_ref,
-                            uint64_t &count_mapped, CSA &csa) {
+                            KmersData &kmers, uint64_t &count_mapped, CSA &csa) {
 
     std::cout << festa_read->seq << std::endl;
     bool invalid_base_flag = convert_festa_to_int_seq(festa_read, readin_integer_seq);
@@ -58,25 +55,25 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
     auto kmer_end_it = readin_integer_seq.end();
     std::vector<uint8_t> kmer(kmer_start_it, kmer_end_it);
 
-    bool kmer_within_range = kmer_idx.find(kmer) != kmer_idx.end()
-                             && kmer_idx_rev.find(kmer) != kmer_idx_rev.end()
-                             && kmer_sites.find(kmer) != kmer_sites.end();
+    bool kmer_within_range = kmers.index.find(kmer) != kmers.index.end()
+                             && kmers.index_reverse.find(kmer) != kmers.index_reverse.end()
+                             && kmers.sites.find(kmer) != kmers.sites.end();
     if (!kmer_within_range){
         count_reads++;
         readin_integer_seq.clear();
         return;
     }
 
-    auto sa_intervals = kmer_idx[kmer];
-    auto sa_intervals_rev = kmer_idx_rev[kmer];
-    auto sites = kmer_sites[kmer];
+    auto sa_intervals = kmers.index[kmer];
+    auto sa_intervals_rev = kmers.index_reverse[kmer];
+    auto sites = kmers.sites[kmer];
 
     auto it = sa_intervals.begin();
     auto it_rev = sa_intervals_rev.begin();
 
     // kmers in ref means kmers that do not cross any numbers
     // These are either in non-variable region, or are entirely within alleles
-    bool first_del = !(kmers_in_ref.find(kmer) != kmers_in_ref.end());
+    bool first_del = !(kmers.in_reference.find(kmer) != kmers.in_reference.end());
     bool precalc_done = true;
 
     bidir_search_bwd(csa, (*it).first, (*it).second,
@@ -105,7 +102,8 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
         if (sites.empty()) {
             if (masks.allele[csa[ind]] != 0) {
                 masks.allele_coverage[(masks.sites[csa[ind]] - 5) / 2][masks.allele[csa[ind]] - 1]++;
-                assert(masks.allele[csa[ind]] == masks.allele[csa[ind] + readin_integer_seq.size() - 1]);
+                assert(masks.allele[csa[ind]]
+                       == masks.allele[csa[ind] + readin_integer_seq.size() - 1]);
             }
             continue;
         }
