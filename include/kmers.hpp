@@ -61,11 +61,10 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 
 
 struct KmerData{
-	KmerIdx kmer_index, kmer_index_reverse;
-	KmerSites kmer_sites;
-	KmersRef kmers_in_reference;
+	KmerIdx index, index_reverse;
+	KmerSites sites;
+	KmersRef in_reference;
 };
-
 
 
 KmerData get_kmer(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,

@@ -31,13 +31,13 @@ int main(int argc, const char *const *argv) {
     // TODO: should allele_coverage be separated from the masks data structure?
 
     std::cout << "Pre-calculating K-mers" << std::endl;
-    KmerData kmer_data = get_kmer(csa, masks.allele, params.prg_kmers_fpath,
+    KmerData kmer = get_kmer(csa, masks.allele, params.prg_kmers_fpath,
                                   masks.max_alphabet_num, params.kmers_size);
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_festa(params, masks, kmer_data.kmer_index,
-                                      kmer_data.kmer_index_reverse, kmer_data.kmer_sites,
-                                      kmer_data.kmers_in_reference, csa);
+    uint64_t count_mapped = map_festa(params, masks, kmer.index,
+                                      kmer.index_reverse, kmer.sites,
+                                      kmer.in_reference, csa);
     std::cout << "Count mapped: " << count_mapped << std::endl;
 
     std::cout << "Writing allele coverage to file" << std::endl;

@@ -288,9 +288,9 @@ KmerData get_kmer(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
     }
 
     std::cout << "Reading K-mers" << std::endl;
-    KmerData kmer_data;
-    read_precalc_kmers(std::string(kmer_fname)+".precalc" , kmer_data.kmer_index,
-                       kmer_data.kmer_index_reverse, kmer_data.kmer_sites,
-                       kmer_data.kmers_in_reference);
-    return kmer_data;
+    KmerData kmer;
+    read_precalc_kmers(std::string(kmer_fname)+".precalc" , kmer.kmer_index,
+                       kmer.index_reverse, kmer.sites,
+                       kmer.in_reference);
+    return kmer;
 }
