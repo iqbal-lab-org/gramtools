@@ -12,7 +12,9 @@ include_directories(${SOURCE} ${INCLUDE} ${UTILS} ${GTEST_DIR})
 set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors")
 add_executable(
         gramtools
+        ${SOURCE}/main.cpp
         ${SOURCE}/map.cpp
+        ${SOURCE}/kmers.cpp
         ${SOURCE}/bidir_search_bwd.cpp
         ${SOURCE}/bidir_search_fwd.cpp
         ${SOURCE}/get_location.cpp
