@@ -16,7 +16,6 @@ add_executable(
         ${SOURCE}/bidir_search_bwd.cpp
         ${SOURCE}/bidir_search_fwd.cpp
         ${SOURCE}/get_location.cpp
-        ${SOURCE}/precalc_gen.hpp
         ${SOURCE}/skip.cpp
         ${SOURCE}/bidir_search.cpp
         ${SOURCE}/csa_construction.cpp
