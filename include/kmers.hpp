@@ -59,15 +59,18 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 			sequence_set<std::vector<uint8_t>>&kmers_in_ref
 	);
 
-void get_precalc_kmers(
-		csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx,
-		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,
-		sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
-		sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-		std::vector<int> &mask_a,
-		std::string kmer_fname,
-		uint64_t maxx,
-		int k);
+
+struct KmerData{
+	KmerIdx kmer_index, kmer_index_reverse;
+	KmerSites kmer_sites;
+	KmersRef kmers_in_reference;
+};
+
+
+
+KmerData get_kmer(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
+				  std::vector<int> &mask_a, std::string kmer_fname,
+				  uint64_t maxx, int k);
+
 
 #endif //GRAMTOOLS_KMERS_HPP
