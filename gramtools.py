@@ -11,7 +11,7 @@ GENERATE_PRG_SCRIPT_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                         'utils/vcf_to_linear_prg.pl')
 GENERATE_KMERS_SCRIPT_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                           'utils/variantKmers.py')
-MAP_READS_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
+MAP_READS_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH, 'bin',
                               'gramtools')
 
 

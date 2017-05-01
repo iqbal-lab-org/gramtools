@@ -10,6 +10,7 @@ set(GTEST_DIR ./googletest/include)
 include_directories(${SOURCE} ${INCLUDE} ${UTILS} ${GTEST_DIR})
 
 set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 add_executable(
         gramtools
         ${SOURCE}/main.cpp
