@@ -84,6 +84,21 @@ gramtools --prg my_species.prg --csa out/csa --ps my_species.prg.mask_sites --pa
 
 
 
+This will create the following files which you do not need to look at:
+
+1. out/csa - the compressed suffix array
+2. out/bin - the PRG in integer encoding
+3. out/memlog - a file used by SDSL for memory tracking
+4. out/reads - a text file showing progress on how many reads have been processed.
+
+and the following file which you will want to look at or parse:
+
+1. out/covg - a text file with one line per site. Each line has a space-separated list of coverages (one per allele)
 
 
-This will create
+We'll be adding new scripts/code for processing.
+
+
+
+
+
