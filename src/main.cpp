@@ -58,7 +58,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
             ("ps,s", po::value<std::string>(&params.site_mask_fpath)->required(),
              "input file containing mask over the linear prg that indicates at "
                      "each position whether you are inside a site and if so, which site")
-            ("pa,c", po::value<std::string>(&params.allele_mask_fpath)->required(),
+            ("pa,a", po::value<std::string>(&params.allele_mask_fpath)->required(),
              "input file containing mask over the linear prg that indicates at "
                      "each position whether you are inside a allele and if so, which allele")
             ("co,v", po::value<std::string>(&params.allele_coverage_fpath)->required(),
