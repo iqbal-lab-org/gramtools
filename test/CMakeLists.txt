@@ -37,12 +37,10 @@ target_link_libraries(test_bidir_search
 	libgmock
 	${LIBS_PATHS}
 	${Boost_LIBRARIES})
-
 target_include_directories(test_bidir_search PUBLIC
 	${SOURCE}
 	${INCLUDE}
 	${UTILS}
 	${source_dir}/googletest/include
     ${source_dir}/googlemock/include)
-
 add_test(test_bidir_search test_bidir_search)
