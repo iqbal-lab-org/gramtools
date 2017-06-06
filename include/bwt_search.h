@@ -41,7 +41,7 @@ void precalc_kmer_matches(CSA &csa, int k,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
                           std::vector<std::vector<uint8_t>> &kmerfile);
 
-uint64_t bidir_search(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+uint64_t bidir_search(CSA &csa,
                       uint64_t &left, uint64_t &right,
                       uint64_t &left_rev, uint64_t &right_rev,
                       uint8_t c);
@@ -53,7 +53,7 @@ std::pair<uint32_t, std::vector<int>> get_location(CSA &csa,
                                                    std::vector<int> &allele,
                                                    std::vector<int> &mask_a);
 
-bool skip(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+bool skip(CSA &csa,
           uint64_t &left, uint64_t &right,
           uint64_t &left_rev, uint64_t &right_rev,
           uint32_t num, uint64_t maxx);
