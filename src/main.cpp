@@ -7,7 +7,6 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
-#include <seqread.hpp>
 #include "parameters.hpp"
 #include "bwt_search.h"
 #include "masks.hpp"

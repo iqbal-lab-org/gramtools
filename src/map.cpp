@@ -7,7 +7,6 @@
 #include <iostream>
 #include <vector>
 
-#include <seqread.hpp>
 #include "masks.hpp"
 #include "parameters.hpp"
 #include "bwt_search.h"

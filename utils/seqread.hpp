@@ -13,6 +13,8 @@
 #include <fcntl.h>
 
 
+#ifndef GRAMTOOLS_SEQREAD_HPP
+#define GRAMTOOLS_SEQREAD_HPP
 
 struct GenomicRead
 {
@@ -168,21 +170,4 @@ class SeqRead
 		GenomicRead *gr;
 };
 
-
-
-//int main (int argc, const char **argv)
-//{
-//	int a;
-//	SeqRead sq = SeqRead(argv[1]);
-//	for (auto rd: sq)
-//	{
-//		std::cout << (*rd) << std::endl;
-//		for (auto kmer : rd->kmers(16))
-//		{
-//			std::cout << kmer << std::endl;
-//		}
-////		delete rd;
-//	}
-////	std::cout << "enter a\n";
-////	std::cin >> a;
-//}
+#endif //GRAMTOOLS_SEQREAD_HPP

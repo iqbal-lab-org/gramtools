@@ -1,3 +1,6 @@
+#include <seqread.hpp>
+
+
 #ifndef GRAMTOOLS_MAP_HPP
 #define GRAMTOOLS_MAP_HPP
 
