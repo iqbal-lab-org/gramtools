@@ -1,23 +1,9 @@
 #include <algorithm>
-#include "bwt_search.h"
-#include <cctype>
-#include <cstdint>
-#include <fstream>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <iostream>
-#include <locale>
-#include <pthread.h>
-#include <string.h>
-#include <time.h>
-#include <vector>
-#include <vector>
-#include <sys/stat.h>
-#include <unistd.h>
 
+#include "bwt_search.h"
 #include "kmers.hpp"
 
+#define THREADS 25
 
 inline bool fexists (const std::string& name) {
     ifstream f(name.c_str());
