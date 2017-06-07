@@ -3,4 +3,3 @@ cmake-build-debug
 Makefile
 *.sublime-*
 .idea
-pkgconfig

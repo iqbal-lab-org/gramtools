@@ -13,10 +13,12 @@ set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors")
 set(LIBS hts sdsl divsufsort divsufsort64 pthread z)
 set(LIBS_PATHS "")
 foreach(LIB ${LIBS})
-    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIR} /usr/local/lib)
+    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIR} /usr/local/lib $ENV{HOME}/lib)
     list(APPEND LIBS_PATHS ${PATH_${LIB}})
 endforeach(LIB)
 find_package(Boost COMPONENTS program_options REQUIRED)
+
+message(STATUS ${LIBS_PATHS})
 
 add_library(gram STATIC
     ${SOURCE}/map.cpp
