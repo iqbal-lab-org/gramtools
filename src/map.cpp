@@ -32,7 +32,6 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
                                masks, count_reads, kmers, count_mapped, csa);
-
     }
     reads_fhandle.close();
     return count_mapped;
