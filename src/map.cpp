@@ -22,16 +22,19 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
     uint64_t count_mapped = 0;
     int count_reads = 0;
     int inc = 0;
+    int in_sites = 0, no_mapped = 0;
+    std::unordered_set<int> repeats;
 
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
 
     for (auto festa_read: input_festa) {
-        if (!(inc++ % 10))
+        if (!(inc++ % 100000))
             reads_fhandle << count_reads << std::endl;
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
-                               masks, count_reads, kmers, count_mapped, csa);
+                               masks, count_reads, kmers, count_mapped, csa, in_sites,
+                               no_mapped, repeats);
     }
     reads_fhandle.close();
     return count_mapped;
@@ -40,109 +43,139 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads,
-                            KmersData &kmers, uint64_t &count_mapped, CSA &csa) {
+                            KmersData &kmers, uint64_t &count_mapped, CSA &csa, int &in_sites, int &no_mapped,
+                            std::unordered_set<int> &repeats) {
 
-    std::cout << festa_read->seq << std::endl;
+    //cout<<q->seq<<endl;
+    int seqlen=strlen(festa_read->seq);
+
     bool invalid_base_flag = convert_festa_to_int_seq(festa_read, readin_integer_seq);
     if (invalid_base_flag)
         // TODO: should readin_integer_seq and count_reads be modified here?
         return;
+    auto no_occ=0;
+    std::vector<uint8_t> kmer(readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,readin_integer_seq.end()); //is there a way to avoid making this copy?
+    if (kmers.index.find(kmer)!=kmers.index.end() && kmers.index_reverse.find(kmer)!=kmers.index_reverse.end() && kmers.sites.find(kmer)!=kmers.sites.end()) {
+        auto sa_intervals=kmers.index[kmer];
+        auto sa_intervals_rev=kmers.index_reverse[kmer];
+        auto sites=kmers.sites[kmer];
 
-    // TODO: is there a way to avoid making this copy?
-    auto kmer_start_it = readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size;
-    auto kmer_end_it = readin_integer_seq.end();
-    std::vector<uint8_t> kmer(kmer_start_it, kmer_end_it);
+        auto it=sa_intervals.begin();
+        auto it_rev=sa_intervals_rev.begin();
 
-    bool kmer_within_range = kmers.index.find(kmer) != kmers.index.end()
-                             && kmers.index_reverse.find(kmer) != kmers.index_reverse.end()
-                             && kmers.sites.find(kmer) != kmers.sites.end();
-    if (!kmer_within_range){
-        count_reads++;
-        readin_integer_seq.clear();
-        return;
-    }
+        bool first_del = true;
+        //kmers in ref means kmers that do not cross any numbers
+        //These are either in non-variable region, or are entirely within alleles
+        if (kmers.in_reference.find(kmer)!=kmers.in_reference.end())
+        {
+            //then the kmer does overlap a number, by definition.
+            first_del=false;//no need to ignore first SA interval (if it was in the nonvar bit would ignore)
+        }
+        else first_del=true;
 
-    auto sa_intervals = kmers.index[kmer];
-    auto sa_intervals_rev = kmers.index_reverse[kmer];
-    auto sites = kmers.sites[kmer];
+        bool precalc_done=true;
+        auto res_it = bidir_search_bwd(csa, (*it).first, (*it).second,
+                                  (*it_rev).first, (*it_rev).second,
+                                       readin_integer_seq.begin(),readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,
+                                  sa_intervals, sa_intervals_rev,
+                                  sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done);
 
-    auto it = sa_intervals.begin();
-    auto it_rev = sa_intervals_rev.begin();
+        no_occ=0;
 
-    // kmers in ref means kmers that do not cross any numbers
-    // These are either in non-variable region, or are entirely within alleles
-    bool first_del = !(kmers.in_reference.find(kmer) != kmers.in_reference.end());
-    bool precalc_done = true;
+        if (sa_intervals.size()<=10)
+            //proxy for mapping is "unique horizontally"
+        {
+            it=sa_intervals.begin();
+            no_occ=(*it).second-(*it).first;
+            no_mapped++;
+            if (first_del==false) {
+                assert(sites.front().empty());//becasue matches are all in non variable part of PRG
+                repeats.clear();
+                in_sites=0;
+                for (auto ind=(*it).first;ind<(*it).second;ind++) {
+                    if (masks.allele[csa[ind]]!=0) {
+                        in_sites++;
+                        if (repeats.count(masks.sites[csa[ind]])==0) repeats.insert(masks.sites[csa[ind]]);
+                        assert(masks.allele[csa[ind]]==masks.allele[csa[ind]+readin_integer_seq.size()-1]);
+                    }
+                }
+            }
 
-    bidir_search_bwd(csa, (*it).first, (*it).second,
-                     (*it_rev).first, (*it_rev).second,
-                     readin_integer_seq.begin(),
-                     readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
-                     sa_intervals, sa_intervals_rev,
-                     sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done);
+            auto it_ss=sites.begin();
 
-    // proxy for mapping is "unique horizontally"
-    if (sa_intervals.size() != 1){
-        count_reads++;
-        readin_integer_seq.clear();
-        return;
-    }
+            while (it!=sa_intervals.end() && it_ss!=sites.end()) {
+                if (it==sa_intervals.begin() && sites.front().empty()) {
+                    assert(first_del==false);
+                    for (auto ind=(*it).first;ind<(*it).second;ind++)
+                        if (masks.allele[csa[ind]]!=0) {
+                            masks.allele_coverage[(masks.sites[csa[ind]]-5)/2][masks.allele[csa[ind]]-1]=masks.allele_coverage[(masks.sites[csa[ind]]-5)/2][masks.allele[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
+                            assert(masks.allele[csa[ind]]==masks.allele[csa[ind]+readin_integer_seq.size()-1]);
+                        }
+                }
+                else if ((it==sa_intervals.begin() && first_del==true) || (it!=sa_intervals.begin())) { //first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
+                    //if no_occ>1, two matches both starting at the end marker. If one crossed the start marker,
+                    //sorina would have split into two SAs and here we are in one.
+                    //so neither crosses the start marker, both start at the end. Since she only updates sites
+                    //when you cross the left marker, it should be true that sites.front().back().second.size==0
+                    auto it_s=*it_ss;
+                    assert(!it_s.empty());
 
-    if (!first_del)
-        // becasue sites has one element with an empty vector
+                    auto invalid=false;
+                    for (auto site_pair : it_s) {
+                        auto site=site_pair.first;
+                        auto allele=site_pair.second;
+                        if (site_pair!=it_s.back() && allele.empty()) invalid=true;
+                    }
+
+                    if(!invalid) {
+                        if (((*it).second-(*it).first)>1) assert(it_s.back().second.size()==0); //vertically non-unique
+                        for (auto site_pair : it_s) {
+                            auto site=site_pair.first;
+                            auto allele=site_pair.second;
+                            if (site_pair!=it_s.back() && site_pair!=it_s.front()) assert(allele.size()==1);
+                            if (site_pair==it_s.back() && allele.empty()) {
+                                for (auto ind=(*it).first;ind<(*it).second;ind++)
+                                    if (masks.allele[csa[ind]]>0) { //mask_a[csa[ind]] can be 0 here if one match in the SA-interval is coming from a skipped start-site marker
+                                        if (first_del==false) { //take into account the number of matches in the reference seq
+                                            assert((no_occ-in_sites+repeats.size()+sa_intervals.size()-1)>0);
+                                            masks.allele_coverage[(site-5)/2][masks.allele[csa[ind]]-1]=masks.allele_coverage[(site-5)/2][masks.allele[csa[ind]]-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1);
+                                        }
+                                        else
+                                            masks.allele_coverage[(site-5)/2][masks.allele[csa[ind]]-1]=masks.allele_coverage[(site-5)/2][masks.allele[csa[ind]]-1]+1.0/sa_intervals.size();
+                                    }
+                            }
+                            else if (!allele.empty()) {
+                                assert(!allele.empty());
+                                for (auto al:allele) {
+                                    if (first_del==false) {
+                                        assert((no_occ-in_sites+repeats.size()+sa_intervals.size()-1)>0);
+                                        masks.allele_coverage[(site-5)/2][al-1]=masks.allele_coverage[(site-5)/2][al-1]+1.0/(no_occ-in_sites+repeats.size()+sa_intervals.size()-1);
+                                    }
+                                    else
+                                        masks.allele_coverage[(site-5)/2][al-1]=masks.allele_coverage[(site-5)/2][al-1]+1.0/sa_intervals.size();
+                                }
+                            }
+                        }
+                    }
+                }
+                ++it;
+                ++it_ss;
+            }
+        }
+        else
+        {
+            no_occ=0;
+        }
+        sa_intervals.clear();
+        sa_intervals_rev.clear();
         sites.clear();
-
-    count_mapped++;
-    uint64_t no_occ = (*it).second - (*it).first;
-    it = sa_intervals.begin();
-
-    for (auto ind = (*it).first; ind < (*it).second; ind++) {
-        if (sites.empty()) {
-            if (masks.allele[csa[ind]] != 0) {
-                masks.allele_coverage[(masks.sites[csa[ind]] - 5) / 2][masks.allele[csa[ind]] - 1]++;
-                assert(masks.allele[csa[ind]]
-                       == masks.allele[csa[ind] + readin_integer_seq.size() - 1]);
-            }
-            continue;
-        }
-        // first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
-
-        // if no_occ>1, two matches both starting at the end marker. If one crossed the start marker,
-        // sorina would have split into two SAs and here we are in one.
-        // so neither crosses the start marker, both start at the end. Since she only updates sites
-        // when you cross the left marker, it should be true that sites.front().back().second.size==0
-        if (!(sites.empty()) && (no_occ > 1))
-            // vertically non-unique
-            assert(sites.front().back().second.size() == 0);
-
-        bool invalid = false;
-        for (auto it_s : sites) {
-            for (auto site_pair : it_s) {
-                auto allele = site_pair.second;
-                if (it_s != sites.back() && it_s != sites.front() && allele.empty())
-                    invalid = true;
-            }
-        }
-
-        if (invalid)
-            continue;
-
-        for (auto it_s : sites) {
-            for (auto site_pair : it_s) {
-                auto site = site_pair.first;
-                auto allele = site_pair.second;
-                if (it_s != sites.back() && it_s != sites.front())
-                    assert(allele.size() == 1);
-                // mask_a[csa[ind]] can be 0 here if the match is
-                // coming from a skipped start_site marker
-                if ((allele.empty()) && (masks.allele[csa[ind]] > 0))
-                    masks.allele_coverage[(site - 5) / 2][masks.allele[csa[ind]] - 1]++;
-                else
-                    for (auto al : allele)
-                        masks.allele_coverage[(site - 5) / 2][al - 1]++;
-            }
-        }
     }
+    else
+    {
+        no_occ=0;
+    }
+    //cout<<no_occ<<endl;
+    //clear p, sa_intervals etc
 
     count_reads++;
     readin_integer_seq.clear();
