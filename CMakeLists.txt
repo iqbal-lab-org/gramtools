@@ -8,16 +8,15 @@ set(INCLUDE ${PROJECT_SOURCE_DIR}/include)
 set(UTILS ${PROJECT_SOURCE_DIR}/utils)
 set(LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
-set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors -pthread")
+set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors")
 
-set(LIBS sdsl hts divsufsort divsufsort64 pthread z)
+set(LIBS hts sdsl divsufsort divsufsort64 pthread z)
 set(LIBS_PATHS "")
 foreach(LIB ${LIBS})
-    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIR})
+    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIR} /usr/local/lib)
     list(APPEND LIBS_PATHS ${PATH_${LIB}})
 endforeach(LIB)
 find_package(Boost COMPONENTS program_options REQUIRED)
-#include_directories(${SOURCE} ${INCLUDE} ${UTILS} ${Boost_INCLUDE_DIRS})
 
 add_library(gram STATIC
     ${SOURCE}/map.cpp
@@ -35,6 +34,7 @@ target_include_directories(gram PUBLIC
     ${INCLUDE}
     ${UTILS}
     ${Boost_INCLUDE_DIRS})
+target_link_libraries(gram LINK_PUBLIC ${LIBS_PATHS} ${Boost_LIBRARIES})
 
 add_executable(gramtools ${SOURCE}/main.cpp)
 target_include_directories(gramtools PUBLIC
