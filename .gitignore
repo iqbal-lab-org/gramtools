@@ -4,4 +4,3 @@ Makefile
 *.sublime-*
 .idea
 pkgconfig
-include/htslib
