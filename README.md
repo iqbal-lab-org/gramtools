@@ -56,6 +56,14 @@ make
 ```
 
 # Usage
+```
+python gramtools.py with vcf_path=veriant_call_format.vcf fasta_path=fasta_file.fa kmer_size=9
+```
+
+The output coverage file can be found here: ./gramtools_runs/{run_number}/data/coverage
+Each line has a space-separated list of coverages (one per allele).
+
+# Usage_bak
 
 * Build the PRG file from a VCF
 ```
