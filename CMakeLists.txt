@@ -5,7 +5,6 @@ enable_testing()
 
 set(SOURCE ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE ${PROJECT_SOURCE_DIR}/include)
-set(UTILS ${PROJECT_SOURCE_DIR}/utils)
 set(LIB_DIRS
         ${PROJECT_SOURCE_DIR}/lib
         $ENV{LD_LIBRARY_PATH}
