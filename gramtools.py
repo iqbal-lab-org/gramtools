@@ -6,7 +6,7 @@ from sacred.utils import apply_backspaces_and_linefeeds
 from sacred.observers.file_storage import FileStorageObserver
 
 
-GRAMTOOLS_INSTALL_PATH = '/home/robyn/Documents/gramtools'
+GRAMTOOLS_INSTALL_PATH = './gramtools'
 GENERATE_PRG_SCRIPT_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                         'utils/vcf_to_linear_prg.pl')
 GENERATE_KMERS_SCRIPT_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
