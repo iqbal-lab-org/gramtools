@@ -20,7 +20,7 @@ foreach(LIB ${LIBS})
     list(APPEND LIBS_PATHS ${PATH_${LIB}})
 endforeach(LIB)
 
-find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost COMPONENTS program_options timer REQUIRED)
 
 add_library(gram STATIC
     ${SOURCE}/map.cpp

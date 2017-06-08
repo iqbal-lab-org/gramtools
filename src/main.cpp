@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include <boost/timer/timer.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
@@ -15,36 +16,44 @@
 #include "main.hpp"
 
 
-namespace po = boost::program_options;
-
-
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
+    TimerReport timer_report;
 
-    std::cout << "Constructing CSA" << std::endl;
+    std::cout << "Constructing FM-index" << std::endl;
     CSA csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
                          params.csa_memory_log_fpath, params.csa_fpath, true, true);
+    timer_report.record("Construct FM-index");
 
     std::cout << "Parsing sites and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
+    timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
 
-    std::cout << "Pre-calculating K-mers" << std::endl;
+    std::cout << "Pre-calculating kmers" << std::endl;
     KmersData kmers = get_kmers(csa, masks.allele, params.prg_kmers_fpath,
                                 masks.max_alphabet_num, params.kmers_size);
+    timer_report.record("Pre-calc kmers");
 
     std::cout << "Mapping" << std::endl;
     uint64_t count_mapped = map_festa(params, masks, kmers, csa);
     std::cout << "Count mapped: " << count_mapped << std::endl;
+    timer_report.record("Mapping");
 
     std::cout << "Writing allele coverage to file" << std::endl;
     output_allele_coverage(params, masks);
+    timer_report.record("Output coverage");
+
+    timer_report.report();
+    
     return 0;
 }
 
 
 Parameters parse_command_line_parameters(int argc, const char *const *argv) {
+    namespace po = boost::program_options;
     Parameters params;
+
     po::options_description description("All parameters must be specified");
     description.add_options()
             ("help", "produce help message")
@@ -90,4 +99,28 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     }
 
     return params;
+}
+
+
+void TimerReport::record(std::string note){
+    boost::timer::cpu_times times = timer.elapsed();
+    double elapsed_time = (times.user + times.system) * 1e-9;
+    Entry entry = std::make_pair(note, elapsed_time);
+    logger.push_back(entry);
+}
+
+void TimerReport::report() const{
+    std::cout << "\nTimer report:" << std::endl;
+    cout_row(" ", "seconds");
+
+    for (const auto &entry: TimerReport::logger){
+        cout_row(std::get<0>(entry), std::get<1>(entry));
+    }
+}
+
+template <typename TypeCol1, typename TypeCol2>
+void TimerReport::cout_row(TypeCol1 col1, TypeCol2 col2) const {
+    std::cout << std::setw(20) << std::right << col1
+              << std::setw(10) << std::right << col2
+              << std::endl;
 }
