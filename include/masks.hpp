@@ -11,7 +11,7 @@ public:
     std::vector<uint64_t> sites;
 
     std::vector<int> allele;
-    std::vector<std::vector<int>> allele_coverage;
+    std::vector<std::vector<float>> allele_coverage;
 
     MasksParser(){};
     MasksParser(const std::string &sites_fname, const std::string &alleles_fname);
