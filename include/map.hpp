@@ -1,4 +1,4 @@
-#include <seqread.hpp>
+#include "sequence_read/seqread.hpp"
 
 
 #ifndef GRAMTOOLS_MAP_HPP
