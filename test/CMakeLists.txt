@@ -32,8 +32,8 @@ set_target_properties(libgmock PROPERTIES
 
 add_executable(test_main
 		       main.cpp
-        	   unittest_bidir_search_bwd_fwd.cpp
-               slow_unittest_bidir_search_bwd_fwd.cpp
+        	   test_bidir_search.cpp
+               test_bidir_search_slow.cpp
                test_process_prg.cpp)
 target_link_libraries(test_main
 	gram
