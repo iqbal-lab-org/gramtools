@@ -109,14 +109,18 @@ void TimerReport::record(std::string note){
     logger.push_back(entry);
 }
 
+
 void TimerReport::report() const{
     std::cout << "\nTimer report:" << std::endl;
     cout_row(" ", "seconds");
 
     for (const auto &entry: TimerReport::logger){
-        cout_row(std::get<0>(entry), std::get<1>(entry));
+        auto &note = std::get<0>(entry);
+        auto &elapsed_time = std::get<1>(entry);
+        cout_row(note, elapsed_time);
     }
 }
+
 
 template <typename TypeCol1, typename TypeCol2>
 void TimerReport::cout_row(TypeCol1 col1, TypeCol2 col2) const {
