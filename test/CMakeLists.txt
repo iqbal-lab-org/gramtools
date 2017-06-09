@@ -30,17 +30,21 @@ set_target_properties(libgmock PROPERTIES
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
-add_executable(test_bidir_search
-        	   unittest_bidir_search_bwd_fwd.cpp)
-target_link_libraries(test_bidir_search
+add_executable(test_main
+		       main.cpp
+        	   test_bidir_search.cpp
+               test_bidir_search_slow.cpp
+               test_process_prg.cpp)
+target_link_libraries(test_main
 	gram
 	libgmock
 	${LIBS_PATHS}
 	${Boost_LIBRARIES})
-target_include_directories(test_bidir_search PUBLIC
+target_include_directories(test_main PUBLIC
 	${SOURCE}
 	${INCLUDE}
 	${UTILS}
 	${source_dir}/googletest/include
     ${source_dir}/googlemock/include)
-add_test(test_bidir_search test_bidir_search)
+
+add_test(NAME test_main COMMAND test_main)
