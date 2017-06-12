@@ -14,8 +14,18 @@
 #include "map.hpp"
 
 
+sdsl::bit_vector construct_variant_sites_mask(const FM_Index &fm_index){
+    sdsl::bit_vector variant_mask(fm_index.bwt.size(), 0);
+    for(unsigned int i=0; i < fm_index.bwt.size(); i++)
+        variant_mask[i] = fm_index.bwt[i] > 4;
+    return variant_mask;
+}
+
+
 uint64_t map_festa(Parameters &params, MasksParser &masks,
-                   KmersData &kmers, CSA &csa) {
+                   KmersData &kmers, CSA &fm_index) {
+
+    auto variant_mask = construct_variant_sites_mask(fm_index);
 
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
@@ -33,7 +43,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
             reads_fhandle << count_reads << std::endl;
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
-                               masks, count_reads, kmers, count_mapped, csa, in_sites,
+                               masks, count_reads, kmers, count_mapped, fm_index, in_sites,
                                no_mapped, repeats);
     }
     reads_fhandle.close();

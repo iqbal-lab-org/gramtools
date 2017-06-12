@@ -8,14 +8,6 @@
 
 using namespace sdsl;
 
-/*
-bool variant_site_in_range(sdsl::bit_vector variant_sties_mask,
-						   std::list<std::pair<uint64_t,uint64_t>>::iterator start,
-						   std::list<std::pair<uint64_t,uint64_t>>::iterator end){
-
-	for
-}
-*/
 
 // should make csa template to have control from cmd line over SA sampling density
 std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
