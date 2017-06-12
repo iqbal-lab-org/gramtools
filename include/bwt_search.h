@@ -39,7 +39,7 @@ void precalc_kmer_matches(CSA &csa, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                          std::vector<std::vector<uint8_t>> &kmerfile);
+                          std::vector<std::vector<uint8_t>> &kmerfile, unordered_map<uint8_t,vector<uint64_t>>& rank_all);
 
 void precalc_ranks(CSA &csa,
 		   std::unordered_map<uint8_t,vector<uint64_t>>& rank_all); 

@@ -22,7 +22,8 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,1677721
 		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
 		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,
 		sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
-		std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>>& kmers_in_ref, std::vector<std::vector<uint8_t>> &kmers) 
+		std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>>& kmers_in_ref, std::vector<std::vector<uint8_t>> &kmers,
+		std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) 
 {
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> temp2;		  
 	std::list<std::pair<uint64_t,uint64_t>> temp;
@@ -43,7 +44,7 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,1677721
 								       (kmer).begin(),(kmer).end(),
 								       kmer_idx[kmer],kmer_idx_rev[kmer],
 								       kmer_sites[kmer],
-								       mask_a,maxx,first_del, precalc_done);
+								       mask_a,maxx,first_del, precalc_done, rank_all);
 		if  ((kmer_idx[kmer]).empty())
 		  {
 		    kmer_idx.erase(kmer);
