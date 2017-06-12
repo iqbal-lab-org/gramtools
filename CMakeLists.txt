@@ -4,23 +4,25 @@ project(gramtools CXX)
 enable_testing()
 
 set(SOURCE ${PROJECT_SOURCE_DIR}/src)
-set(INCLUDE ${PROJECT_SOURCE_DIR}/include)
+set(INCLUDE ${PROJECT_SOURCE_DIR}/include $ENV{HOME}/include /apps/well/htslib/1.4.1/include)
 set(LIB_DIRS
         ${PROJECT_SOURCE_DIR}/lib
         $ENV{LD_LIBRARY_PATH}
         /usr/local/lib
+	/apps/well/htslib/1.4.1/lib/
         $ENV{HOME}/lib)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Werror -Wfatal-errors -O3") #-g
+set(CMAKE_CXX_FLAGS "-O3 -g -std=c++11 -Werror -Wfatal-errors -march=native -msse4.2")
 
+SET(BOOST_ROOT /apps/well/boost/1.54.0/)
 set(LIBS hts sdsl divsufsort divsufsort64 pthread z)
 set(LIBS_PATHS "")
 foreach(LIB ${LIBS})
-    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIR})
+    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIRS})
     list(APPEND LIBS_PATHS ${PATH_${LIB}})
 endforeach(LIB)
 
-find_package(Boost COMPONENTS program_options timer REQUIRED)
+find_package(Boost COMPONENTS program_options timer system REQUIRED)
 
 add_library(gram STATIC
     ${SOURCE}/map.cpp
@@ -31,7 +33,6 @@ add_library(gram STATIC
     ${SOURCE}/skip.cpp
     ${SOURCE}/bidir_search.cpp
     ${SOURCE}/csa_construction.cpp
-    ${SOURCE}/process_prg.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/precalc_kmer_matches.cpp)
 target_include_directories(gram PUBLIC
@@ -48,3 +49,4 @@ target_link_libraries(gramtools LINK_PUBLIC
     gram ${LIBS_PATHS} ${Boost_LIBRARIES})
 
 add_subdirectory(test)
+add_test(test_bidir_search test_bidir_search)
