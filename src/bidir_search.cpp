@@ -23,7 +23,7 @@ using namespace sdsl;
 uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa, 
 		      uint64_t& left, uint64_t& right, 
 		      uint64_t& left_rev, uint64_t& right_rev, 
-		      uint8_t c, std::unordered_map<uint8_t,vector<uint64_t>>& rank_all)
+		      uint8_t c, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all)
 {
   assert(left < right); 
   assert(right <= csa.size());
