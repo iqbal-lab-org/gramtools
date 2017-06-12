@@ -34,7 +34,8 @@ add_library(gram STATIC
     ${SOURCE}/bidir_search.cpp
     ${SOURCE}/csa_construction.cpp
     ${SOURCE}/masks.cpp
-    ${SOURCE}/precalc_kmer_matches.cpp)
+    ${SOURCE}/precalc_kmer_matches.cpp
+    ${SOURCE}/process_prg.cpp)
 target_include_directories(gram PUBLIC
     ${SOURCE}
     ${INCLUDE}
