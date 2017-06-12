@@ -20,12 +20,10 @@ FM_Index construct_fm_index(const std::string &prg_fpath,
         std::reverse(prg.begin(), prg.end());
     }
 
-    // write encoded prg to file
     dump_encoded_prg(prg, prg_encoded_fpath);
     FM_Index fm_index = build_fm_index(prg_encoded_fpath,
                                        fm_index_fpath,
                                        memory_log_fname);
-    //FM_Index fm_index;
     return fm_index;
 }
 
@@ -48,7 +46,7 @@ FM_Index build_fm_index(const std::string &prg_encoded_fpath,
     sdsl::memory_monitor::stop();
 
     std::ofstream memory_log_fhandle(memory_log_fname);
-    sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(memory_log_fhandle); //(std::cout);
+    sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(memory_log_fhandle);
 
     sdsl::store_to_file(fm_index, fm_index_fpath);
     return fm_index;
