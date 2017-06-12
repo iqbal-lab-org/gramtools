@@ -46,8 +46,8 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &c
 
   //TO DO:need to calc rev intervals based on rank matrix
   //now same in reverse csa
-  left_rev  = left_rev + s;
-  right_rev = right_rev - b + 1;
+  //left_rev  = left_rev + s;
+  //right_rev = right_rev - b + 1;
   //  assert(right_rev-left_rev == right-left);
 
   return right-left;
