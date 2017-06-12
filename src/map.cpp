@@ -80,7 +80,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
                                   (*it_rev).first, (*it_rev).second,
                                        readin_integer_seq.begin(),readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,
                                   sa_intervals, sa_intervals_rev,
-                                  sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done);
+				       sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done, rank_all);
 
         no_occ=0;
 
