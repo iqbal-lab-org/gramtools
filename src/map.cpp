@@ -24,12 +24,10 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
     int inc = 0;
     int in_sites = 0, no_mapped = 0;
     std::unordered_set<int> repeats;
-    std::unordered_map<uint8_t,vector<uint64_t>> rank_all;
 
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
 
-    precalc_ranks(csa, rank_all);
     for (auto festa_read: input_festa) {
         if (!(inc++ % 100000))
             reads_fhandle << count_reads << std::endl;
