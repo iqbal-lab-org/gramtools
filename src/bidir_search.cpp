@@ -39,8 +39,8 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &c
   // in this first column is equal to the number of 
   // times characters smaller than c appear in text  ]
 
-  left=c_begin+rank_all[c-1][left];
-  right=c_begin+rank_all[c-1][right]+1;
+  left=c_begin+rank_all[c-1][left-1];
+  right=c_begin+rank_all[c-1][right-1]+1;
   
   assert(right>=left);
 
