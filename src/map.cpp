@@ -15,7 +15,7 @@
 
 
 uint64_t map_festa(Parameters &params, MasksParser &masks,
-                   KmersData &kmers, CSA &csa) {
+                   KmersData &kmers, CSA &csa, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
 
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
@@ -34,7 +34,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
                                masks, count_reads, kmers, count_mapped, csa, in_sites,
-                               no_mapped, repeats);
+                               no_mapped, repeats, rank_all);
     }
     reads_fhandle.close();
     return count_mapped;
@@ -44,7 +44,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads,
                             KmersData &kmers, uint64_t &count_mapped, CSA &csa, int &in_sites, int &no_mapped,
-                            std::unordered_set<int> &repeats) {
+                            std::unordered_set<int> &repeats, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
 
     //cout<<q->seq<<endl;
     int seqlen=strlen(festa_read->seq);
