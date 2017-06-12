@@ -7,6 +7,7 @@
 #include <sdsl/wavelet_trees.hpp>
 #include "gtest/gtest.h"
 
+#include "process_prg.hpp"
 #include "bwt_search.h"
 
 using namespace sdsl;
@@ -32,9 +33,8 @@ TEST(BackwardSearchTest, NoVariants1) {
         mask_a.push_back(0);
     }
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -53,7 +53,7 @@ TEST(BackwardSearchTest, NoVariants1) {
             if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
         }
 
-        bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(),
+        bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
                                  p_tmp.begin(), p_tmp.end(),
                                  sa_intervals, sa_intervals_rev, sites,
                                  mask_a, 4, first_del, precalc);
@@ -91,9 +91,8 @@ TEST(BackwardSearchTest, OneSNP) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -107,7 +106,7 @@ TEST(BackwardSearchTest, OneSNP) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              6, first_del, precalc);
 
@@ -124,9 +123,8 @@ TEST(BackwardSearchTest, OneSNP) {
     sa_intervals_rev.clear();
     sites.clear();
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa_rev = csa_constr(test_file2, "int_alphabet_file",
-                                                                                    "memory_log_file", "csa_file",
-                                                                                    false, false);
+    construct_fm_index(test_file2, "int_alphabet_file",
+                       "memory_log_file", "csa_file", false);
     first_del = false;
 
     sa_intervals.clear();
@@ -152,9 +150,8 @@ TEST(BackwardSearchTest, TwoSNPs) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -168,7 +165,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
                                                              p_tmp.begin(), p_tmp.end(),
                                                              sa_intervals, sa_intervals_rev, sites, mask_a, 8,
                                                              first_del, precalc);
@@ -209,9 +206,8 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -226,7 +222,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              6, first_del, precalc);
 
@@ -270,9 +266,8 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -287,7 +282,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              6, first_del, precalc);
 
@@ -334,8 +329,8 @@ TEST(BackwardSearchTest, Two_long_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa =
-            csa_constr(test_file2, "int_alphabet_file", "memory_log_file", "csa_file", true, false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -350,7 +345,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc);
 
@@ -399,8 +394,8 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa =
-            csa_constr(test_file2, "int_alphabet_file", "memory_log_file", "csa_file", true, false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -415,7 +410,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc);
 
@@ -462,10 +457,8 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -481,7 +474,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc);
     uint64_t no_occ = 0;
@@ -525,10 +518,8 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -548,7 +539,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc);
     uint64_t no_occ = 0;
@@ -611,9 +602,8 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> csa = csa_constr(test_file2, "int_alphabet_file",
-                                                                                "memory_log_file", "csa_file", true,
-                                                                                false);
+    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                           "memory_log_file", "csa_file", true);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -630,7 +620,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(csa, 0, csa.size(), 0, csa.size(), p_tmp.begin(),
+    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              16, first_del, precalc);
     uint64_t no_occ = 0;

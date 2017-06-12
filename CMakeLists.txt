@@ -11,7 +11,7 @@ set(LIB_DIRS
         /usr/local/lib
         $ENV{HOME}/lib)
 
-set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Werror -Wfatal-errors -O3") #-g
 
 set(LIBS hts sdsl divsufsort divsufsort64 pthread z)
 set(LIBS_PATHS "")
@@ -31,6 +31,7 @@ add_library(gram STATIC
     ${SOURCE}/skip.cpp
     ${SOURCE}/bidir_search.cpp
     ${SOURCE}/csa_construction.cpp
+    ${SOURCE}/process_prg.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/precalc_kmer_matches.cpp)
 target_include_directories(gram PUBLIC

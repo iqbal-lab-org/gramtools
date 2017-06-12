@@ -13,6 +13,7 @@
 #include "masks.hpp"
 #include "kmers.hpp"
 #include "map.hpp"
+#include "process_prg.hpp"
 #include "main.hpp"
 
 
@@ -21,8 +22,10 @@ int main(int argc, const char *const *argv) {
     TimerReport timer_report;
 
     std::cout << "Constructing FM-index" << std::endl;
-    CSA csa = csa_constr(params.prg_fpath, params.prg_integer_alphabet_fpath,
-                         params.csa_memory_log_fpath, params.csa_fpath, true, true);
+    FM_Index fm_index = construct_fm_index(params.prg_fpath,
+                                           params.prg_integer_alphabet_fpath,
+                                           params.csa_memory_log_fpath,
+                                           params.csa_fpath, true);
     timer_report.record("Construct FM-index");
 
     std::cout << "Parsing sites and allele masks" << std::endl;
@@ -31,12 +34,12 @@ int main(int argc, const char *const *argv) {
     // TODO: should allele_coverage be separated from the masks data structure?
 
     std::cout << "Pre-calculating kmers" << std::endl;
-    KmersData kmers = get_kmers(csa, masks.allele, params.prg_kmers_fpath,
+    KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
                                 masks.max_alphabet_num, params.kmers_size);
     timer_report.record("Pre-calc kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_festa(params, masks, kmers, csa);
+    uint64_t count_mapped = map_festa(params, masks, kmers, fm_index);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
@@ -45,7 +48,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Output coverage");
 
     timer_report.report();
-    
+
     return 0;
 }
 

@@ -4,17 +4,75 @@
 #include "process_prg.hpp"
 
 
-std::string read_prg_file(std::string prg_fpath){
-    std::string prg;
-    std::ifstream fhandle(prg_fpath, std::ios::in | std::ios::binary);
+//make SA sampling density and ISA sampling density customizable
+//make void fcn and pass csa by reference? return ii?
+FM_Index construct_fm_index(const std::string &prg_fpath,
+                            std::string prg_encoded_fpath,
+                            const std::string &memory_log_fname,
+                            std::string fm_index_fpath,
+                            bool fwd) {
 
+    std::vector<uint64_t> prg = parse_prg(prg_fpath);
+
+    if (!fwd){
+        prg_encoded_fpath = prg_encoded_fpath + "_rev";
+        fm_index_fpath = fm_index_fpath + "_rev";
+        std::reverse(prg.begin(), prg.end());
+    }
+
+    // write encoded prg to file
+    dump_encoded_prg(prg, prg_encoded_fpath);
+    FM_Index fm_index = build_fm_index(prg_encoded_fpath,
+                                       fm_index_fpath,
+                                       memory_log_fname);
+    //FM_Index fm_index;
+    return fm_index;
+}
+
+
+void dump_encoded_prg(const std::vector<uint64_t> &prg,
+                      const std::string &prg_encoded_fpath){
+    std::ofstream fhandle;
+    fhandle.open(prg_encoded_fpath, std::ios::out | std::ios::binary);
+    fhandle.write((char*)&prg[0], prg.size() * sizeof(uint64_t));
+    fhandle.close();
+}
+
+
+FM_Index build_fm_index(const std::string &prg_encoded_fpath,
+                        const std::string &fm_index_fpath,
+                        const std::string &memory_log_fname){
+    sdsl::memory_monitor::start();
+    FM_Index fm_index;
+    sdsl::construct(fm_index, prg_encoded_fpath.c_str(), 8);
+    sdsl::memory_monitor::stop();
+
+    std::ofstream memory_log_fhandle(memory_log_fname);
+    sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(memory_log_fhandle); //(std::cout);
+
+    sdsl::store_to_file(fm_index, fm_index_fpath);
+    return fm_index;
+}
+
+
+std::vector<uint64_t> parse_prg(const std::string &prg_fpath){
+    std::string prg_raw = load_raw_prg(prg_fpath);
+    std::vector<uint64_t> prg = encode_prg(prg_raw);
+    return prg;
+}
+
+
+std::string load_raw_prg(const std::string &prg_fpath){
+    std::ifstream fhandle(prg_fpath, std::ios::in | std::ios::binary);
     if (!fhandle){
         std::cout << "Problem reading PRG input file" << std::endl;
         exit(1);
     }
 
+    std::string prg;
     fhandle.seekg(0, std::ios::end);
     prg.resize(fhandle.tellg());
+
     fhandle.seekg(0, std::ios::beg);
     fhandle.read(&prg[0], prg.size());
     fhandle.close();
@@ -23,80 +81,80 @@ std::string read_prg_file(std::string prg_fpath){
 }
 
 
-uint64_t *encode_prg(std::string prg, uint32_t &i, uint64_t &base_index){
-    // TODO: needs to be a smart pointer to an array
-    uint64_t *prg_int = (uint64_t *) malloc(prg.length() * sizeof(uint64_t));
-    if (prg_int == nullptr) {
-        exit(1);
+std::vector<uint64_t> encode_prg(const std::string &prg_raw){
+    std::vector<uint64_t> prg_encoded;
+    prg_encoded.reserve(prg_raw.length());
+
+    // TODO: this should be possible without storing each individual digit
+    std::vector<int> marker_digits;
+    for (const auto &c: prg_raw){
+        EncodeResult encode_result = encode_char(c);
+
+        if (encode_result.is_dna){
+            flush_marker_digits(marker_digits, prg_encoded);
+            prg_encoded.push_back(encode_result.charecter);
+            continue;
+        }
+
+        else
+            marker_digits.push_back(encode_result.charecter);
     }
 
-    while (i < prg.length()) {
-        if (isdigit(prg[i])) {
-            int j = 1;
-            while (isdigit(prg[i + 1])) {
-                j++;
-                i++;
-            }
-            auto al_ind = prg.substr(i - j + 1, j);
-            //uint64_t l=(uint64_t) stoull(al_ind,NULL,0);
-            auto l = stoull(al_ind, NULL, 0);
-            //uint64_t l=boost::lexical_cast<uint64_t>(al_ind);
-            prg_int[base_index] = l;
-        } else {
-            if (prg[i] == 'A' or prg[i] == 'a') prg_int[base_index] = 1;
-            if (prg[i] == 'C' or prg[i] == 'c') prg_int[base_index] = 2;
-            if (prg[i] == 'G' or prg[i] == 'g') prg_int[base_index] = 3;
-            if (prg[i] == 'T' or prg[i] == 't') prg_int[base_index] = 4;
-        }
-        i++;
-        base_index++;// base_index keeps track of actual base position - it's aware of numbers with more than one digit
-    }
-    return prg_int;
+    flush_marker_digits(marker_digits, prg_encoded);
+    prg_encoded.shrink_to_fit();
+    return prg_encoded;
 }
 
 
-//make SA sampling density and ISA sampling density customizable
-//make void fcn and pass csa by reference? return ii?
-FM_Index construct_fm_index(std::string prg_fpath,
-                            std::string prg_int_fpath,
-                            std::string memory_log_fname,
-                            std::string fm_index_fpath,
-                            bool fwd) {
+void flush_marker_digits(std::vector<int> &marker_digits, std::vector<uint64_t> &prg_encoded){
+    if (marker_digits.empty())
+        return;
 
-    std::string prg = read_prg_file(prg_fpath);
+    uint64_t marker = concat_marker_digits(marker_digits);
+    prg_encoded.push_back(marker);
+    marker_digits.clear();
+}
 
-    uint32_t i = 0;
-    uint64_t base_index = 0;
-    uint64_t *prg_int = encode_prg(prg, i, base_index);
 
-    uint64_t *prg_int_to_write = prg_int;
-    if (!fwd){
-        prg_int_fpath = prg_int_fpath + "_rev";
-        uint64_t prg_int_rev[base_index];
-        std::reverse_copy(prg_int, prg_int + base_index, prg_int_rev);
-        prg_int_to_write = prg_int_rev;
+uint64_t concat_marker_digits(const std::vector<int> &marker_digits){
+    uint64_t marker = 0;
+    for (const auto &digit: marker_digits)
+        marker = marker * 10 + digit;
+    return marker;
+}
+
+
+EncodeResult encode_char(const char &c){
+    EncodeResult encode_result;
+
+    switch(c) {
+        case 'A':
+        case 'a':
+            encode_result.is_dna = true;
+            encode_result.charecter = 1;
+            return encode_result;
+
+        case 'C':
+        case 'c':
+            encode_result.is_dna = true;
+            encode_result.charecter = 2;
+            return encode_result;
+
+        case 'G':
+        case 'g':
+            encode_result.is_dna = true;
+            encode_result.charecter = 3;
+            return encode_result;
+
+        case 'T':
+        case 't':
+            encode_result.is_dna = true;
+            encode_result.charecter = 4;
+            return encode_result;
+
+        default:
+            encode_result.is_dna = false;
+            encode_result.charecter = c  - '0';
+            return encode_result;
     }
-
-    // write prg_int to file
-    FILE *fp = fopen(prg_int_fpath.c_str(), "wb");
-    fwrite(prg_int_to_write, sizeof(uint64_t), base_index, fp);
-    fclose(fp);
-    free(prg_int);
-
-    // construct fm_index
-    FM_Index fm_index;
-
-    std::ofstream out(memory_log_fname);
-    std::cout.rdbuf(out.rdbuf());
-
-    sdsl::memory_monitor::start();
-    sdsl::construct(fm_index, prg_int_fpath.c_str(), 8);
-    sdsl::memory_monitor::stop();
-    sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(std::cout);
-
-    std::streambuf *coutbuf = std::cout.rdbuf();
-    std::cout.rdbuf(coutbuf);
-    sdsl::store_to_file(fm_index, fm_index_fpath);
-
-    return fm_index;
 }
