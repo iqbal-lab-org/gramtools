@@ -12,20 +12,13 @@
 #include "bwt_search.h"
 #include "kmers.hpp"
 #include "map.hpp"
+#include "process_prg.hpp"
+#include "variants.hpp"
 
-
-sdsl::bit_vector construct_variant_sites_mask(const FM_Index &fm_index){
-    sdsl::bit_vector variant_mask(fm_index.bwt.size(), 0);
-    for(unsigned int i=0; i < fm_index.bwt.size(); i++)
-        variant_mask[i] = fm_index.bwt[i] > 4;
-    return variant_mask;
-}
 
 
 uint64_t map_festa(Parameters &params, MasksParser &masks,
-                   KmersData &kmers, CSA &fm_index) {
-
-    auto variant_mask = construct_variant_sites_mask(fm_index);
+                   KmersData &kmers, CSA &fm_index, const VariantMarkers &variants) {
 
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
@@ -44,7 +37,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
                                masks, count_reads, kmers, count_mapped, fm_index, in_sites,
-                               no_mapped, repeats);
+                               no_mapped, repeats, variants);
     }
     reads_fhandle.close();
     return count_mapped;
@@ -54,7 +47,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads,
                             KmersData &kmers, uint64_t &count_mapped, CSA &csa, int &in_sites, int &no_mapped,
-                            std::unordered_set<int> &repeats) {
+                            std::unordered_set<int> &repeats, const VariantMarkers &variants) {
 
     //cout<<q->seq<<endl;
     int seqlen=strlen(festa_read->seq);
@@ -88,7 +81,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
                                   (*it_rev).first, (*it_rev).second,
                                        readin_integer_seq.begin(),readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,
                                   sa_intervals, sa_intervals_rev,
-                                  sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done);
+                                  sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done, variants);
 
         no_occ=0;
 

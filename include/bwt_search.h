@@ -1,16 +1,21 @@
-#ifndef __BWT_SEARCH_H_INCLUDED__
-#define __BWT_SEARCH_H_INCLUDED__
-
-#include "sdsl/suffix_arrays.hpp"
-#include "sdsl/wavelet_trees.hpp"
-#include <boost/functional/hash.hpp>
 #include <cstdlib>
 #include <unordered_set>
 #include <unordered_map>
 #include <iostream>
 
+
+#include <boost/functional/hash.hpp>
+#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/wavelet_trees.hpp>
+
+#include "variants.hpp"
+
 using namespace sdsl;
 using namespace std;
+
+
+#ifndef GRAMTOOLS_BWT_SEARCH_H
+#define GRAMTOOLS_BWT_SEARCH_H
 
 
 using CSA = csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216>;
@@ -39,7 +44,7 @@ void precalc_kmer_matches(CSA &csa, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                          std::vector<std::vector<uint8_t>> &kmerfile);
+                          std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants);
 
 uint64_t bidir_search(CSA &csa,
                       uint64_t &left, uint64_t &right,
@@ -58,16 +63,16 @@ bool skip(CSA &csa,
           uint64_t &left_rev, uint64_t &right_rev,
           uint32_t num, uint64_t maxx);
 
-std::vector<uint8_t>::iterator bidir_search_bwd(CSA &csa,
+std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
                                                 uint64_t left, uint64_t right,
                                                 uint64_t left_rev, uint64_t right_rev,
                                                 std::vector<uint8_t>::iterator pat_begin,
                                                 std::vector<uint8_t>::iterator pat_end,
-                                                std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
-                                                std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
-                                                std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                                                std::vector<int> &mask_a, uint64_t maxx, bool &first_del,
-                                                bool kmer_precalc_done);
+                                                std::list<std::pair<uint64_t,uint64_t>>& sa_intervals,
+                                                std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
+                                                std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
+                                                std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
+                                                bool kmer_precalc_done, const VariantMarkers &variants);
 
 
 std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,
@@ -81,4 +86,4 @@ std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,
                                                 std::vector<int> &mask_a, uint64_t maxx, bool &first_del,
                                                 bool kmer_precalc_done);
 
-#endif
+#endif //GRAMTOOLS_BWT_SEARCH_H

@@ -6,6 +6,10 @@
 #include <tuple>
 #include <cstdint>
 
+#include "variants.hpp"
+#include "process_prg.hpp"
+#include "map.hpp"
+
 using namespace sdsl;
 
 
@@ -19,8 +23,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
 						std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
 						std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
-						bool kmer_precalc_done
-						)
+						bool kmer_precalc_done, const VariantMarkers &variants)
 {
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator pat_it=pat_end;
@@ -66,12 +69,11 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 
 		if ( (pat_it!=pat_end-1) or (kmer_precalc_done==true) ) {
 			while(j<init_list_size) {
-				//don't do this for first letter searched
-				std::vector<std::pair<uint64_t,uint64_t>> res=csa.wavelet_tree.range_search_2d((*it).first, (*it).second-1, 5, maxx).second;
-				//might want to sort res based on pair.second - from some examples it looks like sdsl already does that so res is already sorted 
+                std::vector<std::pair<uint64_t,uint64_t>> res = find_variant_markers((*it).first, (*it).second - 1, csa, variants);
+
 				uint32_t prev_num=0;
 				uint32_t last_begin=0;
-                                bool sec_to_last=false;
+                bool sec_to_last=false;
 				for (auto z=res.begin(),zend=res.end();z!=zend;++z) { 
 					uint64_t i=(*z).first;
 					uint32_t num=(*z).second;

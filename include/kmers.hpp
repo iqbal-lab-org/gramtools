@@ -1,3 +1,7 @@
+#include "bwt_search.h"
+#include "variants.hpp"
+
+
 #ifndef GRAMTOOLS_KMERS_HPP
 #define GRAMTOOLS_KMERS_HPP
 
@@ -20,6 +24,7 @@ static inline std::string &trim(std::string &s);
 std::vector<std::string> split(std::string cad, std::string delim);
 
 struct thread_data {
+    VariantMarkers *variants;
     csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> *csa;
     int k;
     KmerIdx *kmer_idx, *kmer_idx_rev;
@@ -34,7 +39,7 @@ void *worker(void *st);
 
 void gen_precalc_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
                        std::vector<int> &mask_a, std::string kmer_fname,
-                       uint64_t maxx, int k);
+                       uint64_t maxx, int k, VariantMarkers &variants);
 
 void read_precalc_kmers(std::string fil, KmerIdx &kmer_idx,
                         KmerIdx &kmer_idx_rev, KmerSites &kmer_sites,
@@ -46,9 +51,9 @@ struct KmersData {
     KmersRef in_reference;
 };
 
-KmersData get_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+KmersData get_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
                     std::vector<int> &mask_a, std::string kmer_fname,
-                    uint64_t maxx, int k);
+                    uint64_t maxx, int k, VariantMarkers &variants);
 
 
 #endif //GRAMTOOLS_KMERS_HPP

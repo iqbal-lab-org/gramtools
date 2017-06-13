@@ -7,6 +7,8 @@
 #include <sdsl/wavelet_trees.hpp>
 #include "gtest/gtest.h"
 
+#include "variants.hpp"
+#include "map.hpp"
 #include "process_prg.hpp"
 #include "bwt_search.h"
 
@@ -35,6 +37,7 @@ TEST(BackwardSearchTest, NoVariants1) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -56,7 +59,7 @@ TEST(BackwardSearchTest, NoVariants1) {
         bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
                                  p_tmp.begin(), p_tmp.end(),
                                  sa_intervals, sa_intervals_rev, sites,
-                                 mask_a, 4, first_del, precalc);
+                                 mask_a, 4, first_del, precalc, variants);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_TRUE(first_del == false);
@@ -93,6 +96,7 @@ TEST(BackwardSearchTest, OneSNP) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -108,7 +112,7 @@ TEST(BackwardSearchTest, OneSNP) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc);
+                                                             6, first_del, precalc, variants);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -152,6 +156,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -168,7 +173,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
                                                              p_tmp.begin(), p_tmp.end(),
                                                              sa_intervals, sa_intervals_rev, sites, mask_a, 8,
-                                                             first_del, precalc);
+                                                             first_del, precalc, variants);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -208,6 +213,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -224,7 +230,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc);
+                                                             6, first_del, precalc, variants);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -268,6 +274,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -284,7 +291,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc);
+                                                             6, first_del, precalc, variants);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -331,6 +338,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -347,7 +355,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc);
+                                                             8, first_del, precalc, variants);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -396,6 +404,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -412,7 +421,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc);
+                                                             8, first_del, precalc, variants);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -459,6 +468,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -476,7 +486,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc);
+                                                             8, first_del, precalc, variants);
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
         no_occ += (*it).second - (*it).first;
@@ -520,6 +530,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -541,7 +552,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc);
+                                                             8, first_del, precalc, variants);
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
         no_occ += (*it).second - (*it).first;
@@ -604,6 +615,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
 
     FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
                                            "memory_log_file", "csa_file", true);
+    VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -622,7 +634,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             16, first_del, precalc);
+                                                             16, first_del, precalc, variants);
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
         no_occ += (*it).second - (*it).first;

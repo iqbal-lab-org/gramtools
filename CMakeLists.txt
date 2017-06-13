@@ -12,7 +12,7 @@ set(LIB_DIRS
 	/apps/well/htslib/1.4.1/lib/
         $ENV{HOME}/lib)
 
-set(CMAKE_CXX_FLAGS "-O3 -std=c++11 -Werror -Wfatal-errors -march=native -msse4.2")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Werror -Wfatal-errors -march=native -msse4.2 -O3") #-g
 
 SET(BOOST_ROOT /apps/well/boost/1.54.0/)
 set(LIBS hts sdsl divsufsort divsufsort64 pthread z)
@@ -35,7 +35,8 @@ add_library(gram STATIC
     ${SOURCE}/csa_construction.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/precalc_kmer_matches.cpp
-    ${SOURCE}/process_prg.cpp)
+    ${SOURCE}/process_prg.cpp
+    ${SOURCE}/variants.cpp)
 target_include_directories(gram PUBLIC
     ${SOURCE}
     ${INCLUDE}
