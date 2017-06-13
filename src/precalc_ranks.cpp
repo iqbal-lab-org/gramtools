@@ -21,8 +21,12 @@ void precalc_ranks(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216>& csa,
     auto curr_c=csa.bwt[i];
     if ((curr_c>0) && (curr_c<5)) {
       rank[curr_c-1]+=1;
-      for (auto c:symbols)
+      for (auto c:symbols) 
         rank_all[c-1][i]=rank[c-1];
+    }
+    else {
+      for (auto c:symbols) 
+        rank_all[c-1][i]=rank_all[c-1][i-1];
     }
   }
 }
