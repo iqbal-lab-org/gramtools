@@ -42,7 +42,7 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &c
   if (left==0) left=c_begin;
   else left=c_begin+rank_all[c-1][left-1];
   
-  right=c_begin+rank_all[c-1][right-1]+1;
+  right=c_begin+rank_all[c-1][right-1];
   
   assert(right>=left);
 
