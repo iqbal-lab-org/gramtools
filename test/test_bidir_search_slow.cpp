@@ -58,7 +58,6 @@ void perform_test(const std::string &test_fpath) {
                                            "memory_log_file",
                                            "csa_file", true);
     VariantMarkers variants = parse_variants(fm_index);
-    std::cout << "constructed variants mask" << std::endl;
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
