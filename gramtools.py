@@ -1,173 +1,138 @@
 import os
-import subprocess
-
-import sacred
-from sacred.utils import apply_backspaces_and_linefeeds
-from sacred.observers.file_storage import FileStorageObserver
+import argparse
+import logging
 
 
-GRAMTOOLS_INSTALL_PATH = './gramtools'
-GENERATE_PRG_SCRIPT_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
-                                        'utils/vcf_to_linear_prg.pl')
-GENERATE_KMERS_SCRIPT_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH,
-                                          'utils/variantKmers.py')
-MAP_READS_PATH = os.path.join(GRAMTOOLS_INSTALL_PATH, 'bin',
-                              'gramtools')
+log = logging.getLogger('gramtools')
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+log.setLevel(logging.INFO)
 
 
-experiment = sacred.Experiment()
-experiment.captured_out_filter = apply_backspaces_and_linefeeds
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("infer", help="",
+                        action="store_true")
+    parser.add_argument("prg", help="",
+                        type=str)
+    parser.add_argument("fast", help="",
+                        type=str)
+    parser.add_argument("ksize", help="",
+                        type=int)
+    parser.add_argument("output", help="",
+                        type=int)
+    args = parser.parse_args()
+    return args
 
-file_observer = FileStorageObserver.create('gramtools_runs')
-file_observer.save_sources = lambda x: None
-experiment.observers.append(file_observer)
+
+def check_path_exist(paths):
+    missing_paths = set(path for path in paths
+                        if not os.path.isfile(path))
+
+    all_paths_present = not missing_paths
+    if all_paths_present:
+        return
+
+    log.error("The following paths do not exist:")
+    for path in missing_paths:
+        log.error(path)
+    exit(-1)
 
 
-def generate_paths(vcf_path, fasta_path):
-    """Generate and return all file paths associated with experiment."""
-    vcf_path = os.path.abspath(vcf_path)
-    file_observer.run_entry['artifacts'].append(vcf_path)
+def get_species_dirpath(prg_fpath):
+    prg_fname = os.path.basename(prg_fpath)
+    if prg_fname.endswith('.prg'):
+        species_dir = prg_fname[:-len('.prg')]
+    else:
+        species_dir = prg_fname
 
-    fasta_path = os.path.abspath(fasta_path)
-    file_observer.run_entry['artifacts'].append(fasta_path)
+    current_working_directory = os.getcwd()
+    species_dirpath = os.path.join(current_working_directory, species_dir)
+    return species_dirpath
 
-    run_path = os.path.abspath(file_observer.dir)
-    data_path = os.path.join(run_path, 'data')
 
-    def make_path(fname): return os.path.join(data_path, fname)
+def get_prg_fpath(species_dirpath, prg_arg_fpath):
+    prg_fname = os.path.basename(prg_arg_fpath)
+    prg_fpath = os.path.join(species_dirpath, prg_fname)
+    return prg_fpath
+
+
+def get_run_dirpath(species_dirpath, fast_fpath, ksize):
+    species_dir = species_dirpath.split('/')[-1]
+
+    template = 'run_{species_dir}_{fast}_{ksize}'
+    run_dir = template.format(species_dir=species_dirpath,
+                              fast=fast_fpath, ksize=ksize)
+
+    run_dirpath = os.path.join(output_dirpath, run_dir)
+    return run_dirpath
+
+
+def get_paths(args):
+    species_dirpath = get_species_dirpath(args.prg)
+    run_dirpath = get_run_dirpath(species_dirpath, arg.fast, args.ksize)
 
     paths = {
-        'run_path': run_path,
-        'data_path': data_path,
-        'vcf': vcf_path,
-        'fasta': fasta_path,
+        'species': species_dirpath,
+        'prg': os.path.join(species_dirpath, 'prg'),
+        'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
+        'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
+        'fast': arg.fast,
 
-        'modified_fasta': make_path('modified_fasta'),
-        'prg': make_path('prg'),
-        'kmers': make_path('kmers'),
-        'mask_sites': make_path('mask_sites'),
-        'mask_alleles': make_path('mask_alleles'),
-        'coverage': make_path('coverage'),
-        'csa': make_path('csa'),
-        'csa_memory_log': make_path('csa_memory_log'),
-        'reads': make_path('reads'),
-        'prg_integer_encoding': make_path('prg_integer_encoding'),
+        'kmer': os.path.join(species_dirpath, 'kmer'),
+        'cache': os.path.join(species_dirpath, 'cache'),
+        'int_encoded_prg': os.path.join(species_dirpath, 'cache', 'int_encoded_prg'),
+        'fm_index': os.path.join(species_dirpath, 'cache', 'fm_index'),
+        'kmer_suffix_array': os.path.join(species_dirpath, 'cache',
+                                          'kmer_suffix_array'),
+
+        'output': args.output,
+        'run': run_dirpath,
+        'info': os.path.join(run_dirpath, 'info'),
+        'fm_index_memory_log': os.path.join(run_dirpath, 'fm_index_memory_log'),
+        'allele_coverage': os.path.join(run_dirpath, 'allele_coverage'),
+        'processed_reads': os.path.join(run_dirpath, 'processed_reads'),
     }
     return paths
 
 
-def handle_process_result(process_handle, _log):
-    """Report process results to logging."""
-    stdout, error_message = process_handle.communicate()
-    error_code = process_handle.returncode
-
-    if error_message:
-        _log.info('Process error message:\n%s',
-                  error_message.decode("utf-8"))
-        _log.info('Process error code: %s', error_code)
-
-    if stdout:
-        truncate_stdout = stdout.decode("utf-8")[:100]
-        _log.info('Truncated stdout:\n%s', truncate_stdout)
-    else:
-        _log.info('stdout: none or piped out')
-
-    if error_code != 0:
-        raise RuntimeError('Error code != 0')
-
-
-@experiment.capture
-def generate_prg(paths, _log):
-    """Generate a Population Reference Graph (PRG) file."""
-    process_name = os.path.basename(GENERATE_PRG_SCRIPT_PATH)
-    _log.info('Start process: %s', process_name)
-
-    command = ['perl', GENERATE_PRG_SCRIPT_PATH,
-               '--outfile', paths['prg'],
-               '--vcf', paths['vcf'],
-               '--ref', paths['fasta']]
-    process_handle = subprocess.Popen(command, cwd=paths['run_path'],
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-    handle_process_result(process_handle, _log)
-
-    rename_mapping = [
-        ('prg.fa', 'modified_fasta'),
-        ('prg.mask_alleles', 'mask_alleles'),
-        ('prg.mask_sites', 'mask_sites'),
-        ('prg.vcf', 'vcf'),
+def setup_file_structure(paths):
+    dirs = [
+        paths['species'],
+        paths['cache'],
+        paths['kmer'],
+        paths['kmer_suffix_array'],
+        paths['output'],
+        paths['run'],
     ]
-
-    for old_fname, new_fname in rename_mapping:
-        old_path = os.path.join(paths['data_path'], old_fname)
-        new_path = os.path.join(paths['data_path'], new_fname)
-        os.rename(old_path, new_path)
-
-    _log.info('End process: %s', process_name)
+    new_dirs = [dir for dir in dirs if not os.path.isdir(dir)]
+    map(os.mkdir, new_dirs)
 
 
-@experiment.capture
-def generate_kmers(kmer_size, paths, _log):
-    """Generate K-mers file."""
-    process_name = os.path.basename(GENERATE_KMERS_SCRIPT_PATH)
-    _log.info('Start process: %s', process_name)
-
-    command = ['python2.7', GENERATE_KMERS_SCRIPT_PATH,
-               '-f', paths['modified_fasta'],
-               '-k', str(kmer_size),
-               '-n']
-    with open(paths['kmers'], 'wb') as kmers_fhandle:
-        process_handle = subprocess.Popen(command, cwd=paths['run_path'],
-                                          stdout=kmers_fhandle,
-                                          stderr=subprocess.PIPE)
-    handle_process_result(process_handle, _log)
-    _log.info('End process: %s', process_name)
+def populate_file_structure(paths, args):
+    if not os.path.isfile(paths['prg']):
+        os.symlink(arg.prg, paths['prg'])
 
 
-@experiment.capture
-def map_reads_to_prg(kmer_size, paths, _log):
-    """Map reads to PRG."""
-    process_name = os.path.basename(MAP_READS_PATH)
-    _log.info('Start process: %s', process_name)
-
-    command = [MAP_READS_PATH,
-               '--prg', paths['prg'],
-               '--csa', paths['csa'],
-               '--ps', paths['mask_sites'],
-               '--pa', paths['mask_alleles'],
-               '--co', paths['coverage'],
-               '--ro', paths['reads'],
-               '--po', paths['prg_integer_encoding'],
-               '--log', paths['csa_memory_log'],
-               '--kfile', paths['kmers'],
-               '--input', paths['fasta'],
-               '--ksize', str(kmer_size)]
-
-    process_handle = subprocess.Popen(command, cwd=paths['run_path'],
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-    handle_process_result(process_handle, _log)
-    _log.info('End process: %s', process_name)
+def generate_sites_mask():
+    pass
 
 
-@experiment.config
-def config():
-    """Configuration paramaters for experiment manager."""
-    vcf_path = ''
-    fasta_path = ''
-    kmer_size = 9
+def infer(args):
+    check_path_exist([arg.prg, arg.fast], os.path.isfile)
+    paths = get_paths(args)
+
+    setup_file_structure(paths)
+    populate_file_structure(paths, args)
+
+    generate_sites_mask()
 
 
-@experiment.automain
-def experiment_manager(_log, vcf_path='', fasta_path='', kmer_size=9):
-    """Run experiments by executing tool chain."""
-    paths = generate_paths(vcf_path, fasta_path)
-    os.mkdir(os.path.join(paths['run_path'], 'data'))
+if __name__ == '__main__'
+    args = parse_args()
 
-    try:
-        generate_prg(paths, _log)
-        generate_kmers(kmer_size, paths, _log)
-        map_reads_to_prg(kmer_size, paths, _log)
-    except RuntimeError as e:
-        _log.error(e)
-        return e
+    if args.infer:
+        infer(args)
