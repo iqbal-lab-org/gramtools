@@ -42,6 +42,9 @@ TEST(BackwardSearchTest, NoVariants1) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     for (vector<string>::iterator it = substrings.begin(); it < substrings.end(); ++it) {
         q_tmp = *it;
 
@@ -57,9 +60,8 @@ TEST(BackwardSearchTest, NoVariants1) {
         }
 
         bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
-                                 p_tmp.begin(), p_tmp.end(),
-                                 sa_intervals, sa_intervals_rev, sites,
-                                 mask_a, 4, first_del, precalc, variants);
+                         p_tmp.begin(), p_tmp.end(), sa_intervals, sa_intervals_rev,
+                         sites, mask_a, 4, first_del, precalc, variants, rank_all);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_TRUE(first_del == false);
@@ -102,6 +104,9 @@ TEST(BackwardSearchTest, OneSNP) {
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     bool first_del = false;
 
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     q_tmp = query;
     for (uint16_t i = 0; i < q_tmp.length(); i++) {
         if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
@@ -112,7 +117,7 @@ TEST(BackwardSearchTest, OneSNP) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc, variants);
+                                                             6, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -160,6 +165,10 @@ TEST(BackwardSearchTest, TwoSNPs) {
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
     q_tmp = query;
@@ -173,7 +182,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
                                                              p_tmp.begin(), p_tmp.end(),
                                                              sa_intervals, sa_intervals_rev, sites, mask_a, 8,
-                                                             first_del, precalc, variants);
+                                                             first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -218,6 +227,10 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
     q_tmp = query;
@@ -230,7 +243,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc, variants);
+                                                             6, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -279,6 +292,10 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
     q_tmp = query;
@@ -291,7 +308,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc, variants);
+                                                             6, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -343,6 +360,10 @@ TEST(BackwardSearchTest, Two_long_sites) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
     q_tmp = query;
@@ -355,7 +376,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants);
+                                                             8, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -409,6 +430,10 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
     q_tmp = query;
@@ -421,7 +446,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants);
+                                                             8, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -473,6 +498,10 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
 
@@ -486,7 +515,8 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants);
+                                                             8, first_del, precalc, variants, rank_all);
+
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
         no_occ += (*it).second - (*it).first;
@@ -540,6 +570,9 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator list_it;
 
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     bool first_del = false;
     bool precalc = false;
     q_tmp = query;
@@ -552,7 +585,8 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants);
+                                                             8, first_del, precalc, variants, rank_all);
+
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
         no_occ += (*it).second - (*it).first;
@@ -621,6 +655,8 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
 
     bool first_del = false;
     bool precalc = false;
@@ -634,7 +670,8 @@ TEST(BackwardSearchTest, One_match_many_sites) {
 
     std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             16, first_del, precalc, variants);
+                                                             16, first_del, precalc, variants, rank_all);
+
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
         no_occ += (*it).second - (*it).first;

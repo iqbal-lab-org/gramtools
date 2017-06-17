@@ -44,12 +44,15 @@ void precalc_kmer_matches(CSA &csa, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                          std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants);
+                          std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants,
+                          unordered_map<uint8_t,vector<uint64_t>>& rank_all);
+
+void precalc_ranks(CSA &csa, std::unordered_map<uint8_t,vector<uint64_t>>& rank_all);
 
 uint64_t bidir_search(CSA &csa,
                       uint64_t &left, uint64_t &right,
                       uint64_t &left_rev, uint64_t &right_rev,
-                      uint8_t c);
+                      uint8_t c, unordered_map<uint8_t,vector<uint64_t>>& rank_all);
 
 
 std::pair<uint32_t, std::vector<int>> get_location(CSA &csa,
@@ -72,7 +75,8 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
                                                 std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
                                                 std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
                                                 std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
-                                                bool kmer_precalc_done, const VariantMarkers &variants);
+                                                bool kmer_precalc_done, const VariantMarkers &variants,
+                                                unordered_map<uint8_t,vector<uint64_t>>& rank_all);
 
 
 std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,
@@ -84,6 +88,6 @@ std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,
                                                 std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
                                                 std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
                                                 std::vector<int> &mask_a, uint64_t maxx, bool &first_del,
-                                                bool kmer_precalc_done);
+                                                bool kmer_precalc_done, unordered_map<uint8_t,vector<uint64_t>>& rank_all);
 
 #endif //GRAMTOOLS_BWT_SEARCH_H

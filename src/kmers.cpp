@@ -54,7 +54,7 @@ std::vector<std::string> split(std::string cad,std::string delim)
 void * worker (void *st)
 {
     thread_data* th=(thread_data *) st;
-    precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),*(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers),*(th->variants));
+    precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),*(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers),*(th->variants), *(th->rank_all));
     return NULL;
 }
 
@@ -70,9 +70,8 @@ void gen_precalc_kmers(
         std::string kmer_fname,
         uint64_t maxx,
         int k,
-        VariantMarkers &variants)
-{
-
+        VariantMarkers &variants,
+        std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
 
     pthread_t threads[THREADS];
     struct thread_data td[THREADS];
@@ -114,6 +113,7 @@ void gen_precalc_kmers(
         td[i].maxx=maxx;
         td[i].kmers_in_ref=&kmers_in_ref[i];
         td[i].kmers=&kmers[i];
+	td[i].rank_all=&rank_all;
         pthread_create(&threads[i], NULL, worker, &td[i] );
         //worker(&td[i]);
     }
@@ -264,14 +264,15 @@ void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
 
 
 KmersData get_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-                   std::vector<int> &mask_a, std::string kmer_fname,
-                   uint64_t maxx, int k, VariantMarkers &variants){
+                    std::vector<int> &mask_a, std::string kmer_fname,
+                    uint64_t maxx, int k, VariantMarkers &variants,
+                    std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
 
     if (!fexists(std::string(kmer_fname)+".precalc"))
     {
         std::cout << "Precalculated kmers not found, calculating them using "
                   << THREADS << " threads" << std::endl;
-        gen_precalc_kmers(csa, mask_a, kmer_fname, maxx, k, variants);
+        gen_precalc_kmers(csa, mask_a, kmer_fname, maxx, k, variants, rank_all);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 

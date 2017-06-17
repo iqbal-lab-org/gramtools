@@ -23,7 +23,7 @@ using namespace sdsl;
 uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa, 
 		      uint64_t& left, uint64_t& right, 
 		      uint64_t& left_rev, uint64_t& right_rev, 
-		      uint8_t c)
+		      uint8_t c, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all)
 {
   assert(left < right); 
   assert(right <= csa.size());
@@ -39,34 +39,17 @@ uint64_t bidir_search(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &c
   // in this first column is equal to the number of 
   // times characters smaller than c appear in text  ]
 
-  //r_s_b is a tuple  - (rank_l,s,b)
-  auto r_s_b =  csa.wavelet_tree.lex_count(left, right, c);
-
-  // r stands for rank
-  // s - characters Smaller than c, 
-  // b - characters Bigger than c
-
-
-  //rank_l is the number of times c occurs in BWT[0,left]
-  uint64_t rank_l = std::get<0>(r_s_b);   
-  // s is total number of times 
-  //      chars smaller than c occur in BWT[left,right]
-  uint64_t s = std::get<1>(r_s_b);
-  // b is total number of times 
-  //      chars bigger than c occur in BWT[left,right]  
-  uint64_t b = std::get<2>(r_s_b);
-
-  //rank_r is the number of times c occurs in BWT[0,right]
-  uint64_t rank_r = right - left - s - b + rank_l - 1;
-
-  //get new interval, after appending c
-  left  = c_begin + rank_l;
-  right = c_begin + rank_r + 1;
+  if (left==0) left=c_begin;
+  else left=c_begin+rank_all[c-1][left-1];
+  
+  right=c_begin+rank_all[c-1][right-1];
+  
   assert(right>=left);
 
+  //TO DO:need to calc rev intervals based on rank matrix
   //now same in reverse csa
-  left_rev  = left_rev + s;
-  right_rev = right_rev - b + 1;
+  //left_rev  = left_rev + s;
+  //right_rev = right_rev - b + 1;
   //  assert(right_rev-left_rev == right-left);
 
   return right-left;

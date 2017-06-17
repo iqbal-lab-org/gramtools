@@ -17,14 +17,15 @@ using namespace sdsl;
 std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
 						uint64_t left, uint64_t right,
 						uint64_t left_rev, uint64_t right_rev,
-						std::vector<uint8_t>::iterator pat_begin, 
+						std::vector<uint8_t>::iterator pat_begin,
 						std::vector<uint8_t>::iterator pat_end,
-						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals, 
+						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals,
 						std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
 						std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
 						std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
-						bool kmer_precalc_done, const VariantMarkers &variants)
-{
+						bool kmer_precalc_done, const VariantMarkers &variants,
+                        std::unordered_map<uint8_t,vector<uint64_t>>& rank_all) {
+
 	std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
 	std::vector<uint8_t>::iterator pat_it=pat_end;
 	std::list<std::pair<uint64_t,uint64_t>>::iterator it, it_rev,it_end,it_rev_end;
@@ -56,7 +57,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 
 		assert(sa_intervals.size()==sa_intervals_rev.size());
 
-		//each interval has a corresponding vector of sites/alleles crossed; 
+		//each interval has a corresponding vector of sites/alleles crossed;
 		//what about the first interval? (corresp to matches in the ref)
 		assert(sa_intervals.size()==sites.size());
 
@@ -74,7 +75,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 				uint32_t prev_num=0;
 				uint32_t last_begin=0;
                 bool sec_to_last=false;
-				for (auto z=res.begin(),zend=res.end();z!=zend;++z) { 
+				for (auto z=res.begin(),zend=res.end();z!=zend;++z) {
 					uint64_t i=(*z).first;
 					uint32_t num=(*z).second;
 
@@ -82,7 +83,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 					  sec_to_last=false;
 					  last_begin=0;
 					}
-				       
+
 					if (((num==prev_num) && (num%2==0)) || ((num%2==0) && (num==prev_num+1) && (num==last_begin+1))) ignore=true;
 					else ignore=false;
 
@@ -108,12 +109,12 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 					}
 
 					last=skip(csa,left_new,right_new,left_rev_new,right_rev_new,num,maxx);
-					
+
 					if ((!last) && (num%2==1)) {
 					  last_begin=num;
 					  if ((z+1!=zend) && (num==(*(z+1)).second)) sec_to_last=true;
 					}
- 
+
 					// how to alternate between forward and backward?
 					if (it==sa_intervals.begin() && first_del==false && !ignore) {
 						sa_intervals.push_back(std::make_pair(left_new,right_new));
@@ -141,7 +142,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 							  //assert((*it_s).back().second.empty());
 							  (*it_s).back()=get_location(csa,i,num,last,(*it_s).back().second,mask_a);
 							}
-							else 
+							else
 							  (*it_s).push_back(get_location(csa,i,num,last,allele_empty,mask_a));
 							allele_empty.clear();
 							allele_empty.reserve(3500);
@@ -150,7 +151,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 							//++it_s;
 						}
 					}
-					prev_num=num;  
+					prev_num=num;
 					}
 				j++;
 				++it;
@@ -163,18 +164,18 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 		assert(sa_intervals.size()==sites.size());
 
 		it=sa_intervals.begin();
-		it_rev=sa_intervals_rev.begin();	
+		it_rev=sa_intervals_rev.begin();
 		it_s=sites.begin();
 
-		while (it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end()) {	
+		while (it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end()) {
 			//calculate sum to return- can do this in top fcns
-			if (bidir_search(csa,(*it).first,(*it).second,(*it_rev).first,(*it_rev).second,c)>0) {
+		        if (bidir_search(csa,(*it).first,(*it).second,(*it_rev).first,(*it_rev).second,c,rank_all)>0) {
 				++it;
 				++it_rev;
 				++it_s;
 			}
 			else {
-			  if (it==sa_intervals.begin()) 
+			  if (it==sa_intervals.begin())
 			    {
 			      //printf("First del true\n");
 			      first_del=true;
@@ -186,7 +187,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_su
 			}
 		}
 	    }
-	
+
 	if (pat_it!=pat_begin) return(pat_it); // where it got stuck
 	else {
 	  if (!sa_intervals.empty()) return(pat_end);

@@ -21,6 +21,7 @@
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
     TimerReport timer_report;
+    std::unordered_map<uint8_t,vector<uint64_t>> rank_all;
 
     std::cout << "Constructing FM-index" << std::endl;
     FM_Index fm_index = construct_fm_index(params.prg_fpath,
@@ -37,13 +38,17 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
 
+    precalc_ranks(fm_index, rank_all);
+    timer_report.record("Pre-calc ranks");
+
     std::cout << "Pre-calculating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
-                                masks.max_alphabet_num, params.kmers_size, variants);
+                                masks.max_alphabet_num, params.kmers_size, variants, rank_all);
     timer_report.record("Pre-calc kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_festa(params, masks, kmers, fm_index, variants);
+    uint64_t count_mapped = map_festa(params, masks, kmers, fm_index, variants, rank_all);
+
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
