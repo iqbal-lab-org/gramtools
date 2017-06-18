@@ -19,7 +19,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
-    uint64_t count_mapped = 0;
+    uint64_t count_attempt_mapped = 0;
     int count_reads = 0;
     int inc = 0;
     int in_sites = 0, no_mapped = 0;
@@ -33,17 +33,17 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
             reads_fhandle << count_reads << std::endl;
 
         process_festa_sequence(festa_read, readin_integer_seq, params,
-                               masks, count_reads, kmers, count_mapped, csa, in_sites,
+                               masks, count_reads, kmers, count_attempt_mapped, csa, in_sites,
                                no_mapped, repeats);
     }
     reads_fhandle.close();
-    return count_mapped;
+    return count_attempt_mapped;
 }
 
 
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads,
-                            KmersData &kmers, uint64_t &count_mapped, CSA &csa, int &in_sites, int &no_mapped,
+                            KmersData &kmers, uint64_t &count_attempt_mapped, CSA &csa, int &in_sites, int &no_mapped,
                             std::unordered_set<int> &repeats) {
 
     //cout<<q->seq<<endl;
@@ -63,6 +63,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
         auto it=sa_intervals.begin();
         auto it_rev=sa_intervals_rev.begin();
 
+	count_attempt_mapped++;
         bool first_del = true;
         //kmers in ref means kmers that do not cross any numbers
         //These are either in non-variable region, or are entirely within alleles
