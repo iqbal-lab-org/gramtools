@@ -39,8 +39,9 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Pre-calc kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_festa(params, masks, kmers, fm_index);
-    std::cout << "Count mapped: " << count_mapped << std::endl;
+    int no_mapped, count_attempt_mapped;
+    std::tie (no_mapped, count_attempt_mapped) = map_festa(params, masks, kmers, fm_index);
+    std::cout << "Count mapped: " << no_mapped << " out of "<< count_attempt_mapped << std::endl;
     timer_report.record("Mapping");
 
     std::cout << "Writing allele coverage to file" << std::endl;

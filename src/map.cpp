@@ -14,7 +14,7 @@
 #include "map.hpp"
 
 
-uint64_t map_festa(Parameters &params, MasksParser &masks,
+std::pair<int,int> map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &csa) {
 
     SeqRead input_festa(params.festa_fpath.c_str());
@@ -37,7 +37,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
                                no_mapped, repeats);
     }
     reads_fhandle.close();
-    return count_attempt_mapped;
+    return std::make_pair(no_mapped,count_attempt_mapped);
 }
 
 
