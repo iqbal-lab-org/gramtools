@@ -6,7 +6,7 @@ import subprocess
 log = logging.getLogger('gramtools')
 
 
-GRAMTOOLS_INSTALL_PATH = os.path.dirname(os.path.realpath(__file__))
+GRAMTOOLS_INSTALL_PATH = os.path.abspath((os.path.join(__file__, '../..')))
 gramtools_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                     'bin',
                                     'gramtools')
