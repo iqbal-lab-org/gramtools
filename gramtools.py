@@ -18,7 +18,7 @@ def setup_logging():
 log = setup_logging()
 
 
-from py_interface import build, infer
+from py_interface import build, quasimap
 
 
 def parse_args():
@@ -31,7 +31,7 @@ def parse_args():
 
     parser.add_argument("--gram-files", help="",
                         type=str)
-    parser.add_argument("--fast", help="",
+    parser.add_argument("--reference", help="",
                         type=str)
     parser.add_argument("--vcf", help="",
                         type=str)
@@ -50,4 +50,4 @@ if __name__ == '__main__':
         build.run(args)
 
     elif args.infer:
-        infer.run(args)
+        quasimap.run(args)

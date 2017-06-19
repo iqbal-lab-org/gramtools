@@ -32,7 +32,7 @@ def get_paths(args):
         'vcf': os.path.abspath(args.vcf),
         'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
         'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
-        'fast': args.fast,
+        'reference': args.reference,
 
         'kmer': os.path.join(species_dirpath, 'kmer'),
         'kmer_file': os.path.join(species_dirpath, 'kmer',
@@ -70,7 +70,7 @@ def execute_command_generate_prg(paths, args):
         'perl', utils.prg_build_exec_fpath,
         '--outfile', paths['prg'],
         '--vcf', paths['vcf'],
-        '--ref', paths['fast'],
+        '--ref', paths['reference'],
     ]
 
     log.debug('Executing command:\n%s\n', ' '.join(command))

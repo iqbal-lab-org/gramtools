@@ -47,7 +47,7 @@ def get_paths(args):
         'prg': os.path.join(species_dirpath, 'prg'),
         'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
         'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
-        'fast': args.fast,
+        'reference': args.reference,
 
         'kmer': os.path.join(species_dirpath, 'kmer'),
         'kmer_file': os.path.join(species_dirpath, 'kmer',
@@ -98,7 +98,7 @@ def execute_command(paths, args):
         '--po', paths['int_encoded_prg'],
         '--log', paths['fm_index_memory_log'],
         '--kfile', paths['kmer_file'],
-        '--input', paths['fast'],
+        '--input', paths['reference'],
         '--ksize', str(args.ksize),
     ]
 
@@ -113,10 +113,10 @@ def execute_command(paths, args):
 
 
 def run(args):
-    log.info('Start process: infer')
+    log.info('Start process: quasimap')
 
     paths = get_paths(args)
     setup_file_structure(paths)
 
     execute_command(paths, args)
-    log.info('End process: infer')
+    log.info('End process: quasimap')
