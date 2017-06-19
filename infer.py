@@ -20,17 +20,11 @@ def get_species_dirpath(prg_fpath):
     return species_dirpath
 
 
-def get_prg_fpath(species_dirpath, prg_arg_fpath):
-    prg_fname = os.path.basename(prg_arg_fpath)
-    prg_fpath = os.path.join(species_dirpath, prg_fname)
-    return prg_fpath
-
-
 def get_run_dirpath(output_dirpath, species_dirpath, ksize):
     species_dir = os.path.basename(species_dirpath)
     time_str = str(time.time()).split('.')[0]
 
-    template = '{time_str}_{species_dir}_{ksize}'
+    template = '{time_str}_{species_dir}_ksize{ksize}'
     run_dir = template.format(time_str=time_str, species_dir=species_dir,
                               ksize=ksize)
 
@@ -39,12 +33,15 @@ def get_run_dirpath(output_dirpath, species_dirpath, ksize):
 
 
 def get_paths(args):
-    species_dirpath = get_species_dirpath(args.prg)
-    run_dirpath = get_run_dirpath(args.output, species_dirpath, args.ksize)
+    # species_dirpath = get_species_dirpath(args.prg)
+    species_dirpath = os.path.abspath(args.gram_files)
+    output_dirpath = os.path.abspath(args.gram_files) + '_output'
+
+    run_dirpath = get_run_dirpath(output_dirpath, species_dirpath, args.ksize)
 
     paths = {
         'species': species_dirpath,
-        'prg': os.path.abspath(args.prg),  # os.path.join(species_dirpath, 'prg'),
+        'prg': os.path.join(species_dirpath, 'prg'),
         'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
         'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
         'fast': args.fast,
@@ -59,7 +56,7 @@ def get_paths(args):
         'kmer_suffix_array': os.path.join(species_dirpath, 'cache',
                                           'kmer_suffix_array'),
 
-        'output': args.output,
+        'output': output_dirpath,
         'run': run_dirpath,
         'info': os.path.join(run_dirpath, 'info'),
         'fm_index_memory_log': os.path.join(
@@ -102,7 +99,7 @@ def execute_command(paths, args):
         '--ksize', str(args.ksize),
     ]
 
-    log.debug('Executing command:\n%s', '\n'.join(command))
+    log.debug('Executing command:\n%s\n', ' '.join(command))
 
     current_working_directory = os.getcwd()
     process_handle = subprocess.Popen(command,
@@ -112,26 +109,10 @@ def execute_command(paths, args):
     utils.handle_process_result(process_handle)
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("infer", help="",
-                        action="store_true")
-    parser.add_argument("prg", help="",
-                        type=str)
-    parser.add_argument("fast", help="",
-                        type=str)
-    parser.add_argument("ksize", help="",
-                        type=int)
-    parser.add_argument("output", help="",
-                        type=str)
-    args = parser.parse_args()
-    return args
-
-
 def run(args):
     log.info('Start process: infer')
 
-    utils.check_path_exist([args.prg, args.fast])
+    # utils.check_path_exist([args.prg, args.fast])
     paths = get_paths(args)
     setup_file_structure(paths)
 

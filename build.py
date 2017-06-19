@@ -21,12 +21,6 @@ def get_species_dirpath(prg_fpath):
     return species_dirpath
 
 
-def get_prg_fpath(species_dirpath, prg_arg_fpath):
-    prg_fname = os.path.basename(prg_arg_fpath)
-    prg_fpath = os.path.join(species_dirpath, prg_fname)
-    return prg_fpath
-
-
 def get_paths(args):
     species_dirpath = get_species_dirpath(args.vcf)
 
@@ -79,7 +73,7 @@ def execute_command_generate_prg(paths, args):
         '--ref', paths['fast'],
     ]
 
-    log.debug('Executing command:\n%s', '\n'.join(command))
+    log.debug('Executing command:\n%s\n', ' '.join(command))
 
     current_working_directory = os.getcwd()
     process_handle = subprocess.Popen(command,
@@ -98,7 +92,7 @@ def execute_command_generate_kmers(paths, args):
         '-n',
     ]
 
-    log.debug('Executing command:\n%s', '\n'.join(command))
+    log.debug('Executing command:\n%s\n', ' '.join(command))
 
     current_working_directory = os.getcwd()
     with open(paths['kmer_file'], 'wb') as kmers_fhandle:
@@ -108,23 +102,6 @@ def execute_command_generate_kmers(paths, args):
                                           stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
     log.debug('Finished executing command')
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--build", help="",
-                        action="store_true")
-
-    parser.add_argument("--prg", help="",
-                        type=str)
-    parser.add_argument("--fast", help="",
-                        type=str)
-    parser.add_argument("--vcf", help="",
-                        type=str)
-
-    args = parser.parse_args()
-    return args
 
 
 def file_cleanup_generate_prg(paths):

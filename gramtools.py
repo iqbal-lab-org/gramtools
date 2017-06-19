@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument("--build", help="",
                         action="store_true")
 
-    parser.add_argument("--prg", help="",
+    parser.add_argument("--gram-files", help="",
                         type=str)
     parser.add_argument("--fast", help="",
                         type=str)
@@ -25,8 +25,8 @@ def parse_args():
 
     parser.add_argument("--ksize", help="",
                         type=int)
-    parser.add_argument("--output", help="",
-                        type=str)
+    # parser.add_argument("--output", help="",
+    #                     type=str)
 
     args = parser.parse_args()
     return args
