@@ -4,8 +4,24 @@ import argparse
 import logging
 import subprocess
 
-import build
-import infer
+
+def setup_logging():
+    log = logging.getLogger('gramtools')
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+    log.setLevel(logging.DEBUG)
+    return log
+
+log = setup_logging()
+
+
+from py_interface import build, infer
+
+
+
 
 
 def parse_args():
@@ -25,8 +41,6 @@ def parse_args():
 
     parser.add_argument("--ksize", help="",
                         type=int)
-    # parser.add_argument("--output", help="",
-    #                     type=str)
 
     args = parser.parse_args()
     return args

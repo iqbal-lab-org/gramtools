@@ -4,8 +4,10 @@ import argparse
 import logging
 import subprocess
 
-import utils
-from utils import log, prg_build_exec_fpath, kmers_script_fpath
+from . import utils
+
+
+log = logging.getLogger('gramtools')
 
 
 def get_species_dirpath(prg_fpath):
@@ -42,8 +44,6 @@ def get_paths(args):
         'kmer_suffix_array': os.path.join(species_dirpath, 'cache',
                                           'kmer_suffix_array'),
 
-        'output': args.output,
-
         'perl_generated_fa': os.path.join(species_dirpath,
                                           'cache',
                                           'perl_generated_fa'),
@@ -67,7 +67,7 @@ def setup_file_structure(paths):
 
 def execute_command_generate_prg(paths, args):
     command = [
-        'perl', prg_build_exec_fpath,
+        'perl', utils.prg_build_exec_fpath,
         '--outfile', paths['prg'],
         '--vcf', paths['vcf'],
         '--ref', paths['fast'],
@@ -86,7 +86,7 @@ def execute_command_generate_prg(paths, args):
 
 def execute_command_generate_kmers(paths, args):
     command = [
-        'python2.7', kmers_script_fpath,
+        'python2.7', utils.kmers_script_fpath,
         '-f', paths['perl_generated_fa'],
         '-k', str(args.ksize),
         '-n',
@@ -132,7 +132,6 @@ def file_cleanup_generate_prg(paths):
 def run(args):
     log.info('Start process: build')
 
-    utils.check_path_exist([args.vcf, args.fast])
     paths = get_paths(args)
     setup_file_structure(paths)
 

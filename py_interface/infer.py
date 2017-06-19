@@ -1,10 +1,13 @@
 import os
 import time
+import logging
 import argparse
 import subprocess
 
-import utils
-from utils import log, gramtools_exec_fpath
+from . import utils
+
+
+log = logging.getLogger('gramtools')
 
 
 def get_species_dirpath(prg_fpath):
@@ -85,7 +88,7 @@ def setup_file_structure(paths):
 
 def execute_command(paths, args):
     command = [
-        gramtools_exec_fpath,
+        utils.gramtools_exec_fpath,
         '--prg', paths['prg'],
         '--csa', paths['fm_index'],
         '--ps', paths['sites_mask'],
@@ -112,7 +115,6 @@ def execute_command(paths, args):
 def run(args):
     log.info('Start process: infer')
 
-    # utils.check_path_exist([args.prg, args.fast])
     paths = get_paths(args)
     setup_file_structure(paths)
 

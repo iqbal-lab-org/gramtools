@@ -3,6 +3,9 @@ import logging
 import subprocess
 
 
+log = logging.getLogger('gramtools')
+
+
 GRAMTOOLS_INSTALL_PATH = '/home/robyn/Documents/gramtools'
 gramtools_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                     'cmake-build-debug',
@@ -12,34 +15,6 @@ prg_build_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                     'vcf_to_linear_prg.pl')
 kmers_script_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                   'utils', 'variantKmers.py')
-
-
-def setup_logging():
-    log = logging.getLogger('gramtools')
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
-    log.setLevel(logging.DEBUG)
-    return log
-
-log = setup_logging()
-
-
-def check_path_exist(paths):
-    log.debug('Checking file paths')
-    missing_paths = set(path for path in paths
-                        if not os.path.isfile(path))
-
-    all_paths_present = not missing_paths
-    if all_paths_present:
-        return
-
-    log.error("The following paths do not exist:")
-    for path in missing_paths:
-        log.error(path)
-    exit(-1)
 
 
 def handle_process_result(process_handle):
