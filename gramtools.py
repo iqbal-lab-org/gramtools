@@ -24,7 +24,7 @@ from py_interface import build, quasimap
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--infer", help="",
+    parser.add_argument("--quasimap", help="",
                         action="store_true")
     parser.add_argument("--build", help="",
                         action="store_true")
@@ -49,5 +49,5 @@ if __name__ == '__main__':
     if args.build:
         build.run(args)
 
-    elif args.infer:
+    elif args.quasimap:
         quasimap.run(args)
