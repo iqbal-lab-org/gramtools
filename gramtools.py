@@ -4,25 +4,25 @@ import argparse
 import logging
 import subprocess
 
+from py_interface import build, quasimap
 
-def setup_logging():
+
+def setup_logging(level):
     log = logging.getLogger('gramtools')
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
         '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     handler.setFormatter(formatter)
     log.addHandler(handler)
-    log.setLevel(logging.DEBUG)
+    log.setLevel(level)
     return log
-
-log = setup_logging()
-
-
-from py_interface import build, quasimap
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+
+    parser.add_argument("--debug", help="",
+                        action="store_true")
 
     parser.add_argument("--quasimap", help="",
                         action="store_true")
@@ -45,6 +45,12 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
+
+    if args.debug:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+    setup_logging(level)
 
     if args.build:
         build.run(args)
