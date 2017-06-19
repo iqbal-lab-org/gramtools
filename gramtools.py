@@ -21,9 +21,6 @@ log = setup_logging()
 from py_interface import build, infer
 
 
-
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
 

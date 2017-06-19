@@ -1,7 +1,7 @@
 import os
 import time
-import argparse
 import logging
+import argparse
 import subprocess
 
 from . import utils
