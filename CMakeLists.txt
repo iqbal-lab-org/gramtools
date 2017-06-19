@@ -43,6 +43,9 @@ target_include_directories(gram PUBLIC
 target_link_libraries(gram LINK_PUBLIC ${LIBS_PATHS} ${Boost_LIBRARIES})
 
 add_executable(gramtools ${SOURCE}/main.cpp)
+set_target_properties(gramtools
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 target_include_directories(gramtools PUBLIC
     ${INCLUDE}
     ${Boost_INCLUDE_DIRS})

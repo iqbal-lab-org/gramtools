@@ -6,9 +6,9 @@ import subprocess
 log = logging.getLogger('gramtools')
 
 
-GRAMTOOLS_INSTALL_PATH = '/home/robyn/Documents/gramtools'
+GRAMTOOLS_INSTALL_PATH = os.path.dirname(os.path.realpath(__file__))
 gramtools_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
-                                    'cmake-build-debug',
+                                    'bin',
                                     'gramtools')
 prg_build_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
                                     'utils',
