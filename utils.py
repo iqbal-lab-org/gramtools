@@ -59,4 +59,6 @@ def handle_process_result(process_handle):
         log.info('stdout: none or piped out')
 
     if error_code != 0:
-        pass#raise RuntimeError('Error code != 0')
+        log.error('Error code != 0')
+        return False
+    return True

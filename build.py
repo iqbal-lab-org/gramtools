@@ -28,11 +28,11 @@ def get_prg_fpath(species_dirpath, prg_arg_fpath):
 
 
 def get_paths(args):
-    species_dirpath = get_species_dirpath(args.prg)
+    species_dirpath = get_species_dirpath(args.vcf)
 
     paths = {
         'species': species_dirpath,
-        'prg': os.path.abspath(args.prg),
+        'prg': os.path.join(species_dirpath, 'prg'),
         'vcf': os.path.abspath(args.vcf),
         'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
         'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
@@ -49,6 +49,10 @@ def get_paths(args):
                                           'kmer_suffix_array'),
 
         'output': args.output,
+
+        'perl_generated_fa': os.path.join(species_dirpath,
+                                          'cache',
+                                          'perl_generated_fa'),
     }
     return paths
 
@@ -67,7 +71,7 @@ def setup_file_structure(paths):
         os.mkdir(dirpath)
 
 
-def execute_command(paths, args):
+def execute_command_generate_prg(paths, args):
     command = [
         'perl', prg_build_exec_fpath,
         '--outfile', paths['prg'],
@@ -83,18 +87,27 @@ def execute_command(paths, args):
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
+    log.debug('Finished executing command')
 
+
+def execute_command_generate_kmers(paths, args):
     command = [
         'python2.7', kmers_script_fpath,
-        '-f', paths['modified_fasta'],
-        '-k', str(kmer_size),
+        '-f', paths['perl_generated_fa'],
+        '-k', str(args.ksize),
         '-n',
     ]
-    with open(paths['kmer'], 'wb') as kmers_fhandle:
-        process_handle = subprocess.Popen(command, cwd=paths['run_path'],
+
+    log.debug('Executing command:\n%s', '\n'.join(command))
+
+    current_working_directory = os.getcwd()
+    with open(paths['kmer_file'], 'wb') as kmers_fhandle:
+        process_handle = subprocess.Popen(command,
+                                          cwd=current_working_directory,
                                           stdout=kmers_fhandle,
                                           stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
+    log.debug('Finished executing command')
 
 
 def parse_args():
@@ -114,13 +127,28 @@ def parse_args():
     return args
 
 
-def file_cleanup(paths):
+def file_cleanup_generate_prg(paths):
     original_fpath = paths['prg'] + '.mask_alleles'
     target_fpath = os.path.join(paths['species'], 'allele_mask')
     os.rename(original_fpath, target_fpath)
 
     original_fpath = paths['prg'] + '.mask_sites'
     target_fpath = os.path.join(paths['species'], 'sites_mask')
+    os.rename(original_fpath, target_fpath)
+
+    original_fpath = paths['prg']
+    target_fpath = os.path.join(paths['species'], 'prg')
+    os.rename(original_fpath, target_fpath)
+
+    # TODO: should .prg.vcf be generated at all?
+    original_fpath = paths['prg'] + '.vcf'
+    target_fpath = os.path.join(paths['species'], 'cache',
+                                'perl_generated_vcf')
+    os.rename(original_fpath, target_fpath)
+
+    original_fpath = paths['prg'] + '.fa'
+    target_fpath = os.path.join(paths['species'], 'cache',
+                                'perl_generated_fa')
     os.rename(original_fpath, target_fpath)
 
 
@@ -131,7 +159,9 @@ def run(args):
     paths = get_paths(args)
     setup_file_structure(paths)
 
-    execute_command(paths, args)
-    file_cleanup(paths)
+    execute_command_generate_prg(paths, args)
+    file_cleanup_generate_prg(paths)
+
+    execute_command_generate_kmers(paths, args)
 
     log.info('End process: build')
