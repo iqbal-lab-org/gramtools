@@ -28,8 +28,7 @@ def handle_process_result(process_handle):
         log.info('Process error code: %s', error_code)
 
     if stdout:
-        truncate_stdout = stdout.decode("utf-8")
-        log.info('stdout:\n%s', truncate_stdout)
+        log.info('stdout:\n%s', stdout.decode("utf-8"))
     else:
         log.info('stdout: none or piped out')
 

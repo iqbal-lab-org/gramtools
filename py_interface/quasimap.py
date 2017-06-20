@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import logging
 import argparse
 import subprocess
@@ -23,40 +24,40 @@ def get_species_dirpath(prg_fpath):
     return species_dirpath
 
 
-def get_run_dirpath(output_dirpath, species_dirpath, ksize):
-    species_dir = os.path.basename(species_dirpath)
-    time_str = str(time.time()).split('.')[0]
+def get_run_dirpath(output_dirpath, species_dirpath,
+                    ksize, current_time):
+    project = os.path.basename(species_dirpath)
 
-    template = '{time_str}_{species_dir}_ksize{ksize}'
-    run_dir = template.format(time_str=time_str, species_dir=species_dir,
+    template = '{time}_{project}_ksize{ksize}'
+    run_dir = template.format(time=current_time, project=project,
                               ksize=ksize)
 
     run_dirpath = os.path.join(output_dirpath, run_dir)
     return run_dirpath
 
 
-def get_paths(args):
-    # species_dirpath = get_species_dirpath(args.prg)
-    species_dirpath = os.path.abspath(args.gram_files)
-    output_dirpath = os.path.abspath(args.gram_files) + '_output'
+def get_paths(args, current_time):
+    project = os.path.abspath(args.gram_files)
+    output_dirpath = project + '_output'
 
-    run_dirpath = get_run_dirpath(output_dirpath, species_dirpath, args.ksize)
+    run_dirpath = get_run_dirpath(output_dirpath, project,
+                                  args.ksize, current_time)
 
     paths = {
-        'species': species_dirpath,
-        'prg': os.path.join(species_dirpath, 'prg'),
-        'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
-        'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
+        'species': project,
+        'prg': os.path.join(project, 'prg'),
+        'sites_mask': os.path.join(project, 'sites_mask'),
+        'allele_mask': os.path.join(project, 'allele_mask'),
         'reference': args.reference,
 
-        'kmer': os.path.join(species_dirpath, 'kmer'),
-        'kmer_file': os.path.join(species_dirpath, 'kmer',
+        'kmer': os.path.join(project, 'kmer'),
+        'kmer_file': os.path.join(project, 'kmer',
                                   'ksize_' + str(args.ksize)),
-        'cache': os.path.join(species_dirpath, 'cache'),
+        'cache': os.path.join(project, 'cache'),
         'int_encoded_prg': os.path.join(
-            species_dirpath, 'cache', 'int_encoded_prg'),
-        'fm_index': os.path.join(species_dirpath, 'cache', 'fm_index'),
-        'kmer_suffix_array': os.path.join(species_dirpath, 'cache',
+            project, 'cache', 'int_encoded_prg'),
+        'fm_index': os.path.join(project, 'cache', 'fm_index'),
+        'kmer_suffix_array': os.path.join(project, 'cache',
                                           'kmer_suffix_array'),
 
         'output': output_dirpath,
@@ -102,21 +103,42 @@ def execute_command(paths, args):
         '--ksize', str(args.ksize),
     ]
 
-    log.debug('Executing command:\n%s\n', ' '.join(command))
+    command_str = ' '.join(command)
+    log.debug('Executing command:\n%s\n', command_str)
 
     current_working_directory = os.getcwd()
     process_handle = subprocess.Popen(command,
                                       cwd=current_working_directory,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
-    utils.handle_process_result(process_handle)
+
+    command_result = utils.handle_process_result(process_handle)
+    return command_str, command_result
+
+
+def save_report(command_str, command_result, current_time, paths):
+    report = {
+        'command_str': command_str,
+        'command_return_eq_0': command_result,
+        'paths': paths,
+        'start_time': current_time,
+        'end_time': str(time.time()).split('.')[0],
+    }
+
+    report_fpath = os.path.join(paths['run'], 'report.json')
+    with open(report_fpath, 'w') as fhandle:
+        json.dump(report, fhandle)
 
 
 def run(args):
     log.info('Start process: quasimap')
 
-    paths = get_paths(args)
+    current_time = str(time.time()).split('.')[0]
+    paths = get_paths(args, current_time)
     setup_file_structure(paths)
 
-    execute_command(paths, args)
+    command_str, command_result = execute_command(paths, args)
     log.info('End process: quasimap')
+
+    log.debug('Writing run report to run directory')
+    save_report(command_str, command_result, current_time, paths)
