@@ -11,22 +11,22 @@ from . import utils
 log = logging.getLogger('gramtools')
 
 
-def get_species_dirpath(prg_fpath):
+def get_project_dirpath(prg_fpath):
     prg_fname = os.path.basename(prg_fpath)
     if prg_fname.endswith('.prg'):
-        species_dir = prg_fname[:-len('.prg')]
+        project_dir = prg_fname[:-len('.prg')]
     else:
-        species_dir = prg_fname
-    species_dir = species_dir.split('.')[0]
+        project_dir = prg_fname
+    project_dir = project_dir.split('.')[0]
 
     current_working_directory = os.getcwd()
-    species_dirpath = os.path.join(current_working_directory, species_dir)
-    return species_dirpath
+    project_dirpath = os.path.join(current_working_directory, project_dir)
+    return project_dirpath
 
 
-def get_run_dirpath(output_dirpath, species_dirpath,
+def get_run_dirpath(output_dirpath, project_dirpath,
                     ksize, current_time):
-    project = os.path.basename(species_dirpath)
+    project = os.path.basename(project_dirpath)
 
     template = '{time}_{project}_ksize{ksize}'
     run_dir = template.format(time=current_time, project=project,
@@ -43,37 +43,55 @@ def get_paths(args, current_time):
     run_dirpath = get_run_dirpath(output_dirpath, project,
                                   args.ksize, current_time)
 
-    paths = {
-        'species': project,
+    project_root = {
+        'project': project,
         'prg': os.path.join(project, 'prg'),
         'sites_mask': os.path.join(project, 'sites_mask'),
         'allele_mask': os.path.join(project, 'allele_mask'),
-        'reference': args.reference,
+    }
 
+    kmer_paths = {
         'kmer': os.path.join(project, 'kmer'),
         'kmer_file': os.path.join(project, 'kmer',
                                   'ksize_' + str(args.ksize)),
+    }
+
+    cache_paths = {
         'cache': os.path.join(project, 'cache'),
         'int_encoded_prg': os.path.join(
             project, 'cache', 'int_encoded_prg'),
         'fm_index': os.path.join(project, 'cache', 'fm_index'),
         'kmer_suffix_array': os.path.join(project, 'cache',
                                           'kmer_suffix_array'),
+    }
 
+    output_paths = {
         'output': output_dirpath,
         'run': run_dirpath,
-        'info': os.path.join(run_dirpath, 'info'),
+        'run_report': os.path.join(run_dirpath, 'report.json'),
+        'callgrind_out': os.path.join(run_dirpath, 'callgrind.out'),
         'fm_index_memory_log': os.path.join(
             run_dirpath, 'fm_index_memory_log'),
         'allele_coverage': os.path.join(run_dirpath, 'allele_coverage'),
         'reads': os.path.join(run_dirpath, 'reads'),
     }
+
+    other_paths = {
+        'reference': args.reference,
+    }
+
+    paths = {}
+    paths.update(project_root)
+    paths.update(kmer_paths)
+    paths.update(cache_paths)
+    paths.update(output_paths)
+    paths.update(other_paths)
     return paths
 
 
 def setup_file_structure(paths):
     dirs = [
-        paths['species'],
+        paths['project'],
         paths['cache'],
         paths['kmer'],
         paths['kmer_suffix_array'],
@@ -83,7 +101,7 @@ def setup_file_structure(paths):
     for dirpath in dirs:
         if os.path.isdir(dirpath):
             continue
-        log.debug('Creating directory: %s', dirpath)
+        log.debug('Creating directory:\n%s', dirpath)
         os.mkdir(dirpath)
 
 
@@ -103,16 +121,28 @@ def execute_command(paths, args):
         '--ksize', str(args.ksize),
     ]
 
+    callgrind_command = [
+        'valgrind',
+        '--tool=callgrind',
+        '--callgrind-out-file=' + paths['callgrind_out'],
+    ]
+
+    callgrind_command = callgrind_command if args.profile else []
+    command = callgrind_command + command
+
     command_str = ' '.join(command)
-    log.debug('Executing command:\n%s\n', command_str)
+    log.debug('Executing command:\n\n%s\n', command_str)
 
     current_working_directory = os.getcwd()
-    process_handle = subprocess.Popen(command,
+    process_handle = subprocess.Popen(command_str,
                                       cwd=current_working_directory,
                                       stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
+                                      stderr=subprocess.PIPE,
+                                      shell=True)
 
     command_result = utils.handle_process_result(process_handle)
+
+    log.info('Output run directory:\n%s', paths['run'])
     return command_str, command_result
 
 
@@ -125,8 +155,7 @@ def save_report(command_str, command_result, current_time, paths):
         'end_time': str(time.time()).split('.')[0],
     }
 
-    report_fpath = os.path.join(paths['run'], 'report.json')
-    with open(report_fpath, 'w') as fhandle:
+    with open(paths['run_report'], 'w') as fhandle:
         json.dump(report, fhandle)
 
 

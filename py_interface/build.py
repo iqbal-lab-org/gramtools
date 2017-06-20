@@ -10,41 +10,41 @@ from . import utils
 log = logging.getLogger('gramtools')
 
 
-def get_species_dirpath(prg_fpath):
+def get_project_dirpath(prg_fpath):
     prg_fname = os.path.basename(prg_fpath)
     if prg_fname.endswith('.prg'):
-        species_dir = prg_fname[:-len('.prg')]
+        project_dir = prg_fname[:-len('.prg')]
     else:
-        species_dir = prg_fname
-    species_dir = species_dir.split('.')[0]
+        project_dir = prg_fname
+    project_dir = project_dir.split('.')[0]
 
     current_working_directory = os.getcwd()
-    species_dirpath = os.path.join(current_working_directory, species_dir)
-    return species_dirpath
+    project_dirpath = os.path.join(current_working_directory, project_dir)
+    return project_dirpath
 
 
 def get_paths(args):
-    species_dirpath = get_species_dirpath(args.vcf)
+    project_dirpath = get_project_dirpath(args.vcf)
 
     paths = {
-        'species': species_dirpath,
-        'prg': os.path.join(species_dirpath, 'prg'),
+        'project': project_dirpath,
+        'prg': os.path.join(project_dirpath, 'prg'),
         'vcf': os.path.abspath(args.vcf),
-        'sites_mask': os.path.join(species_dirpath, 'sites_mask'),
-        'allele_mask': os.path.join(species_dirpath, 'allele_mask'),
+        'sites_mask': os.path.join(project_dirpath, 'sites_mask'),
+        'allele_mask': os.path.join(project_dirpath, 'allele_mask'),
         'reference': args.reference,
 
-        'kmer': os.path.join(species_dirpath, 'kmer'),
-        'kmer_file': os.path.join(species_dirpath, 'kmer',
+        'kmer': os.path.join(project_dirpath, 'kmer'),
+        'kmer_file': os.path.join(project_dirpath, 'kmer',
                                   'ksize_' + str(args.ksize)),
-        'cache': os.path.join(species_dirpath, 'cache'),
+        'cache': os.path.join(project_dirpath, 'cache'),
         'int_encoded_prg': os.path.join(
-            species_dirpath, 'cache', 'int_encoded_prg'),
-        'fm_index': os.path.join(species_dirpath, 'cache', 'fm_index'),
-        'kmer_suffix_array': os.path.join(species_dirpath, 'cache',
+            project_dirpath, 'cache', 'int_encoded_prg'),
+        'fm_index': os.path.join(project_dirpath, 'cache', 'fm_index'),
+        'kmer_suffix_array': os.path.join(project_dirpath, 'cache',
                                           'kmer_suffix_array'),
 
-        'perl_generated_fa': os.path.join(species_dirpath,
+        'perl_generated_fa': os.path.join(project_dirpath,
                                           'cache',
                                           'perl_generated_fa'),
     }
@@ -53,7 +53,7 @@ def get_paths(args):
 
 def setup_file_structure(paths):
     dirs = [
-        paths['species'],
+        paths['project'],
         paths['cache'],
         paths['kmer'],
         paths['kmer_suffix_array'],
@@ -73,7 +73,7 @@ def execute_command_generate_prg(paths, args):
         '--ref', paths['reference'],
     ]
 
-    log.debug('Executing command:\n%s\n', ' '.join(command))
+    log.debug('Executing command:\n\n%s\n', ' '.join(command))
 
     current_working_directory = os.getcwd()
     process_handle = subprocess.Popen(command,
@@ -92,7 +92,7 @@ def execute_command_generate_kmers(paths, args):
         '-n',
     ]
 
-    log.debug('Executing command:\n%s\n', ' '.join(command))
+    log.debug('Executing command:\n\n%s\n', ' '.join(command))
 
     current_working_directory = os.getcwd()
     with open(paths['kmer_file'], 'wb') as kmers_fhandle:
@@ -106,25 +106,25 @@ def execute_command_generate_kmers(paths, args):
 
 def file_cleanup_generate_prg(paths):
     original_fpath = paths['prg'] + '.mask_alleles'
-    target_fpath = os.path.join(paths['species'], 'allele_mask')
+    target_fpath = os.path.join(paths['project'], 'allele_mask')
     os.rename(original_fpath, target_fpath)
 
     original_fpath = paths['prg'] + '.mask_sites'
-    target_fpath = os.path.join(paths['species'], 'sites_mask')
+    target_fpath = os.path.join(paths['project'], 'sites_mask')
     os.rename(original_fpath, target_fpath)
 
     original_fpath = paths['prg']
-    target_fpath = os.path.join(paths['species'], 'prg')
+    target_fpath = os.path.join(paths['project'], 'prg')
     os.rename(original_fpath, target_fpath)
 
     # TODO: should .prg.vcf be generated at all?
     original_fpath = paths['prg'] + '.vcf'
-    target_fpath = os.path.join(paths['species'], 'cache',
+    target_fpath = os.path.join(paths['project'], 'cache',
                                 'perl_generated_vcf')
     os.rename(original_fpath, target_fpath)
 
     original_fpath = paths['prg'] + '.fa'
-    target_fpath = os.path.join(paths['species'], 'cache',
+    target_fpath = os.path.join(paths['project'], 'cache',
                                 'perl_generated_fa')
     os.rename(original_fpath, target_fpath)
 

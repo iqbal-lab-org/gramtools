@@ -26,6 +26,8 @@ def parse_args():
 
     parser.add_argument("--quasimap", help="",
                         action="store_true")
+    parser.add_argument("--profile", help="",
+                        action="store_true")
     parser.add_argument("--build", help="",
                         action="store_true")
 
