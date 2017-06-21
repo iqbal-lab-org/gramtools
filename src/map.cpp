@@ -16,17 +16,16 @@
 #include "variants.hpp"
 
 
-
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &fm_index, const VariantMarkers &variants) {
 
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
-    uint64_t count_mapped = 0;
     int count_reads = 0;
     int inc = 0;
     int in_sites = 0, no_mapped = 0;
     std::unordered_set<int> repeats;
+    uint64_t count_mapped = 0;
 
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
@@ -187,7 +186,8 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
 
 bool convert_festa_to_int_seq(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq){
     bool invalid_base_flag = false;
-    for (int i = 0; i < strlen(festa_read->seq); i++) {
+    const auto sequence_length = strlen(festa_read->seq);
+    for (int i = 0; i < sequence_length; i++) {
         if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
             readin_integer_seq.push_back(1);
         else if (festa_read->seq[i] == 'C' or festa_read->seq[i] == 'c')

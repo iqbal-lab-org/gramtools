@@ -10,7 +10,6 @@
 #ifndef GRAMTOOLS_MAP_HPP
 #define GRAMTOOLS_MAP_HPP
 
-
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &fm_index, const VariantMarkers &variants);
 
