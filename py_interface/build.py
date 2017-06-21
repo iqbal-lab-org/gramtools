@@ -89,7 +89,6 @@ def execute_command_generate_kmers(paths, args):
         'python2.7', utils.kmers_script_fpath,
         '-f', paths['perl_generated_fa'],
         '-k', str(args.ksize),
-        '-n',
     ]
 
     log.debug('Executing command:\n\n%s\n', ' '.join(command))
