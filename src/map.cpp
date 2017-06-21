@@ -185,7 +185,8 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
 
 bool convert_festa_to_int_seq(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq){
     bool invalid_base_flag = false;
-    for (int i = 0; i < strlen(festa_read->seq); i++) {
+    const auto sequence_length = strlen(festa_read->seq);
+    for (int i = 0; i < sequence_length; i++) {
         if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
             readin_integer_seq.push_back(1);
         else if (festa_read->seq[i] == 'C' or festa_read->seq[i] == 'c')
