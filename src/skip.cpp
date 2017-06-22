@@ -10,25 +10,25 @@
 
 using namespace sdsl;
 
-bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
+bool skip(const FM_Index &fm_index,
                       uint64_t& left, uint64_t& right,
                       uint64_t& left_rev, uint64_t& right_rev,
-	              uint32_t num, uint64_t maxx)
+	              uint64_t num, uint64_t maxx)
 {
   uint64_t site_end,site_start,ind_start,ind_end;
   bool last=false;
 
   assert(left < right);
-  assert(right <= csa.size());
+  assert(right <= fm_index.size());
   assert(num > 4);
 
   if (num%2==1) {
-    uint64_t num_begin = csa.C[csa.char2comp[num]];
+    uint64_t num_begin = fm_index.C[fm_index.char2comp[num]];
 
-    site_end=std::max(csa[num_begin],csa[num_begin+1]);
-    site_start=std::min(csa[num_begin],csa[num_begin+1]);
+    site_end=std::max(fm_index[num_begin],fm_index[num_begin+1]);
+    site_start=std::min(fm_index[num_begin],fm_index[num_begin+1]);
 
-    if (csa[num_begin]>csa[num_begin+1]) {
+    if (fm_index[num_begin]>fm_index[num_begin+1]) {
       ind_end=num_begin;
       ind_start=num_begin+1;
     }
@@ -38,12 +38,12 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
     }
 
     if (right-left==1) {
-      if (csa[left]==site_end+1) {
+      if (fm_index[left]==site_end+1) {
 	last=true;
 
 	left=num_begin;
-	if (num+2<=maxx) right=csa.C[csa.char2comp[num+2]];
-	else right=csa.size();
+	if (num+2<=maxx) right=fm_index.C[fm_index.char2comp[num+2]];
+	else right=fm_index.size();
 
 	left_rev=left;
 	right_rev=right;
@@ -65,8 +65,8 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
       //allele.push_back(1);
 
       left=num_begin;
-      if (num+2<=maxx) right=csa.C[csa.char2comp[num+2]];
-      else right=csa.size();
+      if (num+2<=maxx) right=fm_index.C[fm_index.char2comp[num+2]];
+      else right=fm_index.size();
 
       left_rev=left;
       right_rev=right;
@@ -74,23 +74,23 @@ bool skip(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
     }
   }
   else {
-    uint64_t num_begin = csa.C[csa.char2comp[num-1]];
+    uint64_t num_begin = fm_index.C[fm_index.char2comp[num-1]];
 
-    site_start=std::min(csa[num_begin],csa[num_begin+1]);
-    site_end=std::max(csa[num_begin],csa[num_begin+1]);
+    site_start=std::min(fm_index[num_begin],fm_index[num_begin+1]);
+    site_end=std::max(fm_index[num_begin],fm_index[num_begin+1]);
 
     /*
     if (right-left==1) {
       site=num-1;
-      allele.push_back(mask_a[csa[left]]);
+      allele.push_back(mask_a[fm_index[left]]);
     }
     else {
       site=num-1;
       for (i=left;i<right;i++)
-	allele.push_back(mask_a[csa[i]]);
+	allele.push_back(mask_a[fm_index[i]]);
     }
     */
-    if (csa[num_begin]<csa[num_begin+1]) {
+    if (fm_index[num_begin]<fm_index[num_begin+1]) {
       left=num_begin;
       right=num_begin+1;
 

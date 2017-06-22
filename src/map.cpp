@@ -19,7 +19,7 @@
 
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &fm_index, const VariantMarkers &variants,
-                   std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
+                   std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
 
     SeqRead input_festa(params.festa_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
@@ -48,7 +48,7 @@ uint64_t map_festa(Parameters &params, MasksParser &masks,
 void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads, int &count_mapped,
                             KmersData &kmers, CSA &csa, int &in_sites, std::unordered_set<int> &repeats,
-                            const VariantMarkers &variants, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
+                            const VariantMarkers &variants, std::unordered_map<uint8_t,std::vector<uint64_t>> &rank_all) {
 
     //cout<<q->seq<<endl;
     int seqlen=strlen(festa_read->seq);
@@ -77,12 +77,12 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
         }
         else first_del=true;
 
-        bool precalc_done=true;
+        bool kmer_precalc_done=true;
         auto res_it = bidir_search_bwd(csa, (*it).first, (*it).second,
                                        (*it_rev).first, (*it_rev).second,
                                        readin_integer_seq.begin(),readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,
                                        sa_intervals, sa_intervals_rev, sites, masks.allele, masks.max_alphabet_num,
-                                       first_del, precalc_done, variants, rank_all);
+                                       first_del, kmer_precalc_done, variants, rank_all);
 
         no_occ=0;
 

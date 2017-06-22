@@ -1,200 +1,175 @@
-#include "sdsl/suffix_arrays.hpp"
-#include "sdsl/int_vector.hpp"
-#include "sdsl/wavelet_trees.hpp"
-#include <cassert>
-#include "bwt_search.h"
-#include <tuple>
-#include <cstdint>
+#include <sdsl/suffix_arrays.hpp>
 
-#include "variants.hpp"
-#include "process_prg.hpp"
+#include "bwt_search.h"
 #include "map.hpp"
 
 using namespace sdsl;
 
 
-// should make csa template to have control from cmd line over SA sampling density
-std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+std::vector<uint8_t>::iterator bidir_search_bwd(const FM_Index &fm_index,
                                                 uint64_t left, uint64_t right,
                                                 uint64_t left_rev, uint64_t right_rev,
-                                                std::vector<uint8_t>::iterator pat_begin,
-                                                std::vector<uint8_t>::iterator pat_end,
+                                                const std::vector<uint8_t>::iterator fasta_pattern_begin,
+                                                const std::vector<uint8_t>::iterator fasta_pattern_end,
                                                 std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
                                                 std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
                                                 std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                                                std::vector<int> &mask_a, uint64_t maxx, bool &first_del,
-                                                bool kmer_precalc_done, const VariantMarkers &variants,
+                                                std::vector<int> &mask_a, const uint64_t maxx, bool &first_del,
+                                                const bool kmer_precalc_done, const VariantMarkers &variants,
                                                 std::unordered_map<uint8_t, vector<uint64_t>> &rank_all) {
-
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator it_s;
-    std::vector<uint8_t>::iterator pat_it = pat_end;
-    std::list<std::pair<uint64_t, uint64_t>>::iterator it, it_rev, it_end, it_rev_end;
-    uint8_t c;
-    bool last, ignore;
-    uint64_t left_new, right_new, left_rev_new, right_rev_new;
-    std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
-    std::vector<int> allele_empty;
-    uint64_t init_list_size, j;
-    std::vector<std::pair<uint32_t, std::vector<int>>> vec_item;
-
-    assert(left < right);
-    assert(right <= csa.size());
 
     if (sa_intervals.empty()) {
         sa_intervals.push_back(std::make_pair(left, right));
         sa_intervals_rev.push_back(std::make_pair(left_rev, right_rev));
+
+        std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
         sites.push_back(empty_pair_vector);
     }
 
+    std::vector<int> allele_empty;
     allele_empty.reserve(3500);
 
-    int k = 0;
-    while (pat_it > pat_begin && !sa_intervals.empty()) {
-        --pat_it;
-        c = *pat_it;
-        k++;
-        //if (sa_intervals.size()==0) cout<<k<<" "<<unsigned(c)<<endl;
+    auto fasta_pattern_it = fasta_pattern_end;
+    while (fasta_pattern_it > fasta_pattern_begin) {
 
-        assert(sa_intervals.size() == sa_intervals_rev.size());
+        if (sa_intervals.empty())
+            break;
 
-        //each interval has a corresponding vector of sites/alleles crossed;
-        //what about the first interval? (corresp to matches in the ref)
-        assert(sa_intervals.size() == sites.size());
+        --fasta_pattern_it;
+        uint8_t fasta_char = *fasta_pattern_it;
 
-        it = sa_intervals.begin();
-        it_rev = sa_intervals_rev.begin();
-        it_s = sites.begin();
+        auto sa_interval_it = sa_intervals.begin();
+        auto sa_interval_it_rev = sa_intervals_rev.begin();
+        auto sites_it = sites.begin();
 
-        init_list_size = sa_intervals.size();
-        j = 0;
+        if ((fasta_pattern_it != fasta_pattern_end - 1) or kmer_precalc_done) {
 
-        if ((pat_it != pat_end - 1) or (kmer_precalc_done == true)) {
-			
-            while (j < init_list_size) {
-                std::vector<std::pair<uint64_t, uint64_t>> res = find_variant_markers((*it).first, (*it).second - 1,
-                                                                                      csa, variants);
-                uint32_t prev_num = 0;
-                uint32_t last_begin = 0;
-                bool sec_to_last = false;
-                for (auto z = res.begin(), zend = res.end(); z != zend; ++z) {
-                    uint64_t i = (*z).first;
-                    uint32_t num = (*z).second;
+            const uint64_t count_sa_intervals = sa_intervals.size();
+            for (auto j = 0; j < count_sa_intervals; j++) {
 
-                    if ((num % 2 == 1) && (num != prev_num)) {
-                        sec_to_last = false;
+                auto sa_interval_start = (*sa_interval_it).first;
+                auto sa_interval_end = (*sa_interval_it).second - 1;
+                auto variant_markers = find_variant_markers(sa_interval_start, sa_interval_end,
+                                                            fm_index, variants);
+                uint64_t previous_marker = 0;
+                uint64_t last_begin = 0;
+                bool second_to_last = false;
+
+                for (auto marker_it = variant_markers.begin();
+                     marker_it != variant_markers.end();
+                     ++marker_it) {
+
+                    uint64_t marker_idx = (*marker_it).first;
+                    uint64_t marker = (*marker_it).second;
+
+                    if ((marker % 2 == 1) && (marker != previous_marker)) {
+                        second_to_last = false;
                         last_begin = 0;
                     }
 
-                    if (((num == prev_num) && (num % 2 == 0)) ||
-                        ((num % 2 == 0) && (num == prev_num + 1) && (num == last_begin + 1)))
-                        ignore = true;
-                    else ignore = false;
-
-                    left_new = (*it).first;
-                    right_new = (*it).second;
-
-                    //need original [l,r] to for the next loop iterations
-
-                    left_rev_new = (*it_rev).first;
-                    right_rev_new = (*it_rev).second;
-
-                    if (num % 2 == 1) {
-                        /*
-                          if (z+1!=zend && num==(*(z+1)).second) {
-                              left_new=csa.C[csa.char2comp[num]]; //need to modify left_rev_new as well?
-                              right_new=left_new+2;
-                          }
-                          else {
-                        */
-                        left_new = i;
-                        right_new = i + 1;
-                        //	}
+                    auto left_new = (*sa_interval_it).first;
+                    auto right_new = (*sa_interval_it).second;
+                    if (marker % 2 == 1) {
+                        left_new = marker_idx;
+                        right_new = marker_idx + 1;
                     }
 
-                    last = skip(csa, left_new, right_new, left_rev_new, right_rev_new, num, maxx);
+                    auto left_rev_new = (*sa_interval_it_rev).first;
+                    auto right_rev_new = (*sa_interval_it_rev).second;
 
-                    if ((!last) && (num % 2 == 1)) {
-                        last_begin = num;
-                        if ((z + 1 != zend) && (num == (*(z + 1)).second)) sec_to_last = true;
+                    bool ignore = ((marker == previous_marker) && (marker % 2 == 0)) ||
+                                  ((marker % 2 == 0) && (marker == previous_marker + 1) && (marker == last_begin + 1));
+
+                    bool last = skip(fm_index, left_new, right_new,
+                                     left_rev_new, right_rev_new, marker, maxx);
+                    if (!last && (marker % 2 == 1)) {
+                        last_begin = marker;
+                        if ((marker_it + 1 != variant_markers.end()) && (marker == (*(marker_it + 1)).second))
+                            second_to_last = true;
                     }
 
-                    // how to alternate between forward and backward?
-                    if (it == sa_intervals.begin() && first_del == false && !ignore) {
-                        sa_intervals.push_back(std::make_pair(left_new, right_new));
-                        sa_intervals_rev.push_back(std::make_pair(left_rev_new, right_rev_new));
-                        sites.push_back(std::vector<std::pair<uint32_t, std::vector<int>>>(1, get_location(csa, i, num,
-                                                                                                           last,
-                                                                                                           allele_empty,
-                                                                                                           mask_a)));
+                    if (sa_interval_it == sa_intervals.begin() && first_del == false && !ignore) {
+                        auto sa_interval = std::make_pair(left_new, right_new);
+                        sa_intervals.push_back(sa_interval);
+                        auto sa_interval_rev = std::make_pair(left_rev_new, right_rev_new);
+                        sa_intervals_rev.push_back(sa_interval_rev);
+
+                        auto location = get_location(fm_index, marker_idx, marker,
+                                                     last, allele_empty, mask_a);
+                        std::vector<std::pair<uint32_t, std::vector<int>>> tmp(1, location);
+                        sites.push_back(tmp);
                         sites.back().reserve(100);
+
                         allele_empty.clear();
                         allele_empty.reserve(3500);
-                    }
-                        //there will be entries with pair.second empty (corresp to allele) coming from crossing the last marker
-                        //can delete them here or in top a fcn when calculating coverages
-                    else {
+                    } else {
+                        // there will be entries with pair.second empty (corresp to allele)
+                        // coming from crossing the last marker
+                        // can delete them here or in top a fcn when calculating coverages
                         if (ignore) {
-                            if ((num == last_begin + 1) && (sec_to_last)) {
-                                vec_item = *(std::prev(sites.end(), 2));
-                                vec_item.back() = get_location(csa, i, num, last, vec_item.back().second, mask_a);
+                            if ((marker == last_begin + 1) && second_to_last) {
+                                auto vec_item = *(std::prev(sites.end(), 2));
+                                vec_item.back() = get_location(fm_index, marker_idx, marker, last,
+                                                               vec_item.back().second, mask_a);
                             } else
-                                sites.back().back() = get_location(csa, i, num, last, sites.back().back().second,
-                                                                   mask_a);
-                            //else ?, assert sites.first=num
+                                sites.back().back() = get_location(fm_index, marker_idx, marker, last,
+                                                                   sites.back().back().second, mask_a);
                         } else {
-                            *it = std::make_pair(left_new, right_new);
-                            *it_rev = std::make_pair(left_rev_new, right_rev_new);
-                            if ((*it_s).back().first == num || (*it_s).back().first == num - 1) {
-                                //assert((*it_s).back().second.empty());
-                                (*it_s).back() = get_location(csa, i, num, last, (*it_s).back().second, mask_a);
-                            } else
-                                (*it_s).push_back(get_location(csa, i, num, last, allele_empty, mask_a));
+                            *sa_interval_it = std::make_pair(left_new, right_new);
+                            *sa_interval_it_rev = std::make_pair(left_rev_new, right_rev_new);
+
+                            if ((*sites_it).back().first == marker || (*sites_it).back().first == marker - 1)
+                                (*sites_it).back() = get_location(fm_index, marker_idx, marker, last,
+                                                                  (*sites_it).back().second, mask_a);
+
+                            else
+                                (*sites_it).push_back(get_location(fm_index, marker_idx, marker, last,
+                                                                   allele_empty, mask_a));
+
                             allele_empty.clear();
                             allele_empty.reserve(3500);
-                            //++it;
-                            //++it_rev;
-                            //++it_s;
                         }
                     }
-                    prev_num = num;
-                }
-                j++;
-                ++it;
-                ++it_rev;
-                ++it_s;
-            } // while(j<init_list_size)
-        }
+                    previous_marker = marker;
+                } // for (auto z = variant_markers.begin(), zend = variant_markers.end(); z != zend; ++z)
+                ++sa_interval_it;
+                ++sa_interval_it_rev;
+                ++sites_it;
+            } // for (uint64_t j = 0; j < count_sa_intervals; j++)
+        } // if ((fasta_pattern_it != fasta_pattern_end - 1) or kmer_precalc_done)
 
-        assert(sa_intervals.size() == sa_intervals_rev.size());
-        assert(sa_intervals.size() == sites.size());
+        sa_interval_it = sa_intervals.begin();
+        sa_interval_it_rev = sa_intervals_rev.begin();
+        sites_it = sites.begin();
 
-        it = sa_intervals.begin();
-        it_rev = sa_intervals_rev.begin();
-        it_s = sites.begin();
-
-        while (it != sa_intervals.end() && it_rev != sa_intervals_rev.end() && it_s != sites.end()) {
+        while (sa_interval_it != sa_intervals.end()
+               && sa_interval_it_rev != sa_intervals_rev.end()
+               && sites_it != sites.end()) {
             //calculate sum to return- can do this in top fcns
-            if (bidir_search(csa, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second, c, rank_all) > 0) {
-                ++it;
-                ++it_rev;
-                ++it_s;
-            } else {
-                if (it == sa_intervals.begin()) {
-                    //printf("First del true\n");
-                    first_del = true;
-                }
-
-                it = sa_intervals.erase(it);
-                it_rev = sa_intervals_rev.erase(it_rev);
-                it_s = sites.erase(it_s);
+            auto tmp2 = bidir_search(fm_index, (*sa_interval_it).first, (*sa_interval_it).second,
+                                     (*sa_interval_it_rev).first, (*sa_interval_it_rev).second,
+                                     fasta_char, rank_all);
+            if (tmp2 > 0) {
+                ++sa_interval_it;
+                ++sa_interval_it_rev;
+                ++sites_it;
+                continue;
             }
-        }
-    }
 
-    if (pat_it != pat_begin) return (pat_it); // where it got stuck
-    else {
-        if (!sa_intervals.empty()) return (pat_end);
-        else return (pat_begin); //where it got stuck
-    }
-}			     			     			          
-	
+            if (sa_interval_it == sa_intervals.begin())
+                first_del = true;
+
+            sa_interval_it = sa_intervals.erase(sa_interval_it);
+            sa_interval_it_rev = sa_intervals_rev.erase(sa_interval_it_rev);
+            sites_it = sites.erase(sites_it);
+        }
+    } // while (fasta_pattern_it > fasta_pattern_begin && !sa_intervals.empty())
+
+    if (fasta_pattern_it != fasta_pattern_begin)
+        return fasta_pattern_it;
+
+    if (!sa_intervals.empty())
+        return fasta_pattern_end;
+
+    return fasta_pattern_begin;
+}
