@@ -21,22 +21,17 @@ std::vector<std::pair<uint64_t, uint64_t>> find_variant_markers(unsigned long st
                                                                 const FM_Index &fm_index,
                                                                 const VariantMarkers &variants){
 
+    const auto count_markers_before_start = variants.rank(start_idx);
     std::vector<std::pair<uint64_t, uint64_t>> results;
-    unsigned long count_pre_range = variants.rank(start_idx);
-    unsigned long i = 1;
 
-    while (true){
-        if (count_pre_range + i > variants.count_set_bits)
+    for (int i = 1; count_markers_before_start + i <= variants.count_set_bits; ++i) {
+        auto marker_idx = variants.select(count_markers_before_start + i);
+        if (marker_idx > end_idx)
             break;
 
-        unsigned long idx = variants.select(count_pre_range + i);
-        if (idx > end_idx)
-            break;
-
-        const auto result = std::make_pair(idx, fm_index.bwt[idx]);
+        auto marker = fm_index.bwt[marker_idx];
+        auto result = std::make_pair(marker_idx, marker);
         results.push_back(result);
-        i++;
     }
-
     return results;
 }

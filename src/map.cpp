@@ -16,7 +16,6 @@
 #include "variants.hpp"
 
 
-
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &fm_index, const VariantMarkers &variants,
                    std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
