@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include "map.hpp"
+#include "bwt_search.h"
 
 
 using namespace sdsl;
@@ -20,7 +21,7 @@ using namespace sdsl;
 //void generate_all_kmers(std::vector<uint8_t> letters, std::vector<uint8_t>& substr, int k, int n, std::vector<std::vector<uint8_t>>& kmers);
 //void get_kmers(char *kmerfile, std::vector<std::vector<uint8_t>>& kmers);
 
-void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa, int k,   
+void precalc_kmer_matches (const csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa, int k,
 		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx, 
 		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,
 		sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
@@ -41,7 +42,7 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,1677721
 		first_del=false;
 		bool precalc_done=false;
 
-		std::vector<uint8_t>::iterator res_it=bidir_search_bwd(csa,0,
+		bidir_search_bwd(csa,0,
 								       csa.size(),0,
 								       csa.size(),
 								       (kmer).begin(),(kmer).end(),

@@ -39,14 +39,14 @@ CSA csa_constr(std::string fname, std::string int_al_fname,
                std::string memory_log_fname, std::string csa_file,
                bool fwd, bool verbose);
 
-void precalc_kmer_matches(CSA &csa, int k,
+void precalc_kmer_matches(const CSA &csa, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
                           std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants);
 
-uint64_t bidir_search(CSA &csa,
+uint64_t bidir_search(const CSA &csa,
                       uint64_t &left, uint64_t &right,
                       uint64_t &left_rev, uint64_t &right_rev,
                       uint8_t c);
@@ -58,21 +58,22 @@ std::pair<uint32_t, std::vector<int>> get_location(CSA &csa,
                                                    std::vector<int> &allele,
                                                    std::vector<int> &mask_a);
 
-bool skip(CSA &csa,
+bool skip(const CSA &csa,
           uint64_t &left, uint64_t &right,
           uint64_t &left_rev, uint64_t &right_rev,
           uint32_t num, uint64_t maxx);
 
-std::vector<uint8_t>::iterator bidir_search_bwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-                                                uint64_t left, uint64_t right,
-                                                uint64_t left_rev, uint64_t right_rev,
-                                                std::vector<uint8_t>::iterator pat_begin,
-                                                std::vector<uint8_t>::iterator pat_end,
-                                                std::list<std::pair<uint64_t,uint64_t>>& sa_intervals,
-                                                std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
-                                                std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
-                                                std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
-                                                bool kmer_precalc_done, const VariantMarkers &variants);
+
+void bidir_search_bwd(const FM_Index &fm_index,
+                      uint64_t left, uint64_t right,
+                      uint64_t left_rev, uint64_t right_rev, // not used in bwd
+                      const std::vector<uint8_t>::iterator fasta_pattern_begin,
+                      const std::vector<uint8_t>::iterator fasta_pattern_end,
+                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
+                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev, // not used in bwd
+                      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
+                      std::vector<int> &mask_a, const uint64_t maxx, bool &first_del,
+                      const bool kmer_precalc_done, const VariantMarkers &variants);
 
 
 std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,
