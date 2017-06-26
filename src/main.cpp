@@ -26,8 +26,8 @@ int main(int argc, const char *const *argv) {
     std::cout << "Constructing FM-index" << std::endl;
     FM_Index fm_index = construct_fm_index(params.prg_fpath,
                                            params.prg_integer_alphabet_fpath,
-                                           params.csa_memory_log_fpath,
-                                           params.csa_fpath, true);
+                                           params.fm_index_memory_log_fpath,
+                                           params.fm_index_fpath, true);
     timer_report.record("Construct FM-index");
 
     VariantMarkers variants = parse_variants(fm_index);
@@ -47,7 +47,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Generating kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_festa(params, masks, kmers, fm_index, variants, rank_all);
+    uint64_t count_mapped = map_reads(params, masks, kmers, fm_index, variants, rank_all);
 
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
@@ -71,10 +71,10 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
             ("help", "produce help message")
             ("prg,p", po::value<std::string>(&params.prg_fpath)->required(),
              "input file containing linear prg")
-            ("csa,c", po::value<std::string>(&params.csa_fpath)->required(),
+            ("csa,c", po::value<std::string>(&params.fm_index_fpath)->required(),
              "output file where CSA is stored")
-            ("input,i", po::value<std::string>(&params.festa_fpath)->required(),
-             "input FASTA/FASTQ file to be mapped")
+            ("input,i", po::value<std::string>(&params.reads_fpath)->required(),
+             "reference file (FASTA or FASTQ)")
             ("ps,s", po::value<std::string>(&params.site_mask_fpath)->required(),
              "input file containing mask over the linear prg that indicates at "
                      "each position whether you are inside a site and if so, which site")
@@ -87,7 +87,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
              "name of output file where reads that have been processed are printed")
             ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath)->required(),
              "output filename of binary file containing the prg in integer alphabet")
-            ("log,l", po::value<std::string>(&params.csa_memory_log_fpath)->required(),
+            ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath)->required(),
              "output memory log file for CSA")
             ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath)->required(),
              "input file listing all kmers in PRG")
@@ -114,7 +114,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
 }
 
 
-void TimerReport::record(std::string note){
+void TimerReport::record(std::string note) {
     boost::timer::cpu_times times = timer.elapsed();
     double elapsed_time = (times.user + times.system) * 1e-9;
     Entry entry = std::make_pair(note, elapsed_time);
@@ -122,11 +122,11 @@ void TimerReport::record(std::string note){
 }
 
 
-void TimerReport::report() const{
+void TimerReport::report() const {
     std::cout << "\nTimer report:" << std::endl;
     cout_row(" ", "seconds");
 
-    for (const auto &entry: TimerReport::logger){
+    for (const auto &entry: TimerReport::logger) {
         auto &note = std::get<0>(entry);
         auto &elapsed_time = std::get<1>(entry);
         cout_row(note, elapsed_time);
@@ -134,7 +134,7 @@ void TimerReport::report() const{
 }
 
 
-template <typename TypeCol1, typename TypeCol2>
+template<typename TypeCol1, typename TypeCol2>
 void TimerReport::cout_row(TypeCol1 col1, TypeCol2 col2) const {
     std::cout << std::setw(20) << std::right << col1
               << std::setw(10) << std::right << col2
