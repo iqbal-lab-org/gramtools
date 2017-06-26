@@ -3,6 +3,7 @@
 #include "fm_index.hpp"
 #include "bwt_search.hpp"
 #include "map.hpp"
+#include "ranks.hpp"
 #include "bidir_search_bwd.hpp"
 
 
@@ -40,7 +41,7 @@ void bidir_search_bwd(const FM_Index &fm_index,
                       std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
                       std::vector<int> &mask_a, const uint64_t maxx, bool &first_del,
                       const bool kmer_precalc_done, const VariantMarkers &variants,
-                      std::unordered_map<uint8_t, vector<uint64_t>> &rank_all) {
+                      DNA_Rank &rank_all) {
 
     // deals with empty (first in mapping) sa interval
     if (sa_intervals.empty()) {
@@ -177,7 +178,7 @@ void add_sa_interval_for_skip(uint64_t previous_marker,
 bool match_next_charecter(const FM_Index &fm_index, list<pair<uint64_t, uint64_t>> &sa_intervals,
                           list<pair<uint64_t, uint64_t>> &sa_intervals_rev,
                           list<vector<pair<uint32_t, vector<int>>>> &sites,
-                          unordered_map<uint8_t, vector<uint64_t>> &rank_all, uint8_t fasta_char,
+                          DNA_Rank &rank_all, uint8_t fasta_char,
                           list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                           list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
                           list<std::vector<std::pair<unsigned int, std::vector<int>>>>::iterator &sites_it,
@@ -206,6 +207,26 @@ bool match_next_charecter(const FM_Index &fm_index, list<pair<uint64_t, uint64_t
         sites_it = sites.erase(sites_it);
     }
     return first_del;
+}
+
+
+// TODO: rename to get_variant_site_edge?
+std::pair<uint32_t, std::vector<int>> get_location(const FM_Index &fm_index,
+                                                   const uint64_t marker_idx, const uint64_t marker,
+                                                   const bool last, std::vector<int> &allele,
+                                                   const std::vector<int> &mask_a) {
+    uint64_t site_edge_marker;
+
+    bool marker_is_site_edge = marker % 2 == 1;
+    if (marker_is_site_edge) {
+        site_edge_marker = marker;
+        if (!last)
+            allele.push_back(1);
+    } else {
+        site_edge_marker = marker - 1;
+        allele.push_back(mask_a[fm_index[marker_idx]]);
+    }
+    return std::make_pair(site_edge_marker, allele);
 }
 
 

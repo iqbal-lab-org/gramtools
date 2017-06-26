@@ -29,10 +29,8 @@ add_library(gram STATIC
     ${SOURCE}/kmers.cpp
     ${SOURCE}/bidir_search_bwd.cpp
     ${SOURCE}/bidir_search_fwd.cpp
-    ${SOURCE}/get_location.cpp
     ${SOURCE}/skip.cpp
     ${SOURCE}/bidir_search.cpp
-    ${SOURCE}/csa_construction.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/fm_index.cpp
     ${SOURCE}/variants.cpp

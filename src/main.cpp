@@ -39,12 +39,12 @@ int main(int argc, const char *const *argv) {
     // TODO: should allele_coverage be separated from the masks data structure?
 
     DNA_Rank rank_all = calc_ranks(fm_index);
-    timer_report.record("Pre-calc ranks");
+    timer_report.record("Calculating DNA ranks");
 
-    std::cout << "Pre-calculating kmers" << std::endl;
+    std::cout << "Generating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
                                 masks.max_alphabet_num, params.kmers_size, variants, rank_all);
-    timer_report.record("Pre-calc kmers");
+    timer_report.record("Generating kmers");
 
     std::cout << "Mapping" << std::endl;
     uint64_t count_mapped = map_festa(params, masks, kmers, fm_index, variants, rank_all);
