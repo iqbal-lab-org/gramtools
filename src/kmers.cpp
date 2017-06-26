@@ -46,26 +46,26 @@ std::vector<std::string> split(std::string cad, std::string delim) {
         int posfound = cad.find(delim, p);
         std::string token;
 
-        if (posfound >= 0) { token = cad.substr(p, posfound - p); }
-        else { token = cad.substr(p, cad.size() + 1); }
+        if (posfound >= 0)
+            token = cad.substr(p, posfound - p);
+        else
+            token = cad.substr(p, cad.size() + 1);
         p += token.size() + d;
         trim(token);
         v.push_back(token);
     }
-
-
     return v;
 }
 
 
-void precalc_kmer_matches(FM_Index &fm_index, int k,
-                          sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx,
-                          sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
-                          sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
-                          std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                          std::vector<std::vector<uint8_t>> &kmers,
-                          const VariantMarkers &variants,
-                          DNA_Rank &rank_all) {
+void calc_kmer_matches(FM_Index &fm_index, int k,
+                       sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx,
+                       sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
+                       sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
+                       std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
+                       std::vector<std::vector<uint8_t>> &kmers,
+                       const VariantMarkers &variants,
+                       DNA_Rank &rank_all) {
 
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> temp2;
     std::list<std::pair<uint64_t, uint64_t>> temp;
@@ -102,8 +102,8 @@ void precalc_kmer_matches(FM_Index &fm_index, int k,
 
 void *worker(void *st) {
     thread_data *th = (thread_data *) st;
-    precalc_kmer_matches(*(th->fm_index), th->k, *(th->kmer_idx), *(th->kmer_idx_rev), *(th->kmer_sites), *(th->mask_a),
-                         th->maxx, *(th->kmers_in_ref), *(th->kmers), *(th->variants), *(th->rank_all));
+    calc_kmer_matches(*(th->fm_index), th->k, *(th->kmer_idx), *(th->kmer_idx_rev), *(th->kmer_sites), *(th->mask_a),
+                      th->maxx, *(th->kmers_in_ref), *(th->kmers), *(th->variants), *(th->rank_all));
     return NULL;
 }
 

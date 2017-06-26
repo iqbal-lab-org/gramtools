@@ -4,6 +4,7 @@
 #include "map.hpp"
 #include "fm_index.hpp"
 #include "bwt_search.hpp"
+#include "ranks.hpp"
 
 
 
