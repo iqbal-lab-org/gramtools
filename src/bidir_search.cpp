@@ -30,7 +30,7 @@ uint64_t bidir_search(const FM_Index &fm_index,
     assert(left < right);
     assert(right <= fm_index.size());
     // would be nice to replace 5 with a constant set at compile-time
-    // (so one day can do with amino); the n p arameter in calc_kmer_matches
+    // (so one day can do with amino); the n marker_porition arameter in calc_kmer_matches
     assert((c > 0) & (c < 5));
 
     // c_begin (below) is the first occurrence/posn

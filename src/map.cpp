@@ -72,7 +72,7 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
         if (kmers.in_reference.find(kmer) != kmers.in_reference.end()) {
             //then the kmer does overlap a number, by definition.
             first_del = false;//no need to ignore first SA interval (if it was in the nonvar bit would ignore)
-        } else first_del = true;
+        }
 
         bool kmer_precalc_done = true;
         bidir_search_bwd(fm_index, (*it).first, (*it).second,
@@ -191,7 +191,7 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
         no_occ = 0;
     }
     //cout<<no_occ<<endl;
-    //clear p, sa_intervals etc
+    //clear marker_porition, sa_intervals etc
 
     count_reads++;
     readin_integer_seq.clear();

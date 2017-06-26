@@ -69,7 +69,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description description("All parameters must be specified");
     description.add_options()
             ("help", "produce help message")
-            ("prg,p", po::value<std::string>(&params.prg_fpath)->required(),
+            ("prg,marker_porition", po::value<std::string>(&params.prg_fpath)->required(),
              "input file containing linear prg")
             ("csa,c", po::value<std::string>(&params.fm_index_fpath)->required(),
              "output file where CSA is stored")

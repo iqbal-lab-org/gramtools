@@ -105,14 +105,15 @@ void process_matches_overlapping_variants(const FM_Index &fm_index, const vector
     auto sa_interval_end = (*sa_interval_it).second - 1;
     auto variant_markers = find_variant_markers(sa_interval_start, sa_interval_end,
                                                 fm_index, variants);
+    MarkerPositions marker_positions(sa_interval_start, sa_interval_end, fm_index, variants);
+
     uint64_t previous_marker = 0;
     uint64_t last_begin = 0;
     bool second_to_last = false;
 
     // loop through variant site edges (even and odd markers)
-    for (auto marker_it = variant_markers.begin();
-         marker_it != variant_markers.end();
-         ++marker_it) {
+    for (auto marker_it = variant_markers.begin(); marker_it != variant_markers.end(); ++marker_it) {
+    //for (auto marker_position = marker_positions.begin(); marker_position != marker_positions.end(); ++marker_position) {
 
         uint64_t marker_idx;
         uint64_t marker;
@@ -234,7 +235,7 @@ void update_sites_crossed_by_reads(const FM_Index &fm_index, list<pair<uint64_t,
                                    list<pair<uint64_t, uint64_t>> &sa_intervals_rev,
                                    list<vector<pair<uint32_t, vector<int>>>> &sites, const vector<int> &mask_a,
                                    const bool &first_del, vector<int> &allele_empty,
-                                   vector<pair<uint64_t, uint64_t>> &variant_markers, bool second_to_last,
+                                   vector<pair<uint64_t, uint64_t>> &variant_markers, bool &second_to_last,
                                    uint64_t marker_idx, uint64_t marker, uint64_t left_new, uint64_t right_new,
                                    uint64_t left_rev_new, uint64_t right_rev_new, bool ignore, bool last,
                                    list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
@@ -246,6 +247,7 @@ void update_sites_crossed_by_reads(const FM_Index &fm_index, list<pair<uint64_t,
     if (!last && (marker % 2 == 1)) {
         last_begin = marker;
         if ((marker_it + 1 != variant_markers.end()) && (marker == (*(marker_it + 1)).second))
+        //if ((marker_it.is_second_to_last()) && (marker == marker_it.next_position.second))
             second_to_last = true;
     }
 
