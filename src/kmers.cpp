@@ -2,6 +2,7 @@
 
 #include "fm_index.hpp"
 #include "bwt_search.hpp"
+#include "ranks.hpp"
 #include "kmers.hpp"
 
 
@@ -64,7 +65,7 @@ void precalc_kmer_matches(FM_Index &fm_index, int k,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
                           std::vector<std::vector<uint8_t>> &kmers,
                           const VariantMarkers &variants,
-                          std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
+                          DNA_Rank &rank_all) {
 
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> temp2;
     std::list<std::pair<uint64_t, uint64_t>> temp;
@@ -113,7 +114,7 @@ void gen_precalc_kmers(FM_Index &fm_index,
                        uint64_t maxx,
                        int k,
                        VariantMarkers &variants,
-                       std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
+                       DNA_Rank &rank_all) {
 
     pthread_t threads[THREADS];
     struct thread_data td[THREADS];
@@ -269,7 +270,7 @@ void read_precalc_kmers(std::string fil,
 KmersData get_kmers(FM_Index &fm_index,
                     std::vector<int> &mask_a, std::string kmer_fname,
                     uint64_t maxx, int k, VariantMarkers &variants,
-                    std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
+                    DNA_Rank &rank_all) {
 
     if (!fexists(std::string(kmer_fname) + ".precalc")) {
         std::cout << "Precalculated kmers not found, calculating them using "

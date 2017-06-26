@@ -20,10 +20,10 @@ DNA_Rank calc_ranks(FM_Index &fm_index) {
         if (curr_c > 0 && curr_c < 5) {
             rank[curr_c - 1] += 1;
             for (auto symbol: symbols)
-                rank_all[c - 1][i] = rank[c - 1];
+                rank_all[symbol - 1][i] = rank[symbol - 1];
         } else {
             for (auto symbol: symbols)
-                rank_all[c - 1][i] = rank_all[c - 1][i - 1];
+                rank_all[symbol - 1][i] = rank_all[symbol - 1][i - 1];
         }
     }
     return rank_all;
