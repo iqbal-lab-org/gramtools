@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "map.hpp"
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 #include "bwt_search.hpp"
 
 

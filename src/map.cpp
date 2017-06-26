@@ -12,7 +12,7 @@
 #include "bwt_search.hpp"
 #include "kmers.hpp"
 #include "map.hpp"
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 #include "variants.hpp"
 
 
@@ -93,7 +93,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
             it = sa_intervals.begin();
             no_occ = (*it).second - (*it).first;
             count_mapped++;
-            if (first_del == false) {
+            if (!first_del) {
                 assert(sites.front().empty());//becasue matches are all in non variable part of PRG
                 repeats.clear();
                 in_sites = 0;

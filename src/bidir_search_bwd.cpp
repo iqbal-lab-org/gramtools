@@ -1,8 +1,8 @@
 #include <sdsl/suffix_arrays.hpp>
 
+#include "fm_index.hpp"
 #include "bwt_search.hpp"
 #include "map.hpp"
-
 #include "bidir_search_bwd.hpp"
 
 

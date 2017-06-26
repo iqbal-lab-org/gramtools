@@ -9,7 +9,7 @@
 
 #include "variants.hpp"
 #include "map.hpp"
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 #include "bwt_search.hpp"
 
 using namespace sdsl;

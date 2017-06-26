@@ -4,7 +4,7 @@
 #include "parameters.hpp"
 #include "masks.hpp"
 #include "kmers.hpp"
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 
 
 #ifndef GRAMTOOLS_MAP_HPP

@@ -1,7 +1,8 @@
 #include <algorithm>
 
-#include "kmers.hpp"
+#include "fm_index.hpp"
 #include "bwt_search.hpp"
+#include "kmers.hpp"
 
 
 #define THREADS 25
@@ -56,7 +57,7 @@ std::vector<std::string> split(std::string cad, std::string delim) {
 }
 
 
-void precalc_kmer_matches(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa, int k,
+void precalc_kmer_matches(FM_Index &fm_index, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
@@ -77,9 +78,9 @@ void precalc_kmer_matches(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777
         first_del = false;
         bool kmer_precalc_done = false;
 
-        bidir_search_bwd(csa, 0,
-                         csa.size(), 0,
-                         csa.size(),
+        bidir_search_bwd(fm_index, 0,
+                         fm_index.size(), 0,
+                         fm_index.size(),
                          (kmer).begin(), (kmer).end(),
                          kmer_idx[kmer], kmer_idx_rev[kmer],
                          kmer_sites[kmer], mask_a, maxx, first_del,
@@ -100,13 +101,13 @@ void precalc_kmer_matches(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777
 
 void *worker(void *st) {
     thread_data *th = (thread_data *) st;
-    precalc_kmer_matches(*(th->csa), th->k, *(th->kmer_idx), *(th->kmer_idx_rev), *(th->kmer_sites), *(th->mask_a),
+    precalc_kmer_matches(*(th->fm_index), th->k, *(th->kmer_idx), *(th->kmer_idx_rev), *(th->kmer_sites), *(th->mask_a),
                          th->maxx, *(th->kmers_in_ref), *(th->kmers), *(th->variants), *(th->rank_all));
     return NULL;
 }
 
 
-void gen_precalc_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+void gen_precalc_kmers(FM_Index &fm_index,
                        std::vector<int> &mask_a,
                        std::string kmer_fname,
                        uint64_t maxx,
@@ -154,7 +155,7 @@ void gen_precalc_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216
 
     for (int i = 0; i < THREADS; i++) {
         td[i].variants = &variants;
-        td[i].csa = &csa;
+        td[i].fm_index = &fm_index;
         td[i].k = k;
         td[i].kmer_idx = &kmer_idx[i];
         td[i].kmer_idx_rev = &kmer_idx_rev[i];
@@ -265,7 +266,7 @@ void read_precalc_kmers(std::string fil,
 }
 
 
-KmersData get_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+KmersData get_kmers(FM_Index &fm_index,
                     std::vector<int> &mask_a, std::string kmer_fname,
                     uint64_t maxx, int k, VariantMarkers &variants,
                     std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
@@ -273,7 +274,7 @@ KmersData get_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &
     if (!fexists(std::string(kmer_fname) + ".precalc")) {
         std::cout << "Precalculated kmers not found, calculating them using "
                   << THREADS << " threads" << std::endl;
-        gen_precalc_kmers(csa, mask_a, kmer_fname, maxx, k, variants, rank_all);
+        gen_precalc_kmers(fm_index, mask_a, kmer_fname, maxx, k, variants, rank_all);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 

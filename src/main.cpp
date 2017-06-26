@@ -13,7 +13,7 @@
 #include "masks.hpp"
 #include "kmers.hpp"
 #include "map.hpp"
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 #include "variants.hpp"
 #include "main.hpp"
 

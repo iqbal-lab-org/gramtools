@@ -6,10 +6,6 @@
 #define GRAMTOOLS_KMERS_HPP
 
 
-using KmerIdx = sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>>;
-using KmerSites = sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>;
-using KmersRef = sequence_set<std::vector<uint8_t>>;
-
 inline bool fexists(const std::string &name);
 
 //trim from start
@@ -23,9 +19,13 @@ static inline std::string &trim(std::string &s);
 
 std::vector<std::string> split(std::string cad, std::string delim);
 
+using KmerIdx = sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>>;
+using KmerSites = sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>;
+using KmersRef = sequence_set<std::vector<uint8_t>>;
+
 struct thread_data {
     VariantMarkers *variants;
-    csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> *csa;
+    FM_Index *fm_index;
     int k;
     KmerIdx *kmer_idx, *kmer_idx_rev;
     KmerSites *kmer_sites;
@@ -38,7 +38,7 @@ struct thread_data {
 
 void *worker(void *st);
 
-void gen_precalc_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+void gen_precalc_kmers(FM_Index &fm_index,
                        std::vector<int> &mask_a, std::string kmer_fname, uint64_t maxx,
                        int k, VariantMarkers &variants, std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all);
 
@@ -52,7 +52,7 @@ struct KmersData {
     KmersRef in_reference;
 };
 
-KmersData get_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
+KmersData get_kmers(FM_Index &fm_index,
                     std::vector<int> &mask_a, std::string kmer_fname, uint64_t maxx,
                     int k, VariantMarkers &variants, std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all);
 

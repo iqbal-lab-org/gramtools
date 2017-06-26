@@ -34,7 +34,7 @@ add_library(gram STATIC
     ${SOURCE}/bidir_search.cpp
     ${SOURCE}/csa_construction.cpp
     ${SOURCE}/masks.cpp
-    ${SOURCE}/process_prg.cpp
+    ${SOURCE}/fm_index.cpp
     ${SOURCE}/variants.cpp
     ${SOURCE}/precalc_ranks.cpp)
 

@@ -4,7 +4,7 @@
 //#include "bwt_search.h"
 #include <tuple>
 #include <cstdint>
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 
 
 //csa is the compressed suffix array object 

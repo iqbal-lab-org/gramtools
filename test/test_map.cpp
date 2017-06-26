@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 #include "map.hpp"
 
 
