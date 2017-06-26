@@ -9,7 +9,7 @@
 #include <boost/program_options/parsers.hpp>
 
 #include "parameters.hpp"
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 #include "masks.hpp"
 #include "kmers.hpp"
 #include "map.hpp"

@@ -1,6 +1,6 @@
 #include "sequence_read/seqread.hpp"
 
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 #include "parameters.hpp"
 #include "masks.hpp"
 #include "kmers.hpp"

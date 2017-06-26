@@ -3,7 +3,7 @@
 
 #include "map.hpp"
 #include "process_prg.hpp"
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 
 
 

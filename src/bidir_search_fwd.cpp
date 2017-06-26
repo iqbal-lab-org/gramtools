@@ -1,7 +1,7 @@
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
 #include <cassert>
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 #include <tuple>
 #include <cstdint>
 

@@ -1,5 +1,5 @@
 #include <sdsl/suffix_arrays.hpp>
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 
 using namespace sdsl;
 
