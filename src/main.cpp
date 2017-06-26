@@ -15,13 +15,13 @@
 #include "map.hpp"
 #include "fm_index.hpp"
 #include "variants.hpp"
+#include "ranks.hpp"
 #include "main.hpp"
 
 
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
     TimerReport timer_report;
-    std::unordered_map<uint8_t,vector<uint64_t>> rank_all;
 
     std::cout << "Constructing FM-index" << std::endl;
     FM_Index fm_index = construct_fm_index(params.prg_fpath,
@@ -38,7 +38,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
 
-    precalc_ranks(fm_index, rank_all);
+    DNA_Rank rank_all = calc_ranks(fm_index);
     timer_report.record("Pre-calc ranks");
 
     std::cout << "Pre-calculating kmers" << std::endl;

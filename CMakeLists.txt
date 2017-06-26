@@ -36,7 +36,7 @@ add_library(gram STATIC
     ${SOURCE}/masks.cpp
     ${SOURCE}/fm_index.cpp
     ${SOURCE}/variants.cpp
-    ${SOURCE}/precalc_ranks.cpp)
+    ${SOURCE}/ranks.cpp)
 
 target_include_directories(gram PUBLIC
     ${SOURCE}

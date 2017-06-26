@@ -21,37 +21,40 @@
 //char c for extending the current pattern     
 using namespace sdsl;
 
+
 uint64_t bidir_search(const FM_Index &fm_index,
-		      uint64_t& left, uint64_t& right,
-		      uint64_t& left_rev, uint64_t& right_rev,
-		      uint8_t c, std::unordered_map<uint8_t,std::vector<uint64_t>> &rank_all) {
-    
-  assert(left < right); 
-  assert(right <= fm_index.size());
-  assert((c>0) & (c<5));  //would be nice to replace 5 with a constant set at compile-time (so one day can do with amino); the n parameter in precalc_kmer_matches
+                      uint64_t &left, uint64_t &right,
+                      uint64_t &left_rev, uint64_t &right_rev,
+                      uint8_t c, std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
 
-  // c_begin (below) is the first occurrence/posn 
-  //          of char c in the far left column 
-  //          of the BW matrix 
-  uint64_t c_begin = fm_index.C[fm_index.char2comp[c]];
+    assert(left < right);
+    assert(right <= fm_index.size());
+    // would be nice to replace 5 with a constant set at compile-time
+    // (so one day can do with amino); the n p arameter in precalc_kmer_matches
+    assert((c > 0) & (c < 5));
 
-  // [ NB Since the suffixes are alphabetically ordered, 
-  // the position at which c appears for the first time 
-  // in this first column is equal to the number of 
-  // times characters smaller than c appear in text  ]
+    // c_begin (below) is the first occurrence/posn
+    //          of char c in the far left column
+    //          of the BW matrix
+    uint64_t c_begin = fm_index.C[fm_index.char2comp[c]];
 
-  if (left==0) left=c_begin;
-  else left=c_begin+rank_all[c-1][left-1];
-  
-  right=c_begin+rank_all[c-1][right-1];
-  
-  assert(right>=left);
+    // [ NB Since the suffixes are alphabetically ordered,
+    // the position at which c appears for the first time
+    // in this first column is equal to the number of
+    // times characters smaller than c appear in text  ]
 
-  //TO DO:need to calc rev intervals based on rank matrix
-  //now same in reverse fm_index
-  //left_rev  = left_rev + s;
-  //right_rev = right_rev - b + 1;
-  //  assert(right_rev-left_rev == right-left);
+    if (left == 0) left = c_begin;
+    else left = c_begin + rank_all[c - 1][left - 1];
 
-  return right-left;
+    right = c_begin + rank_all[c - 1][right - 1];
+
+    assert(right >= left);
+
+    //TO DO:need to calc rev intervals based on rank matrix
+    //now same in reverse fm_index
+    //left_rev  = left_rev + s;
+    //right_rev = right_rev - b + 1;
+    //  assert(right_rev-left_rev == right-left);
+
+    return right - left;
 }

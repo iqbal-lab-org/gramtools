@@ -62,8 +62,7 @@ void perform_test(const std::string &test_fpath) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    auto rank_all = calc_ranks(fm_index);
 
     std::vector<uint8_t> p_tmp;
     std::string q_tmp;
