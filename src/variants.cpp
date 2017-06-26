@@ -17,25 +17,48 @@ VariantMarkers parse_variants(const FM_Index &fm_index) {
 }
 
 
-std::vector<std::pair<uint64_t, uint64_t>> find_variant_markers(unsigned long start_idx, unsigned long end_idx,
-                                                                const FM_Index &fm_index,
-                                                                const VariantMarkers &variants) {
+MarkerPositions::MarkerPositions(unsigned long start_idx, unsigned long end_idx,
+                const FM_Index &fm, const VariantMarkers &var) : fm_index(fm), variants(var) {
 
-    MarkerPositions marker_positions(start_idx, end_idx, fm_index, variants);
+    MarkerPositions::count_markers_before_start = variants.rank(start_idx);
+    MarkerPositions::current_offset = 0;
 
-    std::vector<std::pair<uint64_t, uint64_t>> results;
-    for (auto marker_position = marker_positions.begin();
-         marker_position != marker_positions.end();
-         ++marker_position) {
+    MarkerPositions::start_idx = start_idx;
+    MarkerPositions::end_idx = end_idx;
+}
 
-        results.push_back(marker_position.position);
-        /*
-        if (marker_position.is_second_to_last())
-            std::cout << "second to last" << std::endl;
-        else
-            std::cout << "not second to last" << std::endl;
-            */
+MarkerPositions &MarkerPositions::operator++() {
+    ++current_offset;
+    position = next_position;
+    next_position = get_position(current_offset + 1);
+    return *this;
+}
 
-    }
-    return results;
+MarkerPositions &MarkerPositions::begin() {
+    current_offset = 1;
+    position = get_position(current_offset);
+    next_position = get_position(current_offset + 1);
+    return *this;
+}
+
+MarkerPositions MarkerPositions::end() const {
+    MarkerPositions tmp(*this);
+    tmp.position = std::make_pair(-1, -1);
+    return tmp;
+}
+
+bool MarkerPositions::is_second_to_last() const {
+    return (next_position.first == -1) && (next_position.second == -1);
+}
+
+MarkerPosition MarkerPositions::get_position(const unsigned int off) const {
+    if (count_markers_before_start + off > variants.count_set_bits)
+        return std::make_pair(-1, -1);
+
+    auto marker_idx = variants.select(count_markers_before_start + off);
+    if (marker_idx > end_idx)
+        return std::make_pair(-1, -1);
+
+    auto marker = fm_index.bwt[marker_idx];
+    return std::make_pair(marker_idx, marker);
 }
