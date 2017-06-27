@@ -6,9 +6,9 @@ install:
 - sudo apt-get install libboost-all-dev
 - sudo apt-get install zlib1g-dev
 - git clone https://github.com/simongog/sdsl-lite.git
-- (cd sdsl-lite && ./install.sh /usr/local/)
+- (cd sdsl-lite && sudo ./install.sh /usr/local/)
 - https://github.com/samtools/htslib.git
-- (cd hts && make && make install)
+- (cd hts && make && sudo make install)
 script:
   - cmake .
   - make
