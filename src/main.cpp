@@ -8,6 +8,8 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
+#include "git_version/git_version.hpp"
+
 #include "parameters.hpp"
 #include "bwt_search.hpp"
 #include "masks.hpp"
@@ -69,29 +71,29 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description description("All parameters must be specified");
     description.add_options()
             ("help", "produce help message")
-            ("prg,marker_porition", po::value<std::string>(&params.prg_fpath)->required(),
+            ("prg,marker_porition", po::value<std::string>(&params.prg_fpath),
              "input file containing linear prg")
-            ("csa,c", po::value<std::string>(&params.fm_index_fpath)->required(),
+            ("csa,c", po::value<std::string>(&params.fm_index_fpath),
              "output file where CSA is stored")
-            ("input,i", po::value<std::string>(&params.reads_fpath)->required(),
+            ("input,i", po::value<std::string>(&params.reads_fpath),
              "reference file (FASTA or FASTQ)")
-            ("ps,s", po::value<std::string>(&params.site_mask_fpath)->required(),
+            ("ps,s", po::value<std::string>(&params.site_mask_fpath),
              "input file containing mask over the linear prg that indicates at "
                      "each position whether you are inside a site and if so, which site")
-            ("pa,a", po::value<std::string>(&params.allele_mask_fpath)->required(),
+            ("pa,a", po::value<std::string>(&params.allele_mask_fpath),
              "input file containing mask over the linear prg that indicates at "
                      "each position whether you are inside a allele and if so, which allele")
-            ("co,v", po::value<std::string>(&params.allele_coverage_fpath)->required(),
+            ("co,v", po::value<std::string>(&params.allele_coverage_fpath),
              "name of output file where coverages on each allele are printed")
-            ("ro,r", po::value<std::string>(&params.processed_reads_fpath)->required(),
+            ("ro,r", po::value<std::string>(&params.processed_reads_fpath),
              "name of output file where reads that have been processed are printed")
-            ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath)->required(),
+            ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath),
              "output filename of binary file containing the prg in integer alphabet")
-            ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath)->required(),
+            ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath),
              "output memory log file for CSA")
-            ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath)->required(),
+            ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath),
              "input file listing all kmers in PRG")
-            ("ksize,k", po::value<int>(&params.kmers_size)->required(),
+            ("ksize,k", po::value<int>(&params.kmers_size),
              "size of pre-calculated kmers");
 
     po::variables_map vm;

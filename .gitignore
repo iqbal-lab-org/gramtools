@@ -1,6 +1,7 @@
 bin
 cmake-build-debug
-Makefile
 *.sublime-*
 .idea
 __pycache__
+git_version.py
+git_version.hpp
