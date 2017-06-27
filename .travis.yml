@@ -2,6 +2,13 @@ language: cpp
 compiler: gcc
 dist: trusty
 sudo: require
+install:
+- sudo apt-get install libboost-all-dev
+- sudo apt-get install zlib1g-dev
+- git clone https://github.com/simongog/sdsl-lite.git
+- (cd sdsl-lite && ./install.sh /usr/local/)
+- https://github.com/samtools/htslib.git
+- (cd hts && make && make install)
 script:
   - cmake .
   - make
