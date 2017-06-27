@@ -1,0 +1,8 @@
+language: cpp
+compiler: gcc
+dist: trusty
+sudo: require
+script:
+  - cmake .
+  - make
+  - (cd test/ && make test)
