@@ -53,4 +53,4 @@ target_link_libraries(gramtools LINK_PUBLIC
     gram ${LIBS_PATHS} ${Boost_LIBRARIES})
 
 add_subdirectory(test)
-add_test(test_bidir_search test_bidir_search)
+add_test(test_main test_main)
