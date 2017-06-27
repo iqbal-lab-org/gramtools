@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/iqbal-lab-org/gramtools.svg?branch=dev)](https://travis-ci.org/iqbal-lab-org/gramtools)
+
 # gramtools
 
 Genome inference (and variant calling) with a reference graph of genetic variation, based on a vBWT.
