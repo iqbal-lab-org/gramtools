@@ -4,6 +4,7 @@ import json
 import logging
 import argparse
 import subprocess
+import collections
 
 from . import utils
 from .git_version import git_version
@@ -26,23 +27,23 @@ def get_project_dirpath(prg_fpath):
 
 
 def get_run_dirpath(output_dirpath, project_dirpath,
-                    ksize, current_time):
+                    ksize, start_time):
     project = os.path.basename(project_dirpath)
 
     template = '{time}_{project}_ksize{ksize}'
-    run_dir = template.format(time=current_time, project=project,
+    run_dir = template.format(time=start_time, project=project,
                               ksize=ksize)
 
     run_dirpath = os.path.join(output_dirpath, run_dir)
     return run_dirpath
 
 
-def get_paths(args, current_time):
+def get_paths(args, start_time):
     project = os.path.abspath(args.gram_files)
     output_dirpath = project + '_output'
 
     run_dirpath = get_run_dirpath(output_dirpath, project,
-                                  args.ksize, current_time)
+                                  args.ksize, start_time)
 
     project_root = {
         'project': project,
@@ -141,40 +142,45 @@ def execute_command(paths, args):
                                       stderr=subprocess.PIPE,
                                       shell=True)
 
-    command_result = utils.handle_process_result(process_handle)
+    command_result, entire_stdout = utils.handle_process_result(process_handle)
 
     log.info('Output run directory:\n%s', paths['run'])
-    return command_str, command_result
+    return command_str, command_result, entire_stdout
 
 
-def save_report(command_str, command_result, current_time, paths):
+def save_report(command_str, command_result, start_time, entire_stdout, paths):
     commits = git_version.commit_log.split('*****')[1:]
     commits = '\n'.join(commits)
 
-    report = {
-        'command_str': command_str,
-        'command_return_eq_0': command_result,
-        'paths': paths,
-        'start_time': current_time,
-        'end_time': str(time.time()).split('.')[0],
-        'current_git_branch': git_version.current_branch,
-        'latest_commit_hash': git_version.latest_commit,
-        'truncated_commit_log': commits,
-    }
+    end_time = str(time.time()).split('.')[0]
+
+    report = collections.OrderedDict([
+        ('start_time', start_time),
+        ('end_time', end_time),
+        ('total_runtime', int(end_time) - int(start_time)),
+        ('current_git_branch', git_version.current_branch),
+        ('command_return_eq_0', command_result),
+        ('entire_stdout', entire_stdout),
+        ('command_str', command_str),
+        ('latest_commit_hash', git_version.latest_commit),
+        ('truncated_commit_log', commits),
+        ('paths', paths),
+    ])
 
     with open(paths['run_report'], 'w') as fhandle:
-        json.dump(report, fhandle)
+        json.dump(report, fhandle, indent=4)
 
 
 def run(args):
     log.info('Start process: quasimap')
 
-    current_time = str(time.time()).split('.')[0]
-    paths = get_paths(args, current_time)
+    start_time = str(time.time()).split('.')[0]
+    paths = get_paths(args, start_time)
     setup_file_structure(paths)
 
-    command_str, command_result = execute_command(paths, args)
+    command_str, command_result, entire_stdout = execute_command(paths, args)
     log.info('End process: quasimap')
 
     log.debug('Writing run report to run directory')
-    save_report(command_str, command_result, current_time, paths)
+    save_report(command_str, command_result,
+                start_time, entire_stdout, paths)
