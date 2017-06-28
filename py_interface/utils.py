@@ -24,12 +24,14 @@ def handle_process_result(process_handle):
         return True
 
     uses_stdout = False
+    entire_stdout = []
     for line in iter(process_handle.stdout.readline, b''):
         if not uses_stdout:
             log.info('stdout:\n')
             uses_stdout = True
         formatted_line = line.decode('ascii')[:-1]
         print(formatted_line)
+        entire_stdout.append(formatted_line)
     if uses_stdout:
         print('')
 
@@ -46,5 +48,5 @@ def handle_process_result(process_handle):
 
     if error_code != 0:
         log.error('Error code != 0')
-        return False
-    return True
+        return False, entire_stdout
+    return True, entire_stdout
