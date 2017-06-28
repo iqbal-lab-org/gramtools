@@ -13,3 +13,5 @@ script:
   - cmake .
   - make
   - (cd test/ && make test)
+notifications:
+  email: false
