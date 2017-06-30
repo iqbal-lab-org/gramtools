@@ -15,8 +15,8 @@
 
 
 uint64_t map_reads(Parameters &params, MasksParser &masks,
-                   KmersData &kmers, FM_Index &fm_index,
-                   const VariantMarkers &variants, DNA_Rank &rank_all) {
+                   KmersData &kmers, const FM_Index &fm_index,
+                   const VariantMarkers &variants, const DNA_Rank &rank_all) {
 
     SeqRead reads(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
@@ -44,8 +44,8 @@ uint64_t map_reads(Parameters &params, MasksParser &masks,
 
 void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integer_seq,
                   Parameters &params, MasksParser &masks, int &count_reads, int &count_mapped,
-                  KmersData &kmers, FM_Index &fm_index, int &in_sites, std::unordered_set<int> &repeats,
-                  const VariantMarkers &variants, DNA_Rank &rank_all) {
+                  KmersData &kmers, const FM_Index &fm_index, int &in_sites, std::unordered_set<int> &repeats,
+                  const VariantMarkers &variants, const DNA_Rank &rank_all) {
 
     bool invalid_base_flag = int_encode_read(read_sequence, readin_integer_seq);
     if (invalid_base_flag)

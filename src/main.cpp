@@ -26,13 +26,13 @@ int main(int argc, const char *const *argv) {
     TimerReport timer_report;
 
     std::cout << "Constructing FM-index" << std::endl;
-    FM_Index fm_index = construct_fm_index(params.prg_fpath,
-                                           params.prg_integer_alphabet_fpath,
-                                           params.fm_index_memory_log_fpath,
-                                           params.fm_index_fpath, true);
+    const FM_Index fm_index = construct_fm_index(params.prg_fpath,
+                                                 params.prg_integer_alphabet_fpath,
+                                                 params.fm_index_memory_log_fpath,
+                                                 params.fm_index_fpath, true);
     timer_report.record("Construct FM-index");
 
-    VariantMarkers variants = parse_variants(fm_index);
+    const VariantMarkers variants = parse_variants(fm_index);
     timer_report.record("Parse variant markers");
 
     std::cout << "Parsing sites and allele masks" << std::endl;
@@ -40,7 +40,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
 
-    DNA_Rank rank_all = calc_ranks(fm_index);
+    const DNA_Rank rank_all = calc_ranks(fm_index);
     timer_report.record("Calculating DNA ranks");
 
     std::cout << "Generating kmers" << std::endl;

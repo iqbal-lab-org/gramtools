@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import argparse
 import logging
@@ -29,22 +30,26 @@ def parse_args():
     parser.add_argument("--quasimap", help="",
                         action="store_true")
 
-    parser.add_argument("--debug", help="",
-                        action="store_true")
-    parser.add_argument("--profile", help="",
-                        action="store_true")
-
     parser.add_argument("--gram-files", help="",
                         type=str)
     parser.add_argument("--reference", help="",
                         type=str)
     parser.add_argument("--vcf", help="",
                         type=str)
-
     parser.add_argument("--ksize", help="",
                         type=int)
 
+    parser.add_argument("--debug", help="",
+                        action="store_true")
+    parser.add_argument("--profile", help="",
+                        action="store_true")
+
     args = parser.parse_args()
+
+    if len(sys.argv)==1:
+        parser.print_help()
+        sys.exit(1)
+
     return args
 
 

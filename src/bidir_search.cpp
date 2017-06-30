@@ -1,10 +1,11 @@
-#include "sdsl/suffix_arrays.hpp"
-#include "sdsl/wavelet_trees.hpp"
+#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/wavelet_trees.hpp>
 #include <cassert>
-//#include "bwt_search.h"
 #include <tuple>
 #include <cstdint>
+
 #include "fm_index.hpp"
+#include "ranks.hpp"
 
 
 //csa is the compressed suffix array object 
@@ -18,43 +19,39 @@
 //              in the reverse text csa 
 //              (don't need the actual reverse text csa, 
 //              just these indices) 
-//char c for extending the current pattern     
-using namespace sdsl;
+//char next_char for extending the current pattern
 
 
-uint64_t bidir_search(const FM_Index &fm_index,
-                      uint64_t &left, uint64_t &right,
-                      uint64_t &left_rev, uint64_t &right_rev,
-                      uint8_t c, std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
+std::pair<uint64_t, uint64_t> bidir_search(const uint8_t next_char,
+                                           const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
+                                           const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
+                                           const FM_Index &fm_index,
+                                           const DNA_Rank &rank_all) {
+
+    uint64_t left = sa_interval_it->first;
+    uint64_t right = sa_interval_it->second;
 
     assert(left < right);
     assert(right <= fm_index.size());
-    // would be nice to replace 5 with a constant set at compile-time
-    // (so one day can do with amino); the n marker_porition arameter in calc_kmer_matches
-    assert((c > 0) & (c < 5));
 
-    // c_begin (below) is the first occurrence/posn
-    //          of char c in the far left column
+    // next_char_interval_left (below) is the first occurrence/posn
+    //          of char next_char in the far left column
     //          of the BW matrix
-    uint64_t c_begin = fm_index.C[fm_index.char2comp[c]];
+    const uint64_t next_char_interval_left = fm_index.C[fm_index.char2comp[next_char]];
 
     // [ NB Since the suffixes are alphabetically ordered,
-    // the position at which c appears for the first time
+    // the position at which next_char appears for the first time
     // in this first column is equal to the number of
-    // times characters smaller than c appear in text  ]
+    // times characters smaller than next_char appear in text  ]
 
-    if (left == 0) left = c_begin;
-    else left = c_begin + rank_all[c - 1][left - 1];
+    auto tmp = rank_all.find(next_char - 1)->second;
+    if (left == 0)
+        left = next_char_interval_left;
+    else
+        left = next_char_interval_left + tmp[left - 1];
 
-    right = c_begin + rank_all[c - 1][right - 1];
-
+    right = next_char_interval_left + tmp[right - 1];
     assert(right >= left);
 
-    //TO DO:need to calc rev intervals based on rank matrix
-    //now same in reverse fm_index
-    //left_rev  = left_rev + s;
-    //right_rev = right_rev - b + 1;
-    //  assert(right_rev-left_rev == right-left);
-
-    return right - left;
+    return std::make_pair(left, right);
 }
