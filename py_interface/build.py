@@ -74,6 +74,7 @@ def execute_command_generate_prg(paths, args):
     ]
 
     log.debug('Executing command:\n\n%s\n', ' '.join(command))
+    timer_start = time.time()
 
     current_working_directory = os.getcwd()
     process_handle = subprocess.Popen(command,
@@ -81,7 +82,8 @@ def execute_command_generate_prg(paths, args):
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
-    log.debug('Finished executing command')
+    timer_end = time.time()
+    log.debug('Finished executing command: %s seconds', timer_end - timer_start)
 
 
 def execute_command_generate_kmers(paths, args):
@@ -92,6 +94,7 @@ def execute_command_generate_kmers(paths, args):
     ]
 
     log.debug('Executing command:\n\n%s\n', ' '.join(command))
+    timer_start = time.time()
 
     current_working_directory = os.getcwd()
     with open(paths['kmer_file'], 'wb') as kmers_fhandle:
@@ -100,7 +103,8 @@ def execute_command_generate_kmers(paths, args):
                                           stdout=kmers_fhandle,
                                           stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
-    log.debug('Finished executing command')
+    timer_end = time.time()
+    log.debug('Finished executing command: %s seconds', timer_end - timer_start)
 
 
 def file_cleanup_generate_prg(paths):
