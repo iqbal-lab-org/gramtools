@@ -38,6 +38,8 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
 
+    std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
+
     precalc_ranks(fm_index, rank_all);
     timer_report.record("Pre-calc ranks");
 
