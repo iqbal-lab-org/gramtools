@@ -42,6 +42,7 @@ int main(int argc, const char *const *argv) {
 
     const DNA_Rank rank_all = calc_ranks(fm_index);
     timer_report.record("Calculating DNA ranks");
+    std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     std::cout << "Generating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
