@@ -13,6 +13,7 @@ FM_Index construct_fm_index(const std::string &prg_fpath,
                             bool fwd) {
 
     std::vector<uint64_t> prg = parse_prg(prg_fpath);
+    std::cout << "Number of integers in int encoded linear PRG: " << prg.size() << std::endl;
 
     if (!fwd){
         prg_encoded_fpath = prg_encoded_fpath + "_rev";
