@@ -6,6 +6,7 @@ import argparse
 import subprocess
 
 from . import utils
+from .git_version import git_version
 
 
 log = logging.getLogger('gramtools')
@@ -147,12 +148,18 @@ def execute_command(paths, args):
 
 
 def save_report(command_str, command_result, current_time, paths):
+    commits = git_version.commit_log.split('*****')[1:]
+    commits = '\n'.join(commits)
+
     report = {
         'command_str': command_str,
         'command_return_eq_0': command_result,
         'paths': paths,
         'start_time': current_time,
         'end_time': str(time.time()).split('.')[0],
+        'current_git_branch': git_version.current_branch,
+        'latest_commit_hash': git_version.latest_commit,
+        'truncated_commit_log': commits,
     }
 
     with open(paths['run_report'], 'w') as fhandle:
