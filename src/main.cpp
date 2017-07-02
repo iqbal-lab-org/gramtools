@@ -38,7 +38,8 @@ int main(int argc, const char *const *argv) {
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
-
+    std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
+    
     std::cout << "Pre-calculating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
                                 masks.max_alphabet_num, params.kmers_size, variants);
