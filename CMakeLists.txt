@@ -3,6 +3,13 @@ project(gramtools CXX)
 
 enable_testing()
 
+add_custom_target(git_version
+                  COMMAND bash -c
+                  "make -C ${PROJECT_SOURCE_DIR}/include/git_version")
+add_custom_target(git_version_py
+                  COMMAND bash -c
+                  "make -C ${PROJECT_SOURCE_DIR}/py_interface/git_version")
+
 set(SOURCE ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE ${PROJECT_SOURCE_DIR}/include $ENV{HOME}/include /apps/well/htslib/1.4.1/include)
 set(LIB_DIRS
@@ -44,6 +51,7 @@ target_include_directories(gram PUBLIC
 target_link_libraries(gram LINK_PUBLIC ${LIBS_PATHS} ${Boost_LIBRARIES})
 
 add_executable(gramtools ${SOURCE}/main.cpp)
+add_dependencies(gramtools git_version git_version_py)
 set_target_properties(gramtools
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")

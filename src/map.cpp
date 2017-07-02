@@ -19,7 +19,7 @@
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &fm_index, const VariantMarkers &variants) {
 
-    SeqRead input_festa(params.festa_fpath.c_str());
+    SeqRead input_festa(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     int count_reads = 0;
     int inc = 0;
