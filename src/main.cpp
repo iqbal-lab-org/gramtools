@@ -39,7 +39,6 @@ int main(int argc, const char *const *argv) {
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
-
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     precalc_ranks(fm_index, rank_all);
