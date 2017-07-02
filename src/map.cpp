@@ -17,7 +17,7 @@
 std::pair<int,int> map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &csa) {
 
-    SeqRead input_festa(params.festa_fpath.c_str());
+    SeqRead input_festa(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_attempt_mapped = 0;
     int count_reads = 0;
