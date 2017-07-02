@@ -30,6 +30,7 @@ int main(int argc, const char *const *argv) {
                                                  params.prg_integer_alphabet_fpath,
                                                  params.fm_index_memory_log_fpath,
                                                  params.fm_index_fpath, true);
+
     timer_report.record("Construct FM-index");
 
     const VariantMarkers variants = parse_variants(fm_index);
