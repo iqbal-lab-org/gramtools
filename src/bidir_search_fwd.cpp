@@ -5,6 +5,8 @@
 #include <tuple>
 #include <cstdint>
 
+#include "skip.hpp"
+
 using namespace sdsl;
 
 std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216>& csa_rev,

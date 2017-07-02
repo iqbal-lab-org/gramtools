@@ -9,6 +9,7 @@
 #include "variants.hpp"
 #include "process_prg.hpp"
 #include "map.hpp"
+#include "skip.hpp"
 #include "bidir_search_bwd.hpp"
 
 

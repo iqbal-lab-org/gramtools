@@ -61,11 +61,6 @@ std::pair<uint32_t, std::vector<int>> get_location(CSA &csa,
                                                    std::vector<int> &allele,
                                                    std::vector<int> &mask_a);
 
-bool skip(const CSA &csa,
-          uint64_t &left, uint64_t &right,
-          uint64_t &left_rev, uint64_t &right_rev,
-          uint32_t num, uint64_t maxx);
-
 
 void bidir_search_bwd(const FM_Index &fm_index,
                       uint64_t left, uint64_t right,
