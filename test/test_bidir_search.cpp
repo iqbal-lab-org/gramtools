@@ -115,7 +115,7 @@ TEST(BackwardSearchTest, OneSNP) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              6, first_del, precalc, variants, rank_all);
 
@@ -179,7 +179,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
                                                              p_tmp.begin(), p_tmp.end(),
                                                              sa_intervals, sa_intervals_rev, sites, mask_a, 8,
                                                              first_del, precalc, variants, rank_all);
@@ -241,7 +241,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              6, first_del, precalc, variants, rank_all);
 
@@ -306,7 +306,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              6, first_del, precalc, variants, rank_all);
 
@@ -374,7 +374,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc, variants, rank_all);
 
@@ -444,7 +444,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc, variants, rank_all);
 
@@ -513,7 +513,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc, variants, rank_all);
 
@@ -583,7 +583,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              8, first_del, precalc, variants, rank_all);
 
@@ -668,7 +668,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    std::vector<uint8_t>::iterator res_it = bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
+    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                                                              p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
                                                              16, first_del, precalc, variants, rank_all);
 

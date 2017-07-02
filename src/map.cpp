@@ -69,19 +69,17 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
         bool first_del = true;
         //kmers in ref means kmers that do not cross any numbers
         //These are either in non-variable region, or are entirely within alleles
-        if (kmers.in_reference.find(kmer)!=kmers.in_reference.end())
-        {
+        if (kmers.in_reference.find(kmer)!=kmers.in_reference.end()) {
             //then the kmer does overlap a number, by definition.
-            first_del=false;//no need to ignore first SA interval (if it was in the nonvar bit would ignore)
+            first_del = false;//no need to ignore first SA interval (if it was in the nonvar bit would ignore)
         }
-        else first_del=true;
 
         bool precalc_done=true;
-        auto res_it = bidir_search_bwd(csa, (*it).first, (*it).second,
-                                       (*it_rev).first, (*it_rev).second,
-                                       readin_integer_seq.begin(),readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,
-                                       sa_intervals, sa_intervals_rev, sites, masks.allele, masks.max_alphabet_num,
-                                       first_del, precalc_done, variants, rank_all);
+        bidir_search_bwd(csa, (*it).first, (*it).second,
+                         (*it_rev).first, (*it_rev).second,
+                         readin_integer_seq.begin(),readin_integer_seq.begin()+readin_integer_seq.size()-params.kmers_size,
+                         sa_intervals, sa_intervals_rev, sites, masks.allele, masks.max_alphabet_num,
+                         first_del, precalc_done, variants, rank_all);
 
         no_occ=0;
 
@@ -178,7 +176,7 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
         no_occ=0;
     }
     //cout<<no_occ<<endl;
-    //clear p, sa_intervals etc
+    //clear marker_porition, sa_intervals etc
 
     count_reads++;
     readin_integer_seq.clear();
