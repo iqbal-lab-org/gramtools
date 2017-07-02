@@ -17,7 +17,6 @@
 uint64_t map_reads(Parameters &params, MasksParser &masks,
                    KmersData &kmers, const FM_Index &fm_index,
                    const VariantMarkers &variants, const DNA_Rank &rank_all) {
-
     SeqRead reads(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     int count_reads = 0;

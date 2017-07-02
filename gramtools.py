@@ -23,11 +23,16 @@ def setup_logging(level):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--version", help="",
-                        action="store_true")
     parser.add_argument("--build", help="",
                         action="store_true")
     parser.add_argument("--quasimap", help="",
+                        action="store_true")
+
+    parser.add_argument("--version", help="",
+                        action="store_true")
+    parser.add_argument("--debug", help="",
+                        action="store_true")
+    parser.add_argument("--profile", help="",
                         action="store_true")
 
     parser.add_argument("--gram-files", help="",
@@ -38,11 +43,6 @@ def parse_args():
                         type=str)
     parser.add_argument("--ksize", help="",
                         type=int)
-
-    parser.add_argument("--debug", help="",
-                        action="store_true")
-    parser.add_argument("--profile", help="",
-                        action="store_true")
 
     args = parser.parse_args()
 
