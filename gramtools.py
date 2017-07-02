@@ -5,6 +5,7 @@ import logging
 import subprocess
 
 from py_interface import build, quasimap
+from py_interface.git_version import git_version
 
 
 def setup_logging(level):
@@ -21,14 +22,16 @@ def setup_logging(level):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--debug", help="",
-                        action="store_true")
-
-    parser.add_argument("--quasimap", help="",
-                        action="store_true")
-    parser.add_argument("--profile", help="",
+    parser.add_argument("--version", help="",
                         action="store_true")
     parser.add_argument("--build", help="",
+                        action="store_true")
+    parser.add_argument("--quasimap", help="",
+                        action="store_true")
+
+    parser.add_argument("--debug", help="",
+                        action="store_true")
+    parser.add_argument("--profile", help="",
                         action="store_true")
 
     parser.add_argument("--gram-files", help="",
@@ -45,6 +48,14 @@ def parse_args():
     return args
 
 
+def report_version(log):
+    log.info("Latest commit hash:\n%s", git_version.latest_commit)
+    log.info("Current branch: %s", git_version.current_branch)
+
+    commits = git_version.commit_log.split('*****')[1:]
+    log.info("Truncated commit log:\n%s", '\n'.join(commits))
+
+
 if __name__ == '__main__':
     args = parse_args()
 
@@ -53,8 +64,12 @@ if __name__ == '__main__':
     else:
         level = logging.INFO
     setup_logging(level)
+    log = logging.getLogger('gramtools')
 
-    if args.build:
+    if args.version:
+        report_version(log)
+
+    elif args.build:
         build.run(args)
 
     elif args.quasimap:

@@ -17,7 +17,7 @@
 uint64_t map_festa(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &csa, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all) {
 
-    SeqRead input_festa(params.festa_fpath.c_str());
+    SeqRead input_festa(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_attempt_mapped = 0;
     int count_reads = 0;
