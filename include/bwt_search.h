@@ -39,7 +39,7 @@ void precalc_kmer_matches(CSA &csa, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                          std::vector<std::vector<uint8_t>> &kmerfile);
+                          std::vector<std::vector<uint8_t>> &kmerfile, int thread_id);
 
 uint64_t bidir_search(CSA &csa,
                       uint64_t &left, uint64_t &right,
@@ -63,11 +63,11 @@ std::vector<uint8_t>::iterator bidir_search_bwd(CSA &csa,
                                                 uint64_t left_rev, uint64_t right_rev,
                                                 std::vector<uint8_t>::iterator pat_begin,
                                                 std::vector<uint8_t>::iterator pat_end,
-                                                std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
-                                                std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
-                                                std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                                                std::vector<int> &mask_a, uint64_t maxx, bool &first_del,
-                                                bool kmer_precalc_done);
+                                                std::list<std::pair<uint64_t,uint64_t>>& sa_intervals,
+                                                std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
+                                                std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
+                                                std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
+                                                bool kmer_precalc_done, int thread_id=-1);
 
 
 std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,

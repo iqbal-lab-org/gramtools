@@ -53,7 +53,8 @@ std::vector<std::string> split(std::string cad,std::string delim)
 void * worker (void *st)
 {
     thread_data* th=(thread_data *) st;
-    precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),*(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers));
+    precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),
+                         *(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers), th->thread_id);
     return NULL;
 }
 
@@ -112,8 +113,10 @@ void gen_precalc_kmers(
         td[i].maxx=maxx;
         td[i].kmers_in_ref=&kmers_in_ref[i];
         td[i].kmers=&kmers[i];
-        pthread_create(&threads[i], NULL, worker, &td[i] );
-        //worker(&td[i]);
+        td[i].thread_id = i;
+
+        std::cout << "Starting thread: " << i << std::endl;
+        pthread_create(&threads[i], NULL, worker, &td[i]);
     }
 
     std::ofstream precalc_file;
