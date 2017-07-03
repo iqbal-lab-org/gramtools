@@ -1,13 +1,13 @@
 #include <algorithm>
 #include <cstdlib>
+#include <thread>
 
 #include "fm_index.hpp"
 #include "bwt_search.hpp"
 #include "ranks.hpp"
 #include "kmers.hpp"
 
-
-#define THREADS 25
+#define MAX_THREADS 25
 
 
 inline bool fexists(const std::string &name) {
@@ -152,11 +152,12 @@ void gen_precalc_kmers(const FM_Index &fm_index,
                        const uint64_t maxx,
                        const int k,
                        const VariantMarkers &variants,
-                       const DNA_Rank &rank_all) {
+                       const DNA_Rank &rank_all,
+                       const int thread_count) {
 
-    pthread_t threads[THREADS];
-    struct ThreadData td[THREADS];
-    std::vector<std::vector<uint8_t>> kmers[THREADS];
+    pthread_t threads[thread_count];
+    struct ThreadData td[thread_count];
+    std::vector<std::vector<uint8_t>> kmers[thread_count];
 
     std::ifstream kfile;
     std::string line;
@@ -185,27 +186,24 @@ void gen_precalc_kmers(const FM_Index &fm_index,
                     break;
             }
         kmers[i++].push_back(kmer);
-        i %= THREADS;
+        i%=thread_count;
     }
 
-    sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx[THREADS], kmer_idx_rev[THREADS];
-    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites[THREADS];
-    sequence_set<std::vector<uint8_t>> kmers_in_ref[THREADS];
+    sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>> kmer_idx[thread_count],kmer_idx_rev[thread_count];
+    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites[thread_count];
+    sequence_set<std::vector<uint8_t>> kmers_in_ref[thread_count];
 
-    std::cout << "Creating threads" << std::endl;
-
-    for (int i = 0; i < THREADS; i++) {
-        td[i].variants = &variants;
-        td[i].fm_index = &fm_index;
-        td[i].k = k;
-        td[i].kmer_idx = &kmer_idx[i];
-        td[i].kmer_idx_rev = &kmer_idx_rev[i];
-        td[i].kmer_sites = &kmer_sites[i];
-        td[i].mask_a = &mask_a;
-        td[i].maxx = maxx;
-        td[i].kmers_in_ref = &kmers_in_ref[i];
-        td[i].kmers = &kmers[i];
-        td[i].rank_all = &rank_all;
+    for (int i=0;i<thread_count;i++)
+    {
+        td[i].fm_index=&fm_index;
+        td[i].k=k;
+        td[i].kmer_idx=&kmer_idx[i];
+        td[i].kmer_idx_rev=&kmer_idx_rev[i];
+        td[i].kmer_sites=&kmer_sites[i];
+        td[i].mask_a=&mask_a;
+        td[i].maxx=maxx;
+        td[i].kmers_in_ref=&kmers_in_ref[i];
+        td[i].kmers=&kmers[i];
         td[i].thread_id = i;
 
         std::cout << "Starting thread: " << i << std::endl;
@@ -217,12 +215,14 @@ void gen_precalc_kmers(const FM_Index &fm_index,
 
     std::cout << "Joining threads" << std::endl;
 
-    for (int i = 0; i < THREADS; i++) {
+    for (int i = 0; i < thread_count; i++) {
         void *status;
         pthread_join(threads[i], &status);
         for (auto obj: kmer_idx[i]) {
             auto k = obj.first;
-            for (auto n: k) precalc_file << (int) n << ' ';
+            for (auto n: k)
+                precalc_file << (int) n << ' ';
+
             precalc_file << '|';
 
             if (kmers_in_ref[i].count(k)) {
@@ -311,6 +311,16 @@ void read_precalc_kmers(std::string fil,
 }
 
 
+int get_thread_count() {
+    int count_total = std::thread::hardware_concurrency();
+    int selected_count = std::min(MAX_THREADS, count_total) - 1;
+    if (selected_count < 1)
+        return 1;
+    else
+        return selected_count;
+}
+
+
 KmersData get_kmers(const FM_Index &fm_index,
                     const std::vector<int> &mask_a,
                     const std::string &kmer_fname,
@@ -320,9 +330,10 @@ KmersData get_kmers(const FM_Index &fm_index,
                     const DNA_Rank &rank_all) {
 
     if (!fexists(std::string(kmer_fname) + ".precalc")) {
+        const int thread_count = get_thread_count();
         std::cout << "Precalculated kmers not found, calculating them using "
-                  << THREADS << " threads" << std::endl;
-        gen_precalc_kmers(fm_index, mask_a, kmer_fname, maxx, k, variants, rank_all);
+                  << thread_count << " threads" << std::endl;
+        gen_precalc_kmers(fm_index, mask_a, kmer_fname, maxx, k, variants, rank_all, thread_count);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 

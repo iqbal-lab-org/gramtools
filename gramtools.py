@@ -39,6 +39,8 @@ def parse_args():
                         type=str)
     parser.add_argument("--reference", help="",
                         type=str)
+    parser.add_argument("--fastaq", help="",
+                        type=str)
     parser.add_argument("--vcf", help="",
                         type=str)
     parser.add_argument("--ksize", help="",
