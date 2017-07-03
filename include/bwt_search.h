@@ -44,7 +44,7 @@ void precalc_kmer_matches(const CSA &csa, int k,
                           sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                           sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                           std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                          std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants);
+                          std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants, int thread_id);
 
 uint64_t bidir_search(const CSA &csa,
                       uint64_t &left, uint64_t &right,

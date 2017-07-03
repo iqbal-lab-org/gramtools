@@ -33,6 +33,7 @@ struct thread_data {
     uint64_t maxx;
     KmersRef *kmers_in_ref;
     std::vector<std::vector<uint8_t>> *kmers;
+    int thread_id;
 };
 
 void *worker(void *st);
