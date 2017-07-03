@@ -83,7 +83,7 @@ def execute_command_generate_prg(paths, args):
                                       stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
     timer_end = time.time()
-    log.debug('Finished executing command: %s seconds', timer_end - timer_start)
+    log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 
 
 def execute_command_generate_kmers(paths, args):
@@ -104,7 +104,7 @@ def execute_command_generate_kmers(paths, args):
                                           stderr=subprocess.PIPE)
     utils.handle_process_result(process_handle)
     timer_end = time.time()
-    log.debug('Finished executing command: %s seconds', timer_end - timer_start)
+    log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 
 
 def file_cleanup_generate_prg(paths):
