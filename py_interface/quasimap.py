@@ -79,7 +79,7 @@ def get_paths(args, start_time):
     }
 
     other_paths = {
-        'reference': args.reference,
+        'fastaq': args.fastaq,
     }
 
     paths = {}
@@ -119,7 +119,7 @@ def execute_command(paths, args):
         '--po', paths['int_encoded_prg'],
         '--log', paths['fm_index_memory_log'],
         '--kfile', paths['kmer_file'],
-        '--input', paths['reference'],
+        '--input', paths['fastaq'],
         '--ksize', str(args.ksize),
     ]
 
