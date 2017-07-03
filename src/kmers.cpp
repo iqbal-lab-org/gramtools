@@ -207,6 +207,8 @@ void gen_precalc_kmers(const FM_Index &fm_index,
         td[i].kmers = &kmers[i];
         td[i].rank_all = &rank_all;
         td[i].thread_id = i;
+
+        std::cout << "Starting thread: " << i << std::endl;
         pthread_create(&threads[i], NULL, worker, &td[i]);
     }
 

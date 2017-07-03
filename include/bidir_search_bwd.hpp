@@ -32,6 +32,7 @@ bool match_next_charecter(const FM_Index &fm_index,
                           bool delete_first_interval,
                           const int thread_id);
 
+
 void add_sa_interval_for_skip(uint64_t previous_marker,
                               list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                               list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
@@ -39,6 +40,7 @@ void add_sa_interval_for_skip(uint64_t previous_marker,
                               MarkerPositions &marker_it,
                               uint64_t &marker_idx, uint64_t &marker, uint64_t &left_new, uint64_t &right_new,
                               uint64_t &left_rev_new, uint64_t &right_rev_new, bool &ignore);
+
 
 void process_matches_overlapping_variants(const FM_Index &fm_index,
                                           const vector<int> &mask_a,

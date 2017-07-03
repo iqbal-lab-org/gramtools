@@ -28,7 +28,6 @@ struct ThreadData {
     KmerSites *kmer_sites;
     KmersRef *kmers_in_ref;
     std::vector<std::vector<uint8_t>> *kmers;
-
     int thread_id;
     const FM_Index *fm_index;
     const DNA_Rank *rank_all;

@@ -18,7 +18,7 @@
 //              you're trying to extend...
 //              in the reverse text csa 
 //              (don't need the actual reverse text csa, 
-//              just these indices) 
+//              just these indices)
 //char next_char for extending the current pattern
 
 
