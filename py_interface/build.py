@@ -3,8 +3,9 @@ import time
 import logging
 import argparse
 import subprocess
-
+ 
 from . import utils
+from utils import variantKmers
 
 
 log = logging.getLogger('gramtools')
@@ -87,22 +88,19 @@ def execute_command_generate_prg(paths, args):
 
 
 def execute_command_generate_kmers(paths, args):
-    command = [
-        'python2.7', utils.kmers_script_fpath,
-        '-f', paths['perl_generated_fa'],
-        '-k', str(args.ksize),
-    ]
+    fasta = paths['perl_generated_fa']
+    ksize = args.ksize
+    nonvariant = False
+    nreads = 0
+    mask = False
+    output_fpath = paths['kmer_file']
 
-    log.debug('Executing command:\n\n%s\n', ' '.join(command))
+    log.debug('Running script variantKmers')
     timer_start = time.time()
 
-    current_working_directory = os.getcwd()
-    with open(paths['kmer_file'], 'wb') as kmers_fhandle:
-        process_handle = subprocess.Popen(command,
-                                          cwd=current_working_directory,
-                                          stdout=kmers_fhandle,
-                                          stderr=subprocess.PIPE)
-    utils.handle_process_result(process_handle)
+    variantKmers.exec(fasta, ksize, nonvariant,
+                      nreads, mask, output_fpath)
+
     timer_end = time.time()
     log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 
