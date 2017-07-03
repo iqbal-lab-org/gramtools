@@ -48,6 +48,7 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
                   const VariantMarkers &variants, const DNA_Rank &rank_all) {
 
     bool invalid_base_flag = int_encode_read(read_sequence, readin_integer_seq);
+
     if (invalid_base_flag)
         // TODO: should readin_integer_seq and count_reads be modified here?
         return;
