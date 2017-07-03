@@ -14,10 +14,10 @@
 #include "map.hpp"
 
 
-std::pair<int,int> map_festa(Parameters &params, MasksParser &masks,
+std::pair<int,int> map_fastaq(Parameters &params, MasksParser &masks,
                    KmersData &kmers, CSA &csa) {
 
-    SeqRead input_festa(params.reads_fpath.c_str());
+    SeqRead input_fastaq(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     uint64_t count_attempt_mapped = 0;
     int count_reads = 0;
@@ -28,11 +28,11 @@ std::pair<int,int> map_festa(Parameters &params, MasksParser &masks,
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
 
-    for (auto festa_read: input_festa) {
+    for (auto fastaq_read: input_fastaq) {
         if (!(inc++ % 100000))
             reads_fhandle << count_reads << std::endl;
 
-        process_festa_sequence(festa_read, readin_integer_seq, params,
+        process_fastaq_sequence(fastaq_read, readin_integer_seq, params,
                                masks, count_reads, kmers, count_attempt_mapped, csa, in_sites,
                                no_mapped, repeats);
     }
@@ -41,15 +41,15 @@ std::pair<int,int> map_festa(Parameters &params, MasksParser &masks,
 }
 
 
-void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq,
+void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &readin_integer_seq,
                             Parameters &params, MasksParser &masks, int &count_reads,
                             KmersData &kmers, uint64_t &count_attempt_mapped, CSA &csa, int &in_sites, int &no_mapped,
                             std::unordered_set<int> &repeats) {
 
     //cout<<q->seq<<endl;
-    int seqlen=strlen(festa_read->seq);
+    int seqlen=strlen(fastaq_read->seq);
 
-    bool invalid_base_flag = convert_festa_to_int_seq(festa_read, readin_integer_seq);
+    bool invalid_base_flag = convert_fastaq_to_int_seq(fastaq_read, readin_integer_seq);
     if (invalid_base_flag)
         // TODO: should readin_integer_seq and count_reads be modified here?
         return;
@@ -183,17 +183,17 @@ void process_festa_sequence(GenomicRead *festa_read, std::vector<uint8_t> &readi
 }
 
 
-bool convert_festa_to_int_seq(GenomicRead *festa_read, std::vector<uint8_t> &readin_integer_seq){
+bool convert_fastaq_to_int_seq(GenomicRead *fastaq_read, std::vector<uint8_t> &readin_integer_seq){
     bool invalid_base_flag = false;
-    const auto sequence_length = strlen(festa_read->seq);
+    const auto sequence_length = strlen(fastaq_read->seq);
     for (int i = 0; i < sequence_length; i++) {
-        if (festa_read->seq[i] == 'A' or festa_read->seq[i] == 'a')
+        if (fastaq_read->seq[i] == 'A' or fastaq_read->seq[i] == 'a')
             readin_integer_seq.push_back(1);
-        else if (festa_read->seq[i] == 'C' or festa_read->seq[i] == 'c')
+        else if (fastaq_read->seq[i] == 'C' or fastaq_read->seq[i] == 'c')
             readin_integer_seq.push_back(2);
-        else if (festa_read->seq[i] == 'G' or festa_read->seq[i] == 'g')
+        else if (fastaq_read->seq[i] == 'G' or fastaq_read->seq[i] == 'g')
             readin_integer_seq.push_back(3);
-        else if (festa_read->seq[i] == 'T' or festa_read->seq[i] == 't')
+        else if (fastaq_read->seq[i] == 'T' or fastaq_read->seq[i] == 't')
             readin_integer_seq.push_back(4);
         else
             // TODO: should there be a break here?

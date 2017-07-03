@@ -43,7 +43,7 @@ int main(int argc, const char *const *argv) {
 
     std::cout << "Mapping" << std::endl;
     int no_mapped, count_attempt_mapped;
-    std::tie (no_mapped, count_attempt_mapped) = map_festa(params, masks, kmers, fm_index);
+    std::tie (no_mapped, count_attempt_mapped) = map_fastaq(params, masks, kmers, fm_index);
     std::cout << "Count mapped: " << no_mapped << " out of "<< count_attempt_mapped << std::endl;
     timer_report.record("Mapping");
 
