@@ -94,7 +94,6 @@ void bidir_search_bwd(const FM_Index &fm_index,
     }
 }
 
-
 void process_matches_overlapping_variants(const FM_Index &fm_index, const vector<int> &mask_a, const uint64_t maxx,
                                           const bool &first_del, const VariantMarkers &variants,
                                           vector<int> &allele_empty,

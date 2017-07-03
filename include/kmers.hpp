@@ -34,6 +34,7 @@ struct thread_data {
     KmersRef *kmers_in_ref;
     std::vector<std::vector<uint8_t>> *kmers;
     std::unordered_map<uint8_t,std::vector<uint64_t>> *rank_all;
+    int thread_id;
 };
 
 void *worker(void *st);
