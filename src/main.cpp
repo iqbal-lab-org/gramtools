@@ -50,7 +50,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Pre-calc kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_festa(params, masks, kmers, fm_index, variants, rank_all);
+    uint64_t count_mapped = map_fastaq(params, masks, kmers, fm_index, variants, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
