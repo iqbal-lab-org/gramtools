@@ -52,8 +52,7 @@ void precalc_kmer_matches (csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,1677721
 								       (kmer).begin(),(kmer).end(),
 								       kmer_idx[kmer],kmer_idx_rev[kmer],
 								       kmer_sites[kmer],
-                                       mask_a,maxx,first_del, precalc_done, rank_all,
-                                       thread_id);
+                                       mask_a,maxx,first_del, precalc_done, rank_all);
 		if  ((kmer_idx[kmer]).empty())
 		  {
 		    kmer_idx.erase(kmer);
