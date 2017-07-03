@@ -67,7 +67,7 @@ std::vector<uint8_t>::iterator bidir_search_bwd(CSA &csa,
                                                 std::list<std::pair<uint64_t,uint64_t>>& sa_intervals_rev,
                                                 std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>& sites,
                                                 std::vector<int> &mask_a, uint64_t maxx, bool& first_del,
-                                                bool kmer_precalc_done, int thread_id=-1);
+                                                bool kmer_precalc_done);
 
 
 std::vector<uint8_t>::iterator bidir_search_fwd(CSA &csa,
