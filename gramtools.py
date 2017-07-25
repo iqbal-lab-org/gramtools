@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from py_interface import build, quasimap
+from py_interface import build, quasimap, kmers
 from py_interface.git_version import git_version
 
 
@@ -29,6 +29,29 @@ def _parse_build(common_parser, subparsers):
                               dest="kmer_region_distance",
                               help="",
                               type=int)
+    build_parser.add_argument("--nonvariant-kmers", help="",
+                              default=False,
+                              action="store_true")
+    build_parser.add_argument("--output-fpath", help="",
+                              default='',
+                              type=str)
+
+
+def _parse_kmers(common_parser, subparsers):
+    kmers_parser = subparsers.add_parser('kmers',
+                                         parents=[common_parser])
+    kmers_parser.add_argument("--kmer-size", help="",
+                              type=int)
+    kmers_parser.add_argument("--reference", help="",
+                              type=str)
+    kmers_parser.add_argument("--kmer-region-distance",
+                              dest="kmer_region_distance",
+                              help="",
+                              type=int)
+    kmers_parser.add_argument("--nonvariant-kmers", help="",
+                              action="store_true")
+    kmers_parser.add_argument("--output-fpath", help="",
+                              type=str)
 
 
 def _parse_quasimap(common_parser, subparsers):
@@ -57,6 +80,7 @@ def parse_args():
                                action="store_true")
 
     _parse_build(common_parser, subparsers)
+    _parse_kmers(common_parser, subparsers)
     _parse_quasimap(common_parser, subparsers)
 
     arguments = root_parser.parse_args()
@@ -84,8 +108,15 @@ if __name__ == '__main__':
     if args.version:
         report_version(log)
 
-    elif args.subparser_name == 'build':
-        build.run(args)
+    command_switch = {
+        'build': build,
+        'kmers': kmers,
+        'quasimap': quasimap,
+    }
 
-    elif args.subparser_name == 'quasimap':
-        quasimap.run(args)
+    try:
+        command = command_switch[args.subparser_name]
+    except KeyError:
+        log.error('Command not found: %s', args.subparser_name)
+
+    command.run(args)

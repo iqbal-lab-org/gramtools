@@ -1,10 +1,11 @@
 import os
+import copy
 import time
 import logging
 import subprocess
  
 from . import utils
-from . import generate_kmers
+from . import kmers
 
 
 log = logging.getLogger('gramtools')
@@ -87,17 +88,16 @@ def execute_command_generate_prg(paths, _):
 
 
 def execute_command_generate_kmers(paths, args):
-    fasta = paths['perl_generated_fa']
-    kmer_size = args.kmer_size
-    nonvariant_kmers = False
-    mask = False
-    output_fpath = paths['kmer_file']
-
     log.debug('Generating kmers from PRG')
     timer_start = time.time()
 
-    generate_kmers.run(fasta, kmer_size, nonvariant_kmers,
-                       mask, args.kmer_region_distance, output_fpath)
+    args = copy.copy(args)
+    args.reference = paths['perl_generated_fa']
+
+    if not args.output_fpath:
+        args.output_fpath = paths['kmer_file']
+
+    kmers.run(args)
 
     timer_end = time.time()
     log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
