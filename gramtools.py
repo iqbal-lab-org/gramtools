@@ -1,8 +1,5 @@
-import os
-import time
 import argparse
 import logging
-import subprocess
 
 from py_interface import build, quasimap
 from py_interface.git_version import git_version
@@ -44,6 +41,10 @@ def parse_args():
                         type=str)
 
     parser.add_argument("--ksize", help="",
+                        type=int)
+    parser.add_argument("--kmer-region-distance",
+                        dest="kmer_region_distance",
+                        help="",
                         type=int)
 
     args = parser.parse_args()

@@ -1,6 +1,5 @@
 import os
 import logging
-import subprocess
 
 
 log = logging.getLogger('gramtools')
