@@ -42,7 +42,7 @@ def get_paths(args, start_time):
     output_dirpath = project + '_output'
 
     run_dirpath = get_run_dirpath(output_dirpath, project,
-                                  args.ksize, start_time)
+                                  args.kmer_size, start_time)
 
     project_root = {
         'project': project,
@@ -54,7 +54,7 @@ def get_paths(args, start_time):
     kmer_paths = {
         'kmer': os.path.join(project, 'kmer'),
         'kmer_file': os.path.join(project, 'kmer',
-                                  'ksize_' + str(args.ksize)),
+                                  'ksize_' + str(args.kmer_size)),
     }
 
     cache_paths = {
@@ -119,7 +119,7 @@ def execute_command(paths, args):
         '--log', paths['fm_index_memory_log'],
         '--kfile', paths['kmer_file'],
         '--input', paths['fastaq'],
-        '--ksize', str(args.ksize),
+        '--ksize', str(args.kmer_size),
     ]
 
     callgrind_command = [

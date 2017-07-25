@@ -16,39 +16,51 @@ def setup_logging(level):
     return log
 
 
+def _parse_build(common_parser, subparsers):
+    build_parser = subparsers.add_parser('build',
+                                         parents=[common_parser])
+    build_parser.add_argument("--vcf", help="",
+                              type=str)
+    build_parser.add_argument("--kmer-size", help="",
+                              type=int)
+    build_parser.add_argument("--reference", help="",
+                              type=str)
+    build_parser.add_argument("--kmer-region-distance",
+                              dest="kmer_region_distance",
+                              help="",
+                              type=int)
+
+
+def _parse_quasimap(common_parser, subparsers):
+    quasimap_parser = subparsers.add_parser('quasimap',
+                                            parents=[common_parser])
+    quasimap_parser.add_argument("--gram-files", help="",
+                                 type=str)
+    quasimap_parser.add_argument("--fastaq", help="",
+                                 type=str)
+    quasimap_parser.add_argument("--kmer-size", help="",
+                                 type=int)
+
+
 def parse_args():
-    parser = argparse.ArgumentParser()
+    root_parser = argparse.ArgumentParser(prog='gramtools')
+    root_parser.add_argument("--version", help="",
+                             action="store_true")
+    subparsers = root_parser.add_subparsers(title='subcommands',
+                                            dest='subparser_name',
+                                            metavar='{build,quasimap}')
 
-    parser.add_argument("--version", help="",
-                        action="store_true")
-    parser.add_argument("--build", help="",
-                        action="store_true")
-    parser.add_argument("--quasimap", help="",
-                        action="store_true")
+    common_parser = subparsers.add_parser('common', add_help=False)
+    common_parser.add_argument("--debug", help="",
+                               action="store_true")
+    common_parser.add_argument("--profile", help="",
+                               action="store_true")
 
-    parser.add_argument("--debug", help="",
-                        action="store_true")
-    parser.add_argument("--profile", help="",
-                        action="store_true")
+    _parse_build(common_parser, subparsers)
+    _parse_quasimap(common_parser, subparsers)
 
-    parser.add_argument("--gram-files", help="",
-                        type=str)
-    parser.add_argument("--reference", help="",
-                        type=str)
-    parser.add_argument("--fastaq", help="",
-                        type=str)
-    parser.add_argument("--vcf", help="",
-                        type=str)
-
-    parser.add_argument("--ksize", help="",
-                        type=int)
-    parser.add_argument("--kmer-region-distance",
-                        dest="kmer_region_distance",
-                        help="",
-                        type=int)
-
-    args = parser.parse_args()
-    return args
+    arguments = root_parser.parse_args()
+    return arguments
 
 
 def report_version(log):
@@ -62,7 +74,7 @@ def report_version(log):
 if __name__ == '__main__':
     args = parse_args()
 
-    if args.debug:
+    if hasattr(args, 'debug') and args.debug:
         level = logging.DEBUG
     else:
         level = logging.INFO
@@ -72,8 +84,8 @@ if __name__ == '__main__':
     if args.version:
         report_version(log)
 
-    elif args.build:
+    elif args.subparser_name == 'build':
         build.run(args)
 
-    elif args.quasimap:
+    elif args.subparser_name == 'quasimap':
         quasimap.run(args)

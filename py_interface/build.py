@@ -36,7 +36,7 @@ def get_paths(args):
 
         'kmer': os.path.join(project_dirpath, 'kmer'),
         'kmer_file': os.path.join(project_dirpath, 'kmer',
-                                  'ksize_' + str(args.ksize)),
+                                  'ksize_' + str(args.kmer_size)),
         'cache': os.path.join(project_dirpath, 'cache'),
         'int_encoded_prg': os.path.join(
             project_dirpath, 'cache', 'int_encoded_prg'),
@@ -88,7 +88,7 @@ def execute_command_generate_prg(paths, _):
 
 def execute_command_generate_kmers(paths, args):
     fasta = paths['perl_generated_fa']
-    ksize = args.ksize
+    kmer_size = args.kmer_size
     nonvariant_kmers = False
     mask = False
     output_fpath = paths['kmer_file']
@@ -96,7 +96,7 @@ def execute_command_generate_kmers(paths, args):
     log.debug('Generating kmers from PRG')
     timer_start = time.time()
 
-    generate_kmers.run(fasta, ksize, nonvariant_kmers,
+    generate_kmers.run(fasta, kmer_size, nonvariant_kmers,
                        mask, args.kmer_region_distance, output_fpath)
 
     timer_end = time.time()
