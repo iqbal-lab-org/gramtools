@@ -20,8 +20,8 @@ def _filter_regions(regions, nonvariant_kmers):
             yield region
 
 
-def _directional_base_range(max_base_distance, start_region,
-                            regions, reverse):
+def _directional_region_range(max_base_distance, start_region,
+                              regions, reverse):
     """TODO"""
     tot_distance = 0
     regions_in_range = []
@@ -42,14 +42,14 @@ def _directional_base_range(max_base_distance, start_region,
 def _regions_within_distance(max_base_distance, start_region,
                              regions):
     """TODO"""
-    reverse_range = _directional_base_range(max_base_distance,
-                                            start_region,
-                                            regions,
-                                            reverse=True)
-    forward_range = _directional_base_range(max_base_distance,
-                                            start_region,
-                                            regions,
-                                            reverse=False)
+    reverse_range = _directional_region_range(max_base_distance,
+                                              start_region,
+                                              regions,
+                                              reverse=True)
+    forward_range = _directional_region_range(max_base_distance,
+                                              start_region,
+                                              regions,
+                                              reverse=False)
     return reverse_range + [start_region] + forward_range
 
 

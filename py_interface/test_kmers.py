@@ -28,16 +28,16 @@ def _compose_prg(prg_structure):
     return prg
 
 
-class TestDirectionalBaseRange(unittest.TestCase):
+class TestDirectionalRegionRange(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected, reverse):
         prg = _compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
-        region_range = kmers._directional_base_range(max_base_distance,
-                                                     start_region,
-                                                     regions,
-                                                     reverse=reverse)
+        region_range = kmers._directional_region_range(max_base_distance,
+                                                       start_region,
+                                                       regions,
+                                                       reverse=reverse)
         result = [region.alleles for region in region_range]
         self.assertEqual(result, expected)
 
