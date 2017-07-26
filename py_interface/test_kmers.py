@@ -200,7 +200,6 @@ class TestRegionsWithinDistance(unittest.TestCase):
             ['A', 'T'],
             ['CCCCCCCC'],
             ['GC', 'TC'],
-            ['CC', 'AA'],
         ]
         expected = [
             ['C', 'G'],
