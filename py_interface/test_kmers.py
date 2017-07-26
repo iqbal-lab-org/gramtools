@@ -1,7 +1,7 @@
 import unittest
 
-import parse_prg
-import generate_kmers
+from . import parse_prg
+from . import kmers
 
 
 def _compose_prg(prg_structure):
@@ -34,10 +34,10 @@ class TestDirectionalBaseRange(unittest.TestCase):
         prg = _compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
-        region_range = generate_kmers._directional_base_range(max_base_distance,
-                                                              start_region,
-                                                              regions,
-                                                              reverse=reverse)
+        region_range = kmers._directional_base_range(max_base_distance,
+                                                     start_region,
+                                                     regions,
+                                                     reverse=reverse)
         result = [region.alleles for region in region_range]
         self.assertEqual(result, expected)
 
@@ -113,9 +113,9 @@ class TestRegionsWithinDistance(unittest.TestCase):
         prg = _compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
-        region_range = generate_kmers._regions_within_distance(max_base_distance,
-                                                               start_region,
-                                                               regions)
+        region_range = kmers._regions_within_distance(max_base_distance,
+                                                      start_region,
+                                                      regions)
         result = [region.alleles for region in region_range]
         self.assertEqual(result, expected)
 
@@ -244,11 +244,11 @@ class TestGenomePaths(unittest.TestCase):
         prg = _compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
-        region_range = generate_kmers._regions_within_distance(max_base_distance,
-                                                               start_region,
-                                                               regions)
+        region_range = kmers._regions_within_distance(max_base_distance,
+                                                      start_region,
+                                                      regions)
         genome_paths = [path for path in
-                        generate_kmers._genome_paths(region_range)]
+                        kmers._genome_paths(region_range)]
         self.assertEqual(genome_paths, expected)
 
     def test_twoVariantRegionsInRange_pathsIncludeAllAlleles(self):
@@ -289,9 +289,9 @@ class TestGenomePaths(unittest.TestCase):
 
 class TestKmersFromGenomePaths(unittest.TestCase):
     def _analyse_case(self, genome_paths, kmer_size, expected):
-        kmers = [kmer for kmer in
-                 generate_kmers._kmers_from_genome_paths(genome_paths, kmer_size)]
-        self.assertEqual(kmers, expected)
+        kmers_result = [kmer for kmer in
+                        kmers._kmers_from_genome_paths(genome_paths, kmer_size)]
+        self.assertEqual(kmers_result, expected)
 
     def test_singleGenomePath_allKmersGenerated(self):
         genome_paths = [

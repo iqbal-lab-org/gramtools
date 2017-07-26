@@ -1,5 +1,5 @@
 import unittest
-import parse_prg
+from . import parse_prg
 
 
 class TestParsePrg(unittest.TestCase):

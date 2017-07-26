@@ -1,5 +1,4 @@
 import logging
-import argparse
 import itertools
 
 from Bio import SeqIO

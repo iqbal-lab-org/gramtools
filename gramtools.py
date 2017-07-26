@@ -95,7 +95,7 @@ def report_version(log):
     log.info("Truncated commit log:\n%s", '\n'.join(commits))
 
 
-if __name__ == '__main__':
+def run():
     args = parse_args()
 
     if hasattr(args, 'debug') and args.debug:
@@ -118,5 +118,9 @@ if __name__ == '__main__':
         command = command_switch[args.subparser_name]
     except KeyError:
         log.error('Command not found: %s', args.subparser_name)
-
+        return
     command.run(args)
+
+
+if __name__ == '__main__':
+    run()
