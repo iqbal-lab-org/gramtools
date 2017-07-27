@@ -55,7 +55,7 @@ void * worker (void *st)
 {
     thread_data* th=(thread_data *) st;
     precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),
-                         *(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers), th->thread_id);
+                         *(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers), *(th->rank_all), th->thread_id);
     return NULL;
 }
 
@@ -71,9 +71,8 @@ void gen_precalc_kmers(
         std::string kmer_fname,
         uint64_t maxx,
         int k,
-        const int thread_count
-)
-{
+	    std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all,
+        const int thread_count) {
 
 
     pthread_t threads[thread_count];
@@ -115,8 +114,8 @@ void gen_precalc_kmers(
         td[i].maxx=maxx;
         td[i].kmers_in_ref=&kmers_in_ref[i];
         td[i].kmers=&kmers[i];
+        td[i].rank_all=&rank_all;
         td[i].thread_id = i;
-
         std::cout << "Starting thread: " << i << std::endl;
         pthread_create(&threads[i], NULL, worker, &td[i]);
     }
@@ -278,14 +277,14 @@ int get_thread_count() {
 
 KmersData get_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
                    std::vector<int> &mask_a, std::string kmer_fname,
-                   uint64_t maxx, int k){
+		   uint64_t maxx, int k, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all){
 
     if (!fexists(std::string(kmer_fname)+".precalc"))
     {
         const int thread_count = get_thread_count();
         std::cout << "Precalculated kmers not found, calculating them using "
                   << thread_count << " threads" << std::endl;
-        gen_precalc_kmers(csa, mask_a, kmer_fname, maxx, k, thread_count);
+        gen_precalc_kmers(csa, mask_a, kmer_fname, maxx, k, rank_all, thread_count);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 

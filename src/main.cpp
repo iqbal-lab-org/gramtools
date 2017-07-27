@@ -22,6 +22,7 @@
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
     TimerReport timer_report;
+    std::unordered_map<uint8_t,vector<uint64_t>> rank_all;
 
     std::cout << "Constructing FM-index" << std::endl;
     FM_Index fm_index = construct_fm_index(params.prg_fpath,
@@ -35,16 +36,18 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
-    
+
+    precalc_ranks(fm_index, rank_all);
+    timer_report.record("Pre-calc ranks");
+
     std::cout << "Pre-calculating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
-                                masks.max_alphabet_num, params.kmers_size);
+                                masks.max_alphabet_num, params.kmers_size, rank_all);
     timer_report.record("Pre-calc kmers");
 
     std::cout << "Mapping" << std::endl;
-    int no_mapped, count_attempt_mapped;
-    std::tie (no_mapped, count_attempt_mapped) = map_fastaq(params, masks, kmers, fm_index);
-    std::cout << "Count mapped: " << no_mapped << " out of "<< count_attempt_mapped << std::endl;
+    uint64_t count_mapped = map_fastaq(params, masks, kmers, fm_index, rank_all);
+    std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
     std::cout << "Writing allele coverage to file" << std::endl;

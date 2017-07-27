@@ -60,6 +60,9 @@ void perform_test(const std::string &test_fpath) {
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
+    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
+    precalc_ranks(fm_index, rank_all);
+
     std::vector<uint8_t> p_tmp;
     std::string q_tmp;
 
@@ -86,7 +89,7 @@ void perform_test(const std::string &test_fpath) {
         bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
                          p_tmp.end(),
                          sa_intervals, sa_intervals_rev, sites, mask_a, 5,
-                         first_del, precalc);
+                         first_del, precalc, rank_all);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_FALSE(first_del);

@@ -28,14 +28,19 @@ struct thread_data {
     uint64_t maxx;
     KmersRef *kmers_in_ref;
     std::vector<std::vector<uint8_t>> *kmers;
+    std::unordered_map<uint8_t,std::vector<uint64_t>> *rank_all;
     int thread_id;
 };
 
 void *worker(void *st);
 
-void gen_precalc_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
-                       std::vector<int> &mask_a, std::string kmer_fname,
-                       uint64_t maxx, int k);
+void gen_precalc_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
+                       std::vector<int> &mask_a,
+                       std::string kmer_fname,
+                       uint64_t maxx,
+                       int k,
+                       std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all,
+                       const int thread_count);
 
 void read_precalc_kmers(std::string fil, KmerIdx &kmer_idx,
                         KmerIdx &kmer_idx_rev, KmerSites &kmer_sites,
@@ -49,7 +54,7 @@ struct KmersData {
 
 KmersData get_kmers(csa_wt<wt_int<bit_vector, rank_support_v5<>>, 2, 16777216> &csa,
                     std::vector<int> &mask_a, std::string kmer_fname,
-                    uint64_t maxx, int k);
+                    uint64_t maxx, int k, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all);
 
 
 #endif //GRAMTOOLS_KMERS_HPP

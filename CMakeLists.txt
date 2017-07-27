@@ -42,7 +42,8 @@ add_library(gram STATIC
     ${SOURCE}/csa_construction.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/precalc_kmer_matches.cpp
-    ${SOURCE}/process_prg.cpp)
+    ${SOURCE}/process_prg.cpp
+    ${SOURCE}/precalc_ranks.cpp)
 target_include_directories(gram PUBLIC
     ${SOURCE}
     ${INCLUDE}
