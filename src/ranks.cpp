@@ -5,7 +5,7 @@
 #include "ranks.hpp"
 
 
-DNA_Rank calc_ranks(const FM_Index &fm_index) {
+DNA_Rank calculate_ranks(const FM_Index &fm_index) {
     DNA_Rank rank_all;
 
     uint64_t bwt_size = fm_index.size();

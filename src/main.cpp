@@ -25,10 +25,8 @@ int main(int argc, const char *const *argv) {
     TimerReport timer_report;
 
     std::cout << "Constructing FM-index" << std::endl;
-    const FM_Index fm_index = construct_fm_index(params.prg_fpath,
-                                                 params.prg_integer_alphabet_fpath,
-                                                 params.fm_index_memory_log_fpath,
-                                                 params.fm_index_fpath, true);
+    const FM_Index fm_index = construct_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
+                                                 params.prg_fpath, params.fm_index_memory_log_fpath);
 
     timer_report.record("Construct FM-index");
 
@@ -37,13 +35,13 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
 
-    const DNA_Rank rank_all = calc_ranks(fm_index);
+    const DNA_Rank rank_all = calculate_ranks(fm_index);
     timer_report.record("Calculating DNA ranks");
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     std::cout << "Generating kmers" << std::endl;
-    KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
-                                masks.max_alphabet_num, params.kmers_size, rank_all);
+    KmersData kmers = get_kmers(params.prg_kmers_fpath, params.kmers_size, masks.allele, masks.max_alphabet_num,
+                                rank_all, fm_index);
     timer_report.record("Generating kmers");
 
     std::cout << "Mapping" << std::endl;

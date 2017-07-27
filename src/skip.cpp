@@ -4,17 +4,14 @@
 #include "skip.hpp"
 
 
-bool skip(const FM_Index &fm_index,
-          uint64_t &left, uint64_t &right,
+bool skip(uint64_t &left, uint64_t &right,
           uint64_t &left_rev, uint64_t &right_rev,
-          const uint64_t marker_value, const uint64_t maxx) {
+          const uint64_t maxx, const uint64_t marker_value,
+          const FM_Index &fm_index) {
 
     const auto is_edge_marker = marker_value % 2 == 1;
     if (is_edge_marker) {
-        bool last = process_variant_edge_marker(fm_index,
-                                                left, right,
-                                                left_rev, right_rev,
-                                                marker_value, maxx);
+        bool last = process_variant_edge_marker(left, right, left_rev, right_rev, maxx, marker_value, fm_index);
         return last;
     }
 
@@ -39,10 +36,10 @@ bool skip(const FM_Index &fm_index,
     return false;
 }
 
-bool process_variant_edge_marker(const FM_Index &fm_index,
-                                 uint64_t &left, uint64_t &right,
+bool process_variant_edge_marker(uint64_t &left, uint64_t &right,
                                  uint64_t &left_rev, uint64_t &right_rev,
-                                 const uint64_t marker_value, const uint64_t maxx) {
+                                 const uint64_t maxx, const uint64_t marker_value,
+                                 const FM_Index &fm_index) {
 
     const uint64_t num_begin = fm_index.C[fm_index.char2comp[marker_value]];
     const auto site_boundary_lower = fm_index[num_begin];

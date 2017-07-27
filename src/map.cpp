@@ -14,11 +14,13 @@
 #include "bidir_search_bwd.hpp"
 
 
-uint64_t map_reads(Parameters &params, MasksParser &masks,
-                   KmersData &kmers, const FM_Index &fm_index,
-                   const DNA_Rank &rank_all) {
-    SeqRead reads(params.reads_fpath.c_str());
+int map_reads(Parameters &params,
+              MasksParser &masks,
+              KmersData &kmers,
+              const FM_Index &fm_index,
+              const DNA_Rank &rank_all) {
 
+    SeqRead reads(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
     int count_reads = 0;
     int count_mapped = 0;
@@ -29,11 +31,11 @@ uint64_t map_reads(Parameters &params, MasksParser &masks,
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
 
-    for (auto read: reads) {
-        if (!(inc++ % 100000))
+    for (const auto * const read: reads) {
+        if (inc++ % 100000 == 0)
             reads_fhandle << count_reads << std::endl;
 
-        process_read(read, readin_integer_seq, params,
+        process_read(*read, readin_integer_seq, params,
                      masks, count_reads, count_mapped, kmers, fm_index, in_sites,
                      repeats, rank_all);
     }
@@ -42,9 +44,15 @@ uint64_t map_reads(Parameters &params, MasksParser &masks,
 }
 
 
-void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integer_seq,
-                  Parameters &params, MasksParser &masks, int &count_reads, int &count_mapped,
-                  KmersData &kmers, const FM_Index &fm_index, int &in_sites, std::unordered_set<int> &repeats,
+void process_read(const GenomicRead &read_sequence,
+                  std::vector<uint8_t> &readin_integer_seq,
+                  Parameters &params,
+                  MasksParser &masks,
+                  int &count_reads, int &count_mapped,
+                  KmersData &kmers,
+                  const FM_Index &fm_index,
+                  int &in_sites,
+                  std::unordered_set<int> &repeats,
                   const DNA_Rank &rank_all) {
 
     bool invalid_base_flag = int_encode_read(read_sequence, readin_integer_seq);
@@ -75,23 +83,16 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
         }
 
         bool kmer_precalc_done = true;
-        bidir_search_bwd(fm_index,
-                         (*it).first, (*it).second,
-                         (*it_rev).first, (*it_rev).second,
+        bidir_search_bwd(sa_intervals, sa_intervals_rev, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second,
+                         sites, first_del,
                          readin_integer_seq.begin(),
-                         readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
-                         sa_intervals, sa_intervals_rev,
-                         sites,
-                         masks.allele,
-                         masks.max_alphabet_num,
-                         first_del,
-                         kmer_precalc_done,
-                         rank_all);
+                         readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size, masks.allele,
+                         masks.max_alphabet_num, kmer_precalc_done,
+                         rank_all, fm_index, 0);
         no_occ = 0;
 
-        if (sa_intervals.size() <= 10)
-            //proxy for mapping is "unique horizontally"
-        {
+        //proxy for mapping is "unique horizontally"
+        if (sa_intervals.size() <= 100) {
             it = sa_intervals.begin();
             no_occ = (*it).second - (*it).first;
             count_mapped++;
@@ -113,19 +114,16 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
 
             while (it != sa_intervals.end() && it_ss != sites.end()) {
                 if (it == sa_intervals.begin() && sites.front().empty()) {
-                    assert(first_del == false);
+                    assert(!first_del);
                     for (auto ind = (*it).first; ind < (*it).second; ind++)
                         if (masks.allele[fm_index[ind]] != 0) {
-                            masks.allele_coverage[(masks.sites[fm_index[ind]] - 5) / 2][masks.allele[fm_index[ind]] -
-                                                                                        1] =
-                                    masks.allele_coverage[(masks.sites[fm_index[ind]] - 5) / 2][
-                                            masks.allele[fm_index[ind]] - 1] +
-                                    1.0 / (no_occ - in_sites + repeats.size() + sa_intervals.size() -
-                                           1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
+                            masks.allele_coverage[(masks.sites[fm_index[ind]] - 5) / 2][masks.allele[fm_index[ind]] - 1] =
+                                    masks.allele_coverage[(masks.sites[fm_index[ind]] - 5) / 2][masks.allele[fm_index[ind]] - 1] +
+                                    1.0 / (no_occ - in_sites + repeats.size() + sa_intervals.size() - 1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
                             assert(masks.allele[fm_index[ind]] ==
                                    masks.allele[fm_index[ind] + readin_integer_seq.size() - 1]);
                         }
-                } else if ((it == sa_intervals.begin() && first_del == true) || (it !=
+                } else if ((it == sa_intervals.begin() && first_del) || (it !=
                                                                                  sa_intervals.begin())) { //first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
                     //if no_occ>1, two matches both starting at the end marker. If one crossed the start marker,
                     //sorina would have split into two SAs and here we are in one.
@@ -152,8 +150,7 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
                                 for (auto ind = (*it).first; ind < (*it).second; ind++)
                                     if (masks.allele[fm_index[ind]] >
                                         0) { //mask_a[fm_index[ind]] can be 0 here if one match in the SA-interval is coming from a skipped start-site marker
-                                        if (first_del ==
-                                            false) { //take into account the number of matches in the reference seq
+                                        if (!first_del) { //take into account the number of matches in the reference seq
                                             assert((no_occ - in_sites + repeats.size() + sa_intervals.size() - 1) > 0);
                                             masks.allele_coverage[(site - 5) / 2][masks.allele[fm_index[ind]] - 1] =
                                                     masks.allele_coverage[(site - 5) / 2][masks.allele[fm_index[ind]] -
@@ -169,7 +166,7 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
                             } else if (!allele.empty()) {
                                 assert(!allele.empty());
                                 for (auto al:allele) {
-                                    if (first_del == false) {
+                                    if (!first_del) {
                                         assert((no_occ - in_sites + repeats.size() + sa_intervals.size() - 1) > 0);
                                         masks.allele_coverage[(site - 5) / 2][al - 1] =
                                                 masks.allele_coverage[(site - 5) / 2][al - 1] +
@@ -195,25 +192,23 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
     } else {
         no_occ = 0;
     }
-    //cout<<no_occ<<endl;
-    //clear marker_porition, sa_intervals etc
 
     count_reads++;
     readin_integer_seq.clear();
 }
 
 
-bool int_encode_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integer_seq) {
+bool int_encode_read(const GenomicRead &read_sequence, std::vector<uint8_t> &readin_integer_seq) {
     bool invalid_base_flag = false;
-    const auto sequence_length = strlen(read_sequence->seq);
+    const auto sequence_length = strlen(read_sequence.seq);
     for (int i = 0; i < sequence_length; i++) {
-        if (read_sequence->seq[i] == 'A' or read_sequence->seq[i] == 'a')
+        if (read_sequence.seq[i] == 'A' or read_sequence.seq[i] == 'a')
             readin_integer_seq.push_back(1);
-        else if (read_sequence->seq[i] == 'C' or read_sequence->seq[i] == 'c')
+        else if (read_sequence.seq[i] == 'C' or read_sequence.seq[i] == 'c')
             readin_integer_seq.push_back(2);
-        else if (read_sequence->seq[i] == 'G' or read_sequence->seq[i] == 'g')
+        else if (read_sequence.seq[i] == 'G' or read_sequence.seq[i] == 'g')
             readin_integer_seq.push_back(3);
-        else if (read_sequence->seq[i] == 'T' or read_sequence->seq[i] == 't')
+        else if (read_sequence.seq[i] == 'T' or read_sequence.seq[i] == 't')
             readin_integer_seq.push_back(4);
         else
             // TODO: should there be a break here?

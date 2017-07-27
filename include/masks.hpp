@@ -1,9 +1,11 @@
 #ifndef GRAMTOOLS_PARSE_MASKS_H
 #define GRAMTOOLS_PARSE_MASKS_H
 
+
 #include <vector>
 #include <string>
 #include <fstream>
+
 
 class MasksParser {
 public:

@@ -29,25 +29,25 @@
  *
  * sa_intervals <--one-to-one--> sites
 */
-void bidir_search_bwd(const FM_Index &fm_index,
+void bidir_search_bwd(std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
+                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
                       uint64_t left, uint64_t right,
-                      uint64_t left_rev, uint64_t right_rev, // not used in bwd
+                      uint64_t left_rev, uint64_t right_rev,
+                      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
+                      bool &delete_first_interval,
                       const std::vector<uint8_t>::iterator fasta_pattern_begin,
                       const std::vector<uint8_t>::iterator fasta_pattern_end,
-                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
-                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev, // not used in bwd
-                      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
                       const std::vector<int> &mask_a,
                       const uint64_t maxx,
-                      bool &delete_first_interval,
                       const bool kmer_precalc_done,
                       const DNA_Rank &rank_all,
+                      const FM_Index &fm_index,
                       const int thread_id) {
 
     // deals with empty (first in mapping) sa interval
     if (sa_intervals.empty()) {
-        sa_intervals.push_back(std::make_pair(left, right));
-        sa_intervals_rev.push_back(std::make_pair(left_rev, right_rev));
+        sa_intervals.emplace_back(std::make_pair(left, right));
+        sa_intervals_rev.emplace_back(std::make_pair(left_rev, right_rev));
 
         std::vector<std::pair<uint32_t, std::vector<int>>> empty_pair_vector;
         sites.push_back(empty_pair_vector);
@@ -77,9 +77,15 @@ void bidir_search_bwd(const FM_Index &fm_index,
             auto count_sa_intervals = sa_intervals.size();
             for (auto j = 0; j < count_sa_intervals; j++) {
 
-                process_matches_overlapping_variants(fm_index, mask_a, maxx, delete_first_interval,
-                                                     allele_empty, sa_interval_it, sa_interval_it_rev, sites_it,
-                                                     sa_intervals, sa_intervals_rev, sites, thread_id);
+                process_matches_overlapping_variants(allele_empty,
+                                                     sa_interval_it, sa_interval_it_rev,
+                                                     sa_intervals, sa_intervals_rev,
+                                                     sites, sites_it,
+                                                     delete_first_interval,
+                                                     maxx,
+                                                     mask_a,
+                                                     fm_index,
+                                                     thread_id);
             }
         }
 
@@ -87,25 +93,24 @@ void bidir_search_bwd(const FM_Index &fm_index,
         sa_interval_it_rev = sa_intervals_rev.begin();
         sites_it = sites.begin();
 
-        delete_first_interval = match_next_charecter(fm_index, sa_intervals, sa_intervals_rev,
-                                                     sites, rank_all, next_char,
-                                                     sa_interval_it, sa_interval_it_rev, sites_it,
-                                                     delete_first_interval, thread_id);
+        delete_first_interval = match_next_charecter(delete_first_interval, sa_intervals, sa_intervals_rev,
+                                                     sa_interval_it, sa_interval_it_rev, sites,
+                                                     sites_it, next_char, rank_all, fm_index, thread_id);
     }
 }
 
 
-void process_matches_overlapping_variants(const FM_Index &fm_index,
-                                          const vector<int> &mask_a,
-                                          const uint64_t maxx,
-                                          const bool first_del,
-                                          std::vector<int> &allele_empty,
+void process_matches_overlapping_variants(std::vector<int> &allele_empty,
                                           std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                                           std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
-                                          std::list<std::vector<std::pair<unsigned int, std::vector<int>>>>::iterator &sites_it,
                                           std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
                                           std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
                                           std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
+                                          std::list<std::vector<std::pair<unsigned int, std::vector<int>>>>::iterator &sites_it,
+                                          const bool first_del,
+                                          const uint64_t maxx,
+                                          const std::vector<int> &mask_a,
+                                          const FM_Index &fm_index,
                                           const int thread_id) {
 
     // check for edge of variant site
@@ -144,8 +149,7 @@ void process_matches_overlapping_variants(const FM_Index &fm_index,
         // takes all suffix at edge of variant and adds variant charecter to them
         // ac6cc6at5agt -> 5ac6cc6at5agt
         // last -> is end of variant site marker or not
-        bool last = skip(fm_index, left_new, right_new,
-                         left_rev_new, right_rev_new, marker, maxx);
+        bool last = skip(left_new, right_new, left_rev_new, right_rev_new, maxx, marker, fm_index);
 
         if (!last && (marker % 2 == 1)) {
             last_begin = marker;
@@ -153,11 +157,10 @@ void process_matches_overlapping_variants(const FM_Index &fm_index,
                 second_to_last = true;
         }
 
-        update_sites_crossed_by_reads(fm_index, sa_intervals, sa_intervals_rev, sites, mask_a,
-                                      first_del, allele_empty, second_to_last,
-                                      marker_idx, marker,
-                                      left_new, right_new, left_rev_new, right_rev_new, ignore,
-                                      last, sa_interval_it, sa_interval_it_rev, sites_it, last_begin);
+        update_sites_crossed_by_reads(sa_intervals, sa_intervals_rev, sa_interval_it, sa_interval_it_rev, left_new,
+                                      right_new, left_rev_new, right_rev_new,
+                                      allele_empty, sites, sites_it, second_to_last, ignore, last,
+                                      last_begin, mask_a, first_del, marker, marker_idx, fm_index);
 
         previous_marker = marker;
     }
@@ -195,16 +198,16 @@ void add_sa_interval_for_skip(uint64_t previous_marker,
 }
 
 
-bool match_next_charecter(const FM_Index &fm_index,
+bool match_next_charecter(bool delete_first_interval,
                           std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
                           std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
-                          std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                          const DNA_Rank &rank_all,
-                          const uint8_t next_char,
                           std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                           std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
+                          std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
                           std::list<std::vector<std::pair<unsigned int, std::vector<int>>>>::iterator &sites_it,
-                          bool delete_first_interval,
+                          const uint8_t next_char,
+                          const DNA_Rank &rank_all,
+                          const FM_Index &fm_index,
                           const int thread_id) {
 
     // adds next charecter in the read; deletes sa intervals which dont match the new next character
@@ -213,10 +216,7 @@ bool match_next_charecter(const FM_Index &fm_index,
            && sites_it != sites.end()) {
 
         //calculate sum to return- can do this in top fcns
-        const auto next_char_interval = bidir_search(next_char,
-                                                     sa_interval_it,
-                                                     sa_interval_it_rev,
-                                                     fm_index, rank_all);
+        const auto next_char_interval = bidir_search(next_char, sa_interval_it, sa_interval_it_rev, rank_all, fm_index);
 
         uint64_t next_char_interval_size = next_char_interval.second - next_char_interval.first;
 
@@ -243,11 +243,12 @@ bool match_next_charecter(const FM_Index &fm_index,
 }
 
 
-// TODO: rename to get_variant_site_edge?
-std::pair<uint32_t, std::vector<int>> get_location(const FM_Index &fm_index,
-                                                   const uint64_t marker_idx, const uint64_t marker,
-                                                   const bool last, std::vector<int> &allele,
-                                                   const std::vector<int> &mask_a) {
+std::pair<uint64_t, std::vector<int>> get_variant_site_edge(std::vector<int> &allele,
+                                                            const uint64_t marker,
+                                                            const uint64_t marker_idx,
+                                                            const std::vector<int> &mask_a,
+                                                            const bool last,
+                                                            const FM_Index &fm_index) {
     uint64_t site_edge_marker;
 
     bool marker_is_site_edge = marker % 2 == 1;
@@ -263,31 +264,31 @@ std::pair<uint32_t, std::vector<int>> get_location(const FM_Index &fm_index,
 }
 
 
-void update_sites_crossed_by_reads(const FM_Index &fm_index,
-                                   std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
+void update_sites_crossed_by_reads(std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
                                    std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev,
-                                   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                                   const std::vector<int> &mask_a,
-                                   const bool &first_del,
-                                   std::vector<int> &allele_empty,
-                                   bool &second_to_last,
-                                   const uint64_t marker_idx, const uint64_t marker,
-                                   uint64_t left_new, uint64_t right_new,
-                                   uint64_t left_rev_new, uint64_t right_rev_new,
-                                   bool ignore, bool last,
                                    std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                                    std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
+                                   uint64_t left_new, uint64_t right_new, uint64_t left_rev_new, uint64_t right_rev_new,
+                                   std::vector<int> &allele_empty,
+                                   std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
                                    std::list<std::vector<std::pair<unsigned int, std::vector<int>>>>::iterator &sites_it,
-                                   uint64_t &last_begin) {
+                                   bool &second_to_last,
+                                   bool ignore,
+                                   bool last,
+                                   uint64_t &last_begin,
+                                   const std::vector<int> &mask_a,
+                                   const bool &first_del,
+                                   const uint64_t marker,
+                                   const uint64_t marker_idx,
+                                   const FM_Index &fm_index) {
 
     if (sa_interval_it == sa_intervals.begin() && first_del == false && !ignore) {
-        auto sa_interval = make_pair(left_new, right_new);
+        auto sa_interval = std::make_pair(left_new, right_new);
         sa_intervals.push_back(sa_interval);
-        auto sa_interval_rev = make_pair(left_rev_new, right_rev_new);
+        auto sa_interval_rev = std::make_pair(left_rev_new, right_rev_new);
         sa_intervals_rev.push_back(sa_interval_rev);
 
-        auto location = get_location(fm_index, marker_idx, marker,
-                                     last, allele_empty, mask_a);
+        auto location = get_variant_site_edge(allele_empty, marker, marker_idx, mask_a, last, fm_index);
         std::vector<std::pair<uint32_t, std::vector<int>>> tmp(1, location);
         sites.push_back(tmp);
         sites.back().reserve(100);
@@ -303,11 +304,10 @@ void update_sites_crossed_by_reads(const FM_Index &fm_index,
     if (ignore) {
         if ((marker == last_begin + 1) && second_to_last) {
             auto vec_item = *(prev(sites.end(), 2));
-            vec_item.back() = get_location(fm_index, marker_idx, marker, last,
-                                           vec_item.back().second, mask_a);
+            vec_item.back() = get_variant_site_edge(vec_item.back().second, marker, marker_idx, mask_a, last, fm_index);
         } else
-            sites.back().back() = get_location(fm_index, marker_idx, marker, last,
-                                               sites.back().back().second, mask_a);
+            sites.back().back() = get_variant_site_edge(sites.back().back().second, marker, marker_idx, mask_a, last,
+                                                        fm_index);
         return;
     }
 
@@ -315,11 +315,10 @@ void update_sites_crossed_by_reads(const FM_Index &fm_index,
     *sa_interval_it_rev = std::make_pair(left_rev_new, right_rev_new);
 
     if ((*sites_it).back().first == marker || (*sites_it).back().first == marker - 1)
-        (*sites_it).back() = get_location(fm_index, marker_idx, marker, last,
-                                          (*sites_it).back().second, mask_a);
+        (*sites_it).back() = get_variant_site_edge((*sites_it).back().second, marker, marker_idx, mask_a, last,
+                                                   fm_index);
     else
-        (*sites_it).push_back(get_location(fm_index, marker_idx, marker, last,
-                                           allele_empty, mask_a));
+        (*sites_it).emplace_back(get_variant_site_edge(allele_empty, marker, marker_idx, mask_a, last, fm_index));
 
     allele_empty.clear();
     allele_empty.reserve(3500);

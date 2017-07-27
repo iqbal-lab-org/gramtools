@@ -10,9 +10,6 @@
 
 #include "ranks.hpp"
 
-using namespace sdsl;
-using namespace std;
-
 
 #ifndef GRAMTOOLS_BWT_SEARCH_H
 #define GRAMTOOLS_BWT_SEARCH_H
@@ -46,18 +43,10 @@ void precalc_ranks(const FM_Index &fm_index, const DNA_Rank& rank_all);
 std::pair<uint64_t, uint64_t> bidir_search(const uint8_t next_char,
                                            const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                                            const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
-                                           const FM_Index &fm_index,
-                                           const DNA_Rank &rank_all);
+                                           const DNA_Rank &rank_all, const FM_Index &fm_index);
 
-std::pair<uint32_t, std::vector<int>> get_location(const FM_Index &fm_index,
-                                                   const uint64_t marker_idx, const uint64_t marker,
-                                                   const bool last, std::vector<int> &allele,
-                                                   const std::vector<int> &mask_a);
-
-bool skip(const FM_Index &fm_index,
-          uint64_t& left, uint64_t& right,
-          uint64_t& left_rev, uint64_t& right_rev,
-          uint64_t num, uint64_t maxx);
+bool skip(uint64_t &left, uint64_t &right, uint64_t &left_rev, uint64_t &right_rev, const uint64_t maxx, const uint64_t num,
+          const FM_Index &fm_index);
 
 std::vector<uint8_t>::iterator bidir_search_fwd(const FM_Index &fm_index,
                                                 uint64_t left, uint64_t right,

@@ -1,4 +1,4 @@
-#include <inttypes.h>
+#include <cinttypes>
 #include <sdsl/suffix_arrays.hpp>
 
 #include "fm_index.hpp"
@@ -6,11 +6,11 @@
 
 //make SA sampling density and ISA sampling density customizable
 //make void fcn and pass csa by reference? return ii?
-FM_Index construct_fm_index(const std::string &prg_fpath,
-                            std::string prg_encoded_fpath,
-                            const std::string &memory_log_fname,
+FM_Index construct_fm_index(bool fwd,
                             std::string fm_index_fpath,
-                            bool fwd) {
+                            std::string prg_encoded_fpath,
+                            const std::string &prg_fpath,
+                            const std::string &memory_log_fname) {
 
     std::vector<uint64_t> prg = parse_prg(prg_fpath);
     std::cout << "Number of integers in int encoded linear PRG: " << prg.size() << std::endl;
@@ -95,8 +95,7 @@ std::vector<uint64_t> encode_prg(const std::string &prg_raw){
             continue;
         }
 
-        else
-            marker_digits.push_back(encode_result.charecter);
+        marker_digits.push_back(encode_result.charecter);
     }
 
     flush_marker_digits(marker_digits, prg_encoded);
@@ -105,7 +104,8 @@ std::vector<uint64_t> encode_prg(const std::string &prg_raw){
 }
 
 
-void flush_marker_digits(std::vector<int> &marker_digits, std::vector<uint64_t> &prg_encoded){
+void flush_marker_digits(std::vector<int> &marker_digits,
+                         std::vector<uint64_t> &prg_encoded){
     if (marker_digits.empty())
         return;
 

@@ -1,8 +1,4 @@
 #include <sdsl/suffix_arrays.hpp>
-#include <sdsl/wavelet_trees.hpp>
-#include <cassert>
-#include <tuple>
-#include <cstdint>
 
 #include "fm_index.hpp"
 #include "ranks.hpp"
@@ -25,8 +21,8 @@
 std::pair<uint64_t, uint64_t> bidir_search(const uint8_t next_char,
                                            const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
                                            const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
-                                           const FM_Index &fm_index,
-                                           const DNA_Rank &rank_all) {
+                                           const DNA_Rank &rank_all,
+                                           const FM_Index &fm_index) {
 
     uint64_t left = sa_interval_it->first;
     uint64_t right = sa_interval_it->second;

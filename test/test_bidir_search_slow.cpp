@@ -7,7 +7,7 @@
 
 void perform_test(const std::string &);
 
-std::vector<string> generate_all_substrings(std::string);
+std::vector<std::string> generate_all_substrings(std::string);
 
 
 TEST(SlowBackwardSearchTest, NoVariantsTest2) {
@@ -36,11 +36,11 @@ TEST(SlowBackwardSearchTest, NoVariants_MSP34_200bp_Test5) {
 
 void perform_test(const std::string &test_fpath) {
     std::string prg;
-    std::vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //generate all substrings of PRG, use them all as queries
-    ifstream ff(test_fpath);
+    std::ifstream ff(test_fpath);
     ff >> prg;
     substrings = generate_all_substrings(prg);
 
@@ -51,15 +51,12 @@ void perform_test(const std::string &test_fpath) {
         mask_a.push_back(0);
     }
 
-    const FM_Index fm_index = construct_fm_index(test_fpath,
-                                                 "int_alphabet_file",
-                                                 "memory_log_file",
-                                                 "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_fpath, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     std::vector<uint8_t> p_tmp;
     std::string q_tmp;
@@ -84,12 +81,9 @@ void perform_test(const std::string &test_fpath) {
             if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
         }
 
-        bidir_search_bwd(fm_index,
-                         0, fm_index.size(),
-                         0, fm_index.size(),
-                         p_tmp.begin(), p_tmp.end(),
-                         sa_intervals, sa_intervals_rev, sites, mask_a, 5,
-                         first_del, precalc, rank_all);
+        bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                         p_tmp.begin(), p_tmp.end(), mask_a, 5, precalc,
+                         rank_all, fm_index, 0);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_FALSE(first_del);

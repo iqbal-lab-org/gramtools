@@ -16,7 +16,7 @@ static inline std::string &rtrim(std::string &s);
 // trim from both ends
 static inline std::string &trim(std::string &s);
 
-std::vector<std::string> split(std::string cad, std::string delim);
+std::vector<std::string> split(const std::string &cad, const std::string &delim);
 
 using KmerIdx = sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>>;
 using KmerSites = sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>;
@@ -37,23 +37,16 @@ struct ThreadData {
 
 void *worker(void *st);
 
-
-void read_precalc_kmers(std::string fil, KmerIdx &kmer_idx,
-                        KmerIdx &kmer_idx_rev, KmerSites &kmer_sites,
-                        KmersRef &kmers_in_ref);
-
 struct KmersData {
     KmerIdx index, index_reverse;
     KmerSites sites;
     KmersRef in_reference;
 };
 
-KmersData get_kmers(const FM_Index &fm_index,
-                    const std::vector<int> &mask_a,
-                    const std::string &kmer_fname,
-                    const uint64_t maxx,
-                    const int k,
-                    const DNA_Rank &rank_all);
+KmersData read_encoded_kmers(const std::string &fil);
+
+KmersData get_kmers(const std::string &kmer_fname, const int k, const std::vector<int> &mask_a, const uint64_t maxx,
+                    const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 void gen_precalc_kmers(const FM_Index &fm_index,
                        const std::vector<int> &mask_a,

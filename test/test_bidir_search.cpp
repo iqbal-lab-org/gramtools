@@ -17,15 +17,15 @@ using namespace sdsl;
 
 
 TEST(BackwardSearchTest, NoVariants1) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
     test_file2 = "./test_cases/one_byte.txt";
 
     //generate all substrings of PRG, use them all as queries
-    string temp;
-    ifstream ff(test_file2);
+    std::string temp;
+    std::ifstream ff(test_file2);
     ff >> temp;//in this case, is a one char PRG, no need for substrings
     substrings.push_back(temp);
 
@@ -36,15 +36,14 @@ TEST(BackwardSearchTest, NoVariants1) {
         mask_a.push_back(0);
     }
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    for (vector<string>::iterator it = substrings.begin(); it < substrings.end(); ++it) {
+    for (std::vector<std::string>::iterator it = substrings.begin(); it < substrings.end(); ++it) {
         q_tmp = *it;
 
         bool first_del = false;
@@ -58,9 +57,9 @@ TEST(BackwardSearchTest, NoVariants1) {
             if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
         }
 
-        bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
-                         p_tmp.begin(), p_tmp.end(), sa_intervals, sa_intervals_rev,
-                         sites, mask_a, 4, first_del, precalc, rank_all);
+        bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                         p_tmp.begin(), p_tmp.end(), mask_a, 4, precalc,
+                         rank_all, fm_index, 0);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_TRUE(first_del == false);
@@ -79,30 +78,29 @@ TEST(BackwardSearchTest, NoVariants1) {
 
 
 TEST(BackwardSearchTest, OneSNP) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //PRG = catttacaca5g6t5aactagagagca
     test_file2 = "./test_cases/one_snp.txt";
     query = "ttacacagaactagagag";//aligns across SNP allele 1 (and both flanks)
     mask_file = "./test_cases/one_snp_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
     bool precalc = false;
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     bool first_del = false;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     q_tmp = query;
     for (uint16_t i = 0; i < q_tmp.length(); i++) {
@@ -112,9 +110,9 @@ TEST(BackwardSearchTest, OneSNP) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     6, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 6, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -129,8 +127,7 @@ TEST(BackwardSearchTest, OneSNP) {
     sa_intervals_rev.clear();
     sites.clear();
 
-    construct_fm_index(test_file2, "int_alphabet_file",
-                       "memory_log_file", "csa_file", false);
+    construct_fm_index(false, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
     first_del = false;
 
     sa_intervals.clear();
@@ -141,28 +138,27 @@ TEST(BackwardSearchTest, OneSNP) {
 
 
 TEST(BackwardSearchTest, TwoSNPs) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //prg = catttacaca5g6t5aactag7a8g7agcagggt
     test_file2 = "./test_cases/two_snps.txt";
     query = "ttacacagaactagaagcag";//aligns across both SNPs, both allele 1
     mask_file = "./test_cases/two_snps_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -174,10 +170,9 @@ TEST(BackwardSearchTest, TwoSNPs) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
-                     p_tmp.begin(), p_tmp.end(),
-                     sa_intervals, sa_intervals_rev, sites, mask_a, 8,
-                     first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 8, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -200,29 +195,28 @@ TEST(BackwardSearchTest, TwoSNPs) {
 
 
 TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //prg=catttacaca5g6t5aactagagagcaacagaactctct
     test_file2 = "./test_cases/two_matches_var_nonvar.txt";
     query = "acagaac";//one match crosses allele 1, and the other in nonvar
     mask_file = "./test_cases/two_matches_var_nonvar_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -234,9 +228,9 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     6, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 6, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -263,29 +257,28 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
 
 
 TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //prg=catttacaca5g6t5aactagagagcaacataactctct
     test_file2 = "./test_cases/two_matches_var_other_allele_nonvar.txt";
     query = "acataac";//one match crosses allele 2, and the other in nonvar
     mask_file = "./test_cases/two_matches_var_nonvar_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -297,9 +290,9 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     6, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 6, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -326,9 +319,9 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
 
 
 TEST(BackwardSearchTest, Two_long_sites) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
 
@@ -338,20 +331,19 @@ TEST(BackwardSearchTest, Two_long_sites) {
     //read aligns from middle of  allele 3 of site 5 and allele 1 of site 7
     query = "gctcggctcgatgactagatagatagcgaggcaac";
     mask_file = "./test_cases/two_long_sites_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -363,9 +355,9 @@ TEST(BackwardSearchTest, Two_long_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     8, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 8, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -394,9 +386,9 @@ TEST(BackwardSearchTest, Two_long_sites) {
 
 
 TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
 
@@ -406,20 +398,19 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     //read aligns in allele 2 of site 5, and in non-var region
     query = "ctgctccacacagaga";
     mask_file = "./test_cases/match_within_long_site_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -431,9 +422,9 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     8, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 8, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -462,9 +453,9 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
 
 
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //prg = gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7ccagctgctccacacagaga
@@ -472,20 +463,19 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     //read aligns across sites 5 and 7, allele 1 in both cases
     query = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
     mask_file = "./test_cases/match_within_long_site_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -498,9 +488,9 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     8, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 8, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -527,9 +517,9 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
 
 
 TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
     //prg=acgacacat5gatag6tagga6gctcg6gctct5gctcgtgataatgactagatagatag7cga8cgc8tga8tgc7taggcaacatctacga
@@ -537,14 +527,13 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     //read aligns over allele 1 of site 5, the nonvariableregion and allele 3 of site 7
     query = "tgata";
     mask_file = "./test_cases/multiple_matches_multiple_sites_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -554,7 +543,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator list_it;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -566,9 +555,9 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     8, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 8, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -613,9 +602,9 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
 }
 
 TEST(BackwardSearchTest, One_match_many_sites) {
-    string q_tmp, test_file2, query, mask_file;
+    std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
-    vector<string> substrings;
+    std::vector<std::string> substrings;
     std::vector<int> mask_a;
 
 
@@ -624,20 +613,19 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
     query = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
     mask_file = "./test_cases/One_match_many_sites_mask_a.txt";
-    ifstream g(mask_file);
+    std::ifstream g(mask_file);
 
     int a;
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                                 "memory_log_file", "csa_file", true);
+    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    const DNA_Rank &rank_all = calc_ranks(fm_index);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -649,9 +637,9 @@ TEST(BackwardSearchTest, One_match_many_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                     16, first_del, precalc, rank_all);
+    bidir_search_bwd(sa_intervals, sa_intervals_rev, 0, fm_index.size(), 0, fm_index.size(), sites, first_del,
+                     p_tmp.begin(), p_tmp.end(), mask_a, 16, precalc,
+                     rank_all, fm_index, 0);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)

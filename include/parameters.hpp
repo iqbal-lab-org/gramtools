@@ -1,6 +1,7 @@
 #ifndef GRAMTOOLS_PARAMETERS_HPP
 #define GRAMTOOLS_PARAMETERS_HPP
 
+
 struct Parameters {
     std::string prg_fpath;
     std::string fm_index_fpath;
@@ -14,5 +15,6 @@ struct Parameters {
     std::string prg_kmers_fpath;
     int kmers_size;
 };
+
 
 #endif //GRAMTOOLS_PARAMETERS_HPP

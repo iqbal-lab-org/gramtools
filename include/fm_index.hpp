@@ -12,11 +12,8 @@
 using WavletTree = sdsl::wt_int<sdsl::bit_vector, sdsl::rank_support_v5<>>;
 using FM_Index = sdsl::csa_wt<WavletTree, 2, 16777216>;
 
-FM_Index construct_fm_index(const std::string &prg_fpath,
-                            std::string prg_encoded_fpath,
-                            const std::string &memory_log_fname,
-                            std::string fm_index_fpath,
-                            bool fwd);
+FM_Index construct_fm_index(bool fwd, std::string fm_index_fpath, std::string prg_encoded_fpath, const std::string &prg_fpath,
+                            const std::string &memory_log_fname);
 
 void dump_encoded_prg(const std::vector<uint64_t> &prg,
                       const std::string &prg_encoded_fpath);
