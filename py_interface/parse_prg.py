@@ -1,66 +1,66 @@
 from . import genome_regions
 
-
 var_marker_chars = set('0123456789')
 
 
-class CurrentState:
-    """Current cursor state."""
+class ParsingCursor:
+    """A cursor which is used for parsing PRG."""
+
     def __init__(self):
         self.in_var_site = False
         self.current_var_marker = None
         self.region = []
 
 
-def flush_region(state, regions):
-    """Reset state for next region."""
-    if not state.region:
+def flush_region(cursor, regions):
+    """Reset cursor for next region."""
+    if not cursor.region:
         return
-    state.region = [''.join(x) for x in state.region]
-    regions.add_region(state.region, state.current_var_marker)
-    state.region = []
+    cursor.region = [''.join(x) for x in cursor.region]
+    regions.add_region(cursor.region, cursor.current_var_marker)
+    cursor.region = []
 
 
-def handle_var_site(prg_char, state, regions):
+def handle_var_site(prg_char, cursor, regions):
     """Handle cursor in variant site."""
     is_marker_char = prg_char[0] in var_marker_chars
 
-    entering_var_site = (not state.in_var_site
+    entering_var_site = (not cursor.in_var_site
                          and is_marker_char)
     if entering_var_site:
-        flush_region(state, regions)
-        state.in_var_site = True
-        state.current_var_marker = prg_char
+        flush_region(cursor, regions)
+        cursor.in_var_site = True
+        cursor.current_var_marker = prg_char
         return
 
-    leaving_var_site = prg_char == state.current_var_marker
+    leaving_var_site = prg_char == cursor.current_var_marker
     if leaving_var_site:
-        flush_region(state, regions)
-        state.in_var_site = False
-        state.current_var_marker = None
+        flush_region(cursor, regions)
+        cursor.in_var_site = False
+        cursor.current_var_marker = None
         return
 
-    entering_next_allele = is_marker_char and state.in_var_site
+    entering_next_allele = is_marker_char and cursor.in_var_site
     if entering_next_allele:
-        state.region.append([])
+        cursor.region.append([])
         return
 
-    in_allele = not is_marker_char and state.in_var_site
+    in_allele = not is_marker_char and cursor.in_var_site
     if in_allele:
-        if not state.region:
-            state.region.append([])
-        state.region[-1].append(prg_char)
+        if not cursor.region:
+            cursor.region.append([])
+        cursor.region[-1].append(prg_char)
         return
 
 
-def handle_nonvar_site(prg_char, state):
+def handle_nonvar_site(prg_char, cursor):
     """Handle cursor in non-variant site."""
-    is_nonvar_base = (not state.in_var_site
+    is_nonvar_base = (not cursor.in_var_site
                       and prg_char[0] not in var_marker_chars)
     if is_nonvar_base:
-        if not state.region:
-            state.region.append([])
-        state.region[-1].append(prg_char)
+        if not cursor.region:
+            cursor.region.append([])
+        cursor.region[-1].append(prg_char)
         return
 
 
@@ -111,12 +111,11 @@ def decode_prg(prg):
 
 
 def parse(prg):
-    """Process genome _regions."""
+    """Process genome prg."""
     regions = genome_regions.GenomeRegions()
-    state = CurrentState()
+    cursor = ParsingCursor()
     for x in decode_prg(prg):
-        handle_var_site(x, state, regions)
-        handle_nonvar_site(x, state)
-
-    flush_region(state, regions)
+        handle_var_site(x, cursor, regions)
+        handle_nonvar_site(x, cursor)
+    flush_region(cursor, regions)
     return regions

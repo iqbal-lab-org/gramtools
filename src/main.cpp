@@ -52,7 +52,6 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Output coverage");
 
     timer_report.report();
-
     return 0;
 }
 

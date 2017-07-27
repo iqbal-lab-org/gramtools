@@ -1,6 +1,7 @@
 class GenomeRegions:
-    """Variantblocks container class. Contains entire genome
-    split into variant blocks.
+    """Variantblocks container class.
+
+    Contains entire genome split into variant blocks.
     """
 
     def __init__(self):

@@ -11,7 +11,7 @@ log = logging.getLogger('gramtools')
 
 
 def _filter_regions(regions, nonvariant_kmers):
-    """TODO"""
+    """Yield regions with filtering based on a region's variant site status."""
     if nonvariant_kmers:
         return iter(regions)
 
@@ -22,7 +22,11 @@ def _filter_regions(regions, nonvariant_kmers):
 
 def _directional_region_range(max_base_distance, start_region,
                               regions, reverse):
-    """TODO"""
+    """Return list of regions which are within a given base distance
+    of a starting regions.
+
+    The starting region is not included in the returned region range.
+    """
     tot_distance = 0
     regions_in_range = []
     for region in regions.range(start_region, reverse=reverse):
@@ -54,14 +58,14 @@ def _regions_within_distance(max_base_distance, start_region,
 
 
 def _genome_paths(region_range):
-    """TODO"""
+    """Generate all genome paths which exist for a given region range."""
     range_alleles = [region.alleles for region in region_range]
     for genome_path in itertools.product(*range_alleles):
         yield ''.join(genome_path)
 
 
 def _kmers_from_genome_paths(genome_paths, kmer_size):
-    """TODO"""
+    """Generate all kmers which exist for a list of genome paths."""
     seen_kmers = set()
     for path in genome_paths:
         for i in range(len(path)):
@@ -75,7 +79,7 @@ def _kmers_from_genome_paths(genome_paths, kmer_size):
 
 
 def generate(max_base_distance, kmer_size, regions, nonvariant_kmers):
-    """TODO"""
+    """Generate kmers."""
     for start_region in _filter_regions(regions, nonvariant_kmers):
         region_range = _regions_within_distance(max_base_distance,
                                                 start_region,
@@ -86,29 +90,28 @@ def generate(max_base_distance, kmer_size, regions, nonvariant_kmers):
 
 
 def _dump_kmers(kmers, output_fpath):
-
     if output_fpath is None:
         log.debug('Writing kmers to stdout')
         for kmer in kmers:
             print(kmer)
-        return
 
-    log.debug('Writing kmers to file')
-    with open(output_fpath, 'w') as fhandle:
-        for kmer in kmers:
-            fhandle.write(kmer + '\n')
+    else:
+        log.debug('Writing kmers to file')
+        with open(output_fpath, 'w') as fhandle:
+            for kmer in kmers:
+                fhandle.write(kmer + '\n')
 
 
 def _dump_masks(sites, alleles):
+    log.debug('Writing sites and alleles masks to file')
     with open('mask_sites.txt', 'w') as fhandle:
         fhandle.write(sites)
-
     with open('mask_alleles.txt', 'w') as fhandle:
         fhandle.write(alleles)
 
 
 def run(args):
-    log.info('Start process: kmers')
+    log.info('Start process: generate kmers')
     mask = True
 
     fasta_seq = str(SeqIO.read(args.reference, 'fasta').seq)
@@ -123,4 +126,4 @@ def run(args):
         sites_mask = genome_regions.sites_mask(regions)
         alleles_mask = genome_regions.alleles_mask(regions)
         _dump_masks(sites_mask, alleles_mask)
-    log.info('End process: build')
+    log.info('End process: generate kmers')
