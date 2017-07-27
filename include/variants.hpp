@@ -1,4 +1,4 @@
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 
 
 #ifndef GRAMTOOLS_VARIANTS_HPP

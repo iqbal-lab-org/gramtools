@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import argparse
 import logging
@@ -22,13 +23,13 @@ def setup_logging(level):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--version", help="",
-                        action="store_true")
     parser.add_argument("--build", help="",
                         action="store_true")
     parser.add_argument("--quasimap", help="",
                         action="store_true")
 
+    parser.add_argument("--version", help="",
+                        action="store_true")
     parser.add_argument("--debug", help="",
                         action="store_true")
     parser.add_argument("--profile", help="",
@@ -42,11 +43,15 @@ def parse_args():
                         type=str)
     parser.add_argument("--vcf", help="",
                         type=str)
-
     parser.add_argument("--ksize", help="",
                         type=int)
 
     args = parser.parse_args()
+
+    if len(sys.argv)==1:
+        parser.print_help()
+        sys.exit(1)
+
     return args
 
 

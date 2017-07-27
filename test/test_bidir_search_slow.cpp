@@ -2,9 +2,9 @@
 #include "gtest/gtest.h"
 
 #include "map.hpp"
-#include "process_prg.hpp"
-#include "bwt_search.h"
-
+#include "fm_index.hpp"
+#include "bwt_search.hpp"
+#include "ranks.hpp"
 
 
 void perform_test(const std::string &);
@@ -53,17 +53,16 @@ void perform_test(const std::string &test_fpath) {
         mask_a.push_back(0);
     }
 
-    FM_Index fm_index = construct_fm_index(test_fpath,
-                                           "int_alphabet_file",
-                                           "memory_log_file",
-                                           "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_fpath,
+                                                 "int_alphabet_file",
+                                                 "memory_log_file",
+                                                 "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     std::vector<uint8_t> p_tmp;
     std::string q_tmp;

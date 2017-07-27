@@ -35,16 +35,13 @@ add_library(gram STATIC
     ${SOURCE}/map.cpp
     ${SOURCE}/kmers.cpp
     ${SOURCE}/bidir_search_bwd.cpp
-    ${SOURCE}/bidir_search_fwd.cpp
-    ${SOURCE}/get_location.cpp
+    # ${SOURCE}/bidir_search_fwd.cpp
     ${SOURCE}/skip.cpp
     ${SOURCE}/bidir_search.cpp
-    ${SOURCE}/csa_construction.cpp
     ${SOURCE}/masks.cpp
-    ${SOURCE}/precalc_kmer_matches.cpp
-    ${SOURCE}/process_prg.cpp
+    ${SOURCE}/fm_index.cpp
     ${SOURCE}/variants.cpp
-    ${SOURCE}/precalc_ranks.cpp)
+    ${SOURCE}/ranks.cpp)
 
 target_include_directories(gram PUBLIC
     ${SOURCE}

@@ -1,6 +1,3 @@
-#include "process_prg.hpp"
-
-
 #ifndef GRAMTOOLS_SKIP_HPP
 #define GRAMTOOLS_SKIP_HPP
 

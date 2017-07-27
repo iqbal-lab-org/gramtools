@@ -1,7 +1,7 @@
 #include <inttypes.h>
 #include <sdsl/suffix_arrays.hpp>
 
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 
 
 //make SA sampling density and ISA sampling density customizable

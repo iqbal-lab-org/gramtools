@@ -1,6 +1,6 @@
 #include <sdsl/suffix_arrays.hpp>
 
-#include "process_prg.hpp"
+#include "fm_index.hpp"
 #include "skip.hpp"
 
 

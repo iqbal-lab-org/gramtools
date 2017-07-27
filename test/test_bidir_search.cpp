@@ -9,8 +9,9 @@
 
 #include "variants.hpp"
 #include "map.hpp"
-#include "process_prg.hpp"
-#include "bwt_search.h"
+#include "fm_index.hpp"
+#include "bwt_search.hpp"
+#include "ranks.hpp"
 
 using namespace sdsl;
 
@@ -35,15 +36,14 @@ TEST(BackwardSearchTest, NoVariants1) {
         mask_a.push_back(0);
     }
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     for (vector<string>::iterator it = substrings.begin(); it < substrings.end(); ++it) {
         q_tmp = *it;
@@ -96,16 +96,15 @@ TEST(BackwardSearchTest, OneSNP) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     bool first_del = false;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     q_tmp = query;
     for (uint16_t i = 0; i < q_tmp.length(); i++) {
@@ -116,8 +115,8 @@ TEST(BackwardSearchTest, OneSNP) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     6, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -159,15 +158,14 @@ TEST(BackwardSearchTest, TwoSNPs) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -180,9 +178,9 @@ TEST(BackwardSearchTest, TwoSNPs) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(),
-                                                             p_tmp.begin(), p_tmp.end(),
-                                                             sa_intervals, sa_intervals_rev, sites, mask_a, 8,
-                                                             first_del, precalc, variants, rank_all);
+                     p_tmp.begin(), p_tmp.end(),
+                     sa_intervals, sa_intervals_rev, sites, mask_a, 8,
+                     first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, first_del);
@@ -220,16 +218,15 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -242,8 +239,8 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     6, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -285,16 +282,15 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -307,8 +303,8 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             6, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     6, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -353,16 +349,15 @@ TEST(BackwardSearchTest, Two_long_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -375,8 +370,8 @@ TEST(BackwardSearchTest, Two_long_sites) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     8, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -423,16 +418,15 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -445,8 +439,8 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     8, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -491,16 +485,15 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -514,8 +507,8 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     8, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -558,9 +551,9 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
@@ -570,8 +563,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator list_it;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -584,8 +576,8 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             8, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     8, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -647,16 +639,15 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
-                                           "memory_log_file", "csa_file", true);
-    VariantMarkers variants = parse_variants(fm_index);
+    const FM_Index fm_index = construct_fm_index(test_file2, "int_alphabet_file",
+                                                 "memory_log_file", "csa_file", true);
+    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
-    std::unordered_map<uint8_t,std::vector<uint64_t>> rank_all;
-    precalc_ranks(fm_index, rank_all);
+    const DNA_Rank &rank_all = calc_ranks(fm_index);
 
     bool first_del = false;
     bool precalc = false;
@@ -669,8 +660,8 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     }
 
     bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                                                             p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
-                                                             16, first_del, precalc, variants, rank_all);
+                     p_tmp.end(), sa_intervals, sa_intervals_rev, sites, mask_a,
+                     16, first_del, precalc, variants, rank_all);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)

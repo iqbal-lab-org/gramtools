@@ -18,7 +18,7 @@ VariantMarkers parse_variants(const FM_Index &fm_index) {
 
 
 MarkerPositions::MarkerPositions(unsigned long start_idx, unsigned long end_idx,
-                const FM_Index &fm, const VariantMarkers &var) : fm_index(fm), variants(var) {
+                                 const FM_Index &fm, const VariantMarkers &var) : fm_index(fm), variants(var) {
 
     MarkerPositions::count_markers_before_start = variants.rank(start_idx);
     MarkerPositions::current_offset = 0;

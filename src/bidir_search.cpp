@@ -1,9 +1,11 @@
-#include "sdsl/suffix_arrays.hpp"
-#include "sdsl/wavelet_trees.hpp"
+#include <sdsl/suffix_arrays.hpp>
+#include <sdsl/wavelet_trees.hpp>
 #include <cassert>
-//#include "bwt_search.h"
 #include <tuple>
 #include <cstdint>
+
+#include "fm_index.hpp"
+#include "ranks.hpp"
 
 
 //csa is the compressed suffix array object 
@@ -16,41 +18,40 @@
 //              you're trying to extend...
 //              in the reverse text csa 
 //              (don't need the actual reverse text csa, 
-//              just these indices) 
-//char c for extending the current pattern     
-using namespace sdsl;
+//              just these indices)
+//char next_char for extending the current pattern
 
-uint64_t bidir_search(const csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-		      uint64_t& left, uint64_t& right, 
-		      uint64_t& left_rev, uint64_t& right_rev, 
-		      uint8_t c, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all)
-{
-  assert(left < right); 
-  assert(right <= csa.size());
-  assert((c>0) & (c<5));  //would be nice to replace 5 with a constant set at compile-time (so one day can do with amino); the n parameter in precalc_kmer_matches
 
-  // c_begin (below) is the first occurrence/posn 
-  //          of char c in the far left column 
-  //          of the BW matrix 
-  uint64_t c_begin = csa.C[csa.char2comp[c]];
+std::pair<uint64_t, uint64_t> bidir_search(const uint8_t next_char,
+                                           const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
+                                           const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
+                                           const FM_Index &fm_index,
+                                           const DNA_Rank &rank_all) {
 
-  // [ NB Since the suffixes are alphabetically ordered, 
-  // the position at which c appears for the first time 
-  // in this first column is equal to the number of 
-  // times characters smaller than c appear in text  ]
+    uint64_t left = sa_interval_it->first;
+    uint64_t right = sa_interval_it->second;
 
-  if (left==0) left=c_begin;
-  else left=c_begin+rank_all[c-1][left-1];
-  
-  right=c_begin+rank_all[c-1][right-1];
-  
-  assert(right>=left);
+    assert(left < right);
+    assert(right <= fm_index.size());
 
-  //TO DO:need to calc rev intervals based on rank matrix
-  //now same in reverse csa
-  //left_rev  = left_rev + s;
-  //right_rev = right_rev - b + 1;
-  //  assert(right_rev-left_rev == right-left);
+    // next_char_interval_left (below) is the first occurrence/posn
+    //          of char next_char in the far left column
+    //          of the BW matrix
+    const uint64_t next_char_interval_left = fm_index.C[fm_index.char2comp[next_char]];
 
-  return right-left;
+    // [ NB Since the suffixes are alphabetically ordered,
+    // the position at which next_char appears for the first time
+    // in this first column is equal to the number of
+    // times characters smaller than next_char appear in text  ]
+
+    auto tmp = rank_all.find(next_char - 1)->second;
+    if (left == 0)
+        left = next_char_interval_left;
+    else
+        left = next_char_interval_left + tmp[left - 1];
+
+    right = next_char_interval_left + tmp[right - 1];
+    assert(right >= left);
+
+    return std::make_pair(left, right);
 }
