@@ -4,7 +4,7 @@
 
 #include "fm_index.hpp"
 #include "bwt_search.hpp"
-#include "ranks.hpp"
+#include "bidir_search_bwd.hpp"
 #include "kmers.hpp"
 
 #define MAX_THREADS 25

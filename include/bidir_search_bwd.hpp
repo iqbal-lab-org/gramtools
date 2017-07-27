@@ -2,6 +2,22 @@
 #define GRAMTOOLS_BIDIR_SEARCH_BWD_HPP_HPP
 
 
+void bidir_search_bwd(const FM_Index &fm_index,
+                      uint64_t left, uint64_t right,
+                      uint64_t left_rev, uint64_t right_rev, // right_rev not used in bwd
+                      const std::vector<uint8_t>::iterator fasta_pattern_begin,
+                      const std::vector<uint8_t>::iterator fasta_pattern_end,
+                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
+                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev, // sa_intervals_rev not used in bwd
+                      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
+                      const std::vector<int> &mask_a,
+                      const uint64_t maxx,
+                      bool &delete_first_interval,
+                      const bool kmer_precalc_done,
+                      const VariantMarkers &variants,
+                      const DNA_Rank &rank_all,
+                      const int thread_id=0);
+
 void update_sites_crossed_by_reads(const FM_Index &fm_index,
                                    list <pair<uint64_t, uint64_t>> &sa_intervals,
                                    list <pair<uint64_t, uint64_t>> &sa_intervals_rev,

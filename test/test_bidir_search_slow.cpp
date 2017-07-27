@@ -2,9 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "map.hpp"
-#include "fm_index.hpp"
-#include "bwt_search.hpp"
-#include "ranks.hpp"
+#include "bidir_search_bwd.hpp"
 
 
 void perform_test(const std::string &);
@@ -87,8 +85,10 @@ void perform_test(const std::string &test_fpath) {
             if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
         }
 
-        bidir_search_bwd(fm_index, 0, fm_index.size(), 0, fm_index.size(), p_tmp.begin(),
-                         p_tmp.end(),
+        bidir_search_bwd(fm_index,
+                         0, fm_index.size(),
+                         0, fm_index.size(),
+                         p_tmp.begin(), p_tmp.end(),
                          sa_intervals, sa_intervals_rev, sites, mask_a, 5,
                          first_del, precalc, variants, rank_all);
 

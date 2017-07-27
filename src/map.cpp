@@ -12,6 +12,7 @@
 #include "bwt_search.hpp"
 #include "map.hpp"
 #include "variants.hpp"
+#include "bidir_search_bwd.hpp"
 
 
 uint64_t map_reads(Parameters &params, MasksParser &masks,
@@ -75,12 +76,19 @@ void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integ
         }
 
         bool kmer_precalc_done = true;
-        bidir_search_bwd(fm_index, (*it).first, (*it).second,
+        bidir_search_bwd(fm_index,
+                         (*it).first, (*it).second,
                          (*it_rev).first, (*it_rev).second,
                          readin_integer_seq.begin(),
                          readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
-                         sa_intervals, sa_intervals_rev, sites, masks.allele, masks.max_alphabet_num,
-                         first_del, kmer_precalc_done, variants, rank_all);
+                         sa_intervals, sa_intervals_rev,
+                         sites,
+                         masks.allele,
+                         masks.max_alphabet_num,
+                         first_del,
+                         kmer_precalc_done,
+                         variants,
+                         rank_all);
 
         no_occ = 0;
 

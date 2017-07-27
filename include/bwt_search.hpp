@@ -60,34 +60,6 @@ bool skip(const FM_Index &fm_index,
           uint64_t& left_rev, uint64_t& right_rev,
           uint64_t num, uint64_t maxx);
 
-void bidir_search_bwd(const FM_Index &fm_index,
-                      uint64_t left, uint64_t right,
-                      uint64_t left_rev, uint64_t right_rev, // not used in bwd
-                      const std::vector<uint8_t>::iterator fasta_pattern_begin,
-                      const std::vector<uint8_t>::iterator fasta_pattern_end,
-                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
-                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev, // not used in bwd
-                      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                      const std::vector<int> &mask_a, const uint64_t maxx, bool &first_del,
-                      const bool kmer_precalc_done, const VariantMarkers &variants,
-                      const DNA_Rank &rank_all);
-
-void bidir_search_bwd(const FM_Index &fm_index,
-                      uint64_t left, uint64_t right,
-                      uint64_t left_rev, uint64_t right_rev, // not used in bwd
-                      const std::vector<uint8_t>::iterator fasta_pattern_begin,
-                      const std::vector<uint8_t>::iterator fasta_pattern_end,
-                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals,
-                      std::list<std::pair<uint64_t, uint64_t>> &sa_intervals_rev, // not used in bwd
-                      std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> &sites,
-                      const std::vector<int> &mask_a,
-                      const uint64_t maxx,
-                      bool &first_del,
-                      const bool kmer_precalc_done,
-                      const VariantMarkers &variants,
-                      const DNA_Rank &rank_all,
-                      const int thread_id);
-
 std::vector<uint8_t>::iterator bidir_search_fwd(const FM_Index &fm_index,
                                                 uint64_t left, uint64_t right,
                                                 uint64_t left_rev, uint64_t right_rev,
