@@ -66,7 +66,6 @@ void calc_kmer_matches(KmerIdx &kmer_idx,
                        std::vector<std::vector<uint8_t>> &kmers,
                        const FM_Index &fm_index,
                        const DNA_Rank &rank_all,
-                       const VariantMarkers &variants,
                        const std::vector<int> &mask_a,
                        const int k,
                        const uint64_t maxx,
@@ -106,7 +105,7 @@ void calc_kmer_matches(KmerIdx &kmer_idx,
                          kmer_idx_rev[kmer],
                          kmer_sites[kmer],
                          mask_a, maxx, first_del,
-                         kmer_precalc_done, variants, rank_all,
+                         kmer_precalc_done, rank_all,
                          thread_id);
 
         if (kmer_idx[kmer].empty())
@@ -137,7 +136,6 @@ void *worker(void *st) {
                       *(th->kmers),
                       *(th->fm_index),
                       *(th->rank_all),
-                      *(th->variants),
                       *(th->mask_a),
                       th->k,
                       th->maxx,
@@ -151,7 +149,6 @@ void gen_precalc_kmers(const FM_Index &fm_index,
                        const std::string &kmer_fname,
                        const uint64_t maxx,
                        const int k,
-                       const VariantMarkers &variants,
                        const DNA_Rank &rank_all,
                        const int thread_count) {
 
@@ -326,14 +323,13 @@ KmersData get_kmers(const FM_Index &fm_index,
                     const std::string &kmer_fname,
                     const uint64_t maxx,
                     const int k,
-                    const VariantMarkers &variants,
                     const DNA_Rank &rank_all) {
 
     if (!fexists(std::string(kmer_fname) + ".precalc")) {
         const int thread_count = get_thread_count();
         std::cout << "Precalculated kmers not found, calculating them using "
                   << thread_count << " threads" << std::endl;
-        gen_precalc_kmers(fm_index, mask_a, kmer_fname, maxx, k, variants, rank_all, thread_count);
+        gen_precalc_kmers(fm_index, mask_a, kmer_fname, maxx, k, rank_all, thread_count);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 

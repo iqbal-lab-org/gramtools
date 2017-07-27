@@ -40,7 +40,6 @@ add_library(gram STATIC
     ${SOURCE}/bidir_search.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/fm_index.cpp
-    ${SOURCE}/variants.cpp
     ${SOURCE}/ranks.cpp)
 
 target_include_directories(gram PUBLIC

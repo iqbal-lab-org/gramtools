@@ -1,5 +1,4 @@
 #include "bwt_search.hpp"
-#include "variants.hpp"
 
 
 #ifndef GRAMTOOLS_KMERS_HPP
@@ -31,7 +30,6 @@ struct ThreadData {
     int thread_id;
     const FM_Index *fm_index;
     const DNA_Rank *rank_all;
-    const VariantMarkers *variants;
     int k;
     const std::vector<int> *mask_a;
     uint64_t maxx;
@@ -54,7 +52,6 @@ KmersData get_kmers(const FM_Index &fm_index,
                     const std::string &kmer_fname,
                     const uint64_t maxx,
                     const int k,
-                    const VariantMarkers &variants,
                     const DNA_Rank &rank_all);
 
 void gen_precalc_kmers(const FM_Index &fm_index,
@@ -62,7 +59,6 @@ void gen_precalc_kmers(const FM_Index &fm_index,
                        const std::string &kmer_fname,
                        const uint64_t maxx,
                        const int k,
-                       const VariantMarkers &variants,
                        const DNA_Rank &rank_all);
 
 void calc_kmer_matches(KmerIdx &kmer_idx,
@@ -72,7 +68,6 @@ void calc_kmer_matches(KmerIdx &kmer_idx,
                        std::vector<std::vector<uint8_t>> &kmers,
                        const FM_Index &fm_index,
                        const DNA_Rank &rank_all,
-                       const VariantMarkers &variants,
                        const std::vector<int> &mask_a,
                        const int k,
                        const uint64_t maxx);

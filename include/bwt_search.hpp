@@ -8,7 +8,6 @@
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/wavelet_trees.hpp>
 
-#include "variants.hpp"
 #include "ranks.hpp"
 
 using namespace sdsl;
@@ -39,7 +38,7 @@ void calc_kmer_matches(const FM_Index &fm_index, int k,
                        sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
                        sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
                        std::vector<int> &mask_a, uint64_t maxx, sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                       std::vector<std::vector<uint8_t>> &kmerfile, const VariantMarkers &variants,
+                       std::vector<std::vector<uint8_t>> &kmerfile,
                        const DNA_Rank &rank_all);
 
 void precalc_ranks(const FM_Index &fm_index, const DNA_Rank& rank_all);

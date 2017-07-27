@@ -16,7 +16,6 @@
 #include "kmers.hpp"
 #include "map.hpp"
 #include "fm_index.hpp"
-#include "variants.hpp"
 #include "ranks.hpp"
 #include "main.hpp"
 
@@ -33,9 +32,6 @@ int main(int argc, const char *const *argv) {
 
     timer_report.record("Construct FM-index");
 
-    const VariantMarkers variants = parse_variants(fm_index);
-    timer_report.record("Parse variant markers");
-
     std::cout << "Parsing sites and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     timer_report.record("Parse masks");
@@ -47,11 +43,11 @@ int main(int argc, const char *const *argv) {
 
     std::cout << "Generating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
-                                masks.max_alphabet_num, params.kmers_size, variants, rank_all);
+                                masks.max_alphabet_num, params.kmers_size, rank_all);
     timer_report.record("Generating kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_reads(params, masks, kmers, fm_index, variants, rank_all);
+    uint64_t count_mapped = map_reads(params, masks, kmers, fm_index, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 

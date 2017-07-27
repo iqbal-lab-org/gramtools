@@ -55,7 +55,6 @@ void perform_test(const std::string &test_fpath) {
                                                  "int_alphabet_file",
                                                  "memory_log_file",
                                                  "csa_file", true);
-    const VariantMarkers variants = parse_variants(fm_index);
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
@@ -90,7 +89,7 @@ void perform_test(const std::string &test_fpath) {
                          0, fm_index.size(),
                          p_tmp.begin(), p_tmp.end(),
                          sa_intervals, sa_intervals_rev, sites, mask_a, 5,
-                         first_del, precalc, variants, rank_all);
+                         first_del, precalc, rank_all);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_FALSE(first_del);
