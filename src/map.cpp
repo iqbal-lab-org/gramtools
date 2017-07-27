@@ -9,60 +9,56 @@
 
 #include "masks.hpp"
 #include "parameters.hpp"
-#include "bwt_search.h"
-#include "kmers.hpp"
+#include "bwt_search.hpp"
 #include "map.hpp"
+#include "bidir_search_bwd.hpp"
 
 
-uint64_t map_fastaq(Parameters &params,
-                    MasksParser &masks,
-                    KmersData &kmers,
-                    CSA &csa,
-                    std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
+uint64_t map_reads(Parameters &params, MasksParser &masks,
+                   KmersData &kmers, const FM_Index &fm_index,
+                   const DNA_Rank &rank_all) {
+    SeqRead reads(params.reads_fpath.c_str());
 
-    SeqRead input_fastaq(params.reads_fpath.c_str());
     std::ofstream reads_fhandle(params.processed_reads_fpath);
-    uint64_t count_attempt_mapped = 0;
     int count_reads = 0;
+    int count_mapped = 0;
     int inc = 0;
-    int in_sites = 0, no_mapped = 0;
+    int in_sites = 0;
     std::unordered_set<int> repeats;
-    uint64_t count_mapped = 0;
 
     std::vector<uint8_t> readin_integer_seq;
     readin_integer_seq.reserve(200);
 
-    for (auto fastaq_read: input_fastaq) {
+    for (auto read: reads) {
         if (!(inc++ % 100000))
             reads_fhandle << count_reads << std::endl;
 
-        process_fastaq_sequence(fastaq_read, readin_integer_seq, params,
-                                masks, count_reads, kmers, count_mapped, csa, in_sites,
-                                no_mapped, repeats, rank_all);
+        process_read(read, readin_integer_seq, params,
+                     masks, count_reads, count_mapped, kmers, fm_index, in_sites,
+                     repeats, rank_all);
     }
     reads_fhandle.close();
     return count_mapped;
 }
 
 
-void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &readin_integer_seq,
-                             Parameters &params, MasksParser &masks, int &count_reads,
-                             KmersData &kmers, uint64_t &count_mapped, CSA &csa, int &in_sites, int &no_mapped,
-                             std::unordered_set<int> &repeats,
-                             std::unordered_map<uint8_t, std::vector<uint64_t>> &rank_all) {
+void process_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integer_seq,
+                  Parameters &params, MasksParser &masks, int &count_reads, int &count_mapped,
+                  KmersData &kmers, const FM_Index &fm_index, int &in_sites, std::unordered_set<int> &repeats,
+                  const DNA_Rank &rank_all) {
 
-    //cout<<q->seq<<endl;
-    int seqlen = strlen(fastaq_read->seq);
-
-    bool invalid_base_flag = convert_fastaq_to_int_seq(fastaq_read, readin_integer_seq);
+    bool invalid_base_flag = int_encode_read(read_sequence, readin_integer_seq);
     if (invalid_base_flag)
         // TODO: should readin_integer_seq and count_reads be modified here?
         return;
     auto no_occ = 0;
     std::vector<uint8_t> kmer(readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
                               readin_integer_seq.end()); //is there a way to avoid making this copy?
-    if (kmers.index.find(kmer) != kmers.index.end() && kmers.index_reverse.find(kmer) != kmers.index_reverse.end() &&
-        kmers.sites.find(kmer) != kmers.sites.end()) {
+
+    if (kmers.index.find(kmer) != kmers.index.end()
+        && kmers.index_reverse.find(kmer) != kmers.index_reverse.end()
+        && kmers.sites.find(kmer) != kmers.sites.end()) {
+
         auto sa_intervals = kmers.index[kmer];
         auto sa_intervals_rev = kmers.index_reverse[kmer];
         auto sites = kmers.sites[kmer];
@@ -76,16 +72,21 @@ void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &rea
         if (kmers.in_reference.find(kmer) != kmers.in_reference.end()) {
             //then the kmer does overlap a number, by definition.
             first_del = false;//no need to ignore first SA interval (if it was in the nonvar bit would ignore)
-        } else first_del = true;
+        }
 
-        bool precalc_done = true;
-        auto res_it = bidir_search_bwd(csa, (*it).first, (*it).second,
-                                       (*it_rev).first, (*it_rev).second,
-                                       readin_integer_seq.begin(),
-                                       readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
-                                       sa_intervals, sa_intervals_rev,
-                                       sites, masks.allele, masks.max_alphabet_num, first_del, precalc_done, rank_all);
-
+        bool kmer_precalc_done = true;
+        bidir_search_bwd(fm_index,
+                         (*it).first, (*it).second,
+                         (*it_rev).first, (*it_rev).second,
+                         readin_integer_seq.begin(),
+                         readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
+                         sa_intervals, sa_intervals_rev,
+                         sites,
+                         masks.allele,
+                         masks.max_alphabet_num,
+                         first_del,
+                         kmer_precalc_done,
+                         rank_all);
         no_occ = 0;
 
         if (sa_intervals.size() <= 10)
@@ -93,16 +94,17 @@ void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &rea
         {
             it = sa_intervals.begin();
             no_occ = (*it).second - (*it).first;
-            no_mapped++;
-            if (first_del == false) {
+            count_mapped++;
+            if (!first_del) {
                 assert(sites.front().empty());//becasue matches are all in non variable part of PRG
                 repeats.clear();
                 in_sites = 0;
                 for (auto ind = (*it).first; ind < (*it).second; ind++) {
-                    if (masks.allele[csa[ind]] != 0) {
+                    if (masks.allele[fm_index[ind]] != 0) {
                         in_sites++;
-                        if (repeats.count(masks.sites[csa[ind]]) == 0) repeats.insert(masks.sites[csa[ind]]);
-                        assert(masks.allele[csa[ind]] == masks.allele[csa[ind] + readin_integer_seq.size() - 1]);
+                        if (repeats.count(masks.sites[fm_index[ind]]) == 0) repeats.insert(masks.sites[fm_index[ind]]);
+                        assert(masks.allele[fm_index[ind]] ==
+                               masks.allele[fm_index[ind] + readin_integer_seq.size() - 1]);
                     }
                 }
             }
@@ -113,12 +115,15 @@ void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &rea
                 if (it == sa_intervals.begin() && sites.front().empty()) {
                     assert(first_del == false);
                     for (auto ind = (*it).first; ind < (*it).second; ind++)
-                        if (masks.allele[csa[ind]] != 0) {
-                            masks.allele_coverage[(masks.sites[csa[ind]] - 5) / 2][masks.allele[csa[ind]] - 1] =
-                                    masks.allele_coverage[(masks.sites[csa[ind]] - 5) / 2][masks.allele[csa[ind]] - 1] +
+                        if (masks.allele[fm_index[ind]] != 0) {
+                            masks.allele_coverage[(masks.sites[fm_index[ind]] - 5) / 2][masks.allele[fm_index[ind]] -
+                                                                                        1] =
+                                    masks.allele_coverage[(masks.sites[fm_index[ind]] - 5) / 2][
+                                            masks.allele[fm_index[ind]] - 1] +
                                     1.0 / (no_occ - in_sites + repeats.size() + sa_intervals.size() -
                                            1); //careful, might be dividing with more than we need to. size of sa_intervals is an overestimate of the number of horizontal matches, since a match that passed through 1st allele will be in a separate interval from other vertical matches from the same site
-                            assert(masks.allele[csa[ind]] == masks.allele[csa[ind] + readin_integer_seq.size() - 1]);
+                            assert(masks.allele[fm_index[ind]] ==
+                                   masks.allele[fm_index[ind] + readin_integer_seq.size() - 1]);
                         }
                 } else if ((it == sa_intervals.begin() && first_del == true) || (it !=
                                                                                  sa_intervals.begin())) { //first_del=true - match in an interval starting with a number, all matches must be just to left of end marker
@@ -145,18 +150,20 @@ void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &rea
                             if (site_pair != it_s.back() && site_pair != it_s.front()) assert(allele.size() == 1);
                             if (site_pair == it_s.back() && allele.empty()) {
                                 for (auto ind = (*it).first; ind < (*it).second; ind++)
-                                    if (masks.allele[csa[ind]] >
-                                        0) { //mask_a[csa[ind]] can be 0 here if one match in the SA-interval is coming from a skipped start-site marker
+                                    if (masks.allele[fm_index[ind]] >
+                                        0) { //mask_a[fm_index[ind]] can be 0 here if one match in the SA-interval is coming from a skipped start-site marker
                                         if (first_del ==
                                             false) { //take into account the number of matches in the reference seq
                                             assert((no_occ - in_sites + repeats.size() + sa_intervals.size() - 1) > 0);
-                                            masks.allele_coverage[(site - 5) / 2][masks.allele[csa[ind]] - 1] =
-                                                    masks.allele_coverage[(site - 5) / 2][masks.allele[csa[ind]] - 1] +
+                                            masks.allele_coverage[(site - 5) / 2][masks.allele[fm_index[ind]] - 1] =
+                                                    masks.allele_coverage[(site - 5) / 2][masks.allele[fm_index[ind]] -
+                                                                                          1] +
                                                     1.0 /
                                                     (no_occ - in_sites + repeats.size() + sa_intervals.size() - 1);
                                         } else
-                                            masks.allele_coverage[(site - 5) / 2][masks.allele[csa[ind]] - 1] =
-                                                    masks.allele_coverage[(site - 5) / 2][masks.allele[csa[ind]] - 1] +
+                                            masks.allele_coverage[(site - 5) / 2][masks.allele[fm_index[ind]] - 1] =
+                                                    masks.allele_coverage[(site - 5) / 2][masks.allele[fm_index[ind]] -
+                                                                                          1] +
                                                     1.0 / sa_intervals.size();
                                     }
                             } else if (!allele.empty()) {
@@ -189,24 +196,24 @@ void process_fastaq_sequence(GenomicRead *fastaq_read, std::vector<uint8_t> &rea
         no_occ = 0;
     }
     //cout<<no_occ<<endl;
-    //clear p, sa_intervals etc
+    //clear marker_porition, sa_intervals etc
 
     count_reads++;
     readin_integer_seq.clear();
 }
 
 
-bool convert_fastaq_to_int_seq(GenomicRead *fastaq_read, std::vector<uint8_t> &readin_integer_seq) {
+bool int_encode_read(GenomicRead *read_sequence, std::vector<uint8_t> &readin_integer_seq) {
     bool invalid_base_flag = false;
-    const auto sequence_length = strlen(fastaq_read->seq);
+    const auto sequence_length = strlen(read_sequence->seq);
     for (int i = 0; i < sequence_length; i++) {
-        if (fastaq_read->seq[i] == 'A' or fastaq_read->seq[i] == 'a')
+        if (read_sequence->seq[i] == 'A' or read_sequence->seq[i] == 'a')
             readin_integer_seq.push_back(1);
-        else if (fastaq_read->seq[i] == 'C' or fastaq_read->seq[i] == 'c')
+        else if (read_sequence->seq[i] == 'C' or read_sequence->seq[i] == 'c')
             readin_integer_seq.push_back(2);
-        else if (fastaq_read->seq[i] == 'G' or fastaq_read->seq[i] == 'g')
+        else if (read_sequence->seq[i] == 'G' or read_sequence->seq[i] == 'g')
             readin_integer_seq.push_back(3);
-        else if (fastaq_read->seq[i] == 'T' or fastaq_read->seq[i] == 't')
+        else if (read_sequence->seq[i] == 'T' or read_sequence->seq[i] == 't')
             readin_integer_seq.push_back(4);
         else
             // TODO: should there be a break here?

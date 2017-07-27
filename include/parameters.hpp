@@ -1,7 +1,7 @@
 #ifndef GRAMTOOLS_PARAMETERS_HPP
 #define GRAMTOOLS_PARAMETERS_HPP
 
-struct Parameters{
+struct Parameters {
     std::string prg_fpath;
     std::string fm_index_fpath;
     std::string reads_fpath;

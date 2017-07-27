@@ -11,42 +11,43 @@
 #include "git_version/git_version.hpp"
 
 #include "parameters.hpp"
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 #include "masks.hpp"
 #include "kmers.hpp"
 #include "map.hpp"
-#include "process_prg.hpp"
+#include "fm_index.hpp"
+#include "ranks.hpp"
 #include "main.hpp"
 
 
 int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
     TimerReport timer_report;
-    std::unordered_map<uint8_t,vector<uint64_t>> rank_all;
 
     std::cout << "Constructing FM-index" << std::endl;
-    FM_Index fm_index = construct_fm_index(params.prg_fpath,
-                                           params.prg_integer_alphabet_fpath,
-                                           params.fm_index_memory_log_fpath,
-                                           params.fm_index_fpath, true);
+    const FM_Index fm_index = construct_fm_index(params.prg_fpath,
+                                                 params.prg_integer_alphabet_fpath,
+                                                 params.fm_index_memory_log_fpath,
+                                                 params.fm_index_fpath, true);
+
     timer_report.record("Construct FM-index");
 
     std::cout << "Parsing sites and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?
+
+    const DNA_Rank rank_all = calc_ranks(fm_index);
+    timer_report.record("Calculating DNA ranks");
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
-    precalc_ranks(fm_index, rank_all);
-    timer_report.record("Pre-calc ranks");
-
-    std::cout << "Pre-calculating kmers" << std::endl;
+    std::cout << "Generating kmers" << std::endl;
     KmersData kmers = get_kmers(fm_index, masks.allele, params.prg_kmers_fpath,
                                 masks.max_alphabet_num, params.kmers_size, rank_all);
-    timer_report.record("Pre-calc kmers");
+    timer_report.record("Generating kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_fastaq(params, masks, kmers, fm_index, rank_all);
+    uint64_t count_mapped = map_reads(params, masks, kmers, fm_index, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
@@ -111,7 +112,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
 }
 
 
-void TimerReport::record(std::string note){
+void TimerReport::record(std::string note) {
     boost::timer::cpu_times times = timer.elapsed();
     double elapsed_time = (times.user + times.system) * 1e-9;
     Entry entry = std::make_pair(note, elapsed_time);
@@ -119,11 +120,11 @@ void TimerReport::record(std::string note){
 }
 
 
-void TimerReport::report() const{
+void TimerReport::report() const {
     std::cout << "\nTimer report:" << std::endl;
     cout_row(" ", "seconds");
 
-    for (const auto &entry: TimerReport::logger){
+    for (const auto &entry: TimerReport::logger) {
         auto &note = std::get<0>(entry);
         auto &elapsed_time = std::get<1>(entry);
         cout_row(note, elapsed_time);
@@ -131,7 +132,7 @@ void TimerReport::report() const{
 }
 
 
-template <typename TypeCol1, typename TypeCol2>
+template<typename TypeCol1, typename TypeCol2>
 void TimerReport::cout_row(TypeCol1 col1, TypeCol2 col2) const {
     std::cout << std::setw(20) << std::right << col1
               << std::setw(10) << std::right << col2

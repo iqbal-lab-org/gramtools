@@ -1,11 +1,10 @@
 #include <sdsl/suffix_arrays.hpp>
 
-#include "bwt_search.h"
+#include "fm_index.hpp"
 #include "skip.hpp"
 
 
-
-bool skip(CSA &fm_index,
+bool skip(const FM_Index &fm_index,
           uint64_t &left, uint64_t &right,
           uint64_t &left_rev, uint64_t &right_rev,
           const uint64_t marker_value, const uint64_t maxx) {
@@ -40,7 +39,7 @@ bool skip(CSA &fm_index,
     return false;
 }
 
-bool process_variant_edge_marker(CSA &fm_index,
+bool process_variant_edge_marker(const FM_Index &fm_index,
                                  uint64_t &left, uint64_t &right,
                                  uint64_t &left_rev, uint64_t &right_rev,
                                  const uint64_t marker_value, const uint64_t maxx) {

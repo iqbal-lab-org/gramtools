@@ -1,9 +1,11 @@
 #include "sdsl/suffix_arrays.hpp"
 #include "sdsl/wavelet_trees.hpp"
 #include <cassert>
-#include "bwt_search.h"
+#include "bwt_search.hpp"
 #include <tuple>
 #include <cstdint>
+
+#include "skip.hpp"
 
 using namespace sdsl;
 
@@ -120,7 +122,7 @@ std::vector<uint8_t>::iterator bidir_search_fwd(csa_wt<wt_int<bit_vector,rank_su
 
 		while (it!=sa_intervals.end() && it_rev!=sa_intervals_rev.end() && it_s!=sites.end()) {	
 			//calculate sum to return- can do this in top fcns
-		  if (bidir_search(csa_rev,(*it).first,(*it).second,(*it_rev).first,(*it_rev).second,c,rank_all)>0) {
+		  if (bidir_search(c, it, it_rev,csa_rev, rank_all)>0) {
 				++it;
 				++it_rev;
 				++it_s;

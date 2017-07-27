@@ -1,15 +1,20 @@
 #include <algorithm>
+#include <cstdlib>
 #include <thread>
 
-#include "bwt_search.h"
+#include "fm_index.hpp"
+#include "bwt_search.hpp"
+#include "bidir_search_bwd.hpp"
 #include "kmers.hpp"
 
 #define MAX_THREADS 25
 
-inline bool fexists (const std::string& name) {
+
+inline bool fexists(const std::string &name) {
     ifstream f(name.c_str());
     return f.good();
 }
+
 
 //trim from start
 static inline std::string &ltrim(std::string &s) {
@@ -17,83 +22,165 @@ static inline std::string &ltrim(std::string &s) {
     return s;
 }
 
+
 // trim from end
 static inline std::string &rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     return s;
 }
 
+
 // trim from both ends
 static inline std::string &trim(std::string &s) {
     return ltrim(rtrim(s));
 }
 
-std::vector<std::string> split(std::string cad,std::string delim)
-{
-    std::vector<std::string> v;
-    int p,q,d;
 
-    q=cad.size();
-    p=0;
-    d=strlen(delim.c_str());
-    while (p<q){
-        int posfound=cad.find(delim,p);
+std::vector<std::string> split(std::string cad, std::string delim) {
+    std::vector<std::string> v;
+    int p, q, d;
+
+    q = cad.size();
+    p = 0;
+    d = strlen(delim.c_str());
+    while (p < q) {
+        int posfound = cad.find(delim, p);
         std::string token;
 
-        if (posfound>=0){ token = cad.substr(p, posfound-p);}
-        else{ token = cad.substr(p, cad.size()+1);}
-        p+=token.size()+d;
+        if (posfound >= 0)
+            token = cad.substr(p, posfound - p);
+        else
+            token = cad.substr(p, cad.size() + 1);
+        p += token.size() + d;
         trim(token);
         v.push_back(token);
     }
-
-
     return v;
 }
 
-void * worker (void *st)
-{
-    thread_data* th=(thread_data *) st;
-    precalc_kmer_matches(*(th->csa),th->k,*(th->kmer_idx),*(th->kmer_idx_rev),*(th->kmer_sites),
-                         *(th->mask_a),th->maxx,*(th->kmers_in_ref),*(th->kmers), *(th->rank_all), th->thread_id);
+
+void calc_kmer_matches(KmerIdx &kmer_idx,
+                       KmerIdx &kmer_idx_rev,
+                       KmerSites &kmer_sites,
+                       sequence_set<std::vector<uint8_t>> &kmers_in_ref,
+                       std::vector<std::vector<uint8_t>> &kmers,
+                       const FM_Index &fm_index,
+                       const DNA_Rank &rank_all,
+                       const std::vector<int> &mask_a,
+                       const int k,
+                       const uint64_t maxx,
+                       int thread_id) {
+
+    std::cout << "In thread: " << thread_id << std::endl;
+
+    if (thread_id == 3) {
+        std::cout << "kmer_idx.size: " << kmer_idx.size() << std::endl;
+        std::cout << "kmer_idx_rev.size: " << kmer_idx_rev.size() << std::endl;
+        std::cout << "kmers_in_ref.size: " << kmers_in_ref.size() << std::endl;
+    }
+
+    int j = 0;
+    for (auto &kmer: kmers) {
+        if (thread_id == 3) {
+            std::cout << "Processing kmer: " << j << std::endl;
+            std::cout << "Kmer size: " << kmer.size() << std::endl;
+        }
+
+        kmer_idx[kmer] = std::list<std::pair<uint64_t, uint64_t>>();
+        kmer_idx_rev[kmer] = std::list<std::pair<uint64_t, uint64_t>>();
+        kmer_sites[kmer] = std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>();
+
+        bool first_del = false;
+        bool kmer_precalc_done = false;
+
+        if (thread_id == 3) {
+            std::cout << "Calling bidir_search_bwd" << std::endl;
+        }
+
+        bidir_search_bwd(fm_index,
+                         0, fm_index.size(),
+                         0, fm_index.size(),
+                         kmer.begin(), kmer.end(),
+                         kmer_idx[kmer],
+                         kmer_idx_rev[kmer],
+                         kmer_sites[kmer],
+                         mask_a, maxx, first_del,
+                         kmer_precalc_done, rank_all,
+                         thread_id);
+
+        if (kmer_idx[kmer].empty())
+            kmer_idx.erase(kmer);
+
+        if (kmer_idx_rev[kmer].empty())
+            kmer_idx_rev.erase(kmer);
+
+        if (!first_del)
+            kmers_in_ref.insert(kmer);
+
+        if (thread_id == 3) {
+            std::cout << "kmer_idx.size: " << kmer_idx.size() << std::endl;
+            std::cout << "kmer_idx_rev.size: " << kmer_idx_rev.size() << std::endl;
+            std::cout << "kmers_in_ref.size: " << kmers_in_ref.size() << std::endl;
+        }
+    }
+}
+
+
+void *worker(void *st) {
+    ThreadData *th = (ThreadData *) st;
+
+    calc_kmer_matches(*(th->kmer_idx),
+                      *(th->kmer_idx_rev),
+                      *(th->kmer_sites),
+                      *(th->kmers_in_ref),
+                      *(th->kmers),
+                      *(th->fm_index),
+                      *(th->rank_all),
+                      *(th->mask_a),
+                      th->k,
+                      th->maxx,
+                      th->thread_id);
     return NULL;
 }
 
 
-void gen_precalc_kmers(
-        csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-//		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx,
-//		sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>>& kmer_idx_rev,
-//		sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>& kmer_sites,
-//		sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-//		std::vector<std::vector<uint8_t>> &kmers,
-        std::vector<int> &mask_a,
-        std::string kmer_fname,
-        uint64_t maxx,
-        int k,
-	    std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all,
-        const int thread_count) {
-
+void gen_precalc_kmers(const FM_Index &fm_index,
+                       const std::vector<int> &mask_a,
+                       const std::string &kmer_fname,
+                       const uint64_t maxx,
+                       const int k,
+                       const DNA_Rank &rank_all,
+                       const int thread_count) {
 
     pthread_t threads[thread_count];
-    struct thread_data td[thread_count];
+    struct ThreadData td[thread_count];
     std::vector<std::vector<uint8_t>> kmers[thread_count];
 
     std::ifstream kfile;
     std::string line;
     kfile.open(kmer_fname);
 
-    int i=0;
-    while (std::getline(kfile,line))
-    {
+    int i = 0;
+    while (std::getline(kfile, line)) {
         std::vector<uint8_t> kmer;
-        for (auto c: line)
-            switch (c)
-            {
-                case 'A': case 'a': kmer.push_back(1);break;
-                case 'C': case 'c': kmer.push_back(2);break;
-                case 'G': case 'g': kmer.push_back(3);break;
-                case 'T': case 't': kmer.push_back(4);break;
+        for (const auto &c: line)
+            switch (c) {
+                case 'A':
+                case 'a':
+                    kmer.push_back(1);
+                    break;
+                case 'C':
+                case 'c':
+                    kmer.push_back(2);
+                    break;
+                case 'G':
+                case 'g':
+                    kmer.push_back(3);
+                    break;
+                case 'T':
+                case 't':
+                    kmer.push_back(4);
+                    break;
             }
         kmers[i++].push_back(kmer);
         i%=thread_count;
@@ -105,7 +192,7 @@ void gen_precalc_kmers(
 
     for (int i=0;i<thread_count;i++)
     {
-        td[i].csa=&csa;
+        td[i].fm_index=&fm_index;
         td[i].k=k;
         td[i].kmer_idx=&kmer_idx[i];
         td[i].kmer_idx_rev=&kmer_idx_rev[i];
@@ -114,30 +201,29 @@ void gen_precalc_kmers(
         td[i].maxx=maxx;
         td[i].kmers_in_ref=&kmers_in_ref[i];
         td[i].kmers=&kmers[i];
-        td[i].rank_all=&rank_all;
         td[i].thread_id = i;
         std::cout << "Starting thread: " << i << std::endl;
         pthread_create(&threads[i], NULL, worker, &td[i]);
     }
 
     std::ofstream precalc_file;
-    precalc_file.open (std::string(kmer_fname)+".precalc");
+    precalc_file.open(std::string(kmer_fname) + ".precalc");
 
-    for (int i=0;i<thread_count;i++){
-        void * status;
-        pthread_join(threads[i],&status);
-        for (auto obj: kmer_idx[i])
-        {
-            auto k=obj.first;
-            for (auto n: k) precalc_file<<(int) n << ' ';
+    std::cout << "Joining threads" << std::endl;
+
+    for (int i = 0; i < thread_count; i++) {
+        void *status;
+        pthread_join(threads[i], &status);
+        for (auto obj: kmer_idx[i]) {
+            auto k = obj.first;
+            for (auto n: k)
+                precalc_file << (int) n << ' ';
+
             precalc_file << '|';
 
-            if (kmers_in_ref[i].count(k))
-            {
+            if (kmers_in_ref[i].count(k)) {
                 precalc_file << 1;
-            }
-            else
-            {
+            } else {
                 precalc_file << 0;
             }
             precalc_file << '|';
@@ -145,12 +231,10 @@ void gen_precalc_kmers(
             precalc_file << '|';
             for (auto o: kmer_idx_rev[i][k]) precalc_file << o.first << ' ' << o.second << ' ';
             precalc_file << '|';
-            for (auto o: kmer_sites[i][k])
-            {
-                for (auto v: o)
-                {
+            for (auto o: kmer_sites[i][k]) {
+                for (auto v: o) {
                     precalc_file << v.first << ' ';
-                    for (auto n: v.second) precalc_file<<(int) n << ' ';
+                    for (auto n: v.second) precalc_file << (int) n << ' ';
                     precalc_file << '@';
                 }
                 precalc_file << '|';
@@ -159,109 +243,67 @@ void gen_precalc_kmers(
             precalc_file << std::endl;
         }
     }
-
 }
 
-void read_precalc_kmers(std::string fil, sequence_map<std::vector<uint8_t>,
-        std::list<std::pair<uint64_t,uint64_t>>> &kmer_idx,
-                        sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t,uint64_t>>> &kmer_idx_rev,
-                        sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t,
-                                std::vector<int>>>>> &kmer_sites,
-                        sequence_set<std::vector<uint8_t>>&kmers_in_ref
-)
-{
+
+void read_precalc_kmers(std::string fil,
+                        sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx,
+                        sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> &kmer_idx_rev,
+                        sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> &kmer_sites,
+                        sequence_set<std::vector<uint8_t>> &kmers_in_ref) {
+
     std::ifstream kfile;
     std::string line;
     kfile.open(fil);
 
-    while (std::getline(kfile,line))
-    {
-        std::vector<std::string> parts=split(line,"|");
-        std::list<std::pair<uint64_t,uint64_t>> idx,idx_rev;
+    while (std::getline(kfile, line)) {
+        std::vector<std::string> parts = split(line, "|");
+        std::list<std::pair<uint64_t, uint64_t>> idx, idx_rev;
         std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
 
         std::vector<uint8_t> kmer;
-        for (auto c: split(parts[0]," ")) kmer.push_back(std::stoi(c));
+        for (auto c: split(parts[0], " ")) kmer.push_back(std::stoi(c));
 
         if (!parts[1].compare("1"))
             kmers_in_ref.insert(kmer);
 
-        std::vector<std::string> idx_str=split(parts[2]," ");
-        std::vector<std::string> idx_rev_str=split(parts[3]," ");
-        for (unsigned int i=0;i<idx_str.size()/2;i++) idx.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_str[i*2]),std::stoi(idx_str[i*2+1])));
-        for (unsigned int i=0;i<idx_rev_str.size()/2;i++) idx_rev.push_back(std::pair<uint64_t,uint64_t>(std::stoi(idx_rev_str[i*2]),std::stoi(idx_rev_str[i*2+1])));
+        std::vector<std::string> idx_str = split(parts[2], " ");
+        std::vector<std::string> idx_rev_str = split(parts[3], " ");
+        for (unsigned int i = 0; i < idx_str.size() / 2; i++)
+            idx.push_back(std::pair<uint64_t, uint64_t>(std::stoi(idx_str[i * 2]), std::stoi(idx_str[i * 2 + 1])));
+        for (unsigned int i = 0; i < idx_rev_str.size() / 2; i++)
+            idx_rev.push_back(
+                    std::pair<uint64_t, uint64_t>(std::stoi(idx_rev_str[i * 2]), std::stoi(idx_rev_str[i * 2 + 1])));
 
-        int flag=0;
-        if (! idx.empty())
-        {
-            kmer_idx[kmer]=idx;
-            flag=1;
+        int flag = 0;
+        if (!idx.empty()) {
+            kmer_idx[kmer] = idx;
+            flag = 1;
         }
-        if (! idx_rev.empty() )
-        {
-            kmer_idx_rev[kmer]=idx_rev;
-        }
-        // 3 1 1 3 1 1 1 1 4 | 1809810 1809950 2244456 2244457 2244471 2244472 |2278258 2278407 3409934 3409934 3410007 3410009 ||9 @9 1 @7 @7 1 @5 @5 1 @|53 4 @51 @|
+        if (!idx_rev.empty())
+            kmer_idx_rev[kmer] = idx_rev;
 
-        if (flag==1)
-        {
-            for (unsigned int i=4;i<parts.size();i++)
-            {
+        if (flag == 1) {
+            for (unsigned int i = 4; i < parts.size(); i++) {
                 std::vector<std::pair<uint32_t, std::vector<int>>> v;
-                for (auto pair_i_v: split(parts[i],"@")){
-                    std::vector<std::string> strvec=split(pair_i_v," ");
-                    if (strvec.size())
-                    {
-                        int first=std::stoi(strvec[0]);
+                for (auto pair_i_v: split(parts[i], "@")) {
+                    std::vector<std::string> strvec = split(pair_i_v, " ");
+                    if (strvec.size()) {
+                        int first = std::stoi(strvec[0]);
 
                         std::vector<int> rest;
-                        for (unsigned int i=1;i<strvec.size();i++)
+                        for (unsigned int i = 1; i < strvec.size(); i++)
                             if (strvec[i].size())
                                 rest.push_back(std::stoi(strvec[i]));
 
-                        v.push_back(std::pair<uint32_t, std::vector<int>>(first,rest));
+                        v.push_back(std::pair<uint32_t, std::vector<int>>(first, rest));
                     }
                 }
                 sites.push_back(v);
             }
-            kmer_sites[kmer]=sites;
+            kmer_sites[kmer] = sites;
         }
     }
-
-
-//		for (auto items : kmer_idx)
-//		{
-//			std::vector<uint8_t> k=items.first;
-//
-//			for (auto n: k) std::cout<<(int) n << ' ';
-//			std::cout << '|';
-//
-//			if (kmers_in_ref.count(k))
-//			{
-//				std::cout << 1;
-//			}
-//			else
-//			{
-//				std::cout << 0;
-//			}
-//			std::cout << '|';
-//			for (auto o: kmer_idx[k]) std::cout << o.first << ' ' << o.second << ' ';
-//			std::cout << '|';
-//			for (auto o: kmer_idx_rev[k]) std::cout << o.first << ' ' << o.second << ' ';
-//			std::cout << '|';
-//			for (auto o: kmer_sites[k])
-//			{
-//				for (auto v: o)
-//				{
-//					std::cout << v.first << ' ';
-//					for (auto n: v.second) std::cout<<(int) n << ' ';
-//					std::cout << '@';
-//				}
-//				std::cout << '|';
-//			}
-//
-//			std::cout << std::endl;
-//		}
 }
 
 
@@ -275,22 +317,24 @@ int get_thread_count() {
 }
 
 
-KmersData get_kmers(csa_wt<wt_int<bit_vector,rank_support_v5<>>,2,16777216> &csa,
-                   std::vector<int> &mask_a, std::string kmer_fname,
-		   uint64_t maxx, int k, std::unordered_map<uint8_t,std::vector<uint64_t>>& rank_all){
+KmersData get_kmers(const FM_Index &fm_index,
+                    const std::vector<int> &mask_a,
+                    const std::string &kmer_fname,
+                    const uint64_t maxx,
+                    const int k,
+                    const DNA_Rank &rank_all) {
 
-    if (!fexists(std::string(kmer_fname)+".precalc"))
-    {
+    if (!fexists(std::string(kmer_fname) + ".precalc")) {
         const int thread_count = get_thread_count();
         std::cout << "Precalculated kmers not found, calculating them using "
                   << thread_count << " threads" << std::endl;
-        gen_precalc_kmers(csa, mask_a, kmer_fname, maxx, k, rank_all, thread_count);
+        gen_precalc_kmers(fm_index, mask_a, kmer_fname, maxx, k, rank_all, thread_count);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 
     std::cout << "Reading K-mers" << std::endl;
     KmersData kmers;
-    read_precalc_kmers(std::string(kmer_fname)+".precalc" , kmers.index,
+    read_precalc_kmers(std::string(kmer_fname) + ".precalc", kmers.index,
                        kmers.index_reverse, kmers.sites,
                        kmers.in_reference);
     return kmers;
