@@ -6,7 +6,11 @@ import subprocess
 import collections
 
 from . import common
-from .git_version import version
+
+try:
+    from .version import version
+except ImportError:
+    from .version import fallback_version as version
 
 
 log = logging.getLogger('gramtools')

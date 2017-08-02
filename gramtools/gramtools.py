@@ -4,7 +4,12 @@ import logging
 from . import build
 from . import kmers
 from . import quasimap
-from .git_version import version
+
+try:
+    raise ImportError
+    from .version import version
+except ImportError:
+    from .version import fallback_version as version
 
 
 def setup_logging(level):
@@ -93,8 +98,12 @@ def report_version(log):
     log.info("Latest commit hash:\n%s", version.latest_commit)
     log.info("Current branch: %s", version.current_branch)
 
-    commits = version.commit_log.split('*****')[1:]
-    log.info("Truncated commit log:\n%s", '\n'.join(commits))
+    if version.commit_log == 'NA':
+        commits = version.commit_log
+    else:
+        commits = version.commit_log.split('*****')[1:]
+        commits = '\n'.join(commits)
+    log.info("Truncated commit log:\n%s", commits)
 
 
 def run():

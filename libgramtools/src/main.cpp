@@ -45,7 +45,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Generating kmers");
 
     std::cout << "Mapping" << std::endl;
-    uint64_t count_mapped = map_reads(params, masks, kmers, fm_index, rank_all);
+    auto count_mapped = map_reads(params, masks, kmers, fm_index, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
@@ -68,7 +68,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
             ("prg,marker_porition", po::value<std::string>(&params.prg_fpath),
              "input file containing linear prg")
             ("csa,c", po::value<std::string>(&params.fm_index_fpath),
-             "output file where CSA is stored")
+             "output file where the FM-index is stored")
             ("input,i", po::value<std::string>(&params.reads_fpath),
              "reference file (FASTA or FASTQ)")
             ("ps,s", po::value<std::string>(&params.site_mask_fpath),
@@ -84,7 +84,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
             ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath),
              "output filename of binary file containing the prg in integer alphabet")
             ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath),
-             "output memory log file for CSA")
+             "output memory log file for the FM-index")
             ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath),
              "input file listing all kmers in PRG")
             ("ksize,k", po::value<int>(&params.kmers_size),

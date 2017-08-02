@@ -57,16 +57,15 @@ std::vector<std::string> split(const std::string &cad, const std::string &delim)
 }
 
 
-void calc_kmer_matches(std::vector<std::vector<uint8_t>> &kmers,
-                       KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
+void calc_kmer_matches(KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
                        KmerSites &kmer_sites,
                        sequence_set<std::vector<uint8_t>> &kmers_in_ref,
-                       const uint64_t maxx, const std::vector<int> &mask_a,
+                       std::vector<std::vector<uint8_t>> &kmers,
+                       const uint64_t maxx,
+                       const std::vector<int> &mask_a,
                        const DNA_Rank &rank_all,
                        const FM_Index &fm_index,
-                       int thread_id) {
-
-    std::cout << "In thread: " << thread_id << std::endl;
+                       const int thread_id) {
 
     for (auto &kmer: kmers) {
         kmer_idx[kmer] = std::list<std::pair<uint64_t, uint64_t>>();
@@ -77,7 +76,8 @@ void calc_kmer_matches(std::vector<std::vector<uint8_t>> &kmers,
         bool kmer_precalc_done = false;
 
         bidir_search_bwd(kmer_idx[kmer], kmer_idx_rev[kmer],
-                         0, fm_index.size(), 0, fm_index.size(),
+                         0, fm_index.size(),
+                         0, fm_index.size(),
                          kmer_sites[kmer],
                          delete_first_interval,
                          kmer.begin(), kmer.end(),
@@ -98,9 +98,16 @@ void calc_kmer_matches(std::vector<std::vector<uint8_t>> &kmers,
 
 void *worker(void *st) {
     auto *th = (ThreadData *) st;
-    calc_kmer_matches(*(th->kmers), *(th->kmer_idx), *(th->kmer_idx_rev), *(th->kmer_sites), *(th->kmers_in_ref),
+    calc_kmer_matches(*(th->kmer_idx),
+                      *(th->kmer_idx_rev),
+                      *(th->kmer_sites),
+                      *(th->kmers_in_ref),
+                      *(th->kmers),
                       th->maxx,
-                      *(th->mask_a), *(th->rank_all), *(th->fm_index), th->thread_id);
+                      *(th->mask_a),
+                      *(th->rank_all),
+                      *(th->fm_index),
+                      th->thread_id);
     return nullptr;
 }
 
@@ -229,10 +236,10 @@ KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
         std::vector<std::string> idx_rev_str = split(parts[3], " ");
         std::list<std::pair<uint64_t, uint64_t>> idx, idx_rev;
         for (unsigned int i = 0; i < idx_str.size() / 2; i++)
-            idx.push_back(std::pair<uint64_t, uint64_t>(std::stoi(idx_str[i * 2]),
-                                                        std::stoi(idx_str[i * 2 + 1])));
+            idx.emplace_back(std::pair<uint64_t, uint64_t>(std::stoi(idx_str[i * 2]),
+                                                           std::stoi(idx_str[i * 2 + 1])));
         for (unsigned int i = 0; i < idx_rev_str.size() / 2; i++)
-            idx_rev.push_back(
+            idx_rev.emplace_back(
                     std::pair<uint64_t, uint64_t>(std::stoi(idx_rev_str[i * 2]),
                                                   std::stoi(idx_rev_str[i * 2 + 1])));
 
@@ -249,21 +256,21 @@ KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
 
         std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
         for (unsigned int i = 4; i < parts.size(); i++) {
-            std::vector<std::pair<uint32_t, std::vector<int>>> v;
+            std::vector<std::pair<uint32_t, std::vector<int>>> site;
             for (auto pair_i_v: split(parts[i], "@")) {
                 std::vector<std::string> strvec = split(pair_i_v, " ");
                 if (strvec.size()) {
                     int first = std::stoi(strvec[0]);
 
                     std::vector<int> rest;
-                    for (unsigned int i = 1; i < strvec.size(); i++)
-                        if (strvec[i].size())
-                            rest.push_back(std::stoi(strvec[i]));
+                    for (unsigned int j = 1; j < strvec.size(); j++)
+                        if (strvec[j].size())
+                            rest.push_back(std::stoi(strvec[j]));
 
-                    v.push_back(std::pair<uint32_t, std::vector<int>>(first, rest));
+                    site.emplace_back(std::pair<uint32_t, std::vector<int>>(first, rest));
                 }
             }
-            sites.push_back(v);
+            sites.push_back(site);
         }
         kmers.sites[kmer] = sites;
     }
