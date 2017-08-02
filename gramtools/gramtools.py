@@ -6,7 +6,6 @@ from . import kmers
 from . import quasimap
 
 try:
-    raise ImportError
     from .version import version
 except ImportError:
     from .version import fallback_version as version
