@@ -4,16 +4,13 @@ import logging
 
 log = logging.getLogger('gramtools')
 
-
-GRAMTOOLS_INSTALL_PATH = os.path.abspath((os.path.join(__file__, '../..')))
-gramtools_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
+base_install_path = os.path.dirname(os.path.abspath(__file__))
+gramtools_exec_fpath = os.path.join(base_install_path,
                                     'bin',
-                                    'gramtools')
-prg_build_exec_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
+                                    'gram')
+prg_build_exec_fpath = os.path.join(base_install_path,
                                     'utils',
                                     'vcf_to_linear_prg.pl')
-kmers_script_fpath = os.path.join(GRAMTOOLS_INSTALL_PATH,
-                                  'utils', 'variantKmers.py')
 
 
 def handle_process_result(process_handle):

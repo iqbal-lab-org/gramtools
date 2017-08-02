@@ -3,5 +3,10 @@ cmake-build-debug
 *.sublime-*
 .idea
 __pycache__
-git_version.py
+version.py
 git_version.hpp
+*.egg-info
+*.pyc
+gramtools/lib
+gramtools/bin
+libgramtools/tests/test_main

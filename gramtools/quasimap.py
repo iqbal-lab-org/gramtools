@@ -5,8 +5,8 @@ import logging
 import subprocess
 import collections
 
-from . import utils
-from .git_version import git_version
+from . import common
+from .git_version import version
 
 
 log = logging.getLogger('gramtools')
@@ -108,7 +108,7 @@ def setup_file_structure(paths):
 
 def execute_command(paths, args):
     command = [
-        utils.gramtools_exec_fpath,
+        common.gramtools_exec_fpath,
         '--prg', paths['prg'],
         '--csa', paths['fm_index'],
         '--ps', paths['sites_mask'],
@@ -141,14 +141,14 @@ def execute_command(paths, args):
                                       stderr=subprocess.PIPE,
                                       shell=True)
 
-    command_result, entire_stdout = utils.handle_process_result(process_handle)
+    command_result, entire_stdout = common.handle_process_result(process_handle)
 
     log.info('Output run directory:\n%s', paths['run'])
     return command_str, command_result, entire_stdout
 
 
 def save_report(command_str, command_result, start_time, entire_stdout, paths):
-    commits = git_version.commit_log.split('*****')[1:]
+    commits = version.commit_log.split('*****')[1:]
     commits = '\n'.join(commits)
 
     end_time = str(time.time()).split('.')[0]
@@ -157,11 +157,11 @@ def save_report(command_str, command_result, start_time, entire_stdout, paths):
         ('start_time', start_time),
         ('end_time', end_time),
         ('total_runtime', int(end_time) - int(start_time)),
-        ('current_git_branch', git_version.current_branch),
+        ('current_git_branch', version.current_branch),
         ('command_return_eq_0', command_result),
         ('entire_stdout', entire_stdout),
         ('command_str', command_str),
-        ('latest_commit_hash', git_version.latest_commit),
+        ('latest_commit_hash', version.latest_commit),
         ('truncated_commit_log', commits),
         ('paths', paths),
     ])

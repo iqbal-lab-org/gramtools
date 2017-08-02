@@ -4,7 +4,7 @@ import time
 import logging
 import subprocess
  
-from . import utils
+from . import common
 from . import kmers
 
 
@@ -68,7 +68,7 @@ def setup_file_structure(paths):
 
 def execute_command_generate_prg(paths, _):
     command = [
-        'perl', utils.prg_build_exec_fpath,
+        'perl', common.prg_build_exec_fpath,
         '--outfile', paths['prg'],
         '--vcf', paths['vcf'],
         '--ref', paths['reference'],
@@ -82,7 +82,7 @@ def execute_command_generate_prg(paths, _):
                                       cwd=current_working_directory,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
-    utils.handle_process_result(process_handle)
+    common.handle_process_result(process_handle)
     timer_end = time.time()
     log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 

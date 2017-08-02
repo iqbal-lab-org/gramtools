@@ -1,7 +1,7 @@
 import unittest
 
-from . import parse_prg
-from . import kmers
+from .. import parse_prg
+from .. import kmers
 
 
 def _compose_prg(prg_structure):

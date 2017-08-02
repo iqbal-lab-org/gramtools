@@ -13,7 +13,9 @@ log = logging.getLogger('gramtools')
 def _filter_regions(regions, nonvariant_kmers):
     """Yield regions with filtering based on a region's variant site status."""
     if nonvariant_kmers:
-        return iter(regions)
+        for region in regions:
+            yield region
+        return
 
     for region in regions:
         if region.variant_site_marker is not None:

@@ -1,8 +1,10 @@
 import argparse
 import logging
 
-from py_interface import build, quasimap, kmers
-from py_interface.git_version import git_version
+from . import build
+from . import kmers
+from . import quasimap
+from .git_version import version
 
 
 def setup_logging(level):
@@ -71,7 +73,7 @@ def parse_args():
                              action="store_true")
     subparsers = root_parser.add_subparsers(title='subcommands',
                                             dest='subparser_name',
-                                            metavar='{build,quasimap}')
+                                            metavar='{build, kmers, quasimap}')
 
     common_parser = subparsers.add_parser('common', add_help=False)
     common_parser.add_argument("--debug", help="",
@@ -84,19 +86,19 @@ def parse_args():
     _parse_quasimap(common_parser, subparsers)
 
     arguments = root_parser.parse_args()
-    return arguments
+    return root_parser, arguments
 
 
 def report_version(log):
-    log.info("Latest commit hash:\n%s", git_version.latest_commit)
-    log.info("Current branch: %s", git_version.current_branch)
+    log.info("Latest commit hash:\n%s", version.latest_commit)
+    log.info("Current branch: %s", version.current_branch)
 
-    commits = git_version.commit_log.split('*****')[1:]
+    commits = version.commit_log.split('*****')[1:]
     log.info("Truncated commit log:\n%s", '\n'.join(commits))
 
 
 def run():
-    args = parse_args()
+    root_parser, args = parse_args()
 
     if hasattr(args, 'debug') and args.debug:
         level = logging.DEBUG
@@ -107,6 +109,7 @@ def run():
 
     if args.version:
         report_version(log)
+        return
 
     command_switch = {
         'build': build,
@@ -117,9 +120,9 @@ def run():
     try:
         command = command_switch[args.subparser_name]
     except KeyError:
-        log.error('Command not found: %s', args.subparser_name)
-        return
-    command.run(args)
+        root_parser.print_help()
+    else:
+        command.run(args)
 
 
 if __name__ == '__main__':

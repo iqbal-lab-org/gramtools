@@ -10,8 +10,11 @@ install:
 - git clone https://github.com/samtools/htslib.git
 - (cd htslib && make && sudo make install)
 script:
-  - cmake .
+  - mkdir cmake-build-debug
+  - cd cmake-build-debug
+  - cmake ..
   - make
-  - (cd test/ && make test)
+  - cd ../libgramtools/tests/
+  - ./test_main
 notifications:
   email: false
