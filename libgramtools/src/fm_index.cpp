@@ -15,7 +15,7 @@ FM_Index construct_fm_index(bool fwd,
     std::vector<uint64_t> prg = parse_prg(prg_fpath);
     std::cout << "Number of integers in int encoded linear PRG: " << prg.size() << std::endl;
 
-    if (!fwd){
+    if (!fwd) {
         prg_encoded_fpath = prg_encoded_fpath + "_rev";
         fm_index_fpath = fm_index_fpath + "_rev";
         std::reverse(prg.begin(), prg.end());
@@ -30,17 +30,17 @@ FM_Index construct_fm_index(bool fwd,
 
 
 void dump_encoded_prg(const std::vector<uint64_t> &prg,
-                      const std::string &prg_encoded_fpath){
+                      const std::string &prg_encoded_fpath) {
     std::ofstream fhandle;
     fhandle.open(prg_encoded_fpath, std::ios::out | std::ios::binary);
-    fhandle.write((char*)&prg[0], prg.size() * sizeof(uint64_t));
+    fhandle.write((char *) &prg[0], prg.size() * sizeof(uint64_t));
     fhandle.close();
 }
 
 
 FM_Index build_fm_index(const std::string &prg_encoded_fpath,
                         const std::string &fm_index_fpath,
-                        const std::string &memory_log_fname){
+                        const std::string &memory_log_fname) {
     sdsl::memory_monitor::start();
     FM_Index fm_index;
     sdsl::construct(fm_index, prg_encoded_fpath.c_str(), 8);
@@ -54,16 +54,16 @@ FM_Index build_fm_index(const std::string &prg_encoded_fpath,
 }
 
 
-std::vector<uint64_t> parse_prg(const std::string &prg_fpath){
+std::vector<uint64_t> parse_prg(const std::string &prg_fpath) {
     std::string prg_raw = load_raw_prg(prg_fpath);
     std::vector<uint64_t> prg = encode_prg(prg_raw);
     return prg;
 }
 
 
-std::string load_raw_prg(const std::string &prg_fpath){
+std::string load_raw_prg(const std::string &prg_fpath) {
     std::ifstream fhandle(prg_fpath, std::ios::in | std::ios::binary);
-    if (!fhandle){
+    if (!fhandle) {
         std::cout << "Problem reading PRG input file" << std::endl;
         exit(1);
     }
@@ -80,16 +80,16 @@ std::string load_raw_prg(const std::string &prg_fpath){
 }
 
 
-std::vector<uint64_t> encode_prg(const std::string &prg_raw){
+std::vector<uint64_t> encode_prg(const std::string &prg_raw) {
     std::vector<uint64_t> prg_encoded;
     prg_encoded.reserve(prg_raw.length());
 
     // TODO: this should be possible without storing each individual digit
     std::vector<int> marker_digits;
-    for (const auto &c: prg_raw){
+    for (const auto &c: prg_raw) {
         EncodeResult encode_result = encode_char(c);
 
-        if (encode_result.is_dna){
+        if (encode_result.is_dna) {
             flush_marker_digits(marker_digits, prg_encoded);
             prg_encoded.push_back(encode_result.charecter);
             continue;
@@ -105,7 +105,7 @@ std::vector<uint64_t> encode_prg(const std::string &prg_raw){
 
 
 void flush_marker_digits(std::vector<int> &marker_digits,
-                         std::vector<uint64_t> &prg_encoded){
+                         std::vector<uint64_t> &prg_encoded) {
     if (marker_digits.empty())
         return;
 
@@ -115,7 +115,7 @@ void flush_marker_digits(std::vector<int> &marker_digits,
 }
 
 
-uint64_t concat_marker_digits(const std::vector<int> &marker_digits){
+uint64_t concat_marker_digits(const std::vector<int> &marker_digits) {
     uint64_t marker = 0;
     for (const auto &digit: marker_digits)
         marker = marker * 10 + digit;
@@ -123,10 +123,10 @@ uint64_t concat_marker_digits(const std::vector<int> &marker_digits){
 }
 
 
-EncodeResult encode_char(const char &c){
+EncodeResult encode_char(const char &c) {
     EncodeResult encode_result;
 
-    switch(c) {
+    switch (c) {
         case 'A':
         case 'a':
             encode_result.is_dna = true;
@@ -153,7 +153,7 @@ EncodeResult encode_char(const char &c){
 
         default:
             encode_result.is_dna = false;
-            encode_result.charecter = c  - '0';
+            encode_result.charecter = c - '0';
             return encode_result;
     }
 }

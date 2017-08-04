@@ -6,8 +6,24 @@ from Bio import SeqIO
 from . import genome_regions
 from . import parse_prg
 
-
 log = logging.getLogger('gramtools')
+
+
+def parse_args(common_parser, subparsers):
+    parser = subparsers.add_parser('kmers',
+                                   parents=[common_parser])
+    parser.add_argument('--kmer-size', help='',
+                        type=int)
+    parser.add_argument('--reference', help='',
+                        type=str)
+    parser.add_argument('--kmer-region-distance',
+                        dest='kmer_region_distance',
+                        help='',
+                        type=int)
+    parser.add_argument('--nonvariant-kmers', help='',
+                        action='store_true')
+    parser.add_argument('--output-fpath', help='',
+                        type=str)
 
 
 def _filter_regions(regions, nonvariant_kmers):
@@ -18,7 +34,7 @@ def _filter_regions(regions, nonvariant_kmers):
         return
 
     for region in regions:
-        if region.variant_site_marker is not None:
+        if region.is_variant_site:
             yield region
 
 
@@ -47,7 +63,9 @@ def _directional_region_range(max_base_distance, start_region,
 
 def _regions_within_distance(max_base_distance, start_region,
                              regions):
-    """TODO"""
+    """Return regions within a max base distance of start region.
+    Start region is not included in the distance measure.
+    """
     reverse_range = _directional_region_range(max_base_distance,
                                               start_region,
                                               regions,
@@ -80,7 +98,7 @@ def _kmers_from_genome_paths(genome_paths, kmer_size):
                 yield kmer
 
 
-def generate(max_base_distance, kmer_size, regions, nonvariant_kmers):
+def _generate(max_base_distance, kmer_size, regions, nonvariant_kmers):
     """Generate kmers."""
     for start_region in _filter_regions(regions, nonvariant_kmers):
         region_range = _regions_within_distance(max_base_distance,
@@ -119,9 +137,9 @@ def run(args):
     fasta_seq = str(SeqIO.read(args.reference, 'fasta').seq)
     regions = parse_prg.parse(fasta_seq)
 
-    kmers = generate(args.kmer_region_distance,
-                     args.kmer_size, regions,
-                     args.nonvariant_kmers)
+    kmers = _generate(args.kmer_region_distance,
+                      args.kmer_size, regions,
+                      args.nonvariant_kmers)
     _dump_kmers(kmers, args.output_fpath)
 
     if mask:

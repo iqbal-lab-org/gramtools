@@ -3,15 +3,35 @@ import copy
 import time
 import logging
 import subprocess
- 
+
 from . import common
 from . import kmers
-
 
 log = logging.getLogger('gramtools')
 
 
-def get_project_dirpath(prg_fpath):
+def parse_args(common_parser, subparsers):
+    parser = subparsers.add_parser('build',
+                                   parents=[common_parser])
+    parser.add_argument('--vcf', help='',
+                        type=str)
+    parser.add_argument('--kmer-size', help='',
+                        type=int)
+    parser.add_argument('--reference', help='',
+                        type=str)
+    parser.add_argument('--kmer-region-distance',
+                        dest='kmer_region_distance',
+                        help='',
+                        type=int)
+    parser.add_argument('--nonvariant-kmers', help='',
+                        default=False,
+                        action='store_true')
+    parser.add_argument('--output-fpath', help='',
+                        default='',
+                        type=str)
+
+
+def _get_project_dirpath(prg_fpath):
     prg_fname = os.path.basename(prg_fpath)
     if prg_fname.endswith('.prg'):
         project_dir = prg_fname[:-len('.prg')]
@@ -24,8 +44,8 @@ def get_project_dirpath(prg_fpath):
     return project_dirpath
 
 
-def get_paths(args):
-    project_dirpath = get_project_dirpath(args.vcf)
+def _get_paths(args):
+    project_dirpath = _get_project_dirpath(args.vcf)
 
     paths = {
         'project': project_dirpath,
@@ -52,7 +72,7 @@ def get_paths(args):
     return paths
 
 
-def setup_file_structure(paths):
+def _setup_file_structure(paths):
     dirs = [
         paths['project'],
         paths['cache'],
@@ -66,7 +86,7 @@ def setup_file_structure(paths):
         os.mkdir(dirpath)
 
 
-def execute_command_generate_prg(paths, _):
+def _execute_command_generate_prg(paths, _):
     command = [
         'perl', common.prg_build_exec_fpath,
         '--outfile', paths['prg'],
@@ -87,7 +107,7 @@ def execute_command_generate_prg(paths, _):
     log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 
 
-def execute_command_generate_kmers(paths, args):
+def _execute_command_generate_kmers(paths, args):
     log.debug('Generating kmers from PRG')
     timer_start = time.time()
 
@@ -103,7 +123,7 @@ def execute_command_generate_kmers(paths, args):
     log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 
 
-def file_cleanup_generate_prg(paths):
+def _file_cleanup_generate_prg(paths):
     original_fpath = paths['prg'] + '.mask_alleles'
     target_fpath = os.path.join(paths['project'], 'allele_mask')
     os.rename(original_fpath, target_fpath)
@@ -131,12 +151,12 @@ def file_cleanup_generate_prg(paths):
 def run(args):
     log.info('Start process: build')
 
-    paths = get_paths(args)
-    setup_file_structure(paths)
+    paths = _get_paths(args)
+    _setup_file_structure(paths)
 
-    execute_command_generate_prg(paths, args)
-    file_cleanup_generate_prg(paths)
+    _execute_command_generate_prg(paths, args)
+    _file_cleanup_generate_prg(paths)
 
-    execute_command_generate_kmers(paths, args)
+    _execute_command_generate_kmers(paths, args)
 
     log.info('End process: build')

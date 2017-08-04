@@ -12,11 +12,21 @@ try:
 except ImportError:
     from .version import fallback_version as version
 
-
 log = logging.getLogger('gramtools')
 
 
-def get_project_dirpath(prg_fpath):
+def parse_args(common_parser, subparsers):
+    parser = subparsers.add_parser('quasimap',
+                                   parents=[common_parser])
+    parser.add_argument('--gram-files', help='',
+                        type=str)
+    parser.add_argument('--fastaq', help='',
+                        type=str)
+    parser.add_argument('--kmer-size', help='',
+                        type=int)
+
+
+def _get_project_dirpath(prg_fpath):
     prg_fname = os.path.basename(prg_fpath)
     if prg_fname.endswith('.prg'):
         project_dir = prg_fname[:-len('.prg')]
@@ -29,8 +39,8 @@ def get_project_dirpath(prg_fpath):
     return project_dirpath
 
 
-def get_run_dirpath(output_dirpath, project_dirpath,
-                    ksize, start_time):
+def _get_run_dirpath(output_dirpath, project_dirpath,
+                     ksize, start_time):
     project = os.path.basename(project_dirpath)
 
     template = '{time}_{project}_ksize{ksize}'
@@ -41,12 +51,12 @@ def get_run_dirpath(output_dirpath, project_dirpath,
     return run_dirpath
 
 
-def get_paths(args, start_time):
+def _get_paths(args, start_time):
     project = os.path.abspath(args.gram_files)
     output_dirpath = project + '_output'
 
-    run_dirpath = get_run_dirpath(output_dirpath, project,
-                                  args.kmer_size, start_time)
+    run_dirpath = _get_run_dirpath(output_dirpath, project,
+                                   args.kmer_size, start_time)
 
     project_root = {
         'project': project,
@@ -94,7 +104,7 @@ def get_paths(args, start_time):
     return paths
 
 
-def setup_file_structure(paths):
+def _setup_file_structure(paths):
     dirs = [
         paths['project'],
         paths['cache'],
@@ -110,7 +120,7 @@ def setup_file_structure(paths):
         os.mkdir(dirpath)
 
 
-def execute_command(paths, args):
+def _execute_command(paths, args):
     command = [
         common.gramtools_exec_fpath,
         '--prg', paths['prg'],
@@ -151,7 +161,7 @@ def execute_command(paths, args):
     return command_str, command_result, entire_stdout
 
 
-def save_report(command_str, command_result, start_time, entire_stdout, paths):
+def _save_report(command_str, command_result, start_time, entire_stdout, paths):
     commits = version.commit_log.split('*****')[1:]
     commits = '\n'.join(commits)
 
@@ -178,12 +188,12 @@ def run(args):
     log.info('Start process: quasimap')
 
     start_time = str(time.time()).split('.')[0]
-    paths = get_paths(args, start_time)
-    setup_file_structure(paths)
+    paths = _get_paths(args, start_time)
+    _setup_file_structure(paths)
 
-    command_str, command_result, entire_stdout = execute_command(paths, args)
+    command_str, command_result, entire_stdout = _execute_command(paths, args)
     log.info('End process: quasimap')
 
     log.debug('Writing run report to run directory')
-    save_report(command_str, command_result,
-                start_time, entire_stdout, paths)
+    _save_report(command_str, command_result,
+                 start_time, entire_stdout, paths)

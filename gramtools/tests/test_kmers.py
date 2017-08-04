@@ -1,37 +1,14 @@
 import unittest
 
+from . import common
 from .. import parse_prg
 from .. import kmers
-
-
-def _compose_prg(prg_structure):
-    def handle_var_region(region_l, prg_l, marker_l):
-        prg_l += str(marker_l)
-        for i, allele in enumerate(region_l):
-            prg_l += allele
-            at_last_allele = (i == len(region_l) - 1)
-            if at_last_allele:
-                break
-            prg_l += str(marker_l + 1)
-        prg_l += str(marker_l)
-        marker_l += 2
-        return prg_l, marker_l
-
-    prg = ''
-    marker = 5
-    for region in prg_structure:
-        is_var_region = (len(region) > 1)
-        if is_var_region:
-            prg, marker = handle_var_region(region, prg, marker)
-        else:
-            prg += region[0]
-    return prg
 
 
 class TestDirectionalRegionRange(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected, reverse):
-        prg = _compose_prg(prg_structure)
+        prg = common.compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
         region_range = kmers._directional_region_range(max_base_distance,
@@ -110,7 +87,7 @@ class TestDirectionalRegionRange(unittest.TestCase):
 class TestRegionsWithinDistance(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected):
-        prg = _compose_prg(prg_structure)
+        prg = common.compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
         region_range = kmers._regions_within_distance(max_base_distance,
@@ -240,7 +217,7 @@ class TestRegionsWithinDistance(unittest.TestCase):
 class TestGenomePaths(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected):
-        prg = _compose_prg(prg_structure)
+        prg = common.compose_prg(prg_structure)
         regions = parse_prg.parse(prg)
         start_region = regions[start_region_idx]
         region_range = kmers._regions_within_distance(max_base_distance,
