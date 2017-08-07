@@ -129,9 +129,10 @@ def _dump_kmers(kmers, output_fpath):
 
 
 def _dump_masks(sites, alleles, args):
-    log.debug('Writing sites and alleles masks to file')
+    log.debug('Writing sites mask to file')
     with open(args.sites_mask_fpath, 'w') as fhandle:
         fhandle.write(sites)
+    log.debug('Writing alleles mask to file')
     with open(args.allele_mask_fpath, 'w') as fhandle:
         fhandle.write(alleles)
 
@@ -147,8 +148,9 @@ def run(args):
                       args.nonvariant_kmers)
     _dump_kmers(kmers, args.output_fpath)
 
-    sites_mask = genome_regions.sites_mask(regions)
-    alleles_mask = genome_regions.alleles_mask(regions)
-    _dump_masks(sites_mask, alleles_mask, args)
+    if hasattr(args, 'sites_mask_fpath') and hasattr(args, 'allele_mask_fpath'):
+        sites_mask = genome_regions.sites_mask(regions)
+        alleles_mask = genome_regions.alleles_mask(regions)
+        _dump_masks(sites_mask, alleles_mask, args)
 
     log.info('End process: generate kmers')
