@@ -308,12 +308,7 @@ class TestKmersFromGenomePaths(unittest.TestCase):
 
 
 class TestGenerate(unittest.TestCase):
-    def _analyse_case(self, genome_paths, kmer_size, expected):
-        kmers_result = [kmer for kmer in
-                        kmers._kmers_from_genome_paths(genome_paths, kmer_size)]
-        self.assertEqual(kmers_result, expected)
-
-    def test_singleGenomePath_allKmersGenerated(self):
+    def test_complexPrgStructure_allKmersGenerated(self):
         prg_structure = [
             ['TC', 'A'],
             ['CTTTGAC'],
