@@ -13,22 +13,25 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('build',
                                    parents=[common_parser])
+
     parser.add_argument('--vcf', help='',
-                        type=str)
-    parser.add_argument('--kmer-size', help='',
-                        type=int)
+                        type=str,
+                        required=True)
     parser.add_argument('--reference', help='',
-                        type=str)
-    parser.add_argument('--kmer-region-distance',
-                        dest='kmer_region_distance',
+                        type=str,
+                        required=True)
+    parser.add_argument('--kmer-size', help='',
+                        type=int,
+                        required=True)
+    parser.add_argument('--kmer-region-size',
+                        dest='kmer_region_size',
                         help='',
-                        type=int)
+                        type=int,
+                        required=True)
+
     parser.add_argument('--nonvariant-kmers', help='',
                         default=False,
                         action='store_true')
-    parser.add_argument('--output-fpath', help='',
-                        default='',
-                        type=str)
 
 
 def _get_project_dirpath(prg_fpath):
@@ -113,9 +116,9 @@ def _execute_command_generate_kmers(paths, args):
 
     args = copy.copy(args)
     args.reference = paths['perl_generated_fa']
-
-    if not args.output_fpath:
-        args.output_fpath = paths['kmer_file']
+    args.output_fpath = paths['kmer_file']
+    args.sites_mask_fpath = paths['sites_mask']
+    args.allele_mask_fpath = paths['allele_mask']
 
     kmers.run(args)
 

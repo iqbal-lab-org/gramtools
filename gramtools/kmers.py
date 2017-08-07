@@ -12,18 +12,24 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('kmers',
                                    parents=[common_parser])
+
     parser.add_argument('--kmer-size', help='',
-                        type=int)
+                        type=int,
+                        required=True)
     parser.add_argument('--reference', help='',
-                        type=str)
-    parser.add_argument('--kmer-region-distance',
-                        dest='kmer_region_distance',
+                        type=str,
+                        required=True)
+    parser.add_argument('--kmer-region-size',
+                        dest='kmer_region_size',
                         help='',
-                        type=int)
+                        type=int,
+                        required=True)
+    parser.add_argument('--output-fpath', help='',
+                        type=str,
+                        required=True)
+
     parser.add_argument('--nonvariant-kmers', help='',
                         action='store_true')
-    parser.add_argument('--output-fpath', help='',
-                        type=str)
 
 
 def _filter_regions(regions, nonvariant_kmers):
@@ -122,28 +128,27 @@ def _dump_kmers(kmers, output_fpath):
                 fhandle.write(kmer + '\n')
 
 
-def _dump_masks(sites, alleles):
+def _dump_masks(sites, alleles, args):
     log.debug('Writing sites and alleles masks to file')
-    with open('mask_sites.txt', 'w') as fhandle:
+    with open(args.sites_mask_fpath, 'w') as fhandle:
         fhandle.write(sites)
-    with open('mask_alleles.txt', 'w') as fhandle:
+    with open(args.allele_mask_fpath, 'w') as fhandle:
         fhandle.write(alleles)
 
 
 def run(args):
     log.info('Start process: generate kmers')
-    mask = True
 
     fasta_seq = str(SeqIO.read(args.reference, 'fasta').seq)
     regions = parse_prg.parse(fasta_seq)
 
-    kmers = _generate(args.kmer_region_distance,
+    kmers = _generate(args.kmer_region_size,
                       args.kmer_size, regions,
                       args.nonvariant_kmers)
     _dump_kmers(kmers, args.output_fpath)
 
-    if mask:
-        sites_mask = genome_regions.sites_mask(regions)
-        alleles_mask = genome_regions.alleles_mask(regions)
-        _dump_masks(sites_mask, alleles_mask)
+    sites_mask = genome_regions.sites_mask(regions)
+    alleles_mask = genome_regions.alleles_mask(regions)
+    _dump_masks(sites_mask, alleles_mask, args)
+
     log.info('End process: generate kmers')

@@ -1,5 +1,5 @@
-import argparse
 import logging
+import argparse
 import collections
 
 from . import build
@@ -24,6 +24,7 @@ def _setup_logging(level):
     return log
 
 
+root_parser = argparse.ArgumentParser(prog='gramtools')
 commands = collections.OrderedDict([
     ('build', build),
     ('kmers', kmers),
@@ -33,7 +34,6 @@ commands = collections.OrderedDict([
 
 
 def _parse_args():
-    root_parser = argparse.ArgumentParser(prog='gramtools')
     root_parser.add_argument('--version', help='',
                              action='store_true')
     metavar = '{{{commands}}}'.format(commands=', '.join(commands.keys()))
@@ -51,7 +51,7 @@ def _parse_args():
         command.parse_args(common_parser, subparsers)
 
     arguments = root_parser.parse_args()
-    return root_parser, arguments
+    return arguments
 
 
 def _report_version(log):
@@ -77,7 +77,7 @@ def _get_log(args):
 
 
 def run():
-    root_parser, args = _parse_args()
+    args = _parse_args()
     log = _get_log(args)
 
     if args.version:
