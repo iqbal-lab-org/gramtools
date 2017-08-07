@@ -110,22 +110,6 @@ def _execute_command_generate_prg(paths, _):
     log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
 
 
-def _execute_command_generate_kmers(paths, args):
-    log.debug('Generating kmers from PRG')
-    timer_start = time.time()
-
-    args = copy.copy(args)
-    args.reference = paths['perl_generated_fa']
-    args.output_fpath = paths['kmer_file']
-    args.sites_mask_fpath = paths['sites_mask']
-    args.allele_mask_fpath = paths['allele_mask']
-
-    kmers.run(args)
-
-    timer_end = time.time()
-    log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
-
-
 def _file_cleanup_generate_prg(paths):
     original_fpath = paths['prg'] + '.mask_alleles'
     target_fpath = os.path.join(paths['project'], 'allele_mask')
@@ -151,6 +135,22 @@ def _file_cleanup_generate_prg(paths):
     os.rename(original_fpath, target_fpath)
 
 
+def _generate_kmers(paths, args):
+    log.debug('Generating kmers from PRG')
+    timer_start = time.time()
+
+    args = copy.copy(args)
+    args.reference = paths['perl_generated_fa']
+    args.output_fpath = paths['kmer_file']
+    args.sites_mask_fpath = paths['sites_mask']
+    args.allele_mask_fpath = paths['allele_mask']
+
+    kmers.run(args)
+
+    timer_end = time.time()
+    log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
+
+
 def run(args):
     log.info('Start process: build')
 
@@ -160,6 +160,6 @@ def run(args):
     _execute_command_generate_prg(paths, args)
     _file_cleanup_generate_prg(paths)
 
-    _execute_command_generate_kmers(paths, args)
+    _generate_kmers(paths, args)
 
     log.info('End process: build')

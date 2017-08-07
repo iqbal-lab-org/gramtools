@@ -305,3 +305,64 @@ class TestKmersFromGenomePaths(unittest.TestCase):
         ]
         kmer_size = 3
         self._analyse_case(genome_paths, kmer_size, expected)
+
+
+class TestGenerate(unittest.TestCase):
+    def _analyse_case(self, genome_paths, kmer_size, expected):
+        kmers_result = [kmer for kmer in
+                        kmers._kmers_from_genome_paths(genome_paths, kmer_size)]
+        self.assertEqual(kmers_result, expected)
+
+    def test_singleGenomePath_allKmersGenerated(self):
+        prg_structure = [
+            ['TC', 'A'],
+            ['CTTTGAC'],
+            ['AGC', 'TCA'],
+            ['AGATCTGG'],
+            ['TC', 'A'],
+        ]
+        prg = common.compose_prg(prg_structure)
+        regions = parse_prg.parse(prg)
+        kmer_size = 3
+        max_base_distance = 5
+        nonvariant_kmers = False
+
+        all_expected = [
+            'TCC',  # first variant region, first allele
+            'CCT',
+
+            'CTT',  # first non-variant region
+            'TTT',
+            'TTG',
+            'TGA',
+            'GAC',
+
+            'ACT',  # first variant region, second allele
+
+            'ACA',  # first non-variant region
+            'CAG',
+
+            'AGC',  # second variant region, first allele
+            'GCA',
+
+            'AGA',  # second non-variant region
+            'GAT',
+            'ATC',
+            'TCT',
+            'CTG',
+            'TGG',
+
+            'CTC',  # first non-variant region
+
+            'TCA',  # second variant region, second allele
+            'CAA',
+            'AAG',
+
+            'GGT',  # second non-variant region
+            'GTC',
+            'GGA',
+        ]
+
+        generated_kmers = kmers._generate(max_base_distance, kmer_size, regions, nonvariant_kmers)
+        for kmer, expected in zip(generated_kmers, all_expected):
+            self.assertEqual(kmer, expected)

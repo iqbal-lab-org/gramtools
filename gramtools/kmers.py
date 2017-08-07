@@ -44,7 +44,7 @@ def _filter_regions(regions, nonvariant_kmers):
             yield region
 
 
-def _directional_region_range(max_base_distance, start_region,
+def _directional_region_range(kmer_region_size, start_region,
                               regions, reverse):
     """Return list of regions which are within a given base distance
     of a starting regions.
@@ -56,7 +56,7 @@ def _directional_region_range(max_base_distance, start_region,
     for region in regions.range(start_region, reverse=reverse):
         if region == start_region:
             continue
-        if tot_distance >= max_base_distance:
+        if tot_distance >= kmer_region_size:
             break
 
         regions_in_range.append(region)
@@ -67,16 +67,16 @@ def _directional_region_range(max_base_distance, start_region,
     return regions_in_range
 
 
-def _regions_within_distance(max_base_distance, start_region,
+def _regions_within_distance(kmer_region_size, start_region,
                              regions):
     """Return regions within a max base distance of start region.
     Start region is not included in the distance measure.
     """
-    reverse_range = _directional_region_range(max_base_distance,
+    reverse_range = _directional_region_range(kmer_region_size,
                                               start_region,
                                               regions,
                                               reverse=True)
-    forward_range = _directional_region_range(max_base_distance,
+    forward_range = _directional_region_range(kmer_region_size,
                                               start_region,
                                               regions,
                                               reverse=False)
@@ -104,28 +104,29 @@ def _kmers_from_genome_paths(genome_paths, kmer_size):
                 yield kmer
 
 
-def _generate(max_base_distance, kmer_size, regions, nonvariant_kmers):
+def _generate(kmer_region_size, kmer_size, regions, nonvariant_kmers):
     """Generate kmers."""
+    seen_kmers = set()
     for start_region in _filter_regions(regions, nonvariant_kmers):
-        region_range = _regions_within_distance(max_base_distance,
+        region_range = _regions_within_distance(kmer_region_size,
                                                 start_region,
                                                 regions)
         genome_paths = _genome_paths(region_range)
         kmers = _kmers_from_genome_paths(genome_paths, kmer_size)
-        return kmers
+        for kmer in kmers:
+            if kmer not in seen_kmers:
+                yield kmer
+                seen_kmers.add(kmer)
 
 
 def _dump_kmers(kmers, output_fpath):
-    if output_fpath is None:
-        log.debug('Writing kmers to stdout')
+    log.debug('Writing kmers to file')
+    count = 0
+    with open(output_fpath, 'w') as fhandle:
         for kmer in kmers:
-            print(kmer)
-
-    else:
-        log.debug('Writing kmers to file')
-        with open(output_fpath, 'w') as fhandle:
-            for kmer in kmers:
-                fhandle.write(kmer + '\n')
+            fhandle.write(kmer + '\n')
+            count += 1
+    log.debug('Number of kmers: %s', count)
 
 
 def _dump_masks(sites, alleles, args):
@@ -140,9 +141,11 @@ def _dump_masks(sites, alleles, args):
 def run(args):
     log.info('Start process: generate kmers')
 
+    log.debug('Parsing PRG')
     fasta_seq = str(SeqIO.read(args.reference, 'fasta').seq)
     regions = parse_prg.parse(fasta_seq)
 
+    log.debug('Generating Kmers')
     kmers = _generate(args.kmer_region_size,
                       args.kmer_size, regions,
                       args.nonvariant_kmers)

@@ -130,7 +130,7 @@ void generate_kmers_encoding(const std::vector<int> &mask_a,
     int j = 0;
     while (std::getline(kfile, line)) {
         std::vector<uint8_t> kmer;
-        for (const auto &c: line)
+        for (const auto &c: line) {
             switch (c) {
                 case 'A':
                 case 'a':
@@ -148,7 +148,10 @@ void generate_kmers_encoding(const std::vector<int> &mask_a,
                 case 't':
                     kmer.push_back(4);
                     break;
+                default:
+                    break;
             }
+        }
         kmers[j++].push_back(kmer);
         j %= thread_count;
     }

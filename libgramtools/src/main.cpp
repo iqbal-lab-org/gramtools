@@ -8,15 +8,11 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
-#include "git_version/git_version.hpp"
-
 #include "parameters.hpp"
 #include "bwt_search.hpp"
 #include "masks.hpp"
 #include "kmers.hpp"
 #include "map.hpp"
-#include "fm_index.hpp"
-#include "ranks.hpp"
 #include "main.hpp"
 
 
@@ -40,7 +36,10 @@ int main(int argc, const char *const *argv) {
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     std::cout << "Generating kmers" << std::endl;
-    KmersData kmers = get_kmers(params.prg_kmers_fpath, params.kmers_size, masks.allele, masks.max_alphabet_num,
+    KmersData kmers = get_kmers(params.prg_kmers_fpath,
+                                params.kmers_size,
+                                masks.allele,
+                                masks.max_alphabet_num,
                                 rank_all, fm_index);
     timer_report.record("Generating kmers");
 
