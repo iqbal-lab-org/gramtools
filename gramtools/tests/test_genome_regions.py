@@ -1,7 +1,7 @@
 import unittest
 
 from . import common
-from .. import parse_prg
+from .. import prg
 
 
 class TestDirectionalRegionRange(unittest.TestCase):
@@ -18,8 +18,8 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['A'],
             ['TC', 'A'],
         ]
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
 
         for region, expected_alleles in zip(regions, expected):
             self.assertEqual(region.alleles, expected_alleles)
@@ -36,8 +36,8 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['G', 'T'],
             ['C'],
         ]
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
 
         start_region = regions[-1]
         regions_range = regions.range(start_region, reverse=True)
@@ -57,8 +57,8 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['A'],
             ['TC', 'A'],
         ]
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
 
         start_region = regions[0]
         regions_range = regions.range(start_region, reverse=False)
@@ -73,8 +73,8 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['A'],
             ['TC', 'A'],
         ]
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
 
         start_region = regions[-1]
         range_alleles = [r.alleles for r in
@@ -88,8 +88,8 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['A'],
             ['TC', 'A'],
         ]
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
 
         start_region = regions[1]
         range_alleles = [r.alleles for r in

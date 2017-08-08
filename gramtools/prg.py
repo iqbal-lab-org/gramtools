@@ -55,13 +55,10 @@ def handle_var_site(prg_char, cursor, regions):
 
 def handle_nonvar_site(prg_char, cursor):
     """Handle cursor in non-variant site."""
-    is_nonvar_base = (not cursor.in_var_site
-                      and prg_char[0] not in var_marker_chars)
-    if is_nonvar_base:
-        if not cursor.region:
-            cursor.region.append([])
-        cursor.region[-1].append(prg_char)
-        return
+    if not cursor.region:
+        cursor.region.append([])
+    cursor.region[-1].append(prg_char)
+    return
 
 
 class IterPeek:
@@ -92,9 +89,9 @@ class IterPeek:
         return current
 
 
-def decode_prg(prg):
+def decode_prg(prg_seq):
     """Decode prg by concatenating variant site marker digits."""
-    iter_prg = IterPeek(prg)
+    iter_prg = IterPeek(prg_seq)
     marker = ''
     for x in iter_prg:
         if x not in var_marker_chars:
@@ -110,12 +107,17 @@ def decode_prg(prg):
         yield x
 
 
-def parse(prg):
+def parse(prg_seq):
     """Process genome prg."""
     regions = genome_regions.GenomeRegions()
     cursor = ParsingCursor()
-    for x in decode_prg(prg):
-        handle_var_site(x, cursor, regions)
-        handle_nonvar_site(x, cursor)
+    for x in decode_prg(prg_seq):
+        in_variant_region = (cursor.in_var_site
+                             or x[0] in var_marker_chars)
+        if in_variant_region:
+            handle_var_site(x, cursor, regions)
+        else:
+            handle_nonvar_site(x, cursor)
+
     flush_region(cursor, regions)
     return regions

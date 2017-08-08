@@ -3,7 +3,7 @@ import itertools
 import collections
 from Bio import SeqIO
 
-from . import parse_prg
+from . import prg
 
 log = logging.getLogger('gramtools')
 
@@ -66,7 +66,7 @@ def _generate_reads(read_length, genome_regions, max_num_reads=None):
         if read not in reads:
             yield read
             reads.add(read)
-    log.debug('Reads generated: %s', len(reads))
+    log.debug('Number of reads generated: %s', len(reads))
 
 
 def _dump_random_reads(reads, quality, output_fpath):
@@ -82,7 +82,7 @@ def run(args):
 
     log.debug('Parsing PRG')
     prg_seq = str(SeqIO.read(args.reference, 'fasta').seq)
-    regions = parse_prg.parse(prg_seq)
+    regions = prg.parse(prg_seq)
 
     log.debug('Generating reads')
     reads = _generate_reads(args.read_length, regions, args.max_num_reads)

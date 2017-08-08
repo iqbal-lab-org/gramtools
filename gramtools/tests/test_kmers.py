@@ -1,15 +1,15 @@
 import unittest
 
 from . import common
-from .. import parse_prg
+from .. import prg
 from .. import kmers
 
 
 class TestDirectionalRegionRange(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected, reverse):
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
         start_region = regions[start_region_idx]
         region_range = kmers._directional_region_range(max_base_distance,
                                                        start_region,
@@ -87,8 +87,8 @@ class TestDirectionalRegionRange(unittest.TestCase):
 class TestRegionsWithinDistance(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected):
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
         start_region = regions[start_region_idx]
         region_range = kmers._regions_within_distance(max_base_distance,
                                                       start_region,
@@ -217,8 +217,8 @@ class TestRegionsWithinDistance(unittest.TestCase):
 class TestGenomePaths(unittest.TestCase):
     def _analyse_case(self, start_region_idx, max_base_distance,
                       prg_structure, expected):
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
         start_region = regions[start_region_idx]
         region_range = kmers._regions_within_distance(max_base_distance,
                                                       start_region,
@@ -316,8 +316,8 @@ class TestGenerate(unittest.TestCase):
             ['AGATCTGG'],
             ['TC', 'A'],
         ]
-        prg = common.compose_prg(prg_structure)
-        regions = parse_prg.parse(prg)
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
         kmer_size = 3
         max_base_distance = 5
         nonvariant_kmers = False

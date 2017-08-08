@@ -4,7 +4,7 @@ import itertools
 from Bio import SeqIO
 
 from . import genome_regions
-from . import parse_prg
+from . import prg
 
 log = logging.getLogger('gramtools')
 
@@ -120,13 +120,12 @@ def _generate(kmer_region_size, kmer_size, regions, nonvariant_kmers):
 
 
 def _dump_kmers(kmers, output_fpath):
-    log.debug('Writing kmers to file')
-    count = 0
+    count_written = 0
     with open(output_fpath, 'w') as fhandle:
         for kmer in kmers:
             fhandle.write(kmer + '\n')
-            count += 1
-    log.debug('Number of kmers: %s', count)
+            count_written += 1
+    return count_written
 
 
 def _dump_masks(sites, alleles, args):
@@ -143,13 +142,16 @@ def run(args):
 
     log.debug('Parsing PRG')
     fasta_seq = str(SeqIO.read(args.reference, 'fasta').seq)
-    regions = parse_prg.parse(fasta_seq)
+    regions = prg.parse(fasta_seq)
 
     log.debug('Generating Kmers')
     kmers = _generate(args.kmer_region_size,
                       args.kmer_size, regions,
                       args.nonvariant_kmers)
-    _dump_kmers(kmers, args.output_fpath)
+
+    log.debug('Writing kmers to file')
+    count_written = _dump_kmers(kmers, args.output_fpath)
+    log.debug('Number of kmers writen to file: %s', count_written)
 
     if hasattr(args, 'sites_mask_fpath') and hasattr(args, 'allele_mask_fpath'):
         sites_mask = genome_regions.sites_mask(regions)
