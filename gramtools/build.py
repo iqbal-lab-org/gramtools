@@ -142,8 +142,6 @@ def _generate_kmers(paths, args):
     args = copy.copy(args)
     args.reference = paths['perl_generated_fa']
     args.output_fpath = paths['kmer_file']
-    args.sites_mask_fpath = paths['sites_mask']
-    args.allele_mask_fpath = paths['allele_mask']
 
     kmers.run(args)
 

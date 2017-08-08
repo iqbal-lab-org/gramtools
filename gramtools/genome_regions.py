@@ -54,37 +54,3 @@ class _GenomeRegion:
 
     def __str__(self):
         return '[{alleles}]'.format(alleles='|'.join(self.alleles))
-
-
-def sites_mask(regions):
-    """Generate sites masks."""
-    sites = []
-
-    for region in regions:
-        if len(region.alleles) == 1:
-            sites += ['0'] * len(region.alleles[0])
-            continue
-
-        sites.append('0')
-        for i, allele in enumerate(region.alleles):
-            sites += [str(region.variant_site_marker)] * len(allele)
-            sites.append('0')
-
-    return '\t'.join(sites)
-
-
-def alleles_mask(regions):
-    """Generate alleles masks."""
-    alleles = []
-
-    for region in regions:
-        if len(region.alleles) == 1:
-            alleles += ['0'] * len(region.alleles[0])
-            continue
-
-        alleles.append('0')
-        for i, allele in enumerate(region.alleles):
-            alleles += [str(i + 1)] * len(allele)
-            alleles.append('0')
-
-    return '\t'.join(alleles)

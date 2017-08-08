@@ -153,9 +153,4 @@ def run(args):
     count_written = _dump_kmers(kmers, args.output_fpath)
     log.debug('Number of kmers writen to file: %s', count_written)
 
-    if hasattr(args, 'sites_mask_fpath') and hasattr(args, 'allele_mask_fpath'):
-        sites_mask = genome_regions.sites_mask(regions)
-        alleles_mask = genome_regions.alleles_mask(regions)
-        _dump_masks(sites_mask, alleles_mask, args)
-
     log.info('End process: generate kmers')
