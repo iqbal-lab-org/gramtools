@@ -45,7 +45,7 @@ void perform_test(const std::string &test_fpath) {
     substrings = generate_all_substrings(prg);
 
     //dummy mask
-    uint32_t a;
+    uint64_t a;
     mask_a.clear();
     for (a = 0; a < prg.length(); a++) {
         mask_a.push_back(0);
@@ -54,7 +54,7 @@ void perform_test(const std::string &test_fpath) {
     const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_fpath, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 

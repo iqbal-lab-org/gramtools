@@ -35,13 +35,13 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Calculating DNA ranks");
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
-    std::cout << "Generating kmers" << std::endl;
+    std::cout << "Getting kmers" << std::endl;
     KmersData kmers = get_kmers(params.prg_kmers_fpath,
                                 params.kmers_size,
                                 masks.allele,
                                 masks.max_alphabet_num,
                                 rank_all, fm_index);
-    timer_report.record("Generating kmers");
+    timer_report.record("Getting kmers");
 
     std::cout << "Mapping" << std::endl;
     auto count_mapped = map_reads(params, masks, kmers, fm_index, rank_all);

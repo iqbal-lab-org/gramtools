@@ -19,7 +19,7 @@ static inline std::string &trim(std::string &s);
 std::vector<std::string> split(const std::string &cad, const std::string &delim);
 
 using KmerIdx = sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>>;
-using KmerSites = sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>>;
+using KmerSites = sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint64_t, std::vector<int>>>>>;
 using KmersRef = sequence_set<std::vector<uint8_t>>;
 
 struct ThreadData {

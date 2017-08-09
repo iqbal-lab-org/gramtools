@@ -19,8 +19,8 @@
 
 
 std::pair<uint64_t, uint64_t> bidir_search(const uint8_t next_char,
-                                           const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it,
-                                           const std::list<std::pair<unsigned long, unsigned long>>::iterator &sa_interval_it_rev,
+                                           const std::list<std::pair<uint64_t, uint64_t>>::iterator &sa_interval_it,
+                                           const std::list<std::pair<uint64_t, uint64_t>>::iterator &sa_interval_it_rev,
                                            const DNA_Rank &rank_all,
                                            const FM_Index &fm_index) {
 

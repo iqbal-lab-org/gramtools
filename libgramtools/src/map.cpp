@@ -35,9 +35,8 @@ int map_reads(Parameters &params,
         if (inc++ % 100000 == 0)
             reads_fhandle << count_reads << std::endl;
 
-        process_read(*read, readin_integer_seq, params,
-                     masks, count_reads, count_mapped, kmers, fm_index, in_sites,
-                     repeats, rank_all);
+        process_read(*read, readin_integer_seq, params, masks, count_reads, count_mapped,
+                     kmers, in_sites, repeats, rank_all, fm_index);
     }
     reads_fhandle.close();
     return count_mapped;
@@ -48,12 +47,13 @@ void process_read(const GenomicRead &read_sequence,
                   std::vector<uint8_t> &readin_integer_seq,
                   Parameters &params,
                   MasksParser &masks,
-                  int &count_reads, int &count_mapped,
+                  int &count_reads,
+                  int &count_mapped,
                   KmersData &kmers,
-                  const FM_Index &fm_index,
                   int &in_sites,
                   std::unordered_set<int> &repeats,
-                  const DNA_Rank &rank_all) {
+                  const DNA_Rank &rank_all,
+                  const FM_Index &fm_index) {
 
     bool invalid_base_flag = int_encode_read(read_sequence, readin_integer_seq);
     if (invalid_base_flag)
@@ -83,12 +83,18 @@ void process_read(const GenomicRead &read_sequence,
         }
 
         bool kmer_precalc_done = true;
-        bidir_search_bwd(sa_intervals, sa_intervals_rev, (*it).first, (*it).second, (*it_rev).first, (*it_rev).second,
+        bidir_search_bwd(sa_intervals, sa_intervals_rev,
+                         (*it).first, (*it).second,
+                         (*it_rev).first, (*it_rev).second,
                          sites, first_del,
                          readin_integer_seq.begin(),
-                         readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size, masks.allele,
-                         masks.max_alphabet_num, kmer_precalc_done,
-                         rank_all, fm_index, 0);
+                         readin_integer_seq.begin() + readin_integer_seq.size() - params.kmers_size,
+                         masks.allele,
+                         masks.max_alphabet_num,
+                         kmer_precalc_done,
+                         rank_all,
+                         fm_index,
+                         0);
         no_occ = 0;
 
         //proxy for mapping is "unique horizontally"
@@ -220,8 +226,8 @@ bool int_encode_read(const GenomicRead &read_sequence, std::vector<uint8_t> &rea
 
 void output_allele_coverage(Parameters &params, MasksParser &masks) {
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
-    for (uint32_t i = 0; i < masks.allele_coverage.size(); i++) {
-        for (uint32_t j = 0; j < masks.allele_coverage[i].size(); j++)
+    for (uint64_t i = 0; i < masks.allele_coverage.size(); i++) {
+        for (uint64_t j = 0; j < masks.allele_coverage[i].size(); j++)
             allele_coverage_fhandle << masks.allele_coverage[i][j] << " ";
         allele_coverage_fhandle << std::endl;
     }

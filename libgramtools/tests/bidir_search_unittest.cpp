@@ -21,7 +21,7 @@ protected:
   }
 
   csa_wt<wt_int<rrr_vector<63>>> csa, csa_rev;
-  uint32_t l, r,l_rev,r_rev;
+    uint64_t l, r,l_rev,r_rev;
 
 };
 
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
   load_vector_from_file(text, test_file, 1);
   size_type n = text.size();
   int_vector<4> text_rev(n);
-  uint32_t max=0;
+    uint64_t max=0;
   for (size_type i=0; i<n; i++) {
     text_rev[n-1-i] = text[i];
     if (text[i]>max) max=text[i];

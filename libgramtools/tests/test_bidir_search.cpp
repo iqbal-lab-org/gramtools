@@ -30,7 +30,7 @@ TEST(BackwardSearchTest, NoVariants1) {
     substrings.push_back(temp);
 
     //dummy mask
-    uint32_t a;
+    uint64_t a;
     mask_a.clear();
     for (a = 0; a < temp.length(); a++) {
         mask_a.push_back(0);
@@ -39,7 +39,7 @@ TEST(BackwardSearchTest, NoVariants1) {
     const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -97,7 +97,7 @@ TEST(BackwardSearchTest, OneSNP) {
     const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
     bool first_del = false;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
@@ -156,7 +156,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
     const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -214,7 +214,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -276,7 +276,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -341,7 +341,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -408,7 +408,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -473,7 +473,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -540,8 +540,8 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
 
     //each element on the list corresponds to a SA interval
     //these elements are vectors of pairs (pair=(site, list of alleles))
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>::iterator list_it;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>>::iterator list_it;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -623,7 +623,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
 
     std::list<std::pair<uint64_t, uint64_t>> sa_intervals, sa_intervals_rev;
     std::list<std::pair<uint64_t, uint64_t>>::iterator it;
-    std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+    std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
 
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
@@ -648,7 +648,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     EXPECT_EQ(true, first_del);
     EXPECT_EQ(1, sa_intervals.size());
     EXPECT_EQ(no_occ, 1);
-    std::vector<std::pair<uint32_t, std::vector<int> > >::iterator v_it = sites.front().begin();
+    std::vector<std::pair<uint64_t, std::vector<int> > >::iterator v_it = sites.front().begin();
 
     //here's what we are checking
     //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2

@@ -36,13 +36,13 @@ static inline std::string &trim(std::string &s) {
 
 std::vector<std::string> split(const std::string &cad, const std::string &delim) {
     std::vector<std::string> v;
-    unsigned long p, q, d;
+    uint64_t p, q, d;
 
     q = cad.size();
     p = 0;
     d = strlen(delim.c_str());
     while (p < q) {
-        unsigned long posfound = cad.find(delim, p);
+        uint64_t posfound = cad.find(delim, p);
         std::string token;
 
         if (posfound >= 0)
@@ -70,7 +70,7 @@ void calc_kmer_matches(KmerIdx &kmer_idx, KmerIdx &kmer_idx_rev,
     for (auto &kmer: kmers) {
         kmer_idx[kmer] = std::list<std::pair<uint64_t, uint64_t>>();
         kmer_idx_rev[kmer] = std::list<std::pair<uint64_t, uint64_t>>();
-        kmer_sites[kmer] = std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>();
+        kmer_sites[kmer] = std::list<std::vector<std::pair<uint64_t, std::vector<int>>>>();
 
         bool delete_first_interval = false;
         bool kmer_precalc_done = false;
@@ -157,7 +157,7 @@ void generate_kmers_encoding(const std::vector<int> &mask_a,
     }
 
     sequence_map<std::vector<uint8_t>, std::list<std::pair<uint64_t, uint64_t>>> kmer_idx[thread_count], kmer_idx_rev[thread_count];
-    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint32_t, std::vector<int>>>>> kmer_sites[thread_count];
+    sequence_map<std::vector<uint8_t>, std::list<std::vector<std::pair<uint64_t, std::vector<int>>>>> kmer_sites[thread_count];
     sequence_set<std::vector<uint8_t>> kmers_in_ref[thread_count];
 
     for (int i = 0; i < thread_count; i++) {
@@ -257,9 +257,9 @@ KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
         if (flag != 1)
             continue;
 
-        std::list<std::vector<std::pair<uint32_t, std::vector<int>>>> sites;
+        std::list<std::vector<std::pair<uint64_t, std::vector<int>>>> sites;
         for (unsigned int i = 4; i < parts.size(); i++) {
-            std::vector<std::pair<uint32_t, std::vector<int>>> site;
+            std::vector<std::pair<uint64_t, std::vector<int>>> site;
             for (auto pair_i_v: split(parts[i], "@")) {
                 std::vector<std::string> strvec = split(pair_i_v, " ");
                 if (strvec.size()) {
@@ -270,7 +270,7 @@ KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
                         if (strvec[j].size())
                             rest.push_back(std::stoi(strvec[j]));
 
-                    site.emplace_back(std::pair<uint32_t, std::vector<int>>(first, rest));
+                    site.emplace_back(std::pair<uint64_t, std::vector<int>>(first, rest));
                 }
             }
             sites.push_back(site);
@@ -301,13 +301,13 @@ KmersData get_kmers(const std::string &kmer_fname,
 
     if (!fexists(encoded_kmers_fname)) {
         const int thread_count = get_thread_count();
-        std::cout << "Precalculated kmers not found, calculating them using "
+        std::cout << "Precalculated kmers not found, generating them using "
                   << thread_count << " threads" << std::endl;
         generate_kmers_encoding(mask_a, kmer_fname, maxx, k, thread_count, rank_all, fm_index);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 
-    std::cout << "Reading K-mers" << std::endl;
+    std::cout << "Reading Kmers" << std::endl;
     const auto kmers = read_encoded_kmers(encoded_kmers_fname);
     return kmers;
 }
