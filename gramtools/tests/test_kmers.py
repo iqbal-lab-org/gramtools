@@ -6,16 +6,16 @@ from .. import kmers
 
 
 class TestDirectionalRegionRange(unittest.TestCase):
-    def _analyse_case(self, start_region_idx, max_base_distance,
+    def _analyse_case(self, start_region_idx, kmer_region_size,
                       prg_structure, expected, reverse):
         prg_seq = common.compose_prg(prg_structure)
         regions = prg.parse(prg_seq)
         start_region = regions[start_region_idx]
-        region_range = kmers._directional_region_range(max_base_distance,
-                                                       start_region,
-                                                       regions,
-                                                       reverse=reverse)
-        result = [region.alleles for region in region_range]
+        ordered_alleles = kmers._directional_alleles_range(kmer_region_size,
+                                                           start_region,
+                                                           regions,
+                                                           reverse=reverse)
+        result = list(ordered_alleles)
         self.assertEqual(result, expected)
 
     def test_rightEdgeStartingRegion_noForwardRegions(self):
@@ -27,9 +27,9 @@ class TestDirectionalRegionRange(unittest.TestCase):
         ]
         expected = []
         start_region_idx = -1
-        max_base_distance = 100
+        kmer_region_size = 100
         reverse = False
-        self._analyse_case(start_region_idx, max_base_distance,
+        self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected, reverse)
 
     def test_leftEdgeStartingRegion_noReverseRegions(self):
@@ -41,9 +41,9 @@ class TestDirectionalRegionRange(unittest.TestCase):
         ]
         expected = []
         start_region_idx = 0
-        max_base_distance = 100
+        kmer_region_size = 100
         reverse = True
-        self._analyse_case(start_region_idx, max_base_distance,
+        self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected, reverse)
 
     def test_populatedRevRegion_revRegionCorrectlyOrdered(self):
@@ -59,9 +59,9 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['G'],
         ]
         start_region_idx = 2
-        max_base_distance = 2
+        kmer_region_size = 2
         reverse = True
-        self._analyse_case(start_region_idx, max_base_distance,
+        self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected, reverse)
 
     def test_populatedFwdRegion_fwdRegionCorrectlyOrdered(self):
@@ -78,22 +78,22 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['C', 'G'],
         ]
         start_region_idx = 3
-        max_base_distance = 2
+        kmer_region_size = 2
         reverse = False
-        self._analyse_case(start_region_idx, max_base_distance,
+        self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected, reverse)
 
 
 class TestRegionsWithinDistance(unittest.TestCase):
-    def _analyse_case(self, start_region_idx, max_base_distance,
+    def _analyse_case(self, start_region_idx, kmer_region_size,
                       prg_structure, expected):
         prg_seq = common.compose_prg(prg_structure)
         regions = prg.parse(prg_seq)
         start_region = regions[start_region_idx]
-        region_range = kmers._regions_within_distance(max_base_distance,
+        ordered_alleles = kmers._alleles_within_range(kmer_region_size,
                                                       start_region,
                                                       regions)
-        result = [region.alleles for region in region_range]
+        result = list(ordered_alleles)
         self.assertEqual(result, expected)
 
     def test_distanceExcludesRegion_lastRegionExcluded(self):
@@ -104,12 +104,12 @@ class TestRegionsWithinDistance(unittest.TestCase):
         ]
         expected = [
             ['A', 'C'],
-            ['CC'],
+            ['C'],
         ]
         start_region_idx = 0
-        max_base_distance = 1
+        kmer_region_size = 1
         self._analyse_case(start_region_idx,
-                           max_base_distance,
+                           kmer_region_size,
                            prg_structure,
                            expected)
 
@@ -124,9 +124,9 @@ class TestRegionsWithinDistance(unittest.TestCase):
             ['CC'],
         ]
         start_region_idx = 0
-        max_base_distance = 2
+        kmer_region_size = 2
         self._analyse_case(start_region_idx,
-                           max_base_distance,
+                           kmer_region_size,
                            prg_structure,
                            expected)
 
@@ -141,12 +141,12 @@ class TestRegionsWithinDistance(unittest.TestCase):
             ['G'],
             ['A', 'T'],
             ['CC'],
-            ['GGGGGGGG', 'T'],
+            ['G', 'T'],
         ]
         start_region_idx = 1
-        max_base_distance = 3
+        kmer_region_size = 3
         self._analyse_case(start_region_idx,
-                           max_base_distance,
+                           kmer_region_size,
                            prg_structure,
                            expected)
 
@@ -161,12 +161,12 @@ class TestRegionsWithinDistance(unittest.TestCase):
         expected = [
             ['G'],
             ['A', 'T'],
-            ['CC'],
+            ['C'],
         ]
         start_region_idx = 2
-        max_base_distance = 1
+        kmer_region_size = 1
         self._analyse_case(start_region_idx,
-                           max_base_distance,
+                           kmer_region_size,
                            prg_structure,
                            expected)
 
@@ -182,12 +182,12 @@ class TestRegionsWithinDistance(unittest.TestCase):
             ['C', 'G'],
             ['G'],
             ['A', 'T'],
-            ['CCCCCCCC'],
+            ['CC'],
         ]
         start_region_idx = 2
-        max_base_distance = 2
+        kmer_region_size = 2
         self._analyse_case(start_region_idx,
-                           max_base_distance,
+                           kmer_region_size,
                            prg_structure,
                            expected)
 
@@ -204,28 +204,28 @@ class TestRegionsWithinDistance(unittest.TestCase):
             ['C', 'G'],
             ['G'],
             ['A', 'T'],
-            ['GGGGGGG'],
+            ['GG'],
         ]
         start_region_idx = 4
-        max_base_distance = 2
+        kmer_region_size = 2
         self._analyse_case(start_region_idx,
-                           max_base_distance,
+                           kmer_region_size,
                            prg_structure,
                            expected)
 
 
 class TestGenomePaths(unittest.TestCase):
-    def _analyse_case(self, start_region_idx, max_base_distance,
+    def _analyse_case(self, start_region_idx, kmer_region_size,
                       prg_structure, expected):
         prg_seq = common.compose_prg(prg_structure)
         regions = prg.parse(prg_seq)
         start_region = regions[start_region_idx]
-        region_range = kmers._regions_within_distance(max_base_distance,
+        ordered_alleles = kmers._alleles_within_range(kmer_region_size,
                                                       start_region,
                                                       regions)
-        genome_paths = [path for path in
-                        kmers._genome_paths(region_range)]
-        self.assertEqual(genome_paths, expected)
+        results = [path for path in
+                   kmers._genome_paths(ordered_alleles)]
+        self.assertEqual(results, expected)
 
     def test_twoVariantRegionsInRange_pathsIncludeAllAlleles(self):
         prg_structure = [
@@ -241,8 +241,42 @@ class TestGenomePaths(unittest.TestCase):
             'ACGCT',
         ]
         start_region_idx = 1
-        max_base_distance = 3
-        self._analyse_case(start_region_idx, max_base_distance,
+        kmer_region_size = 3
+        self._analyse_case(start_region_idx, kmer_region_size,
+                           prg_structure, expected)
+
+    def test_largeEdgeAllele_alleleTruncated(self):
+        prg_structure = [
+            ['AC'],
+            ['T', 'G'],
+            ['C'],
+            ['AGGGG', 'T'],
+        ]
+        expected = [
+            'ACTCA',
+            'ACTCT',
+            'ACGCA',
+            'ACGCT',
+        ]
+        start_region_idx = 1
+        kmer_region_size = 2
+        self._analyse_case(start_region_idx, kmer_region_size,
+                           prg_structure, expected)
+
+
+    def test_largeKmerRegionSize_correctPathsGenerated(self):
+        prg_structure = [
+            ['AC'],
+            ['T', 'G'],
+            ['CT'],
+        ]
+        expected = [
+            'ACTCT',
+            'ACGCT',
+        ]
+        start_region_idx = 1
+        kmer_region_size = 1000
+        self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected)
 
     def test_manyAllelesInVarRegion_pathsIncludeAllAlleles(self):
@@ -258,16 +292,16 @@ class TestGenomePaths(unittest.TestCase):
             'ACAAAGT',
         ]
         start_region_idx = 1
-        max_base_distance = 3
-        self._analyse_case(start_region_idx, max_base_distance,
+        kmer_region_size = 2
+        self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected)
 
 
 class TestKmersFromGenomePaths(unittest.TestCase):
     def _analyse_case(self, genome_paths, kmer_size, expected):
-        kmers_result = [kmer for kmer in
-                        kmers._kmers_from_genome_paths(genome_paths, kmer_size)]
-        self.assertEqual(kmers_result, expected)
+        results = [kmer for kmer in
+                   kmers._kmers_from_genome_paths(genome_paths, kmer_size)]
+        self.assertEqual(results, expected)
 
     def test_singleGenomePath_allKmersGenerated(self):
         genome_paths = [
@@ -308,56 +342,72 @@ class TestKmersFromGenomePaths(unittest.TestCase):
 
 
 class TestGenerate(unittest.TestCase):
+    def _analyse_case(self, expected, prg_structure, kmer_size,
+                      kmer_region_size, nonvariant_kmers):
+        prg_seq = common.compose_prg(prg_structure)
+        regions = prg.parse(prg_seq)
+        generated_kmers = kmers._generate(kmer_region_size, kmer_size,
+                                          regions, nonvariant_kmers)
+        result = list(generated_kmers)
+        self.assertEqual(result, expected)
+
     def test_complexPrgStructure_allKmersGenerated(self):
         prg_structure = [
             ['TC', 'A'],
-            ['CTTTGAC'],
-            ['AGC', 'TCA'],
-            ['AGATCTGG'],
-            ['TC', 'A'],
+            ['CTTG'],
         ]
-        prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
         kmer_size = 3
-        max_base_distance = 5
+        kmer_region_size = 2
         nonvariant_kmers = False
 
-        all_expected = [
-            'TCC',  # first variant region, first allele
+        expected = [
+            'TCC',
             'CCT',
-
-            'CTT',  # first non-variant region
-            'TTT',
-            'TTG',
-            'TGA',
-            'GAC',
-
-            'ACT',  # first variant region, second allele
-
-            'ACA',  # first non-variant region
-            'CAG',
-
-            'AGC',  # second variant region, first allele
-            'GCA',
-
-            'AGA',  # second non-variant region
-            'GAT',
-            'ATC',
-            'TCT',
-            'CTG',
-            'TGG',
-
-            'CTC',  # first non-variant region
-
-            'TCA',  # second variant region, second allele
-            'CAA',
-            'AAG',
-
-            'GGT',  # second non-variant region
-            'GTC',
-            'GGA',
+            'ACT',
         ]
+        self._analyse_case(expected, prg_structure, kmer_size,
+                           kmer_region_size, nonvariant_kmers)
 
-        generated_kmers = kmers._generate(max_base_distance, kmer_size, regions, nonvariant_kmers)
-        for kmer, expected in zip(generated_kmers, all_expected):
-            self.assertEqual(kmer, expected)
+    def test_allelesLargerThankmerRegionBoundary_allelesTruncated(self):
+        prg_structure = [
+            ['CTT'],
+            ['A', 'C'],
+            ['AGA'],
+        ]
+        kmer_size = 3
+        kmer_region_size = 2
+        nonvariant_kmers = False
+
+        expected = [
+            'TTA',
+            'TAA',
+            'AAG',
+            'TTC',
+            'TCA',
+            'CAG',
+        ]
+        self._analyse_case(expected, prg_structure, kmer_size,
+                           kmer_region_size, nonvariant_kmers)
+
+    def test_nonvariantKmersGenerated_allKmersGenerated(self):
+        prg_structure = [
+            ['CTT'],
+            ['A', 'C'],
+            ['AGA'],
+        ]
+        kmer_size = 3
+        kmer_region_size = 2
+        nonvariant_kmers = True
+
+        expected = [
+            'CTT',
+            'TTA',
+            'TAA',
+            'TTC',
+            'TCA',
+            'AAG',
+            'CAG',
+            'AGA',
+        ]
+        self._analyse_case(expected, prg_structure, kmer_size,
+                           kmer_region_size, nonvariant_kmers)
