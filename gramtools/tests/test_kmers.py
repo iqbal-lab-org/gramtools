@@ -263,7 +263,6 @@ class TestGenomePaths(unittest.TestCase):
         self._analyse_case(start_region_idx, kmer_region_size,
                            prg_structure, expected)
 
-
     def test_largeKmerRegionSize_correctPathsGenerated(self):
         prg_structure = [
             ['AC'],
@@ -370,7 +369,7 @@ class TestGenerate(unittest.TestCase):
 
     def test_allelesLargerThankmerRegionBoundary_allelesTruncated(self):
         prg_structure = [
-            ['CTT'],
+            ['AGGCTT'],
             ['A', 'C'],
             ['AGA'],
         ]
@@ -391,7 +390,7 @@ class TestGenerate(unittest.TestCase):
 
     def test_nonvariantKmersGenerated_allKmersGenerated(self):
         prg_structure = [
-            ['CTT'],
+            ['AGGCTT'],
             ['A', 'C'],
             ['AGA'],
         ]
@@ -400,6 +399,9 @@ class TestGenerate(unittest.TestCase):
         nonvariant_kmers = True
 
         expected = [
+            'AGG',
+            'GGC',
+            'GCT',
             'CTT',
             'TTA',
             'TAA',
