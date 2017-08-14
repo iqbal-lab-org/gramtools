@@ -12,17 +12,13 @@
 #define GRAMTOOLS_MAP_HPP
 
 
-int map_reads(Parameters &params,
-              MasksParser &masks,
-              KmersData &kmers,
-              const FM_Index &fm_index,
+int map_reads(KmersData &kmers, MasksParser &masks, const Parameters &params, const FM_Index &fm_index,
               const DNA_Rank &rank_all);
 
-bool int_encode_read(const GenomicRead &read_sequence, std::vector<uint8_t> &readin_integer_seq);
+std::vector<uint8_t> int_encode_read(const GenomicRead &read_sequence);
 
-void process_read(const GenomicRead &read_sequence, std::vector<uint8_t> &readin_integer_seq, Parameters &params,
-                  MasksParser &masks, int &count_reads, int &count_mapped, KmersData &kmers, int &in_sites,
-                  std::unordered_set<int> &repeats, const DNA_Rank &rank_all, const FM_Index &fm_index);
+int process_read(const GenomicRead &read_sequence, int &in_sites, std::unordered_set<uint64_t> &repeats, KmersData &kmers,
+                 MasksParser &masks, const Parameters &params, const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 void output_allele_coverage(Parameters &params, MasksParser &masks);
 

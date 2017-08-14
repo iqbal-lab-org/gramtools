@@ -11,7 +11,6 @@
 #include "parameters.hpp"
 #include "bwt_search.hpp"
 #include "masks.hpp"
-#include "kmers.hpp"
 #include "map.hpp"
 #include "main.hpp"
 
@@ -36,15 +35,11 @@ int main(int argc, const char *const *argv) {
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     std::cout << "Getting kmers" << std::endl;
-    KmersData kmers = get_kmers(params.prg_kmers_fpath,
-                                params.kmers_size,
-                                masks.allele,
-                                masks.max_alphabet_num,
-                                rank_all, fm_index);
+    KmersData kmers = get_kmers(params.prg_kmers_fpath, masks.allele, masks.max_alphabet_num, rank_all, fm_index);
     timer_report.record("Getting kmers");
 
     std::cout << "Mapping" << std::endl;
-    auto count_mapped = map_reads(params, masks, kmers, fm_index, rank_all);
+    auto count_mapped = map_reads(kmers, masks, params, fm_index, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
@@ -61,7 +56,7 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     namespace po = boost::program_options;
     Parameters params;
 
-    po::options_description description("All parameters must be specified");
+    boost::program_options::options_description description("All parameters must be specified");
     description.add_options()
             ("help", "produce help message")
             ("prg,marker_porition", po::value<std::string>(&params.prg_fpath),
@@ -89,18 +84,18 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
             ("ksize,k", po::value<int>(&params.kmers_size),
              "size of pre-calculated kmers");
 
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, description), vm);
+    boost::program_options::variables_map vm;
+    boost::program_options::store(po::parse_command_line(argc, argv, description), vm);
 
     try {
-        po::notify(vm);
+        boost::program_options::notify(vm);
     } catch (std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         std::cout << description << std::endl;
         exit(-1);
     }
 
-    if (vm.count("help")) {
+    if (vm.count("help") != 0) {
         std::cout << description << std::endl;
         exit(0);
     }

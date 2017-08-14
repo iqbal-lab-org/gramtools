@@ -1,7 +1,6 @@
 #include <sdsl/suffix_arrays.hpp>
 
-#include "fm_index.hpp"
-#include "ranks.hpp"
+#include "kmers.hpp"
 
 
 //csa is the compressed suffix array object 
@@ -18,11 +17,10 @@
 //char next_char for extending the current pattern
 
 
-std::pair<uint64_t, uint64_t> bidir_search(const uint8_t next_char,
-                                           const std::list<std::pair<uint64_t, uint64_t>>::iterator &sa_interval_it,
-                                           const std::list<std::pair<uint64_t, uint64_t>>::iterator &sa_interval_it_rev,
-                                           const DNA_Rank &rank_all,
-                                           const FM_Index &fm_index) {
+SA_Interval bidir_search(const uint8_t next_char,
+                         const SA_Intervals::iterator &sa_interval_it,
+                         const DNA_Rank &rank_all,
+                         const FM_Index &fm_index) {
 
     uint64_t left = sa_interval_it->first;
     uint64_t right = sa_interval_it->second;

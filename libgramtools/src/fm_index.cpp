@@ -43,7 +43,7 @@ FM_Index build_fm_index(const std::string &prg_encoded_fpath,
                         const std::string &memory_log_fname) {
     sdsl::memory_monitor::start();
     FM_Index fm_index;
-    sdsl::construct(fm_index, prg_encoded_fpath.c_str(), 8);
+    sdsl::construct(fm_index, prg_encoded_fpath, 8);
     sdsl::memory_monitor::stop();
 
     std::ofstream memory_log_fhandle(memory_log_fname);

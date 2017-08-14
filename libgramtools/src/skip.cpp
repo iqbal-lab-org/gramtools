@@ -5,13 +5,13 @@
 
 
 bool skip(uint64_t &left, uint64_t &right,
-          uint64_t &left_rev, uint64_t &right_rev,
-          const uint64_t maxx, const uint64_t marker_value,
+          const uint64_t maxx,
+          const uint64_t marker_value,
           const FM_Index &fm_index) {
 
     const auto is_edge_marker = marker_value % 2 == 1;
     if (is_edge_marker) {
-        bool last = process_variant_edge_marker(left, right, left_rev, right_rev, maxx, marker_value, fm_index);
+        bool last = process_variant_edge_marker(left, right, maxx, marker_value, fm_index);
         return last;
     }
 
@@ -22,23 +22,17 @@ bool skip(uint64_t &left, uint64_t &right,
     if (site_boundary_lower < site_boundary_upper) {
         left = num_begin;
         right = num_begin + 1;
-
-        left_rev = num_begin + 1;
-        right_rev = num_begin + 2;
     } else {
         left = num_begin + 1;
         right = num_begin + 2;
-
-        left_rev = num_begin;
-        right_rev = num_begin + 1;
     }
 
     return false;
 }
 
 bool process_variant_edge_marker(uint64_t &left, uint64_t &right,
-                                 uint64_t &left_rev, uint64_t &right_rev,
-                                 const uint64_t maxx, const uint64_t marker_value,
+                                 const uint64_t maxx,
+                                 const uint64_t marker_value,
                                  const FM_Index &fm_index) {
 
     const uint64_t num_begin = fm_index.C[fm_index.char2comp[marker_value]];
@@ -62,15 +56,9 @@ bool process_variant_edge_marker(uint64_t &left, uint64_t &right,
                 right = fm_index.C[fm_index.char2comp[marker_value + 2]];
             else
                 right = fm_index.size();
-
-            left_rev = left;
-            right_rev = right;
         } else {
             left = ind_start;
             right = ind_start + 1;
-
-            left_rev = right;
-            right_rev = left;
         }
     } else {
         left = num_begin;
@@ -78,9 +66,6 @@ bool process_variant_edge_marker(uint64_t &left, uint64_t &right,
             right = fm_index.C[fm_index.char2comp[marker_value + 2]];
         else
             right = fm_index.size();
-
-        left_rev = left;
-        right_rev = right;
     }
     return last;
 }

@@ -1,5 +1,4 @@
 #include <sdsl/suffix_arrays.hpp>
-#include <sdsl/wavelet_trees.hpp>
 
 #include "fm_index.hpp"
 #include "ranks.hpp"
