@@ -16,8 +16,7 @@ def flush_region(cursor, regions):
     """Reset cursor for next region."""
     if not cursor.region:
         return
-    cursor.region = [''.join(x) for x in cursor.region]
-    regions.add_region(cursor.region, cursor.current_var_marker)
+    regions.add_region(list(cursor.region), cursor.current_var_marker)
     cursor.region = []
 
 

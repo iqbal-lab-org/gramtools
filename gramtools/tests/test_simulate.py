@@ -10,7 +10,8 @@ class TestGenerateReads(unittest.TestCase):
                       expected, max_num_reads=None):
         prg_seq = common.compose_prg(prg_structure)
         regions = prg.parse(prg_seq)
-        reads = set(simulate._generate_reads(read_length, regions, max_num_reads))
+        reads = set(simulate._generate_reads(read_length, regions,
+                                             max_num_reads))
         self.assertEqual(reads, expected)
 
     def test_variantSiteManyLengths_readLengthsCorrect(self):

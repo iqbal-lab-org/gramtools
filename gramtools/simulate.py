@@ -48,9 +48,12 @@ def _variants_read_regions(read_length, genome_regions):
 def _generate_genome_paths(read_regions):
     for regions in read_regions:
         all_alleles = (region.alleles for region in regions)
-        for genome in itertools.product(*all_alleles):
-            genome_path = ''.join(genome)
-            yield genome_path
+        for alleles in itertools.product(*all_alleles):
+            genome_path = []
+            for allele in alleles:
+                for base in allele:
+                    genome_path.append(base)
+            yield tuple(genome_path)
 
 
 def _generate_reads(read_length, genome_regions, max_num_reads=None):
@@ -64,8 +67,8 @@ def _generate_reads(read_length, genome_regions, max_num_reads=None):
         if len(read) != read_length:
             continue
         if read not in reads:
-            yield read
             reads.add(read)
+            yield ''.join(read)
     log.debug('Number of reads generated: %s', len(reads))
 
 

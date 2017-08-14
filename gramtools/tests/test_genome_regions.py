@@ -20,9 +20,10 @@ class TestDirectionalRegionRange(unittest.TestCase):
         ]
         prg_seq = common.compose_prg(prg_structure)
         regions = prg.parse(prg_seq)
-
-        for region, expected_alleles in zip(regions, expected):
-            self.assertEqual(region.alleles, expected_alleles)
+        result = []
+        for region in regions:
+            result.append([''.join(x) for x in region.alleles])
+        self.assertEqual(result, expected)
 
     def test_reverseRange_yieldRegionsInReverse(self):
         prg_structure = [
@@ -42,8 +43,10 @@ class TestDirectionalRegionRange(unittest.TestCase):
         start_region = regions[-1]
         regions_range = regions.range(start_region, reverse=True)
 
-        for region, expected_alleles in zip(regions_range, expected):
-            self.assertEqual(region.alleles, expected_alleles)
+        result = []
+        for region in regions_range:
+            result.append([''.join(x) for x in region.alleles])
+        self.assertEqual(result, expected)
 
     def test_forwardRange_yieldRegionsInOrder(self):
         prg_structure = [
@@ -61,10 +64,13 @@ class TestDirectionalRegionRange(unittest.TestCase):
         regions = prg.parse(prg_seq)
 
         start_region = regions[0]
-        regions_range = regions.range(start_region, reverse=False)
+        directional_regions = list(regions.range(start_region, reverse=False))
+        results = []
+        for region in directional_regions:
+            results.append([''.join(x) for x in region.alleles])
 
-        for region, expected_alleles in zip(regions_range, expected):
-            self.assertEqual(region.alleles, expected_alleles)
+        self.assertEqual(results, expected)
+
 
     def test_reverseRange_startRegionNotInRange(self):
         prg_structure = [

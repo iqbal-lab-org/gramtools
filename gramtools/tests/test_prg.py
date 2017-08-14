@@ -13,7 +13,9 @@ class TestParsePrg(unittest.TestCase):
         prg_seq = 'ACTGTCCTC'
         regions = prg.parse(prg_seq)
         region = [region for region in regions][0]
-        self.assertEqual(region.alleles, ['ACTGTCCTC'])
+        result = [''.join(x) for x in region.alleles]
+        expected = ['ACTGTCCTC']
+        self.assertEqual(result, expected)
 
     def test_twoVariantSites_correctNumVariantSites(self):
         prg_seq = 'AC5A6T6A5CC7CA8T7CC'
@@ -49,7 +51,8 @@ class TestParsePrg(unittest.TestCase):
         variant_site_block = [region for region in regions
                               if region.is_variant_site][0]
         expected = ['A', 'T', 'AA']
-        self.assertEqual(variant_site_block.alleles, expected)
+        result = [''.join(x) for x in variant_site_block.alleles]
+        self.assertEqual(result, expected)
 
     def test_rightEdgeVariantSite_correctBlocks(self):
         prg_seq = 'TT5A6T5AA7C8A7'
@@ -63,7 +66,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_leftEdgeVariantSite_correctBlocks(self):
         prg_seq = '5A6T5AA7C8A7CC'
@@ -77,7 +81,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_bothEdgesVariantSite_correctBlocks(self):
         prg_seq = '5A6T5AA7C8A7'
@@ -90,7 +95,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_singleVariantSite_singleVariantBlock(self):
         prg_seq = '5A6T5'
@@ -101,7 +107,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_multiCharVariantSiteMarker_correctBlocks(self):
         prg_seq = 'TT97AC98GT97CC'
@@ -114,7 +121,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_leftEdgeMultiCharVarSiteMarker_correctBlocks(self):
         prg_seq = '97AC98GT97CC'
@@ -126,7 +134,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_rightEdgeMultiCharVarSiteMarker_correctBlocks(self):
         prg_seq = 'TT97AC98GT97'
@@ -138,7 +147,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
     def test_bothEdgesMultiCharVarSiteMarker_correctBlocks(self):
         prg_seq = '97AC98GT97'
@@ -149,7 +159,8 @@ class TestParsePrg(unittest.TestCase):
         ]
 
         for region, expected in zip(regions, expected):
-            self.assertEqual(region.alleles, expected)
+            result = [''.join(x) for x in region.alleles]
+            self.assertEqual(result, expected)
 
 
 class TestIterPeek(unittest.TestCase):
