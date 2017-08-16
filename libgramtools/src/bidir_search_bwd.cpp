@@ -50,10 +50,6 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
         sites.push_back(empty_pair_vector);
     }
 
-    // allele vector for "sites" variable
-    std::vector<int> allele_empty;
-    allele_empty.reserve(3500);
-
     auto fasta_pattern_it = fasta_pattern_end;
     while (fasta_pattern_it > fasta_pattern_begin) {
         if (sa_intervals.empty())
@@ -63,38 +59,42 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
         const uint8_t next_char = *fasta_pattern_it;
         assert((next_char >= 1) && (next_char <= 4));
 
+        assert(!sa_intervals.empty());
         auto sa_interval_it = sa_intervals.begin();
+
+        assert(!sites.empty());
         auto sites_it = sites.begin();
 
         if (kmer_precalc_done or fasta_pattern_it != fasta_pattern_end - 1) {
-
             // loop sa interval (matches of current substring)
             auto count_sa_intervals = sa_intervals.size();
             for (auto j = 0; j < count_sa_intervals; j++) {
 
-                process_matches_overlapping_variants(allele_empty,
-                                                     sa_intervals, sa_interval_it,
-                                                     sites, sites_it,
-                                                     delete_first_interval,
-                                                     maxx, allele_mask, fm_index,
-                                                     thread_id);
+                process_matches_overlapping_variants(sa_intervals, sa_interval_it, sites, sites_it,
+                                                     delete_first_interval, maxx,
+                                                     allele_mask, fm_index, thread_id);
             }
         }
 
+        assert(!sa_intervals.empty());
         sa_interval_it = sa_intervals.begin();
+
+        assert(!sites.empty());
         sites_it = sites.begin();
 
         delete_first_interval = match_next_charecter(delete_first_interval,
-                                                     sa_intervals, sa_interval_it,
-                                                     sites, sites_it,
-                                                     next_char, rank_all,
+                                                     sa_intervals,
+                                                     sa_interval_it,
+                                                     sites,
+                                                     sites_it,
+                                                     next_char,
+                                                     rank_all,
                                                      fm_index, thread_id);
     }
 }
 
 
-void process_matches_overlapping_variants(std::vector<int> &allele_empty,
-                                          SA_Intervals &sa_intervals,
+void process_matches_overlapping_variants(SA_Intervals &sa_intervals,
                                           SA_Intervals::iterator &sa_interval_it,
                                           Sites &sites,
                                           Sites::iterator &sites_it,
@@ -105,11 +105,10 @@ void process_matches_overlapping_variants(std::vector<int> &allele_empty,
                                           const int thread_id) {
 
     // check for edge of variant site
-    auto sa_interval_start = (*sa_interval_it).first;
-    auto sa_interval_end = (*sa_interval_it).second - 1;
-
+    const auto sa_interval_start = (*sa_interval_it).first;
+    const auto sa_interval_end = (*sa_interval_it).second;
     auto marker_positions = fm_index.wavelet_tree.range_search_2d(sa_interval_start,
-                                                                  sa_interval_end,
+                                                                  sa_interval_end - 1,
                                                                   5, maxx).second;
 
     uint64_t previous_marker = 0;
@@ -144,15 +143,9 @@ void process_matches_overlapping_variants(std::vector<int> &allele_empty,
                 second_to_last = true;
         }
 
-        update_sites_crossed_by_reads(sa_intervals, sa_interval_it,
-                                      left_new, right_new,
-                                      allele_empty, sites, sites_it,
-                                      second_to_last, ignore,
-                                      last, last_begin,
-                                      allele_mask, delete_first,
-                                      marker,
-                                      marker_idx,
-                                      fm_index);
+        update_sites_crossed_by_reads(sa_intervals, sa_interval_it, left_new, right_new, sites, sites_it,
+                                      second_to_last,
+                                      ignore, last, last_begin, allele_mask, delete_first, marker, marker_idx, fm_index);
 
         previous_marker = marker;
     }
@@ -222,8 +215,12 @@ bool match_next_charecter(bool delete_first_interval,
 
         delete_first_interval = sa_interval_it == sa_intervals.begin();
 
+        assert(!sites.empty());
+        assert(sites_it != sites.end());
+
         sa_interval_it = sa_intervals.erase(sa_interval_it);
         sites_it = sites.erase(sites_it);
+
     }
 
     return delete_first_interval;
@@ -255,7 +252,6 @@ void update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
                                    SA_Intervals::iterator &sa_interval_it,
                                    uint64_t left_new,
                                    uint64_t right_new,
-                                   std::vector<int> &allele_empty,
                                    Sites &sites,
                                    Sites::iterator &sites_it,
                                    bool &second_to_last,
@@ -272,18 +268,22 @@ void update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
         auto sa_interval = std::make_pair(left_new, right_new);
         sa_intervals.push_back(sa_interval);
 
+        std::vector<int> allele_empty;
+        allele_empty.reserve(3500);
         auto variant_site = get_variant_site_edge(allele_empty,
-                                                  marker, marker_idx,
+                                                  marker,
+                                                  marker_idx,
                                                   allele_mask,
                                                   last, fm_index);
         Site site(1, variant_site);
         sites.push_back(site);
         sites.back().reserve(100);
 
-        allele_empty.clear();
-        allele_empty.reserve(3500);
         return;
     }
+
+    assert(!sites.empty());
+    assert(sites_it != sites.end());
 
     // there will be entries with pair.second empty (corresp to allele)
     // coming from crossing the last marker
@@ -292,14 +292,16 @@ void update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
         if ((marker == last_begin + 1) && second_to_last) {
             auto vec_item = *(std::prev(sites.end(), 2));
             const auto variant_site = get_variant_site_edge(vec_item.back().second,
-                                                            marker, marker_idx,
+                                                            marker,
+                                                            marker_idx,
                                                             allele_mask,
                                                             last,
                                                             fm_index);
             vec_item.back() = variant_site;
         } else {
             const auto variant_site = get_variant_site_edge(sites.back().back().second,
-                                                            marker, marker_idx,
+                                                            marker,
+                                                            marker_idx,
                                                             allele_mask,
                                                             last,
                                                             fm_index);
@@ -310,19 +312,25 @@ void update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
 
     *sa_interval_it = std::make_pair(left_new, right_new);
 
-    if ((*sites_it).back().first == marker || (*sites_it).back().first == marker - 1) {
+    VariantSite &k = (*sites_it).back();
+    auto i = k.first;
+    if (i == marker || i == marker - 1) {
         const auto variant_site = get_variant_site_edge((*sites_it).back().second,
-                                                        marker, marker_idx,
-                                                        allele_mask, last,
+                                                        marker,
+                                                        marker_idx,
+                                                        allele_mask,
+                                                        last,
                                                         fm_index);
         (*sites_it).back() = variant_site;
     } else {
-        const auto variant_site = get_variant_site_edge(allele_empty, marker,
-                                                        marker_idx, allele_mask,
-                                                        last, fm_index);
+        std::vector<int> allele_empty;
+        allele_empty.reserve(3500);
+        const auto variant_site = get_variant_site_edge(allele_empty,
+                                                        marker,
+                                                        marker_idx,
+                                                        allele_mask,
+                                                        last,
+                                                        fm_index);
         (*sites_it).emplace_back(variant_site);
     }
-
-    allele_empty.clear();
-    allele_empty.reserve(3500);
 }

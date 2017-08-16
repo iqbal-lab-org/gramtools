@@ -1,7 +1,9 @@
+#include <fstream>
 #include <cinttypes>
 #include <sdsl/suffix_arrays.hpp>
 
 #include "fm_index.hpp"
+#include "map.hpp"
 
 
 //make SA sampling density and ISA sampling density customizable
@@ -38,11 +40,21 @@ void dump_encoded_prg(const std::vector<uint64_t> &prg,
 }
 
 
+bool file_exist(const std::string &fpath) {
+    std::ifstream fhandle(fpath.c_str());
+    auto result = fhandle.good();
+    fhandle.close();
+    return result;
+}
+
+
 FM_Index build_fm_index(const std::string &prg_encoded_fpath,
                         const std::string &fm_index_fpath,
                         const std::string &memory_log_fname) {
-    sdsl::memory_monitor::start();
+
     FM_Index fm_index;
+
+    sdsl::memory_monitor::start();
     sdsl::construct(fm_index, prg_encoded_fpath, 8);
     sdsl::memory_monitor::stop();
 
@@ -50,7 +62,30 @@ FM_Index build_fm_index(const std::string &prg_encoded_fpath,
     sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(memory_log_fhandle);
 
     sdsl::store_to_file(fm_index, fm_index_fpath);
+
+    assert(!fm_index.empty());
     return fm_index;
+
+    /*
+
+    if(file_exist(fm_index_fpath)) {
+        load_from_file(fm_index, fm_index_fpath);
+        if (!fm_index.empty())
+            return fm_index;
+    }
+
+    sdsl::memory_monitor::start();
+    sdsl::construct(fm_index, prg_encoded_fpath, 8);
+    sdsl::memory_monitor::stop();
+
+    std::ofstream memory_log_fhandle(memory_log_fname);
+    sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(memory_log_fhandle);
+
+    sdsl::store_to_file(fm_index, fm_index_fpath);
+
+    assert(!fm_index.empty());
+    return fm_index;
+     */
 }
 
 
