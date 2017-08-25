@@ -39,7 +39,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Getting kmers");
 
     std::cout << "Mapping" << std::endl;
-    auto count_mapped = map_reads(kmers, masks, params, fm_index, rank_all);
+    auto count_mapped = process_reads(kmers, masks, params, fm_index, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 

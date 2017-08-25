@@ -12,22 +12,38 @@
 #define GRAMTOOLS_MAP_HPP
 
 
-int map_reads(KmersData &kmers, MasksParser &masks, const Parameters &params, const FM_Index &fm_index,
-              const DNA_Rank &rank_all);
+int process_reads(KmersData &kmers, MasksParser &masks, const Parameters &params, const FM_Index &fm_index,
+                  const DNA_Rank &rank_all);
 
 std::vector<uint8_t> int_encode_read(const GenomicRead &read_sequence);
 
-int process_read(const GenomicRead &read_sequence, int &in_sites, std::unordered_set<uint64_t> &repeats, KmersData &kmers,
-                 MasksParser &masks, const Parameters &params, const DNA_Rank &rank_all, const FM_Index &fm_index);
+bool process_read(const std::vector<uint8_t> &encoded_read,
+                  int &count_char_in_variant_site,
+                  std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
+                  KmersData &kmers,
+                  MasksParser &masks,
+                  const Parameters &params,
+                  const DNA_Rank &rank_all,
+                  const FM_Index &fm_index);
 
-void process_sa_interval(SA_Intervals::iterator &sa_intervals_it,
-                         Sites &sites, SA_Intervals &sa_intervals,
-                         bool &delete_first, uint64_t &no_occ, int &in_sites,
-                         std::vector<uint8_t> &readin_integer_seq,
-                         std::unordered_set<uint64_t> &repeats,
-                         Sites::iterator &sites_it,
-                         MasksParser &masks, const FM_Index &fm_index,
-                         const DNA_Rank &rank_all);
+bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmersData &kmers);
+
+bool map_read(const std::vector<uint8_t> &read_kmer_part, const std::vector<uint8_t> &encoded_read, int &in_sites,
+              std::unordered_set<uint64_t> &repeats, KmersData &kmers, MasksParser &masks, const Parameters &params,
+              const DNA_Rank &rank_all, const FM_Index &fm_index);
+
+void populate_repeats_variant_edges(std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
+                                    int &count_char_in_variant_site,
+                                    const MasksParser &masks,
+                                    const Sites &sites,
+                                    const SA_Intervals &sa_intervals,
+                                    const FM_Index &fm_index);
+
+void update_site_sa_interval_coverage(MasksParser &masks, const Site &site, const bool first_site_empty,
+                                      const SA_Interval &sa_interval, const bool is_first_sa_interval,
+                                      const bool delete_first, const uint64_t total_num_sa_intervals,
+                                      const int in_sites, const std::vector<uint8_t> &readin_integer_seq,
+                                      const uint64_t repeats, const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 void output_allele_coverage(Parameters &params, MasksParser &masks);
 

@@ -29,7 +29,9 @@ TEST(BackwardSearchTest, NoVariants1) {
         mask_a.push_back(0);
     }
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = construct_fm_index(true, "csa_file",
+                                                 "int_alphabet_file",
+                                                 test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     Sites sites;
@@ -50,8 +52,15 @@ TEST(BackwardSearchTest, NoVariants1) {
             if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
         }
 
-        bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                         p_tmp.end(), mask_a, 4, precalc, rank_all, fm_index, 0);
+        if (sa_intervals.empty()) {
+            sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+            Site empty_pair_vector;
+            sites.push_back(empty_pair_vector);
+        }
+
+        bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                         p_tmp.end(), mask_a, 4, precalc, rank_all, fm_index);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_TRUE(!delete_first);
@@ -101,8 +110,15 @@ TEST(BackwardSearchTest, OneSNP) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, delete_first);
@@ -159,8 +175,15 @@ TEST(BackwardSearchTest, TwoSNPs) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), allele_mask, 8, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), allele_mask, 8, precalc, rank_all, fm_index);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_EQ(true, delete_first);
@@ -214,8 +237,15 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -274,8 +304,15 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -337,8 +374,15 @@ TEST(BackwardSearchTest, Two_long_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -402,8 +446,15 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -466,8 +517,15 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -531,8 +589,15 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
@@ -611,8 +676,15 @@ TEST(BackwardSearchTest, One_match_many_sites) {
         if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
     }
 
-    bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 16, precalc, rank_all, fm_index, 0);
+    if (sa_intervals.empty()) {
+        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+        Site empty_pair_vector;
+        sites.push_back(empty_pair_vector);
+    }
+
+    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                     p_tmp.end(), mask_a, 16, precalc, rank_all, fm_index);
 
     uint64_t no_occ = 0;
     for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)

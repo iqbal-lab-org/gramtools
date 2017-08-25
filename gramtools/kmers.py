@@ -122,9 +122,11 @@ def _kmers_from_genome_path(path_parts, kmer_size):
         yield kmer
 
 
-def _kmers_from_genome_paths(genome_paths, kmer_size, unique=False):
+def _kmers_from_genome_paths(genome_paths, kmer_size, tot_num_paths, unique=False):
     """Generate all kmers which exist for a list of genome paths."""
-    for path_parts in genome_paths:
+    for i, path_parts in enumerate(genome_paths):
+        if i % 200 == 0:
+            print(i, tot_num_paths)
         kmers = _kmers_from_genome_path(path_parts, kmer_size)
 
         seen_kmers = set()
@@ -145,8 +147,13 @@ def _generate_variant_kmers(kmer_region_size, kmer_size, regions):
         alleles = _alleles_within_range(kmer_region_size,
                                         start_region,
                                         regions)
+
+        tot_num_paths = 1
+        for allele in alleles:
+            tot_num_paths *= len(allele)
+
         genome_paths = _genome_paths(alleles)
-        kmers = _kmers_from_genome_paths(genome_paths, kmer_size,
+        kmers = _kmers_from_genome_paths(genome_paths, kmer_size, tot_num_paths,
                                          unique=True)
         for kmer in kmers:
             if kmer not in seen_kmers:
@@ -191,15 +198,6 @@ def _dump_kmers(kmers, output_fpath):
             fhandle.write(''.join(kmer) + '\n')
             count_written += 1
     return count_written
-
-
-def _dump_masks(sites, alleles, args):
-    log.debug('Writing sites mask to file')
-    with open(args.sites_mask_fpath, 'w') as fhandle:
-        fhandle.write(sites)
-    log.debug('Writing alleles mask to file')
-    with open(args.allele_mask_fpath, 'w') as fhandle:
-        fhandle.write(alleles)
 
 
 def run(args):

@@ -6,8 +6,6 @@
 #include "map.hpp"
 
 
-//make SA sampling density and ISA sampling density customizable
-//make void fcn and pass csa by reference? return ii?
 FM_Index construct_fm_index(bool fwd,
                             std::string fm_index_fpath,
                             std::string prg_encoded_fpath,
@@ -15,7 +13,8 @@ FM_Index construct_fm_index(bool fwd,
                             const std::string &memory_log_fname) {
 
     std::vector<uint64_t> prg = parse_prg(prg_fpath);
-    std::cout << "Number of integers in int encoded linear PRG: " << prg.size() << std::endl;
+    std::cout << "Number of integers in encoded linear PRG: "
+              << prg.size() << std::endl;
 
     if (!fwd) {
         prg_encoded_fpath = prg_encoded_fpath + "_rev";
@@ -54,25 +53,13 @@ FM_Index build_fm_index(const std::string &prg_encoded_fpath,
 
     FM_Index fm_index;
 
-    sdsl::memory_monitor::start();
-    sdsl::construct(fm_index, prg_encoded_fpath, 8);
-    sdsl::memory_monitor::stop();
-
-    std::ofstream memory_log_fhandle(memory_log_fname);
-    sdsl::memory_monitor::write_memory_log<sdsl::HTML_FORMAT>(memory_log_fhandle);
-
-    sdsl::store_to_file(fm_index, fm_index_fpath);
-
-    assert(!fm_index.empty());
-    return fm_index;
-
     /*
-
     if(file_exist(fm_index_fpath)) {
         load_from_file(fm_index, fm_index_fpath);
         if (!fm_index.empty())
             return fm_index;
     }
+    */
 
     sdsl::memory_monitor::start();
     sdsl::construct(fm_index, prg_encoded_fpath, 8);
@@ -85,7 +72,6 @@ FM_Index build_fm_index(const std::string &prg_encoded_fpath,
 
     assert(!fm_index.empty());
     return fm_index;
-     */
 }
 
 

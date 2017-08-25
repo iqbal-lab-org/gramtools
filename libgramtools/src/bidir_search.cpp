@@ -18,12 +18,12 @@
 
 
 SA_Interval bidir_search(const uint8_t next_char,
-                         const SA_Intervals::iterator &sa_interval_it,
+                         const SA_Interval &sa_interval,
                          const DNA_Rank &rank_all,
                          const FM_Index &fm_index) {
 
-    uint64_t left = sa_interval_it->first;
-    uint64_t right = sa_interval_it->second;
+    uint64_t left = sa_interval.first;
+    uint64_t right = sa_interval.second;
 
     assert(left < right);
     assert(right <= fm_index.size());

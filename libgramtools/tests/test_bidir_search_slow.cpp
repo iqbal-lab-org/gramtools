@@ -66,8 +66,15 @@ void perform_test(const std::string &test_fpath) {
             if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
         }
 
-        bidir_search_bwd(sa_intervals, 0, fm_index.size(), sites, delete_first, p_tmp.begin(),
-                         p_tmp.end(), allele_mask, 5, precalc, rank_all, fm_index, 0);
+        if (sa_intervals.empty()) {
+            sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+
+            Site empty_pair_vector;
+            sites.push_back(empty_pair_vector);
+        }
+
+        bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
+                         p_tmp.end(), allele_mask, 5, precalc, rank_all, fm_index);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
         EXPECT_FALSE(delete_first);

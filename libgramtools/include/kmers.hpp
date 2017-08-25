@@ -55,7 +55,7 @@ struct ThreadData {
 struct KmersData {
     KmerIdx index;
     KmerSites sites;
-    KmersRef in_reference;
+    KmersRef in_precalc;
 };
 
 std::vector<uint8_t> encode_dna_bases(const std::string &dna_str);

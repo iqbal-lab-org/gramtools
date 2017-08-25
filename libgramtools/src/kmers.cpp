@@ -136,7 +136,14 @@ void calc_kmer_matches(KmerIdx &kmer_idx,
         bool delete_first_interval = false;
         bool kmer_precalc_done = false;
 
-        bidir_search_bwd(kmer_idx[kmer], 0, fm_index.size(), kmer_sites[kmer], delete_first_interval, kmer.begin(),
+        if (kmer_idx[kmer].empty()) {
+            kmer_idx[kmer].emplace_back(std::make_pair(0, fm_index.size()));
+
+            Site empty_pair_vector;
+            kmer_sites[kmer].push_back(empty_pair_vector);
+        }
+
+        bidir_search_bwd(kmer_idx[kmer], kmer_sites[kmer], delete_first_interval, kmer.begin(),
                          kmer.end(), allele_mask, maxx, kmer_precalc_done, rank_all, fm_index);
 
         if (kmer_idx[kmer].empty())
@@ -323,7 +330,7 @@ void process_precalc_line(const std::string &line, KmersData &kmers) {
     Kmer encoded_kmer = parse_encoded_kmer(parts[0]);
     const auto in_reference_flag = parse_in_reference_flag(parts[1]);
     if (!in_reference_flag)
-        kmers.in_reference.insert(encoded_kmer);
+        kmers.in_precalc.insert(encoded_kmer);
 
     const auto sa_intervals = parse_sa_intervals(parts[2]);
     if (!sa_intervals.empty())
