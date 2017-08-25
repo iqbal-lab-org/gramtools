@@ -6,14 +6,22 @@
 #include "map.hpp"
 
 
-FM_Index construct_fm_index(bool fwd,
-                            std::string fm_index_fpath,
-                            std::string prg_encoded_fpath,
-                            const std::string &prg_fpath,
-                            const std::string &memory_log_fname) {
+inline bool file_exist(const std::string& fname) {
+    std::ifstream f(fname.c_str());
+    return f.good();
+}
+
+
+//make SA sampling density and ISA sampling density customizable
+//make void fcn and pass csa by reference? return ii?
+FM_Index get_fm_index(bool fwd,
+                      std::string fm_index_fpath,
+                      std::string prg_encoded_fpath,
+                      const std::string &prg_fpath,
+                      const std::string &memory_log_fname) {
 
     std::vector<uint64_t> prg = parse_prg(prg_fpath);
-    std::cout << "Number of integers in encoded linear PRG: "
+    std::cout << "Number of integers in int encoded linear PRG: "
               << prg.size() << std::endl;
 
     if (!fwd) {
@@ -21,8 +29,18 @@ FM_Index construct_fm_index(bool fwd,
         fm_index_fpath = fm_index_fpath + "_rev";
         std::reverse(prg.begin(), prg.end());
     }
-
     dump_encoded_prg(prg, prg_encoded_fpath);
+
+    if (file_exist(fm_index_fpath)) {
+        FM_Index fm_index;
+        sdsl::load_from_file(fm_index, fm_index_fpath);
+        if (!fm_index.empty()) {
+            std::cout << "FM-Index found in cache" << std::endl;
+            return fm_index;
+        }
+    }
+
+    std::cout << "FM-Index not found in cache, constructing" << std::endl;
     FM_Index fm_index = build_fm_index(prg_encoded_fpath,
                                        fm_index_fpath,
                                        memory_log_fname);
@@ -39,27 +57,11 @@ void dump_encoded_prg(const std::vector<uint64_t> &prg,
 }
 
 
-bool file_exist(const std::string &fpath) {
-    std::ifstream fhandle(fpath.c_str());
-    auto result = fhandle.good();
-    fhandle.close();
-    return result;
-}
-
-
 FM_Index build_fm_index(const std::string &prg_encoded_fpath,
                         const std::string &fm_index_fpath,
                         const std::string &memory_log_fname) {
 
     FM_Index fm_index;
-
-    /*
-    if(file_exist(fm_index_fpath)) {
-        load_from_file(fm_index, fm_index_fpath);
-        if (!fm_index.empty())
-            return fm_index;
-    }
-    */
 
     sdsl::memory_monitor::start();
     sdsl::construct(fm_index, prg_encoded_fpath, 8);

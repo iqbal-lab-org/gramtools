@@ -5,11 +5,13 @@
 #include <sdsl/suffix_arrays.hpp>
 #include "gtest/gtest.h"
 
+#include "common.hpp"
 #include "map.hpp"
 #include "bidir_search_bwd.hpp"
 
 
 TEST(BackwardSearchTest, NoVariants1) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -29,9 +31,7 @@ TEST(BackwardSearchTest, NoVariants1) {
         mask_a.push_back(0);
     }
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file",
-                                                 "int_alphabet_file",
-                                                 test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     Sites sites;
@@ -73,11 +73,12 @@ TEST(BackwardSearchTest, NoVariants1) {
 
         p_tmp.clear();
     }
-
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, OneSNP) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -94,7 +95,7 @@ TEST(BackwardSearchTest, OneSNP) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     Sites sites;
@@ -132,16 +133,17 @@ TEST(BackwardSearchTest, OneSNP) {
     sa_intervals.clear();
     sites.clear();
 
-    construct_fm_index(false, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-    delete_first = false;
+    get_fm_index(false, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     sa_intervals.clear();
     sites.clear();
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, TwoSNPs) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -158,7 +160,7 @@ TEST(BackwardSearchTest, TwoSNPs) {
     while (g >> a)
         allele_mask.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     Sites sites;
@@ -200,10 +202,12 @@ TEST(BackwardSearchTest, TwoSNPs) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -219,7 +223,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -267,10 +271,12 @@ TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -286,7 +292,7 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -334,15 +340,16 @@ TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Two_long_sites) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
     std::vector<int> mask_a;
-
 
     //prg = acgacacat5gatag6tagga6gctcg6gctct5gctcgatgactagatagatag7cga8cgc8tga8tgc7ggcaacatctacga
     test_file2 = "./test_cases/two_long_sites.txt";
@@ -356,7 +363,7 @@ TEST(BackwardSearchTest, Two_long_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -406,10 +413,12 @@ TEST(BackwardSearchTest, Two_long_sites) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -428,7 +437,7 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -478,10 +487,12 @@ TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -498,7 +509,7 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -547,10 +558,12 @@ TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -567,7 +580,7 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -638,9 +651,11 @@ TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }
 
 TEST(BackwardSearchTest, One_match_many_sites) {
+    cleanup_files();
     std::string q_tmp, test_file2, query, mask_file;
     std::vector<uint8_t> p_tmp;
     std::vector<std::string> substrings;
@@ -658,7 +673,7 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     mask_a.clear();
     while (g >> a) mask_a.push_back(a);
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
 
     SA_Intervals sa_intervals;
     SA_Intervals::iterator it;
@@ -740,4 +755,5 @@ TEST(BackwardSearchTest, One_match_many_sites) {
     sites.clear();
 
     p_tmp.clear();
+    cleanup_files();
 }

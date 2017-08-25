@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "map.hpp"
 
-
+/*
 TEST(ProcessRead, desc) {
     const std::vector<uint8_t> &encoded_read,
     int &count_char_in_variant_site,
@@ -22,3 +22,4 @@ TEST(ProcessRead, desc) {
                 const DNA_Rank &rank_all,
                 const FM_Index &fm_index)
 }
+ */

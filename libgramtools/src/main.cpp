@@ -19,9 +19,9 @@ int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
     TimerReport timer_report;
 
-    std::cout << "Constructing FM-index" << std::endl;
-    const FM_Index fm_index = construct_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
-                                                 params.prg_fpath, params.fm_index_memory_log_fpath);
+    std::cout << "Getting FM-index" << std::endl;
+    const FM_Index fm_index = get_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
+                                           params.prg_fpath, params.fm_index_memory_log_fpath);
 
     timer_report.record("Construct FM-index");
 

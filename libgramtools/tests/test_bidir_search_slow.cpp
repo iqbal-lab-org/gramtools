@@ -1,6 +1,7 @@
 #include <sdsl/suffix_arrays.hpp>
 #include "gtest/gtest.h"
 
+#include "common.hpp"
 #include "map.hpp"
 #include "bidir_search_bwd.hpp"
 
@@ -20,6 +21,7 @@ std::vector<std::string> generate_all_substrings(std::string q) {
 
 
 void perform_test(const std::string &test_fpath) {
+    cleanup_files();
     std::string prg;
     std::vector<std::string> substrings;
     std::vector<int> allele_mask;
@@ -36,7 +38,7 @@ void perform_test(const std::string &test_fpath) {
         allele_mask.push_back(0);
     }
 
-    const FM_Index fm_index = construct_fm_index(true, "csa_file", "int_alphabet_file", test_fpath, "memory_log_file");
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_fpath, "memory_log_file");
 
     SA_Intervals sa_intervals;
     Sites sites;
@@ -86,6 +88,7 @@ void perform_test(const std::string &test_fpath) {
 
         p_tmp.clear();
     }
+    cleanup_files();
 }
 
 
