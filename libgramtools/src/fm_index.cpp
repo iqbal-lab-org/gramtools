@@ -114,7 +114,7 @@ std::vector<uint64_t> encode_prg(const std::string &prg_raw) {
 
         if (encode_result.is_dna) {
             flush_marker_digits(marker_digits, prg_encoded);
-            prg_encoded.push_back(encode_result.charecter);
+            prg_encoded.emplace_back(encode_result.charecter);
             continue;
         }
 

@@ -10,68 +10,57 @@
 #include "bidir_search_bwd.hpp"
 
 
+void set_up_state(FM_Index &fm_index, DNA_Rank &rank_all, std::vector<int> &allele_mask,
+                  const std::string &prg_fpath, const std::string &mask_fpath) {
+    std::ifstream g(mask_fpath);
+    int a;while (g >> a)
+        allele_mask.push_back(a);
+
+    fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
+    rank_all = calculate_ranks(fm_index);
+}
+
+
+std::vector<uint8_t> encode_read(const std::string &read) {
+    std::vector<uint8_t> encoded_read;
+    for (uint16_t i = 0; i < read.length(); i++) {
+        if (read[i] == 'A' or read[i] == 'a') encoded_read.push_back(1);
+        if (read[i] == 'C' or read[i] == 'c') encoded_read.push_back(2);
+        if (read[i] == 'G' or read[i] == 'g') encoded_read.push_back(3);
+        if (read[i] == 'T' or read[i] == 't') encoded_read.push_back(4);
+    }
+    return encoded_read;
+}
+
+
 TEST(BackwardSearchTest, NoVariants1) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
-    test_file2 = "./test_cases/one_byte.txt";
+    std::vector<std::string> substrings = {"a"};
+    std::vector<int> allele_mask = {0};
+    const auto prg_fpath = "./test_cases/one_byte.txt";
 
-    //generate all substrings of PRG, use them all as queries
-    std::string temp;
-    std::ifstream ff(test_file2);
-    ff >> temp;//in this case, is a one char PRG, no need for substrings
-    substrings.push_back(temp);
-
-    //dummy mask
-    uint64_t a;
-    mask_a.clear();
-    for (a = 0; a < temp.length(); a++) {
-        mask_a.push_back(0);
-    }
-
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    for (std::vector<std::string>::iterator it = substrings.begin(); it < substrings.end(); ++it) {
-        q_tmp = *it;
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
 
-        bool delete_first = false;
-        bool precalc = false;
+    for (const auto &read: substrings) {
+        const auto encoded_read = encode_read(read);
         int occ_expt = 1;
 
-        for (uint16_t i = 0; i < q_tmp.length(); i++) {
-            if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-            if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-            if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-            if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-        }
+        SA_Intervals sa_intervals = {{0, fm_index.size()}};
+        Sites sites = {Site()};
 
-        if (sa_intervals.empty()) {
-            sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
-
-            Site empty_pair_vector;
-            sites.push_back(empty_pair_vector);
-        }
-
-        bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                         p_tmp.end(), mask_a, 4, precalc, rank_all, fm_index);
+        bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                         encoded_read.end(), allele_mask, 4, kmer_index_generated, rank_all, fm_index);
 
         uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
-        EXPECT_TRUE(!delete_first);
-        EXPECT_EQ(1, sa_intervals.size());
+        EXPECT_TRUE(!delete_first_interval);
+        EXPECT_EQ(sa_intervals.size(), 1);
         EXPECT_EQ(no_occ, occ_expt);
-        EXPECT_EQ(1, sites.size());
+        EXPECT_EQ(sites.size(), 1);
         EXPECT_EQ(sites.front().size(), 0);
-        sa_intervals.clear();
-        sites.clear();
-
-        p_tmp.clear();
     }
     cleanup_files();
 }
@@ -79,681 +68,404 @@ TEST(BackwardSearchTest, NoVariants1) {
 
 TEST(BackwardSearchTest, OneSNP) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
 
     //PRG = catttacaca5g6t5aactagagagca
-    test_file2 = "./test_cases/one_snp.txt";
-    query = "ttacacagaactagagag";//aligns across SNP allele 1 (and both flanks)
-    mask_file = "./test_cases/one_snp_mask_a.txt";
-    std::ifstream g(mask_file);
-    bool precalc = false;
+    const auto prg_fpath = "./test_cases/one_snp.txt";
+    const auto read = "ttacacagaactagagag";//aligns across SNP allele 1 (and both flanks)
+    const auto mask_fpath = "./test_cases/one_snp_mask_a.txt";
 
-    int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    FM_Index fm_index;
+    DNA_Rank rank_all;
+    std::vector<int> allele_mask;
+    set_up_state(fm_index, rank_all, allele_mask, prg_fpath, mask_fpath);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    SA_Intervals sa_intervals;
-    Sites sites;
-    bool delete_first = false;
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
-
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
-
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 6, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
-    EXPECT_EQ(true, delete_first);
-    EXPECT_EQ(1, sa_intervals.size());
+    EXPECT_TRUE(delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 1);
     EXPECT_EQ(no_occ, 1);
-    EXPECT_EQ(sites.front().front().first, 5);
-    EXPECT_EQ(sites.front().front().second.front(), 1);
-    EXPECT_EQ(sites.front().front().second.size(), 1);
-    EXPECT_TRUE(sites.size() == 1);
 
-    sa_intervals.clear();
-    sites.clear();
+    const Sites expected = {
+            {VariantSite(5, {1})},
+    };
+    EXPECT_EQ(sites, expected);
 
-    get_fm_index(false, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    sa_intervals.clear();
-    sites.clear();
-    p_tmp.clear();
+    get_fm_index(false, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, TwoSNPs) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> allele_mask;
 
     //prg = catttacaca5g6t5aactag7a8g7agcagggt
-    test_file2 = "./test_cases/two_snps.txt";
-    query = "ttacacagaactagaagcag";//aligns across both SNPs, both allele 1
-    mask_file = "./test_cases/two_snps_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto prg_fpath = "./test_cases/two_snps.txt";
+    const auto read = "ttacacagaactagaagcag";//aligns across both SNPs, both allele 1
+    const auto mask_fpath = "./test_cases/two_snps_mask_a.txt";
 
-    int a;
-    allele_mask.clear();
-    while (g >> a)
-        allele_mask.push_back(a);
+    FM_Index fm_index;
+    DNA_Rank rank_all;
+    std::vector<int> allele_mask;
+    set_up_state(fm_index, rank_all, allele_mask, prg_fpath, mask_fpath);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    SA_Intervals sa_intervals;
-    Sites sites;
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
-
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
-
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), allele_mask, 8, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 8, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
-    EXPECT_EQ(true, delete_first);
-    EXPECT_EQ(1, sa_intervals.size());
+    EXPECT_TRUE(delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 1);
     EXPECT_EQ(no_occ, 1);
-    EXPECT_EQ(sites.front().front().first, 7);
-    EXPECT_EQ(sites.front().front().second.front(), 1);
-    EXPECT_EQ(sites.front().front().second.size(), 1);
-    EXPECT_EQ(sites.front().back().first, 5);
-    EXPECT_EQ(sites.front().back().second.front(), 1);
-    EXPECT_EQ(sites.front().back().second.size(), 1);
 
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    const Sites expected = {
+            {VariantSite(7, {1}), VariantSite(5, {1})},
+    };
+    EXPECT_EQ(sites, expected);
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Two_matches_one_variable_one_nonvariable_region) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
 
     //prg=catttacaca5g6t5aactagagagcaacagaactctct
-    test_file2 = "./test_cases/two_matches_var_nonvar.txt";
-    query = "acagaac";//one match crosses allele 1, and the other in nonvar
-    mask_file = "./test_cases/two_matches_var_nonvar_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto prg_fpath = "./test_cases/two_matches_var_nonvar.txt";
+    const auto read = "acagaac";//one match crosses allele 1, and the other in nonvar
+    const auto mask_fpath = "./test_cases/two_matches_var_nonvar_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 6, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_TRUE(!delete_first);
-    EXPECT_EQ(2, sa_intervals.size());
+    EXPECT_TRUE(!delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 2);
     EXPECT_EQ(no_occ, 2);
 
-    //first SA_interval is in non-variable region
-    EXPECT_EQ(sites.front().size(), 0);
-    //second overlaps a site
-    EXPECT_EQ(sites.back().front().first, 5);
-    EXPECT_EQ(sites.back().front().second.front(), 1);
-    EXPECT_EQ(sites.back().size(), 1);
-
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    const Sites expected = {
+            {},
+            {VariantSite(5, {1})},
+    };
+    EXPECT_EQ(sites, expected);
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
 
     //prg=catttacaca5g6t5aactagagagcaacataactctct
-    test_file2 = "./test_cases/two_matches_var_other_allele_nonvar.txt";
-    query = "acataac";//one match crosses allele 2, and the other in nonvar
-    mask_file = "./test_cases/two_matches_var_nonvar_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto prg_fpath = "./test_cases/two_matches_var_other_allele_nonvar.txt";
+    const auto read = "acataac";//one match crosses allele 2, and the other in nonvar
+    const auto mask_fpath = "./test_cases/two_matches_var_nonvar_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 6, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 6, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_TRUE(!delete_first);
-    EXPECT_EQ(2, sa_intervals.size());
+    EXPECT_TRUE(!delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 2);
     EXPECT_EQ(no_occ, 2);
 
-    //first SA_interval is in non-variable region
-    EXPECT_EQ(sites.front().size(), 0);
-    //second SA  overlaps a site
-    EXPECT_EQ(sites.back().front().first, 5);
-    EXPECT_EQ(sites.back().front().second.front(), 2);
-    EXPECT_EQ(sites.back().size(), 1);
-
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    const Sites expected = {
+            {},
+            {VariantSite(5, {2})},
+    };
+    EXPECT_EQ(sites, expected);
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Two_long_sites) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
-
     //prg = acgacacat5gatag6tagga6gctcg6gctct5gctcgatgactagatagatag7cga8cgc8tga8tgc7ggcaacatctacga
-    test_file2 = "./test_cases/two_long_sites.txt";
+    const auto prg_fpath = "./test_cases/two_long_sites.txt";
 
     //read aligns from middle of  allele 3 of site 5 and allele 1 of site 7
-    query = "gctcggctcgatgactagatagatagcgaggcaac";
-    mask_file = "./test_cases/two_long_sites_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto read = "gctcggctcgatgactagatagatagcgaggcaac";
+    const auto mask_fpath = "./test_cases/two_long_sites_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 8, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_EQ(true, delete_first);
-    EXPECT_EQ(1, sa_intervals.size());
+    EXPECT_TRUE(delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 1);
     EXPECT_EQ(no_occ, 1);
 
-    EXPECT_EQ(sites.front().front().first, 7);
-    EXPECT_EQ(sites.front().front().second.front(), 1);
-    EXPECT_EQ(sites.front().front().second.size(), 1);
-
-    //note this unit test allows for an implementation limitation
-    //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
-    EXPECT_EQ(sites.front().back().first, 5);
-    //should really say it has overlapped allele 3
-    EXPECT_EQ(sites.front().back().second.size(), 0);
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    const Sites expected = {
+            {VariantSite(7, {1}), VariantSite(5, {})},
+    };
+    EXPECT_EQ(sites, expected);
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Match_within_long_site_match_outside) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
-
 
     //prg=gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7tcagctgctccacacagaga
-    test_file2 = "./test_cases/match_within_long_site.txt";
+    const auto prg_fpath = "./test_cases/match_within_long_site.txt";
 
     //read aligns in allele 2 of site 5, and in non-var region
-    query = "ctgctccacacagaga";
-    mask_file = "./test_cases/match_within_long_site_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto read = "ctgctccacacagaga";
+    const auto mask_fpath = "./test_cases/match_within_long_site_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 8, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_TRUE(!delete_first);
-    EXPECT_EQ(1, sa_intervals.size());
+    EXPECT_TRUE(!delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 1);
     EXPECT_EQ(no_occ, 2);
 
-
-
-    //first SA_interval is in non-variable region
-    EXPECT_EQ(sites.front().size(), 0);
-    //second overlaps a site, HOWEVER it does not cross the digit 5.
-    //note this unit test allows for an implementation limitation
-    //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
-    EXPECT_EQ(sites.back().size(), 0);
-
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    const Sites expected = {Site()};
+    EXPECT_EQ(expected, sites);
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
 
     //prg = gacatagacacacagt5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5ggtgctagac7c8a7ccagctgctccacacagaga
-    test_file2 = "./test_cases/repeated_snp_on_both_edges.txt";
+    const auto prg_fpath = "./test_cases/repeated_snp_on_both_edges.txt";
     //read aligns across sites 5 and 7, allele 1 in both cases
-    query = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
-    mask_file = "./test_cases/match_within_long_site_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto read = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
+    const auto mask_fpath = "./test_cases/match_within_long_site_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    bool delete_first = false;
-    bool precalc = false;
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
-
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 8, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_EQ(true, delete_first);
-    EXPECT_EQ(1, sa_intervals.size());
+    EXPECT_TRUE(delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 1);
     EXPECT_EQ(no_occ, 1);
 
-    EXPECT_EQ(sites.front().front().first, 7);
-    EXPECT_EQ(sites.front().front().second.front(), 1);
-    EXPECT_EQ(sites.front().front().second.size(), 1);
-    EXPECT_EQ(sites.front().back().first, 5);
-    EXPECT_EQ(sites.front().back().second.front(), 1);
-    EXPECT_EQ(sites.front().back().second.size(), 1);
-
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    const Sites expected = {
+            {VariantSite(7, {1}), VariantSite(5, {1})},
+    };
+    EXPECT_EQ(expected, sites);
     cleanup_files();
 }
 
 
 TEST(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
 
     //prg=acgacacat5gatag6tagga6gctcg6gctct5gctcgtgataatgactagatagatag7cga8cgc8tga8tgc7taggcaacatctacga
-    test_file2 = "./test_cases/multiple_matches_multiple_sites.txt";
+    const auto prg_fpath = "./test_cases/multiple_matches_multiple_sites.txt";
     //read aligns over allele 1 of site 5, the nonvariableregion and allele 3 of site 7
-    query = "tgata";
-    mask_file = "./test_cases/multiple_matches_multiple_sites_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto read = "tgata";
+    const auto mask_fpath = "./test_cases/multiple_matches_multiple_sites_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
     //each element on the list corresponds to a SA interval
     //these elements are vectors of pairs (pair=(site, list of alleles))
-    Sites sites;
-    Sites::iterator list_it;
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
-
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
-
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 8, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 8, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_TRUE(!delete_first);
-    EXPECT_EQ(3, sa_intervals.size());
+    EXPECT_FALSE(delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 3);
     EXPECT_EQ(no_occ, 3);
-    list_it = sites.begin();
 
-    //note this unit test allows for an implementation limitation
-    //of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
-    //should really notice the read has overlapped allele 3 of site 7, but it does not.
+    // note this unit test allows for an implementation limitation
+    // of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
+    // should really notice the read has overlapped allele 3 of site 7, but it does not.
+    const Sites expected = {
+            // first SA interval will be the match in the nonvariable region.
+            // so we should get a vector of length zero, as it crosses no sites.
+            {},
 
+            // move to next SA interval - next element of list (sites)
+            // this will be the overlap with site 7
+            {VariantSite(7, {})},
 
-    //first SA interval will be the match in the nonvariable region.
-    //so we should get a vector of length zero, as it crosses no sites.
-    EXPECT_EQ((*list_it).size(), 0);
-
-    //move to next SA interval - next element of list (sites)
-    ++list_it;
-
-    //this will be the overlap with site 7
-    EXPECT_EQ((*list_it).size(), 1);
-    EXPECT_EQ((*list_it).front().first, 7);
-    //  EXPECT_EQ(sites.front().front().second.front(), 3);
-    EXPECT_EQ((*list_it).front().second.size(), 0);
-
-    //next SA interval - overlap with site 5
-    ++list_it;
-    EXPECT_EQ((*list_it).size(), 1);
-    EXPECT_EQ((*list_it).front().first, 5);
-    EXPECT_EQ((*list_it).front().second.front(), 1);
-    EXPECT_EQ((*list_it).front().second.size(), 1);
-
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+            //next SA interval - overlap with site 5
+            {VariantSite(5, {1})},
+    };
+    EXPECT_EQ(sites, expected);
     cleanup_files();
 }
 
+
 TEST(BackwardSearchTest, One_match_many_sites) {
     cleanup_files();
-    std::string q_tmp, test_file2, query, mask_file;
-    std::vector<uint8_t> p_tmp;
-    std::vector<std::string> substrings;
-    std::vector<int> mask_a;
-
 
     //prg=agggccta5c6t5acatgatc7a8g7tgatca9c10a9cata11g12t11aggtcgct13c14g13ggtc15atc16cat15ttcg
-    test_file2 = "./test_cases/One_match_many_sites.txt";
+    const auto prg_fpath = "./test_cases/One_match_many_sites.txt";
     //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
-    query = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
-    mask_file = "./test_cases/One_match_many_sites_mask_a.txt";
-    std::ifstream g(mask_file);
+    const auto read = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
+    const auto mask_fpath = "./test_cases/One_match_many_sites_mask_a.txt";
 
+    std::ifstream g(mask_fpath);
+    std::vector<int> allele_mask;
     int a;
-    mask_a.clear();
-    while (g >> a) mask_a.push_back(a);
+    while (g >> a)
+        allele_mask.push_back(a);
 
-    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", test_file2, "memory_log_file");
-
-    SA_Intervals sa_intervals;
-    SA_Intervals::iterator it;
-    Sites sites;
-
+    const FM_Index fm_index = get_fm_index(true, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
 
-    bool delete_first = false;
-    bool precalc = false;
-    q_tmp = query;
-    for (uint16_t i = 0; i < q_tmp.length(); i++) {
-        if (q_tmp[i] == 'A' or q_tmp[i] == 'a') p_tmp.push_back(1);
-        if (q_tmp[i] == 'C' or q_tmp[i] == 'c') p_tmp.push_back(2);
-        if (q_tmp[i] == 'G' or q_tmp[i] == 'g') p_tmp.push_back(3);
-        if (q_tmp[i] == 'T' or q_tmp[i] == 't') p_tmp.push_back(4);
-    }
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
 
-    if (sa_intervals.empty()) {
-        sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    const auto encoded_read = encode_read(read);
 
-        Site empty_pair_vector;
-        sites.push_back(empty_pair_vector);
-    }
-
-    bidir_search_bwd(sa_intervals, sites, delete_first, p_tmp.begin(),
-                     p_tmp.end(), mask_a, 16, precalc, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
+                     encoded_read.end(), allele_mask, 16, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = 0;
-    for (it = sa_intervals.begin(); it != sa_intervals.end(); ++it)
-        no_occ += (*it).second - (*it).first;
+    for (const auto &sa_interval: sa_intervals)
+        no_occ += sa_interval.second - sa_interval.first;
 
-    EXPECT_EQ(true, delete_first);
-    EXPECT_EQ(1, sa_intervals.size());
+    EXPECT_TRUE(delete_first_interval);
+    EXPECT_EQ(sa_intervals.size(), 1);
     EXPECT_EQ(no_occ, 1);
-    std::vector<std::pair<uint64_t, std::vector<int> > >::iterator v_it = sites.front().begin();
 
-    //here's what we are checking
-    //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
+    const auto &first_site = sites.front();
 
-
-    EXPECT_EQ(sites.front().size(), 6);
-
-    EXPECT_EQ((*v_it).first, 15);
-    EXPECT_EQ((*v_it).second.front(), 2);
-    EXPECT_EQ((*v_it).second.size(), 1);
-
-    ++v_it;
-    EXPECT_EQ((*v_it).first, 13);
-    EXPECT_EQ((*v_it).second.front(), 2);
-    EXPECT_EQ((*v_it).second.size(), 1);
-
-    //next SA interval - overlap with site 11
-    ++v_it;
-    EXPECT_EQ((*v_it).first, 11);
-    EXPECT_EQ((*v_it).second.front(), 1);
-    EXPECT_EQ((*v_it).second.size(), 1);
-
-    //next SA interval - overlap with site 9
-    ++v_it;
-    EXPECT_EQ((*v_it).first, 9);
-    EXPECT_EQ((*v_it).second.front(), 1);
-    EXPECT_EQ((*v_it).second.size(), 1);
-
-    //next SA interval - overlap with site 7
-    ++v_it;
-    EXPECT_EQ((*v_it).first, 7);
-    EXPECT_EQ((*v_it).second.front(), 2);
-    EXPECT_EQ((*v_it).second.size(), 1);
-
-
-    //next SA interval - overlap with site 5
-    ++v_it;
-    EXPECT_EQ((*v_it).first, 5);
-    EXPECT_EQ((*v_it).second.front(), 1);
-    EXPECT_EQ((*v_it).second.size(), 1);
-
-
-    sa_intervals.clear();
-    sites.clear();
-
-    p_tmp.clear();
+    // checking overlaps:
+    // site5-allele1, site7-allele2, site9-allele1,
+    // site11-allele1,  site13-allele2, site15-allele2
+    const Site expected_site = {
+            VariantSite(15, {2}),
+            VariantSite(13, {2}),
+            VariantSite(11, {1}),
+            VariantSite(9, {1}),
+            VariantSite(7, {2}),
+            VariantSite(5, {1}),
+    };
+    EXPECT_EQ(first_site, expected_site);
     cleanup_files();
 }
