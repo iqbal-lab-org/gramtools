@@ -1,9 +1,17 @@
 #include <sdsl/suffix_arrays.hpp>
 #include "gtest/gtest.h"
 
-#include "common.hpp"
 #include "map.hpp"
 #include "bidir_search_bwd.hpp"
+
+
+void cleanup_files() {
+    std::remove("csa_file");
+    std::remove("csa_file_rev");
+    std::remove("int_alphabet_file");
+    std::remove("int_alphabet_file_rev");
+    std::remove("memory_log_file");
+}
 
 
 std::vector<std::string> generate_all_substrings(std::string q) {
