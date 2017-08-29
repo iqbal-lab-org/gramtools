@@ -67,14 +67,13 @@ protected:
 
 
 TEST_F(BackwardSearchTestFileFree, NoVariants1) {
-    //cleanup_files();
     const auto prg_raw = "a";
+    const std::string read = "a";
+    std::vector<int> allele_mask = {0};
+    
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
-
-    const std::string read = "a";
     const auto encoded_read = encode_read(read);
-    std::vector<int> allele_mask = {0};
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
@@ -82,8 +81,9 @@ TEST_F(BackwardSearchTestFileFree, NoVariants1) {
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval, encoded_read.begin(),
-                     encoded_read.end(), allele_mask, 4, kmer_index_generated, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
+                     encoded_read.begin(), encoded_read.end(),
+                     allele_mask, 4, kmer_index_generated, rank_all, fm_index);
 
     uint64_t no_occ = (*sa_intervals.begin()).second - (*sa_intervals.begin()).first;
     EXPECT_TRUE(!delete_first_interval);
@@ -92,25 +92,21 @@ TEST_F(BackwardSearchTestFileFree, NoVariants1) {
 
     const Sites expected = {Site()};
     EXPECT_EQ(expected, sites);
-    //cleanup_files();
 }
 
 
-TEST(BackwardSearchTest, OneSNP) {
-    cleanup_files();
-
-    //PRG = catttacaca5g6t5aactagagagca
-    const auto prg_fpath = "./test_cases/one_snp.txt";
-    const auto mask_fpath = "./test_cases/one_snp_mask_a.txt";
-
+TEST_F(BackwardSearchTestFileFree, OneSNP) {
     // aligns across SNP allele 1 (and both flanks)
+    const auto prg_raw = "catttacaca5g6t5aactagagagca";
     const auto read = "ttacacagaactagagag";
-    const auto encoded_read = encode_read(read);
+    const std::vector<int> allele_mask = {0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 1, 0, 2, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0};
 
-    FM_Index fm_index;
-    DNA_Rank rank_all;
-    std::vector<int> allele_mask;
-    set_up_state(fm_index, rank_all, allele_mask, prg_fpath, mask_fpath);
+    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank rank_all = calculate_ranks(fm_index);
+    const auto encoded_read = encode_read(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -130,9 +126,6 @@ TEST(BackwardSearchTest, OneSNP) {
             {VariantSite(5, {1})},
     };
     EXPECT_EQ(sites, expected);
-
-    get_fm_index(false, "csa_file", "int_alphabet_file", prg_fpath, "memory_log_file");
-    cleanup_files();
 }
 
 
