@@ -467,7 +467,43 @@ TEST_F(BackwardSearchTest, Two_long_sites) {
 }
 
 
-TEST_F(BackwardSearchTest, ReadStartsInAllele_AlleleMissingFromSitesAlleleVector) {
+TEST_F(BackwardSearchTest, ReadStartsInFirstAllele_AlleleMissingFromSitesAlleleVector) {
+    // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
+    const std::string prg_raw = "acga"
+            "5gctct6tt5"
+            "gatat";
+    const uint64_t max_alphabet_num = 6;
+    const std::string read = "ctctgata";
+    const std::vector<int> allele_mask = {
+            0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1,
+            0, 2, 2, 0,
+            0, 0, 0, 0, 0
+    };
+
+    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank rank_all = calculate_ranks(fm_index);
+    const auto encoded_read = encode_read(read);
+
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
+
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
+                     encoded_read.begin(), encoded_read.end(),
+                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     rank_all, fm_index);
+
+    const Sites expected_sites = {
+            {VariantSite(5, {})},
+    };
+    EXPECT_EQ(sites, expected_sites);
+}
+
+
+TEST_F(BackwardSearchTest, ReadStartsInSecondAllele_AlleleMissingFromSitesAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acga"
             "5tt6gctct5"
@@ -498,6 +534,42 @@ TEST_F(BackwardSearchTest, ReadStartsInAllele_AlleleMissingFromSitesAlleleVector
 
     const Sites expected_sites = {
             {VariantSite(5, {})},
+    };
+    EXPECT_EQ(sites, expected_sites);
+}
+
+
+TEST_F(BackwardSearchTest, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAlleleVector_hip) {
+    // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
+    const std::string prg_raw = "acgc"
+            "5tt6agata5"
+            "tatag";
+    const uint64_t max_alphabet_num = 6;
+    const std::string read = "cgcagat";
+    const std::vector<int> allele_mask = {
+            0, 0, 0, 0,
+            0, 1, 1,
+            0, 2, 2, 2, 2, 2, 0,
+            0, 0, 0, 0, 0
+    };
+
+    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank rank_all = calculate_ranks(fm_index);
+    const auto encoded_read = encode_read(read);
+
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
+
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
+                     encoded_read.begin(), encoded_read.end(),
+                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     rank_all, fm_index);
+
+    const Sites expected_sites = {
+            {VariantSite(5, {2})},
     };
     EXPECT_EQ(sites, expected_sites);
 }
