@@ -298,7 +298,10 @@ TEST_F(BackwardSearchTest, MatchOneNonVariableSiteOnly_FirstSitesElementEmpty) {
                      allele_mask, max_alphabet_num, kmer_index_generated,
                      rank_all, fm_index);
 
-    EXPECT_FALSE(delete_first_interval);
+    const Sites expected_sites = {
+            {},
+    };
+    EXPECT_EQ(sites, expected_sites);
 }
 
 
@@ -329,10 +332,7 @@ TEST_F(BackwardSearchTest, MatchOneNonVariableSiteOnly_DeleteFirstIntervalFalse)
                      allele_mask, max_alphabet_num, kmer_index_generated,
                      rank_all, fm_index);
 
-    const Sites expected_sites = {
-            {},
-    };
-    EXPECT_EQ(sites, expected_sites);
+    EXPECT_FALSE(delete_first_interval);
 }
 
 
