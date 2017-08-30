@@ -336,8 +336,8 @@ TEST_F(BackwardSearchTest, MatchOneNonVariableSiteOnly_DeleteFirstIntervalFalse)
 }
 
 
-TEST_F(BackwardSearchTest, MatchToMultipleNonVariantSites_FirstSitesElementEmpty) {
-    const std::string prg_raw = "catacagaacttacaca5g6t5aactagagagcaacagaactcacagaactc7cga8cgc8t";
+TEST_F(BackwardSearchTest, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesElement) {
+    const std::string prg_raw = "catacagaacttacatt5g6t5aactagagagcaacagaactcacagaactc7cga8cgc8t";
     const uint64_t max_alphabet_num = 8;
     const std::string read = "acagaac";
     const std::vector<int> allele_mask = {
@@ -362,9 +362,15 @@ TEST_F(BackwardSearchTest, MatchToMultipleNonVariantSites_FirstSitesElementEmpty
                      allele_mask, max_alphabet_num, kmer_index_generated,
                      rank_all, fm_index);
 
-    const auto result = sites.front();
-    const Site expected = {};
-    EXPECT_EQ(result, expected);
+    const SA_Intervals expected_sa_intervals = {
+            {6, 9},
+    };
+    EXPECT_EQ(sa_intervals, expected_sa_intervals);
+
+    const Sites expected_sites = {
+            {},
+    };
+    EXPECT_EQ(sites, expected_sites);
 }
 
 /*
@@ -544,6 +550,56 @@ TEST_F(BackwardSearchTest, Match_within_long_site_match_outside) {
 
     const SA_Intervals expected_sa_intervals = {
             {45, 47}
+    };
+    EXPECT_EQ(sa_intervals, expected_sa_intervals);
+
+    const Sites expected_sites = {
+            {}
+    };
+    EXPECT_EQ(sites, expected_sites);
+}
+
+
+TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariableEmptyElement) {
+    //read aligns in allele 2 of site 5, and in non-var region
+    const std::string prg_raw = "gacatagacacacagt"
+            "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
+            "ggtgctagac"
+            "7c8a7"
+            "tcag";
+    const uint64_t max_alphabet_num = 8;
+    const std::string read = "ctgctccacacagaga";
+    const std::vector<int> allele_mask = {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 0, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 2, 0, 0, 0, 0,
+            0, 0,
+    };
+
+    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank rank_all = calculate_ranks(fm_index);
+    const auto encoded_read = encode_read(read);
+
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
+
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
+                     encoded_read.begin(), encoded_read.end(),
+                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     rank_all, fm_index);
+
+    EXPECT_FALSE(delete_first_interval);
+
+    const SA_Intervals expected_sa_intervals = {
+            {35, 36}
     };
     EXPECT_EQ(sa_intervals, expected_sa_intervals);
 
