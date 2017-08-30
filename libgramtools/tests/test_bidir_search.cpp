@@ -467,6 +467,43 @@ TEST_F(BackwardSearchTest, Two_long_sites) {
 }
 
 
+TEST_F(BackwardSearchTest, ReadStartsInAllele_AlleleMissingFromSitesAlleleVector) {
+    // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
+    const std::string prg_raw = "acga"
+            "5tt6gctct5"
+            "gatat";
+    const uint64_t max_alphabet_num = 6;
+    const std::string read = "ctctgata";
+    const std::vector<int> allele_mask = {
+            0, 0, 0, 0,
+            0, 1, 1,
+            0, 2, 2, 2, 2, 2, 0,
+            0, 0, 0, 0, 0
+    };
+
+    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank rank_all = calculate_ranks(fm_index);
+    const auto encoded_read = encode_read(read);
+
+    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    Sites sites = {Site()};
+
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+
+    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
+                     encoded_read.begin(), encoded_read.end(),
+                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     rank_all, fm_index);
+
+    const Sites expected_sites = {
+            {VariantSite(5, {})},
+    };
+    EXPECT_EQ(sites, expected_sites);
+}
+
+
+/*
 TEST_F(BackwardSearchTest, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgacacat"
@@ -507,6 +544,7 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAll
     };
     EXPECT_EQ(sites, expected_sites);
 }
+ */
 
 
 TEST_F(BackwardSearchTest, Match_within_long_site_match_outside) {
@@ -729,7 +767,7 @@ TEST_F(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
 }
 
 
-TEST_F(BackwardSearchTest, One_match_many_sites) {
+TEST_F(BackwardSearchTest, SingleMatchOverManySites) {
     //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
     const std::string prg_raw = "agggccta"
             "5c6t5"
