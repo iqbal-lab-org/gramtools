@@ -293,10 +293,10 @@ void update_site_sa_interval_coverage(MasksParser &masks,
                 if (delete_first_interval) {
                     denominator = total_num_sa_intervals;
                 } else {
-                    denominator = sa_interval_size
-                                  - count_char_in_variant_site
+                    denominator = total_num_sa_intervals
+                                  + sa_interval_size
                                   + count_repeats_variant_site_edges
-                                  + total_num_sa_intervals
+                                  - count_char_in_variant_site
                                   - 1;
                 }
                 assert(denominator > 0);
@@ -315,10 +315,10 @@ void update_site_sa_interval_coverage(MasksParser &masks,
             if (delete_first_interval) {
                 denominator = total_num_sa_intervals;
             } else {
-                denominator = sa_interval_size
-                              - count_char_in_variant_site
+                denominator = total_num_sa_intervals
+                              + sa_interval_size
                               + count_repeats_variant_site_edges
-                              + total_num_sa_intervals
+                              - count_char_in_variant_site
                               - 1;
             }
             assert(denominator > 0);
