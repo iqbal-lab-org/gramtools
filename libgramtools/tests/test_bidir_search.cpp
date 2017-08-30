@@ -539,7 +539,7 @@ TEST_F(BackwardSearchTest, ReadStartsInSecondAllele_AlleleMissingFromSitesAllele
 }
 
 
-TEST_F(BackwardSearchTest, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAlleleVector_hip) {
+TEST_F(BackwardSearchTest, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgc"
             "5tt6agata5"
