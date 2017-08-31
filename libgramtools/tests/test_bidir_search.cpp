@@ -9,20 +9,9 @@
 
 #include "gtest/gtest.h"
 
+#include "common.hpp"
 #include "map.hpp"
 #include "bidir_search_bwd.hpp"
-
-
-std::vector<uint8_t> encode_read(const std::string &read) {
-    std::vector<uint8_t> encoded_read;
-    for (uint16_t i = 0; i < read.length(); i++) {
-        if (read[i] == 'A' or read[i] == 'a') encoded_read.push_back(1);
-        if (read[i] == 'C' or read[i] == 'c') encoded_read.push_back(2);
-        if (read[i] == 'G' or read[i] == 'g') encoded_read.push_back(3);
-        if (read[i] == 'T' or read[i] == 't') encoded_read.push_back(4);
-    }
-    return encoded_read;
-}
 
 
 class BidirSearchBackward : public ::testing::Test {
@@ -44,6 +33,7 @@ protected:
         std::vector<uint64_t> prg = encode_prg(prg_raw);
         dump_encoded_prg(prg, prg_fpath);
         FM_Index fm_index;
+        // TODO: constructing from memory with sdsl::construct_im appends 0 which corrupts
         sdsl::construct(fm_index, prg_fpath, 8);
         return fm_index;
     }
@@ -90,10 +80,14 @@ TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
     const uint64_t max_alphabet_num = 6;
     const std::string read = "ttacacagaactagagag";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 2, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -129,10 +123,16 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ttacacagaactagaagcag";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 0, 2, 0, 0, 0, 0, 0, 0,
-            0, 0, 1, 0, 2, 0, 0, 0, 0, 0,
-            0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -169,10 +169,16 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) 
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ttacacagaactagaagcag";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 0, 2, 0, 0, 0, 0, 0, 0,
-            0, 0, 1, 0, 2, 0, 0, 0, 0, 0,
-            0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -202,10 +208,16 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ttacacagaactagaagcag";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 0, 2, 0, 0, 0, 0, 0, 0,
-            0, 0, 1, 0, 2, 0, 0, 0, 0, 0,
-            0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -233,10 +245,17 @@ TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
     const uint64_t max_alphabet_num = 6;
     const std::string read = "acagaac";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -276,10 +295,17 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
     const uint64_t max_alphabet_num = 6;
     const std::string read = "acagaac";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -310,10 +336,16 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse)
     const uint64_t max_alphabet_num = 6;
     const std::string read = "acagaac";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -340,10 +372,16 @@ TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesE
     const uint64_t max_alphabet_num = 8;
     const std::string read = "acagaac";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
