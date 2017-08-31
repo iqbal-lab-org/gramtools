@@ -17,11 +17,11 @@ void update_coverage(MasksParser &masks, const std::list<Site> &sites, const std
                      const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 
-int process_reads(KmersData &kmers,
-                  MasksParser &masks,
-                  const Parameters &params,
-                  const FM_Index &fm_index,
-                  const DNA_Rank &rank_all) {
+int quasimap_reads(KmersData &kmers,
+                   MasksParser &masks,
+                   const Parameters &params,
+                   const FM_Index &fm_index,
+                   const DNA_Rank &rank_all) {
 
     SeqRead reads(params.reads_fpath.c_str());
 
@@ -42,7 +42,7 @@ int process_reads(KmersData &kmers,
 
         std::cout << count_all_reads << std::endl;
 
-        const std::vector<uint8_t> encoded_read = int_encode_read(*read);
+        const auto encoded_read = int_encode_read(*read);
         const bool read_mapped = process_read(encoded_read,
                                               in_sites,
                                               repeats_variant_site_edge_markers,
@@ -74,12 +74,15 @@ bool process_read(const std::vector<uint8_t> &encoded_read,
     if (discard_read)
         return false;
 
-    bool read_mapped = map_read(read_kmer_part,
-                                encoded_read,
-                                count_char_in_variant_site,
-                                repeats_variant_site_edge_markers,
-                                kmers, masks,
-                                params, rank_all, fm_index);
+    const auto kmer_size = params.kmers_size;
+    bool read_mapped = quasimap_read(read_kmer_part,
+                                     encoded_read,
+                                     count_char_in_variant_site,
+                                     repeats_variant_site_edge_markers,
+                                     kmers, masks,
+                                     kmer_size,
+                                     rank_all,
+                                     fm_index);
     return read_mapped;
 }
 
@@ -95,15 +98,15 @@ bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmersD
 }
 
 
-bool map_read(const std::vector<uint8_t> &read_kmer_part,
-              const std::vector<uint8_t> &encoded_read,
-              int &count_char_in_variant_site,
-              std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
-              KmersData &kmers,
-              MasksParser &masks,
-              const Parameters &params,
-              const DNA_Rank &rank_all,
-              const FM_Index &fm_index) {
+bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
+                   const std::vector<uint8_t> &encoded_read,
+                   int &count_char_in_variant_site,
+                   std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
+                   KmersData &kmers,
+                   MasksParser &masks,
+                   const int kmer_size,
+                   const DNA_Rank &rank_all,
+                   const FM_Index &fm_index) {
 
     //kmers in ref means kmers that do not cross any variant site markers (non-DNA)
     //These are either in non-variable region, or are entirely within alleles
@@ -116,7 +119,7 @@ bool map_read(const std::vector<uint8_t> &read_kmer_part,
     auto &sa_intervals = kmers.index[read_kmer_part];
 
     const auto &read_begin = encoded_read.begin();
-    const auto &read_end = encoded_read.begin() + encoded_read.size() - params.kmers_size;
+    const auto &read_end = encoded_read.begin() + encoded_read.size() - kmer_size;
 
     const bool kmer_precalc_done = true;
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
@@ -194,8 +197,8 @@ void update_coverage_from_sa_interval(const SA_Interval &sa_interval,
                                  + total_num_sa_intervals
                                  - 1;
         assert(denominator > 0);
-        const auto marker_coverage_idx = (allele - 5) / 2;
-        auto &coverage = masks.allele_coverage[marker_coverage_idx][allele - 1];
+        const auto variant_marker_coverage_idx = (allele - 5) / 2;
+        auto &coverage = masks.allele_coverage[variant_marker_coverage_idx][allele - 1];
         coverage = (coverage + 1.0) / denominator;
     }
 }
@@ -285,8 +288,8 @@ void update_site_sa_interval_coverage(MasksParser &masks,
         if (variant_site == site.back() and alleles.empty()) {
             for (auto ind = sa_interval.first; ind < sa_interval.second; ind++) {
                 const auto k = fm_index[ind];
-                const auto &allele = masks.allele[k];
-                if (allele == 0)
+                const auto &variant_allele_idx = masks.allele[k] - 1;
+                if (variant_allele_idx <= 0)
                     continue;
 
                 uint64_t denominator = 0;
@@ -300,8 +303,8 @@ void update_site_sa_interval_coverage(MasksParser &masks,
                                   - 1;
                 }
                 assert(denominator > 0);
-                const auto marker_coverage_idx = (variant_site_marker - 5) / 2;
-                auto &coverage = masks.allele_coverage[marker_coverage_idx][allele - 1];
+                const auto variant_marker_coverage_idx = (variant_site_marker - 5) / 2;
+                auto &coverage = masks.allele_coverage[variant_marker_coverage_idx][variant_allele_idx];
                 coverage = (coverage + 1.0) / denominator;
             }
             continue;
@@ -311,6 +314,7 @@ void update_site_sa_interval_coverage(MasksParser &masks,
             continue;
 
         for (const auto &allele: alleles) {
+            const auto variant_allele_idx = allele - 1;
             uint64_t denominator = 0;
             if (delete_first_interval) {
                 denominator = total_num_sa_intervals;
@@ -322,8 +326,8 @@ void update_site_sa_interval_coverage(MasksParser &masks,
                               - 1;
             }
             assert(denominator > 0);
-            const auto marker_coverage_idx = (variant_site_marker - 5) / 2;
-            auto &coverage = masks.allele_coverage[marker_coverage_idx][allele - 1];
+            const auto variant_marker_coverage_idx = (variant_site_marker - 5) / 2;
+            auto &coverage = masks.allele_coverage[variant_marker_coverage_idx][variant_allele_idx];
             coverage = (coverage + 1.0) / denominator;
         }
     }
