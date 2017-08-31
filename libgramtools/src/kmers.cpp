@@ -5,6 +5,7 @@
 #include "kmers.hpp"
 #include "bidir_search_bwd.hpp"
 
+
 #define MAX_THREADS 25
 
 
@@ -126,8 +127,7 @@ void calc_kmer_matches(KmerIdx &kmer_idx,
                        const uint64_t maxx,
                        const std::vector<int> &allele_mask,
                        const DNA_Rank &rank_all,
-                       const FM_Index &fm_index,
-                       const int thread_id) {
+                       const FM_Index &fm_index) {
 
     for (auto &kmer: kmers) {
         kmer_idx[kmer] = SA_Intervals();
@@ -164,29 +164,67 @@ void *worker(void *st) {
                       th->maxx,
                       *(th->allele_mask),
                       *(th->rank_all),
-                      *(th->fm_index),
-                      th->thread_id);
+                      *(th->fm_index));
     return nullptr;
 }
 
 
-void generate_kmers_encoding(const std::vector<int> &allele_mask,
-                             const std::string &kmer_fname,
-                             const uint64_t maxx,
-                             const int thread_count,
-                             const DNA_Rank &rank_all,
-                             const FM_Index &fm_index) {
+void generate_kmers_encoding_single_thread(const std::vector<int> &allele_mask,
+                                           const std::string &kmer_fname,
+                                           const uint64_t max_alphabet_num,
+                                           const DNA_Rank &rank_all,
+                                           const FM_Index &fm_index) {
+
+    std::ifstream kmer_fhandle;
+    kmer_fhandle.open(kmer_fname);
+
+    Kmers kmers;
+    std::string line;
+    while (std::getline(kmer_fhandle, line)) {
+        const Kmer &kmer = encode_dna_bases(line);
+        kmers.emplace_back(kmer);
+    }
+
+    KmerIdx kmer_idx;
+    KmerSites kmer_sites;
+    KmersRef kmers_in_ref;
+
+    calc_kmer_matches(kmer_idx,
+                      kmer_sites,
+                      kmers_in_ref,
+                      kmers,
+                      max_alphabet_num,
+                      allele_mask,
+                      rank_all,
+                      fm_index);
+
+    std::ofstream precalc_file;
+    precalc_file.open(std::string(kmer_fname) + ".precalc");
+
+    dump_thread_result(precalc_file,
+                       kmer_idx,
+                       kmers_in_ref,
+                       kmer_sites);
+}
+
+
+void generate_kmers_encoding_threading(const std::vector<int> &allele_mask,
+                                       const std::string &kmer_fname,
+                                       const uint64_t max_alphabet_num,
+                                       const int thread_count,
+                                       const DNA_Rank &rank_all,
+                                       const FM_Index &fm_index) {
 
     pthread_t threads[thread_count];
     struct ThreadData td[thread_count];
     Kmers kmers[thread_count];
 
-    std::ifstream kfile;
-    std::string line;
-    kfile.open(kmer_fname);
+    std::ifstream kmer_fhandle;
+    kmer_fhandle.open(kmer_fname);
 
     int j = 0;
-    while (std::getline(kfile, line)) {
+    std::string line;
+    while (std::getline(kmer_fhandle, line)) {
         Kmer kmer = encode_dna_bases(line);
         kmers[j++].push_back(kmer);
         j %= thread_count;
@@ -201,7 +239,7 @@ void generate_kmers_encoding(const std::vector<int> &allele_mask,
         td[i].kmer_idx = &kmer_idx[i];
         td[i].kmer_sites = &kmer_sites[i];
         td[i].allele_mask = &allele_mask;
-        td[i].maxx = maxx;
+        td[i].maxx = max_alphabet_num;
         td[i].kmers_in_ref = &kmers_in_ref[i];
         td[i].kmers = &kmers[i];
         td[i].thread_id = i;
@@ -324,7 +362,7 @@ Site parse_site(const std::string &sites_part_str) {
 }
 
 
-void process_precalc_line(const std::string &line, KmersData &kmers) {
+void parse_kmer_index_entry(KmersData &kmers, const std::string &line) {
     const std::vector<std::string> &parts = split(line, "|");
 
     Kmer encoded_kmer = parse_encoded_kmer(parts[0]);
@@ -355,7 +393,7 @@ KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
     KmersData kmers;
     std::string line;
     while (std::getline(fhandle, line)) {
-        process_precalc_line(line, kmers);
+        parse_kmer_index_entry(kmers, line);
     }
 
     assert(!kmers.sites.empty());
@@ -384,7 +422,7 @@ KmersData get_kmers(const std::string &kmer_fname,
         const int thread_count = get_thread_count();
         std::cout << "Precalculated kmers not found, generating them using "
                   << thread_count << " threads" << std::endl;
-        generate_kmers_encoding(allele_mask, kmer_fname, maxx, thread_count, rank_all, fm_index);
+        generate_kmers_encoding_threading(allele_mask, kmer_fname, maxx, thread_count, rank_all, fm_index);
         std::cout << "Finished precalculating kmers" << std::endl;
     }
 

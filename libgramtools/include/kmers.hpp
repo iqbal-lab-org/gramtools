@@ -79,24 +79,17 @@ void dump_thread_result(std::ofstream &precalc_file,
                         const KmersRef &kmers_in_ref,
                         const KmerSites &kmer_sites);
 
-void calc_kmer_matches(KmerIdx &kmer_idx,
-                       KmerSites &kmer_sites,
-                       KmersRef &kmers_in_ref,
-                       Kmers &kmers,
-                       const uint64_t maxx,
-                       const std::vector<int> &allele_mask,
-                       const DNA_Rank &rank_all,
-                       const FM_Index &fm_index,
-                       const int thread_id);
+void calc_kmer_matches(KmerIdx &kmer_idx, KmerSites &kmer_sites, KmersRef &kmers_in_ref, Kmers &kmers, const uint64_t maxx,
+                       const std::vector<int> &allele_mask, const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 void *worker(void *st);
 
-void generate_kmers_encoding(const std::vector<int> &allele_mask,
-                             const std::string &kmer_fname,
-                             const uint64_t maxx,
-                             const int thread_count,
-                             const DNA_Rank &rank_all,
-                             const FM_Index &fm_index);
+void generate_kmers_encoding_threading(const std::vector<int> &allele_mask,
+                                       const std::string &kmer_fname,
+                                       const uint64_t maxx,
+                                       const int thread_count,
+                                       const DNA_Rank &rank_all,
+                                       const FM_Index &fm_index);
 
 inline bool fexists(const std::string &name);
 
@@ -116,7 +109,7 @@ SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str);
 
 Site parse_site(const std::string &sites_part_str);
 
-void process_precalc_line(const std::string &line, KmersData &kmers);
+void parse_kmer_index_entry(KmersData &kmers, const std::string &line);
 
 KmersData read_encoded_kmers(const std::string &encoded_kmers_fname);
 
