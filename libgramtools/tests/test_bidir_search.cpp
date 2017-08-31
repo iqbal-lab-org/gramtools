@@ -51,7 +51,7 @@ protected:
 };
 
 
-TEST_F(BackwardSearchTest, NoVariants1) {
+TEST_F(BackwardSearchTest, MatchSingleCharecter) {
     const std::string prg_raw = "a";
     const uint64_t max_alphabet_num = 4;
     const std::string read = "a";
@@ -228,7 +228,7 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOneVariableSiteMatchOneNonVariableSite) {
+TEST_F(BackwardSearchTest, MatchOneVariantSiteMatchOneNonVariantSite) {
     //one match crosses allele 1, and the other in nonvar
     const std::string prg_raw = "catttacaca5g6t5aactagagagcaacagaactctct";
     const uint64_t max_alphabet_num = 6;
@@ -271,7 +271,7 @@ TEST_F(BackwardSearchTest, MatchOneVariableSiteMatchOneNonVariableSite) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOneNonVariableSiteOnly_FirstSitesElementEmpty) {
+TEST_F(BackwardSearchTest, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
     //one match crosses allele 1, and the other in nonvar
     const std::string prg_raw = "catttacatt5c6t5aaagcaacagaac";
     const uint64_t max_alphabet_num = 6;
@@ -305,7 +305,7 @@ TEST_F(BackwardSearchTest, MatchOneNonVariableSiteOnly_FirstSitesElementEmpty) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOneNonVariableSiteOnly_DeleteFirstIntervalFalse) {
+TEST_F(BackwardSearchTest, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse) {
     //one match crosses allele 1, and the other in nonvar
     const std::string prg_raw = "catttacatt5c6t5aaagcaacagaac";
     const uint64_t max_alphabet_num = 6;
@@ -373,17 +373,27 @@ TEST_F(BackwardSearchTest, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesEl
     EXPECT_EQ(sites, expected_sites);
 }
 
-/*
-TEST_F(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariable_region) {
+
+TEST_F(BackwardSearchTest, MatchVariantSiteAndNonVariantSite) {
     //one match crosses allele 2, and the other in nonvar
-    const std::string prg_raw = "catttacaca5g6t5aactagagagcaacataactctct";
+    const std::string prg_raw = "catttacaca"
+            "5g6t5"
+            "aactagagagcaacataactctct";
     const uint64_t max_alphabet_num = 6;
     const std::string read = "acataac";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -415,10 +425,9 @@ TEST_F(BackwardSearchTest, Two_matches_one_variable_second_allele_one_nonvariabl
     };
     EXPECT_EQ(sites, expected_sites);
 }
- */
 
 
-TEST_F(BackwardSearchTest, Two_long_sites) {
+TEST_F(BackwardSearchTest, MatchTwoLongVariantSites) {
     //read aligns from middle of  allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgacacat"
                     "5gatag6tagga6gctcg6gctct5"
@@ -428,14 +437,24 @@ TEST_F(BackwardSearchTest, Two_long_sites) {
     const uint64_t max_alphabet_num = 8;
     const std::string read = "gctcggctcgatgactagatagatagcgaggcaac";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 1, 1, 1, 0, 2, 2, 2, 2, 2, 0,
-            3, 3, 3, 3, 3, 0, 4, 4, 4, 4, 4,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 0, 2, 2, 2, 0, 3, 3,
-            3, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1,
+            0, 2, 2, 2, 2, 2,
+            0, 3, 3, 3, 3, 3,
+            0, 4, 4, 4, 4, 4, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 1, 1, 1,
+            0, 2, 2, 2,
+            0, 3, 3, 3,
+            0, 4, 4, 4, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -575,7 +594,6 @@ TEST_F(BackwardSearchTest, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllele
 }
 
 
-/*
 TEST_F(BackwardSearchTest, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgacacat"
@@ -616,10 +634,9 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAll
     };
     EXPECT_EQ(sites, expected_sites);
 }
- */
 
 
-TEST_F(BackwardSearchTest, Match_within_long_site_match_outside) {
+TEST_F(BackwardSearchTest, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_SitesVariantEmptyElement) {
     //read aligns in allele 2 of site 5, and in non-var region
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
@@ -629,16 +646,22 @@ TEST_F(BackwardSearchTest, Match_within_long_site_match_outside) {
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ctgctccacacagaga";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 0, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 2, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0, 0,
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -670,7 +693,7 @@ TEST_F(BackwardSearchTest, Match_within_long_site_match_outside) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariableEmptyElement) {
+TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmptyElement) {
     //read aligns in allele 2 of site 5, and in non-var region
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
@@ -680,15 +703,19 @@ TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariableEmpt
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ctgctccacacagaga";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 0, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 2, 0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
             0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0,
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -720,7 +747,7 @@ TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariableEmpt
 }
 
 
-TEST_F(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
+TEST_F(BackwardSearchTest, MatchLongSiteRepeatedSnpOnSiteEdge) {
     //read aligns across sites 5 and 7, allele 1 in both cases
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
@@ -730,16 +757,22 @@ TEST_F(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
     const uint64_t max_alphabet_num = 8;
     const std::string read = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 0, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 2, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0,
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -771,8 +804,8 @@ TEST_F(BackwardSearchTest, Long_site_and_repeated_snp_on_edge_of_site) {
 }
 
 
-TEST_F(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
-    //read aligns over allele 1 of site 5, the nonvariableregion and allele 3 of site 7
+TEST_F(BackwardSearchTest, MatchOverMultipleSites) {
+    //read aligns over allele 1 of site 5, the nonVariantregion and allele 3 of site 7
     const std::string prg_raw = "acgacacat"
             "5gatag6tagga6gctcg6gctct5"
             "gctcgtgataatgactagatagatag"
@@ -781,17 +814,29 @@ TEST_F(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     const uint64_t max_alphabet_num = 8;
     const std::string read = "tgata";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1, 0, 2, 2,
-            2, 2, 2, 0, 3, 3, 3, 3, 3,
-            0, 4, 4, 4, 4, 4, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 1, 1,
-            1, 0, 2, 2, 2, 0, 3, 3, 3,
-            0, 4, 4, 4, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0,
+            0, 0, 0, 0,
+            0,
+            0, 1, 1, 1, 1, 1,
+            0, 2, 2, 2, 2, 2,
+            0, 3, 3, 3, 3, 3,
+            0, 4, 4, 4, 4, 4, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1, 1, 1,
+            0, 2, 2, 2,
+            0, 3, 3, 3,
+            0, 4, 4, 4, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0,
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
@@ -824,7 +869,7 @@ TEST_F(BackwardSearchTest, Multiple_matches_over_multiple_sites) {
     // of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
     // should really notice the read has overlapped allele 3 of site 7, but it does not.
     const Sites expected_sites = {
-            // first SA interval will be the match in the nonvariable region.
+            // first SA interval will be the match in the nonVariant region.
             // so we should get a vector of length zero, as it crosses no sites.
             {},
 
@@ -857,15 +902,29 @@ TEST_F(BackwardSearchTest, SingleMatchOverManySites) {
     const uint64_t max_alphabet_num = 16;
     const std::string read = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
     const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1, 0, 2, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 1, 0, 2, 0, 0,
-            0, 0, 0, 0, 0, 0, 1, 0, 2,
-            0, 0, 0, 0, 0, 0, 1, 0, 2,
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 0, 2, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 0, 2, 2, 2, 0,
-            0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 1,
+            0, 2, 0,
+            0, 0, 0, 0,
+            0, 1, 1, 1,
+            0, 2, 2, 2, 0,
+            0, 0, 0, 0,
+            0
     };
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
