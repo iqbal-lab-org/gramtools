@@ -25,7 +25,7 @@ std::vector<uint8_t> encode_read(const std::string &read) {
 }
 
 
-class BackwardSearchTest : public ::testing::Test {
+class BidirSearchBackward : public ::testing::Test {
 
 protected:
     std::string prg_fpath;
@@ -47,11 +47,10 @@ protected:
         sdsl::construct(fm_index, prg_fpath, 8);
         return fm_index;
     }
-
 };
 
 
-TEST_F(BackwardSearchTest, MatchSingleCharecter) {
+TEST_F(BidirSearchBackward, MatchSingleCharecter) {
     const std::string prg_raw = "a";
     const uint64_t max_alphabet_num = 4;
     const std::string read = "a";
@@ -85,7 +84,7 @@ TEST_F(BackwardSearchTest, MatchSingleCharecter) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchSingleVariantSiteOnly) {
+TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
     // aligns across SNP allele 1 (and both flanks)
     const std::string prg_raw = "catttacaca5g6t5aactagagagca";
     const uint64_t max_alphabet_num = 6;
@@ -125,7 +124,7 @@ TEST_F(BackwardSearchTest, MatchSingleVariantSiteOnly) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly) {
+TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
     const std::string prg_raw = "catttacaca5g6t5aactag7a8g7agcagggt";
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ttacacagaactagaagcag";
@@ -165,7 +164,7 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) {
+TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) {
     const std::string prg_raw = "catttacaca5g6t5aactag7a8g7agcagggt";
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ttacacagaactagaagcag";
@@ -198,7 +197,7 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
+TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
     const std::string prg_raw = "catttacaca5g6t5aactag7a8g7agcagggt";
     const uint64_t max_alphabet_num = 8;
     const std::string read = "ttacacagaactagaagcag";
@@ -228,7 +227,7 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOneVariantSiteMatchOneNonVariantSite) {
+TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
     //one match crosses allele 1, and the other in nonvar
     const std::string prg_raw = "catttacaca5g6t5aactagagagcaacagaactctct";
     const uint64_t max_alphabet_num = 6;
@@ -271,7 +270,7 @@ TEST_F(BackwardSearchTest, MatchOneVariantSiteMatchOneNonVariantSite) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
+TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
     //one match crosses allele 1, and the other in nonvar
     const std::string prg_raw = "catttacatt5c6t5aaagcaacagaac";
     const uint64_t max_alphabet_num = 6;
@@ -305,7 +304,7 @@ TEST_F(BackwardSearchTest, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse) {
+TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse) {
     //one match crosses allele 1, and the other in nonvar
     const std::string prg_raw = "catttacatt5c6t5aaagcaacagaac";
     const uint64_t max_alphabet_num = 6;
@@ -336,7 +335,7 @@ TEST_F(BackwardSearchTest, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse) 
 }
 
 
-TEST_F(BackwardSearchTest, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesElement) {
+TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesElement) {
     const std::string prg_raw = "catacagaacttacatt5g6t5aactagagagcaacagaactcacagaactc7cga8cgc8t";
     const uint64_t max_alphabet_num = 8;
     const std::string read = "acagaac";
@@ -374,7 +373,7 @@ TEST_F(BackwardSearchTest, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesEl
 }
 
 
-TEST_F(BackwardSearchTest, MatchVariantSiteAndNonVariantSite) {
+TEST_F(BidirSearchBackward, MatchVariantSiteAndNonVariantSite) {
     //one match crosses allele 2, and the other in nonvar
     const std::string prg_raw = "catttacaca"
             "5g6t5"
@@ -427,13 +426,13 @@ TEST_F(BackwardSearchTest, MatchVariantSiteAndNonVariantSite) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchTwoLongVariantSites) {
+TEST_F(BidirSearchBackward, MatchTwoLongVariantSites) {
     //read aligns from middle of  allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgacacat"
-                    "5gatag6tagga6gctcg6gctct5"
-                    "gctcgatgactagatagatag"
-                    "7cga8cgc8tga8tgc7"
-                    "ggcaacatctacga";
+            "5gatag6tagga6gctcg6gctct5"
+            "gctcgatgactagatagatag"
+            "7cga8cgc8tga8tgc7"
+            "ggcaacatctacga";
     const uint64_t max_alphabet_num = 8;
     const std::string read = "gctcggctcgatgactagatagatagcgaggcaac";
     const std::vector<int> allele_mask = {
@@ -486,7 +485,7 @@ TEST_F(BackwardSearchTest, MatchTwoLongVariantSites) {
 }
 
 
-TEST_F(BackwardSearchTest, ReadStartsInFirstAllele_AlleleMissingFromSitesAlleleVector) {
+TEST_F(BidirSearchBackward, ReadStartsInFirstAllele_AlleleMissingFromSitesAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acga"
             "5gctct6tt5"
@@ -522,7 +521,7 @@ TEST_F(BackwardSearchTest, ReadStartsInFirstAllele_AlleleMissingFromSitesAlleleV
 }
 
 
-TEST_F(BackwardSearchTest, ReadStartsInSecondAllele_AlleleMissingFromSitesAlleleVector) {
+TEST_F(BidirSearchBackward, ReadStartsInSecondAllele_AlleleMissingFromSitesAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acga"
             "5tt6gctct5"
@@ -558,7 +557,7 @@ TEST_F(BackwardSearchTest, ReadStartsInSecondAllele_AlleleMissingFromSitesAllele
 }
 
 
-TEST_F(BackwardSearchTest, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAlleleVector) {
+TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgc"
             "5tt6agata5"
@@ -594,7 +593,7 @@ TEST_F(BackwardSearchTest, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllele
 }
 
 
-TEST_F(BackwardSearchTest, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAlleleVector) {
+TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgacacat"
             "5gatag6tagga6gctcg6gctct5"
@@ -636,7 +635,7 @@ TEST_F(BackwardSearchTest, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAll
 }
 
 
-TEST_F(BackwardSearchTest, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_SitesVariantEmptyElement) {
+TEST_F(BidirSearchBackward, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_SitesVariantEmptyElement) {
     //read aligns in allele 2 of site 5, and in non-var region
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
@@ -693,7 +692,7 @@ TEST_F(BackwardSearchTest, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_Sit
 }
 
 
-TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmptyElement) {
+TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmptyElement) {
     //read aligns in allele 2 of site 5, and in non-var region
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
@@ -747,7 +746,7 @@ TEST_F(BackwardSearchTest, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpty
 }
 
 
-TEST_F(BackwardSearchTest, MatchLongSiteRepeatedSnpOnSiteEdge) {
+TEST_F(BidirSearchBackward, MatchLongSiteRepeatedSnpOnSiteEdge) {
     //read aligns across sites 5 and 7, allele 1 in both cases
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
@@ -804,7 +803,7 @@ TEST_F(BackwardSearchTest, MatchLongSiteRepeatedSnpOnSiteEdge) {
 }
 
 
-TEST_F(BackwardSearchTest, MatchOverMultipleSites) {
+TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
     //read aligns over allele 1 of site 5, the nonVariantregion and allele 3 of site 7
     const std::string prg_raw = "acgacacat"
             "5gatag6tagga6gctcg6gctct5"
@@ -884,7 +883,7 @@ TEST_F(BackwardSearchTest, MatchOverMultipleSites) {
 }
 
 
-TEST_F(BackwardSearchTest, SingleMatchOverManySites) {
+TEST_F(BidirSearchBackward, SingleMatchOverManySites) {
     //overlaps site5-allele1, site7-allele2, site9-allele1, site11-allele1,  site13-allele2, site15-allele2
     const std::string prg_raw = "agggccta"
             "5c6t5"
