@@ -34,7 +34,7 @@ add_executable(test_main
         test_kmers.cpp
         test_bidir_search.cpp
         test_bidir_search_slow.cpp
-        test_process_prg.cpp
+        test_prg.cpp
         test_map.cpp)
 target_link_libraries(test_main
         gramtools

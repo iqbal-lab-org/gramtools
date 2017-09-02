@@ -9,30 +9,31 @@
 #define MAX_THREADS 25
 
 
+uint8_t encode_dna_base(const char &base_str) {
+    switch (base_str) {
+        case 'A':
+        case 'a':
+            return 1;
+        case 'C':
+        case 'c':
+            return 2;
+        case 'G':
+        case 'g':
+            return 3;
+        case 'T':
+        case 't':
+            return 4;
+        default:
+            std::cout << "Error encoding base" << std::endl;
+            break;
+    }
+}
+
+
 std::vector<uint8_t> encode_dna_bases(const std::string &dna_str) {
     std::vector<uint8_t> dna;
     for (const auto &base_str: dna_str) {
-        int encoded_base;
-        switch (base_str) {
-            case 'A':
-            case 'a':
-                encoded_base = 1;
-                break;
-            case 'C':
-            case 'c':
-                encoded_base = 2;
-                break;
-            case 'G':
-            case 'g':
-                encoded_base = 3;
-                break;
-            case 'T':
-            case 't':
-                encoded_base = 4;
-                break;
-            default:
-                break;
-        }
+        int encoded_base = encode_dna_base(base_str);
         dna.emplace_back(encoded_base);
     }
     return dna;
@@ -120,51 +121,57 @@ void dump_thread_result(std::ofstream &precalc_file,
 }
 
 
-void calc_kmer_matches(KmerIdx &kmer_idx,
-                       KmerSites &kmer_sites,
-                       KmersRef &kmers_in_ref,
-                       Kmers &kmers,
-                       const uint64_t maxx,
-                       const std::vector<int> &allele_mask,
-                       const DNA_Rank &rank_all,
-                       const FM_Index &fm_index) {
+void index_kmers(Kmers &kmers,
+                 KmerIdx &sa_intervals_map,
+                 KmerSites &sites_map,
+                 KmersRef &indexed_kmers,
+                 const uint64_t maxx,
+                 const std::vector<int> &allele_mask,
+                 const DNA_Rank &rank_all,
+                 const FM_Index &fm_index) {
 
     for (auto &kmer: kmers) {
-        kmer_idx[kmer] = SA_Intervals();
-        kmer_sites[kmer] = Sites();
+        auto &sa_intervals = sa_intervals_map[kmer];
+        auto &sites = sites_map[kmer];
+
+        sa_intervals = SA_Intervals();
+        sites = Sites();
 
         bool delete_first_interval = false;
         bool kmer_precalc_done = false;
 
-        if (kmer_idx[kmer].empty()) {
-            kmer_idx[kmer].emplace_back(std::make_pair(0, fm_index.size()));
+        if (sa_intervals.empty()) {
+            sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
 
             Site empty_pair_vector;
-            kmer_sites[kmer].push_back(empty_pair_vector);
+            sites.push_back(empty_pair_vector);
         }
 
-        bidir_search_bwd(kmer_idx[kmer], kmer_sites[kmer], delete_first_interval, kmer.begin(),
-                         kmer.end(), allele_mask, maxx, kmer_precalc_done, rank_all, fm_index);
+        bidir_search_bwd(sa_intervals, sites,
+                         delete_first_interval, kmer.begin(),
+                         kmer.end(), allele_mask, maxx,
+                         kmer_precalc_done,
+                         rank_all, fm_index);
 
-        if (kmer_idx[kmer].empty())
-            kmer_idx.erase(kmer);
+        if (sa_intervals.empty())
+            sa_intervals_map.erase(kmer);
 
         if (!delete_first_interval)
-            kmers_in_ref.insert(kmer);
+            indexed_kmers.insert(kmer);
     }
 }
 
 
 void *worker(void *st) {
     auto *th = (ThreadData *) st;
-    calc_kmer_matches(*(th->kmer_idx),
-                      *(th->kmer_sites),
-                      *(th->kmers_in_ref),
-                      *(th->kmers),
-                      th->maxx,
-                      *(th->allele_mask),
-                      *(th->rank_all),
-                      *(th->fm_index));
+    index_kmers(*(th->kmers),
+                *(th->kmer_idx),
+                *(th->kmer_sites),
+                *(th->kmers_in_ref),
+                th->maxx,
+                *(th->allele_mask),
+                *(th->rank_all),
+                *(th->fm_index));
     return nullptr;
 }
 
@@ -189,14 +196,8 @@ void generate_kmers_encoding_single_thread(const std::vector<int> &allele_mask,
     KmerSites kmer_sites;
     KmersRef kmers_in_ref;
 
-    calc_kmer_matches(kmer_idx,
-                      kmer_sites,
-                      kmers_in_ref,
-                      kmers,
-                      max_alphabet_num,
-                      allele_mask,
-                      rank_all,
-                      fm_index);
+    index_kmers(kmers, kmer_idx, kmer_sites, kmers_in_ref, max_alphabet_num, allele_mask, rank_all,
+                fm_index);
 
     std::ofstream precalc_file;
     precalc_file.open(std::string(kmer_fname) + ".precalc");
@@ -368,11 +369,11 @@ void parse_kmer_index_entry(KmersData &kmers, const std::string &line) {
     Kmer encoded_kmer = parse_encoded_kmer(parts[0]);
     const auto in_reference_flag = parse_in_reference_flag(parts[1]);
     if (!in_reference_flag)
-        kmers.in_precalc.insert(encoded_kmer);
+        kmers.indexed_kmers.insert(encoded_kmer);
 
     const auto sa_intervals = parse_sa_intervals(parts[2]);
     if (!sa_intervals.empty())
-        kmers.index[encoded_kmer] = sa_intervals;
+        kmers.sa_intervals_map[encoded_kmer] = sa_intervals;
     else
         return;
 
@@ -382,7 +383,7 @@ void parse_kmer_index_entry(KmersData &kmers, const std::string &line) {
         const auto site = parse_site(parts[i]);
         sites.push_back(site);
     }
-    kmers.sites[encoded_kmer] = sites;
+    kmers.sites_map[encoded_kmer] = sites;
 }
 
 
@@ -396,7 +397,7 @@ KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
         parse_kmer_index_entry(kmers, line);
     }
 
-    assert(!kmers.sites.empty());
+    assert(!kmers.sites_map.empty());
     return kmers;
 }
 

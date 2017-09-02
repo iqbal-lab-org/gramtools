@@ -11,6 +11,7 @@
 
 #include "common.hpp"
 #include "map.hpp"
+#include "prg.hpp"
 #include "bidir_search_bwd.hpp"
 
 
@@ -42,9 +43,9 @@ protected:
 
 TEST_F(BidirSearchBackward, MatchSingleCharecter) {
     const std::string prg_raw = "a";
-    const uint64_t max_alphabet_num = 4;
     const std::string read = "a";
-    const std::vector<int> allele_mask = {0};
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
@@ -58,7 +59,7 @@ TEST_F(BidirSearchBackward, MatchSingleCharecter) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated, rank_all, fm_index);
+                     allele_mask, max_alphabet, kmer_index_generated, rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -76,19 +77,12 @@ TEST_F(BidirSearchBackward, MatchSingleCharecter) {
 
 TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
     // aligns across SNP allele 1 (and both flanks)
-    const std::string prg_raw = "catttacaca5g6t5aactagagagca";
-    const uint64_t max_alphabet_num = 6;
+    const std::string prg_raw = "catttacaca"
+            "5g6t5"
+            "aactagagagca";
     const std::string read = "ttacacagaactagagag";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
@@ -102,7 +96,7 @@ TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated, rank_all, fm_index);
+                     allele_mask, max_alphabet, kmer_index_generated, rank_all, fm_index);
 
     EXPECT_TRUE(delete_first_interval);
 
@@ -119,21 +113,14 @@ TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
 
 
 TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
-    const std::string prg_raw = "catttacaca5g6t5aactag7a8g7agcagggt";
-    const uint64_t max_alphabet_num = 8;
+    const std::string prg_raw = "catttacaca"
+            "5g6t5"
+            "aactag"
+            "7a8g7"
+            "agcagggt";
     const std::string read = "ttacacagaactagaagcag";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -147,7 +134,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_TRUE(delete_first_interval);
@@ -165,21 +152,14 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
 
 
 TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) {
-    const std::string prg_raw = "catttacaca5g6t5aactag7a8g7agcagggt";
-    const uint64_t max_alphabet_num = 8;
+    const std::string prg_raw = "catttacaca"
+            "5g6t5"
+            "aactag"
+            "7a8g7"
+            "agcagggt";
     const std::string read = "ttacacagaactagaagcag";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -193,7 +173,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) 
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const Sites expected = {
@@ -204,21 +184,14 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) 
 
 
 TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
-    const std::string prg_raw = "catttacaca5g6t5aactag7a8g7agcagggt";
-    const uint64_t max_alphabet_num = 8;
+    const std::string prg_raw = "catttacaca"
+            "5g6t5"
+            "aactag"
+            "7a8g7"
+            "agcagggt";
     const std::string read = "ttacacagaactagaagcag";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -232,7 +205,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_TRUE(delete_first_interval);
@@ -241,22 +214,12 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
 
 TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
     //one match crosses allele 1, and the other in nonvar
-    const std::string prg_raw = "catttacaca5g6t5aactagagagcaacagaactctct";
-    const uint64_t max_alphabet_num = 6;
+    const std::string prg_raw = "catttacaca"
+            "5g6t5"
+            "aactagagagcaacagaactctct";
     const std::string read = "acagaac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -270,7 +233,7 @@ TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
@@ -291,22 +254,12 @@ TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
 
 TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
     //one match crosses allele 1, and the other in nonvar
-    const std::string prg_raw = "catttacatt5c6t5aaagcaacagaac";
-    const uint64_t max_alphabet_num = 6;
+    const std::string prg_raw = "catttacatt"
+            "5c6t5"
+            "aaagcaacagaac";
     const std::string read = "acagaac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -320,7 +273,7 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const Sites expected_sites = {
@@ -332,21 +285,12 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
 
 TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse) {
     //one match crosses allele 1, and the other in nonvar
-    const std::string prg_raw = "catttacatt5c6t5aaagcaacagaac";
-    const uint64_t max_alphabet_num = 6;
+    const std::string prg_raw = "catttacatt"
+            "5c6t5"
+            "aaagcaacagaac";
     const std::string read = "acagaac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -360,7 +304,7 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse)
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
@@ -368,21 +312,14 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse)
 
 
 TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesElement) {
-    const std::string prg_raw = "catacagaacttacatt5g6t5aactagagagcaacagaactcacagaactc7cga8cgc8t";
-    const uint64_t max_alphabet_num = 8;
+    const std::string prg_raw = "catacagaacttacatt"
+            "5g6t5"
+            "aactagagagcaacagaactcacagaactc"
+            "7cga8cgc8"
+            "t";
     const std::string read = "acagaac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -396,7 +333,7 @@ TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesE
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const SA_Intervals expected_sa_intervals = {
@@ -416,22 +353,9 @@ TEST_F(BidirSearchBackward, MatchVariantSiteAndNonVariantSite) {
     const std::string prg_raw = "catttacaca"
             "5g6t5"
             "aactagagagcaacataactctct";
-    const uint64_t max_alphabet_num = 6;
     const std::string read = "acataac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -445,7 +369,7 @@ TEST_F(BidirSearchBackward, MatchVariantSiteAndNonVariantSite) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
@@ -471,28 +395,9 @@ TEST_F(BidirSearchBackward, MatchTwoLongVariantSites) {
             "gctcgatgactagatagatag"
             "7cga8cgc8tga8tgc7"
             "ggcaacatctacga";
-    const uint64_t max_alphabet_num = 8;
     const std::string read = "gctcggctcgatgactagatagatagcgaggcaac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1,
-            0, 2, 2, 2, 2, 2,
-            0, 3, 3, 3, 3, 3,
-            0, 4, 4, 4, 4, 4, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 1, 1, 1,
-            0, 2, 2, 2,
-            0, 3, 3, 3,
-            0, 4, 4, 4, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -506,7 +411,7 @@ TEST_F(BidirSearchBackward, MatchTwoLongVariantSites) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_TRUE(delete_first_interval);
@@ -528,14 +433,9 @@ TEST_F(BidirSearchBackward, ReadStartsInFirstAllele_AlleleMissingFromSitesAllele
     const std::string prg_raw = "acga"
             "5gctct6tt5"
             "gatat";
-    const uint64_t max_alphabet_num = 6;
     const std::string read = "ctctgata";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1,
-            0, 2, 2, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -549,7 +449,7 @@ TEST_F(BidirSearchBackward, ReadStartsInFirstAllele_AlleleMissingFromSitesAllele
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const Sites expected_sites = {
@@ -564,14 +464,9 @@ TEST_F(BidirSearchBackward, ReadStartsInSecondAllele_AlleleMissingFromSitesAllel
     const std::string prg_raw = "acga"
             "5tt6gctct5"
             "gatat";
-    const uint64_t max_alphabet_num = 6;
     const std::string read = "ctctgata";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 1, 1,
-            0, 2, 2, 2, 2, 2, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -585,7 +480,7 @@ TEST_F(BidirSearchBackward, ReadStartsInSecondAllele_AlleleMissingFromSitesAllel
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const Sites expected_sites = {
@@ -600,14 +495,9 @@ TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllel
     const std::string prg_raw = "acgc"
             "5tt6agata5"
             "tatag";
-    const uint64_t max_alphabet_num = 6;
     const std::string read = "cgcagat";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 1, 1,
-            0, 2, 2, 2, 2, 2, 0,
-            0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -621,7 +511,7 @@ TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllel
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const Sites expected_sites = {
@@ -638,18 +528,9 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAl
             "gctcgatgactagatagatag"
             "7cga8cgc8tga8tgc7"
             "ggcaacatctacga";
-    const uint64_t max_alphabet_num = 8;
     const std::string read = "gctcggctcgatgactagatagatagcgaggcaac";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 1, 1, 1, 0, 2, 2, 2, 2, 2, 0,
-            3, 3, 3, 3, 3, 0, 4, 4, 4, 4, 4,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 0, 2, 2, 2, 0, 3, 3,
-            3, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -663,7 +544,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAl
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     const Sites expected_sites = {
@@ -680,26 +561,9 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_Si
             "ggtgctagac"
             "7c8a7"
             "tcagctgctccacacagaga";
-    const uint64_t max_alphabet_num = 8;
     const std::string read = "ctgctccacacagaga";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -713,7 +577,7 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_Si
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
@@ -737,23 +601,9 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpt
             "ggtgctagac"
             "7c8a7"
             "tcag";
-    const uint64_t max_alphabet_num = 8;
     const std::string read = "ctgctccacacagaga";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0,
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -767,7 +617,7 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpt
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
@@ -785,32 +635,15 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpt
 
 
 TEST_F(BidirSearchBackward, MatchLongSiteRepeatedSnpOnSiteEdge) {
-    //read aligns across sites 5 and 7, allele 1 in both cases
+    //read aligns across sites_map 5 and 7, allele 1 in both cases
     const std::string prg_raw = "gacatagacacacagt"
             "5gtcgcctcgtcggctttgagt6gtcgctgctccacacagagact5"
             "ggtgctagac"
             "7c8a7"
             "ccagctgctccacacagaga";
-    const uint64_t max_alphabet_num = 8;
     const std::string read = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0,
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -824,7 +657,7 @@ TEST_F(BidirSearchBackward, MatchLongSiteRepeatedSnpOnSiteEdge) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_TRUE(delete_first_interval);
@@ -848,33 +681,9 @@ TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
             "gctcgtgataatgactagatagatag"
             "7cga8cgc8tga8tgc7"
             "taggcaacatctacga";
-    const uint64_t max_alphabet_num = 8;
     const std::string read = "tgata";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0,
-            0, 1, 1, 1, 1, 1,
-            0, 2, 2, 2, 2, 2,
-            0, 3, 3, 3, 3, 3,
-            0, 4, 4, 4, 4, 4, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1, 1, 1,
-            0, 2, 2, 2,
-            0, 3, 3, 3,
-            0, 4, 4, 4, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0,
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -890,7 +699,7 @@ TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_FALSE(delete_first_interval);
@@ -903,14 +712,14 @@ TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
     EXPECT_EQ(sa_intervals, expected_sa_intervals);
 
     // note this unit test allows for an implementation limitation
-    // of gramtools right now - unless a read crosses an odd number, it is not stored in sites()
+    // of gramtools right now - unless a read crosses an odd number, it is not stored in sites_map()
     // should really notice the read has overlapped allele 3 of site 7, but it does not.
     const Sites expected_sites = {
             // first SA interval will be the match in the nonVariant region.
-            // so we should get a vector of length zero, as it crosses no sites.
+            // so we should get a vector of length zero, as it crosses no sites_map.
             {},
 
-            // move to next SA interval - next element of list (sites)
+            // move to next SA interval - next element of list (sites_map)
             // this will be the overlap with site 7
             {VariantSite(7, {})},
 
@@ -936,33 +745,9 @@ TEST_F(BidirSearchBackward, SingleMatchOverManySites) {
             "ggtc"
             "15atc16cat15"
             "ttcg";
-    const uint64_t max_alphabet_num = 16;
     const std::string read = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
-    const std::vector<int> allele_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 1,
-            0, 2, 0,
-            0, 0, 0, 0,
-            0, 1, 1, 1,
-            0, 2, 2, 2, 0,
-            0, 0, 0, 0,
-            0
-    };
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
@@ -976,7 +761,7 @@ TEST_F(BidirSearchBackward, SingleMatchOverManySites) {
 
     bidir_search_bwd(sa_intervals, sites, delete_first_interval,
                      encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet_num, kmer_index_generated,
+                     allele_mask, max_alphabet, kmer_index_generated,
                      rank_all, fm_index);
 
     EXPECT_TRUE(delete_first_interval);

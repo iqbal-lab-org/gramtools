@@ -25,7 +25,7 @@ int main(int argc, const char *const *argv) {
 
     timer_report.record("Construct FM-index");
 
-    std::cout << "Parsing sites and allele masks" << std::endl;
+    std::cout << "Parsing sites_map and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure?

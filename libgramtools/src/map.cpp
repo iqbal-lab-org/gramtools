@@ -88,13 +88,35 @@ bool process_read(const std::vector<uint8_t> &encoded_read,
 
 
 bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmersData &kmers) {
-    bool kmer_not_in_precalc = (kmers.index.find(read_kmer_part) == kmers.index.end()
-                                or kmers.sites.find(read_kmer_part) == kmers.sites.end());
+    bool kmer_not_in_precalc = (kmers.sa_intervals_map.find(read_kmer_part) == kmers.sa_intervals_map.end()
+                                or kmers.sites_map.find(read_kmer_part) == kmers.sites_map.end());
     if (kmer_not_in_precalc)
         return true;
 
-    const SA_Intervals &sa_intervals = kmers.index.at(read_kmer_part);
+    const SA_Intervals &sa_intervals = kmers.sa_intervals_map.at(read_kmer_part);
     return sa_intervals.empty();
+}
+
+
+void print_sa_interval(const SA_Intervals &sa_intervals) {
+    for (const auto &sa_interval: sa_intervals) {
+        std::cout << sa_interval.first << " " << sa_interval.second
+                  << std::endl;
+    }
+}
+
+
+void print_sites(const Sites &sites) {
+    for (const auto &site: sites) {
+        for (const auto &variant_site: site) {
+            std::cout << variant_site.first << ": ";
+            for (const auto &allele: variant_site.second) {
+                std::cout << allele << ", ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
 }
 
 
@@ -112,11 +134,11 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
     //These are either in non-variable region, or are entirely within alleles
     //then the kmer does overlap a number, by definition.
     //no need to ignore first SA interval (if it was in the nonvar bit would ignore)
-    bool kmer_found_in_precalc = kmers.in_precalc.find(read_kmer_part) != kmers.in_precalc.end();
+    bool kmer_found_in_precalc = kmers.indexed_kmers.find(read_kmer_part) != kmers.indexed_kmers.end();
     bool delete_first_interval = !kmer_found_in_precalc;
 
-    auto &sites = kmers.sites[read_kmer_part];
-    auto &sa_intervals = kmers.index[read_kmer_part];
+    auto &sites = kmers.sites_map[read_kmer_part];
+    auto &sa_intervals = kmers.sa_intervals_map[read_kmer_part];
 
     const auto &read_begin = encoded_read.begin();
     const auto &read_end = encoded_read.begin() + encoded_read.size() - kmer_size;
@@ -126,6 +148,10 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
                      read_begin, read_end,
                      masks.allele, masks.max_alphabet_num,
                      kmer_precalc_done, rank_all, fm_index);
+
+    std::cout << "sites_map.size(): " << sites.size() << std::endl;
+    print_sites(sites);
+    std::cout << "done printing sites_map" << std::endl;
 
     const bool read_mapps_too_many_alleles = sa_intervals.size() > 100;
     if (read_mapps_too_many_alleles)

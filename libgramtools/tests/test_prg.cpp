@@ -43,3 +43,30 @@ TEST(GenerateAlleleMask, TwoVariantSites_CorrectAlleleMask) {
     };
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(GenerateAlleleMask, DoubleDigitMarker_CorrectAlleleMask) {
+    const std::string prg_raw = "a13g14t13tt";
+    auto result = generate_allele_mask(prg_raw);
+    std::vector<int> expected = {
+            0,
+            0, 1,
+            0, 2, 0,
+            0, 0,
+    };
+    EXPECT_EQ(result, expected);
+}
+
+TEST(MaxAlphabetNum, PrgWithVariantSite_LargestSiteMarkerAsMaxAlphabet) {
+    const std::string prg_raw = "a13g14t13tt";
+    auto result = max_alphabet_num(prg_raw);
+    uint64_t expected = 14;
+    EXPECT_EQ(result, expected);
+}
+
+TEST(MaxAlphabetNum, SingleCharPrg_CorrectBaseEncodingAsMaxAlphabet) {
+    const std::string prg_raw = "c";
+    auto result = max_alphabet_num(prg_raw);
+    uint64_t expected = 2;
+    EXPECT_EQ(result, expected);
+}

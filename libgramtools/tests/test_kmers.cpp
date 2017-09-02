@@ -1,4 +1,12 @@
+#include <cctype>
+
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+
 #include "gtest/gtest.h"
+
 #include "kmers.hpp"
 
 
@@ -99,7 +107,7 @@ TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
     const auto full_sa_intervals_str = "352511 352512 352648 352649 352648 352649";
     const auto result = parse_sa_intervals(full_sa_intervals_str);
 
-    SA_Intervals expected {
+    SA_Intervals expected{
             {352511, 352512},
             {352648, 352649},
             {352648, 352649},
@@ -132,3 +140,57 @@ TEST(ParsePrecalc, GivenSitesTrailingAt_TrailingAtIgnored) {
     const auto &result = parse_site(parts[0]);
     EXPECT_EQ(result, expected);
 }
+
+
+class IndexKmers : public ::testing::Test {
+
+protected:
+    std::string prg_fpath;
+
+    virtual void SetUp() {
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        const auto uuid_str = boost::lexical_cast<std::string>(uuid);
+        prg_fpath = "./prg_" + uuid_str;
+    }
+
+    virtual void TearDown() {
+        std::remove(prg_fpath.c_str());
+    }
+
+    FM_Index fm_index_from_raw_prg(const std::string &prg_raw) {
+        std::vector<uint64_t> prg = encode_prg(prg_raw);
+        dump_encoded_prg(prg, prg_fpath);
+        FM_Index fm_index;
+        // TODO: constructing from memory with sdsl::construct_im appends 0 which corrupts
+        sdsl::construct(fm_index, prg_fpath, 8);
+        return fm_index;
+    }
+
+};
+
+
+/*
+TEST_F(IndexKmers, todo_disc) {
+    const std::string prg_raw = "catttacaca5g6t5aactagagagca";
+    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
+    const uint64_t max_alphabet_num = 6;
+    const std::vector<int> allele_mask = {};
+
+    //auto kmer = encode_dna_bases(const std::string &dna_str);
+    //Kmers kmers = ;
+
+    KmerIdx kmer_idx;
+    KmerSites kmer_sites;
+    KmersRef kmers_in_ref;
+
+    index_kmers(kmer_idx,
+                kmer_sites,
+                kmers_in_ref,
+                kmers,
+                max_alphabet_num,
+                allele_mask,
+                rank_all,
+                fm_index);
+}
+*/

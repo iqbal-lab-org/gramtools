@@ -53,10 +53,12 @@ struct ThreadData {
 };
 
 struct KmersData {
-    KmerIdx index;
-    KmerSites sites;
-    KmersRef in_precalc;
+    KmerIdx sa_intervals_map;
+    KmerSites sites_map;
+    KmersRef indexed_kmers;
 };
+
+uint8_t encode_dna_base(const char &base_str);
 
 std::vector<uint8_t> encode_dna_bases(const std::string &dna_str);
 
@@ -79,8 +81,8 @@ void dump_thread_result(std::ofstream &precalc_file,
                         const KmersRef &kmers_in_ref,
                         const KmerSites &kmer_sites);
 
-void calc_kmer_matches(KmerIdx &kmer_idx, KmerSites &kmer_sites, KmersRef &kmers_in_ref, Kmers &kmers, const uint64_t maxx,
-                       const std::vector<int> &allele_mask, const DNA_Rank &rank_all, const FM_Index &fm_index);
+void index_kmers(Kmers &kmers, KmerIdx &kmer_idx, KmerSites &kmer_sites, KmersRef &kmers_in_ref, const uint64_t maxx,
+                 const std::vector<int> &allele_mask, const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 void *worker(void *st);
 

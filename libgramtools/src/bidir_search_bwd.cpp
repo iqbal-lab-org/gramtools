@@ -11,24 +11,24 @@
  *
  *
  * adds sa intervals (gives number of matches: sa interval gives you the position of each match in the prg via the suffix array)
- * sites -> variant markers within the sa interval: (everything between odd numbers)
+ * sites_map -> variant markers within the sa interval: (everything between odd numbers)
  *  pair: site and allele
  * alleles: separated by even numbers above 5
  *
  *
- * Sites &sites
+ * Sites &sites_map
  * * std::pair -> one variant site
  * ** uint64_t -> variant site (the odd number character)
  * ** std::vector<int> -> each int is one allele, subset of alleles in variant site
  * (an index, starts at 1: 1 is first allele, 2 is second allele)
  *
- * * Site -> close variants sites expect reads to cross over,
- * tracks order of crossed (by read) variant sites if variant sites close together
+ * * Site -> close variants sites_map expect reads to cross over,
+ * tracks order of crossed (by read) variant sites_map if variant sites_map close together
  *
  *
  * * std::list -> the list tracks each match of the read, elements of the list are a "match"
  *
- * sa_intervals <--one-to-one--> sites
+ * sa_intervals <--one-to-one--> sites_map
 */
 void bidir_search_bwd(SA_Intervals &sa_intervals,
                       Sites &sites,
