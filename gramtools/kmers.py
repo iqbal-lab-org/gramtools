@@ -12,14 +12,17 @@ def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('kmers',
                                    parents=[common_parser])
 
-    parser.add_argument('--kmer-size', help='',
+    parser.add_argument('--reference',
+                        help='',
+                        type=str,
+                        required=True)
+    parser.add_argument('--output-fpath',
+                        help='',
+                        type=str,
+                        required=True)
+    parser.add_argument('--kmer-size',
+                        help='',
                         type=int,
-                        required=True)
-    parser.add_argument('--reference', help='',
-                        type=str,
-                        required=True)
-    parser.add_argument('--output-fpath', help='',
-                        type=str,
                         required=True)
 
     parser.add_argument('--kmer-region-size',
@@ -125,7 +128,7 @@ def _kmers_from_genome_path(path_parts, kmer_size):
 def _kmers_from_genome_paths(genome_paths, kmer_size, tot_num_paths=None, unique=False):
     """Generate all kmers which exist for a list of genome paths."""
     for i, path_parts in enumerate(genome_paths):
-        if i % 200 == 0:
+        if i % 2000 == 0:
             print(i, tot_num_paths)
         kmers = _kmers_from_genome_path(path_parts, kmer_size)
 

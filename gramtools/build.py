@@ -14,24 +14,27 @@ def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('build',
                                    parents=[common_parser])
 
-    parser.add_argument('--vcf', help='',
+    parser.add_argument('--vcf',
+                        help='',
                         type=str,
                         required=True)
-    parser.add_argument('--reference', help='',
+    parser.add_argument('--reference',
+                        help='',
                         type=str,
                         required=True)
-    parser.add_argument('--kmer-size', help='',
-                        type=int,
-                        required=True)
-    parser.add_argument('--kmer-region-size',
-                        dest='kmer_region_size',
+    parser.add_argument('--kmer-size',
                         help='',
                         type=int,
                         required=True)
 
-    parser.add_argument('--nonvariant-kmers', help='',
-                        default=False,
-                        action='store_true')
+    parser.add_argument('--kmer-region-size',
+                        dest='kmer_region_size',
+                        help='',
+                        type=int)
+    parser.add_argument('--all-kmers',
+                        help='',
+                        action='store_true',
+                        default=False)
 
 
 def _get_project_dirpath(prg_fpath):
