@@ -122,7 +122,7 @@ def _kmers_from_genome_path(path_parts, kmer_size):
         yield kmer
 
 
-def _kmers_from_genome_paths(genome_paths, kmer_size, tot_num_paths, unique=False):
+def _kmers_from_genome_paths(genome_paths, kmer_size, tot_num_paths=None, unique=False):
     """Generate all kmers which exist for a list of genome paths."""
     for i, path_parts in enumerate(genome_paths):
         if i % 200 == 0:
