@@ -7,6 +7,8 @@
 
 #include "gtest/gtest.h"
 
+#include "prg.hpp"
+#include "common.hpp"
 #include "kmers.hpp"
 
 
@@ -169,28 +171,129 @@ protected:
 };
 
 
-/*
-TEST_F(IndexKmers, todo_disc) {
-    const std::string prg_raw = "catttacaca5g6t5aactagagagca";
+TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
+    const std::string prg_raw = "aca5g6t5gcatt";
+    auto kmer = encode_read("atgca");
     const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const uint64_t max_alphabet_num = 6;
-    const std::vector<int> allele_mask = {};
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
 
-    //auto kmer = encode_dna_bases(const std::string &dna_str);
-    //Kmers kmers = ;
+    Kmers kmers = {
+            {kmer}
+    };
 
-    KmerIdx kmer_idx;
-    KmerSites kmer_sites;
-    KmersRef kmers_in_ref;
+    KmerIdx sa_intervals_map;
+    KmerSites sites_map;
+    KmersRef nonvar_kmers;
 
-    index_kmers(kmer_idx,
-                kmer_sites,
-                kmers_in_ref,
-                kmers,
-                max_alphabet_num,
+    index_kmers(kmers,
+                sa_intervals_map,
+                sites_map,
+                nonvar_kmers,
+                max_alphabet,
                 allele_mask,
                 rank_all,
                 fm_index);
+
+    auto &result = nonvar_kmers;
+    KmersRef expected = {};
+    EXPECT_EQ(result, expected);
 }
-*/
+
+
+TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
+    const std::string prg_raw = "aca5g6t5gcatt";
+    auto kmer = encode_read("atgca");
+    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+
+    Kmers kmers = {
+            {kmer}
+    };
+
+    KmerIdx sa_intervals_map;
+    KmerSites sites_map;
+    KmersRef nonvar_kmers;
+
+    index_kmers(kmers,
+                sa_intervals_map,
+                sites_map,
+                nonvar_kmers,
+                max_alphabet,
+                allele_mask,
+                rank_all,
+                fm_index);
+
+    auto &result = nonvar_kmers;
+    KmersRef expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
+    const std::string prg_raw = "aca5g6t5gcatt";
+    auto kmer = encode_read("atgca");
+    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+
+    Kmers kmers = {
+            {kmer}
+    };
+
+    KmerIdx sa_intervals_map;
+    KmerSites sites_map;
+    KmersRef nonvar_kmers;
+
+    index_kmers(kmers,
+                sa_intervals_map,
+                sites_map,
+                nonvar_kmers,
+                max_alphabet,
+                allele_mask,
+                rank_all,
+                fm_index);
+
+    auto &result = sites_map[kmer];
+    Sites expected = {
+            { VariantSite(5, {2}) }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
+    const std::string prg_raw = "aca5g6t5gcatt";
+    auto kmer = encode_read("aggca");
+    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
+    const DNA_Rank &rank_all = calculate_ranks(fm_index);
+    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
+    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+
+    Kmers kmers = {
+            {kmer}
+    };
+
+    KmerIdx sa_intervals_map;
+    KmerSites sites_map;
+    KmersRef nonvar_kmers;
+
+    index_kmers(kmers,
+                sa_intervals_map,
+                sites_map,
+                nonvar_kmers,
+                max_alphabet,
+                allele_mask,
+                rank_all,
+                fm_index);
+
+    auto &result = sites_map[kmer];
+    Sites expected = {
+            { VariantSite(5, {1}) }
+    };
+    EXPECT_EQ(result, expected);
+}

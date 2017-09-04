@@ -134,8 +134,8 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
     //These are either in non-variable region, or are entirely within alleles
     //then the kmer does overlap a number, by definition.
     //no need to ignore first SA interval (if it was in the nonvar bit would ignore)
-    bool kmer_found_in_precalc = kmers.indexed_kmers.find(read_kmer_part) != kmers.indexed_kmers.end();
-    bool delete_first_interval = !kmer_found_in_precalc;
+    bool kmer_is_nonvar = kmers.nonvar_kmers.find(read_kmer_part) != kmers.nonvar_kmers.end();
+    bool delete_first_interval = !kmer_is_nonvar;
 
     auto &sites = kmers.sites_map[read_kmer_part];
     auto &sa_intervals = kmers.sa_intervals_map[read_kmer_part];
@@ -157,7 +157,7 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
     if (read_mapps_too_many_alleles)
         return false;
 
-    if (kmer_found_in_precalc) {
+    if (kmer_is_nonvar) {
         repeats_variant_site_edge_markers.clear();
         populate_repeats_variant_edges(repeats_variant_site_edge_markers,
                                        count_char_in_variant_site,

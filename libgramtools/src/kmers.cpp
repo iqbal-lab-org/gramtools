@@ -6,7 +6,7 @@
 #include "bidir_search_bwd.hpp"
 
 
-#define MAX_THREADS 25
+#define MAX_THREADS 1
 
 
 uint8_t encode_dna_base(const char &base_str) {
@@ -124,7 +124,7 @@ void dump_thread_result(std::ofstream &precalc_file,
 void index_kmers(Kmers &kmers,
                  KmerIdx &sa_intervals_map,
                  KmerSites &sites_map,
-                 KmersRef &indexed_kmers,
+                 KmersRef &nonvar_kmers,
                  const uint64_t maxx,
                  const std::vector<int> &allele_mask,
                  const DNA_Rank &rank_all,
@@ -142,22 +142,23 @@ void index_kmers(Kmers &kmers,
 
         if (sa_intervals.empty()) {
             sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
-
-            Site empty_pair_vector;
-            sites.push_back(empty_pair_vector);
+            sites.emplace_back(Site());
         }
 
         bidir_search_bwd(sa_intervals, sites,
-                         delete_first_interval, kmer.begin(),
-                         kmer.end(), allele_mask, maxx,
+                         delete_first_interval,
+                         kmer.begin(),
+                         kmer.end(),
+                         allele_mask, maxx,
                          kmer_precalc_done,
                          rank_all, fm_index);
 
-        if (sa_intervals.empty())
+        if (sa_intervals.empty()) {
             sa_intervals_map.erase(kmer);
+        }
 
         if (!delete_first_interval)
-            indexed_kmers.insert(kmer);
+            nonvar_kmers.insert(kmer);
     }
 }
 
@@ -369,7 +370,7 @@ void parse_kmer_index_entry(KmersData &kmers, const std::string &line) {
     Kmer encoded_kmer = parse_encoded_kmer(parts[0]);
     const auto in_reference_flag = parse_in_reference_flag(parts[1]);
     if (!in_reference_flag)
-        kmers.indexed_kmers.insert(encoded_kmer);
+        kmers.nonvar_kmers.insert(encoded_kmer);
 
     const auto sa_intervals = parse_sa_intervals(parts[2]);
     if (!sa_intervals.empty())

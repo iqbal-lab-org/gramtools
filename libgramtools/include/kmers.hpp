@@ -55,7 +55,7 @@ struct ThreadData {
 struct KmersData {
     KmerIdx sa_intervals_map;
     KmerSites sites_map;
-    KmersRef indexed_kmers;
+    KmersRef nonvar_kmers;
 };
 
 uint8_t encode_dna_base(const char &base_str);

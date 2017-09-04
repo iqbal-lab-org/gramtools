@@ -58,12 +58,13 @@ TEST_F(QuasimapRead, todo_desc) {
     index_kmers(kmers,
                 kmers_data.sa_intervals_map,
                 kmers_data.sites_map,
-                kmers_data.indexed_kmers,
+                kmers_data.nonvar_kmers,
                 masks.max_alphabet_num,
                 masks.allele,
                 rank_all,
                 fm_index);
 
+    /*
     for (auto i: kmers_data.sites_map) {
         std::cout << "kmer: " << std::endl;
         auto &kmer = i.first;
@@ -79,6 +80,7 @@ TEST_F(QuasimapRead, todo_desc) {
         auto &sa_intervals = kmers_data.sa_intervals_map[kmer];
         print_sa_interval(sa_intervals);
     }
+     */
     /*
     bool read_mapped = quasimap_read(kmer,
                                      encoded_read,
