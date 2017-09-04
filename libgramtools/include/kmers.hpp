@@ -36,26 +36,26 @@ using SA_Intervals = std::list<SA_Interval>;
 
 using Kmer = std::vector<uint8_t>;
 using Kmers = std::vector<Kmer>;
-using KmerIdx = sequence_map<Kmer, SA_Intervals>;
+using KmerSA_Intervals = sequence_map<Kmer, SA_Intervals>;
 using KmerSites = sequence_map<Kmer, Sites>;
-using KmersRef = sequence_set<Kmer>;
+using NonVariantKmers = sequence_set<Kmer>;
 
 struct ThreadData {
-    KmerIdx *kmer_idx;
-    KmerSites *kmer_sites;
-    KmersRef *kmers_in_ref;
+    KmerSA_Intervals *sa_intervals_map;
+    KmerSites *sites_map;
+    NonVariantKmers *nonvar_kmers;
     std::vector<std::vector<uint8_t>> *kmers;
     int thread_id;
     const FM_Index *fm_index;
     const DNA_Rank *rank_all;
     const std::vector<int> *allele_mask;
-    uint64_t maxx;
+    uint64_t max_alphabet_num;
 };
 
 struct KmersData {
-    KmerIdx sa_intervals_map;
+    KmerSA_Intervals sa_intervals_map;
     KmerSites sites_map;
-    KmersRef nonvar_kmers;
+    NonVariantKmers nonvar_kmers;
 };
 
 uint8_t encode_dna_base(const char &base_str);
@@ -67,21 +67,21 @@ std::string dump_kmer(const Kmer &kmer);
 std::string dump_sa_intervals(const SA_Intervals &sa_intervals);
 
 std::string dump_kmer_in_ref_flag(const Kmer &kmer,
-                                  const KmersRef &kmers_in_ref);
+                                  const NonVariantKmers &kmers_in_ref);
 
 std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites);
 
 std::string dump_kmer_precalc_entry(const Kmer &kmer,
                                     const SA_Intervals &sa_intervals,
-                                    const KmersRef &kmers_in_ref,
+                                    const NonVariantKmers &kmers_in_ref,
                                     const KmerSites &kmer_sites);
 
 void dump_thread_result(std::ofstream &precalc_file,
-                        const KmerIdx &kmers_sa_intervals,
-                        const KmersRef &kmers_in_ref,
+                        const KmerSA_Intervals &kmers_sa_intervals,
+                        const NonVariantKmers &kmers_in_ref,
                         const KmerSites &kmer_sites);
 
-void index_kmers(Kmers &kmers, KmerIdx &kmer_idx, KmerSites &kmer_sites, KmersRef &kmers_in_ref, const uint64_t maxx,
+void index_kmers(Kmers &kmers, KmerSA_Intervals &kmer_idx, KmerSites &kmer_sites, NonVariantKmers &kmers_in_ref, const uint64_t maxx,
                  const std::vector<int> &allele_mask, const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 void *worker(void *st);

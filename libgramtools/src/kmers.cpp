@@ -67,7 +67,7 @@ std::string dump_sa_intervals(const SA_Intervals &sa_intervals) {
 
 
 std::string dump_kmer_in_ref_flag(const Kmer &kmer,
-                                  const KmersRef &kmers_in_ref) {
+                                  const NonVariantKmers &kmers_in_ref) {
     if (kmers_in_ref.count(kmer) != 0)
         return "1";
     return "0";
@@ -91,7 +91,7 @@ std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites) {
 
 std::string dump_kmer_precalc_entry(const Kmer &kmer,
                                     const SA_Intervals &sa_intervals,
-                                    const KmersRef &kmers_in_ref,
+                                    const NonVariantKmers &kmers_in_ref,
                                     const KmerSites &kmer_sites) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
@@ -104,8 +104,8 @@ std::string dump_kmer_precalc_entry(const Kmer &kmer,
 
 
 void dump_thread_result(std::ofstream &precalc_file,
-                        const KmerIdx &kmers_sa_intervals,
-                        const KmersRef &kmers_in_ref,
+                        const KmerSA_Intervals &kmers_sa_intervals,
+                        const NonVariantKmers &kmers_in_ref,
                         const KmerSites &kmer_sites) {
 
     for (const auto &kmer_sa_intervals: kmers_sa_intervals) {
@@ -122,9 +122,9 @@ void dump_thread_result(std::ofstream &precalc_file,
 
 
 void index_kmers(Kmers &kmers,
-                 KmerIdx &sa_intervals_map,
+                 KmerSA_Intervals &sa_intervals_map,
                  KmerSites &sites_map,
-                 KmersRef &nonvar_kmers,
+                 NonVariantKmers &nonvar_kmers,
                  const uint64_t maxx,
                  const std::vector<int> &allele_mask,
                  const DNA_Rank &rank_all,
@@ -166,10 +166,10 @@ void index_kmers(Kmers &kmers,
 void *worker(void *st) {
     auto *th = (ThreadData *) st;
     index_kmers(*(th->kmers),
-                *(th->kmer_idx),
-                *(th->kmer_sites),
-                *(th->kmers_in_ref),
-                th->maxx,
+                *(th->sa_intervals_map),
+                *(th->sites_map),
+                *(th->nonvar_kmers),
+                th->max_alphabet_num,
                 *(th->allele_mask),
                 *(th->rank_all),
                 *(th->fm_index));
@@ -193,20 +193,22 @@ void generate_kmers_encoding_single_thread(const std::vector<int> &allele_mask,
         kmers.emplace_back(kmer);
     }
 
-    KmerIdx kmer_idx;
-    KmerSites kmer_sites;
-    KmersRef kmers_in_ref;
+    KmerSA_Intervals sa_intervals_map;
+    KmerSites sites_map;
+    NonVariantKmers nonvar_kmers;
 
-    index_kmers(kmers, kmer_idx, kmer_sites, kmers_in_ref, max_alphabet_num, allele_mask, rank_all,
+    index_kmers(kmers,
+                sa_intervals_map, sites_map, nonvar_kmers,
+                max_alphabet_num, allele_mask, rank_all,
                 fm_index);
 
     std::ofstream precalc_file;
     precalc_file.open(std::string(kmer_fname) + ".precalc");
 
     dump_thread_result(precalc_file,
-                       kmer_idx,
-                       kmers_in_ref,
-                       kmer_sites);
+                       sa_intervals_map,
+                       nonvar_kmers,
+                       sites_map);
 }
 
 
@@ -232,17 +234,17 @@ void generate_kmers_encoding_threading(const std::vector<int> &allele_mask,
         j %= thread_count;
     }
 
-    KmerIdx kmer_idx[thread_count];
-    KmerSites kmer_sites[thread_count];
-    KmersRef kmers_in_ref[thread_count];
+    KmerSA_Intervals sa_intervals_map[thread_count];
+    KmerSites sites_map[thread_count];
+    NonVariantKmers nonvar_kmers[thread_count];
 
     for (int i = 0; i < thread_count; i++) {
         td[i].fm_index = &fm_index;
-        td[i].kmer_idx = &kmer_idx[i];
-        td[i].kmer_sites = &kmer_sites[i];
+        td[i].sa_intervals_map = &sa_intervals_map[i];
+        td[i].sites_map = &sites_map[i];
         td[i].allele_mask = &allele_mask;
-        td[i].maxx = max_alphabet_num;
-        td[i].kmers_in_ref = &kmers_in_ref[i];
+        td[i].max_alphabet_num = max_alphabet_num;
+        td[i].nonvar_kmers = &nonvar_kmers[i];
         td[i].kmers = &kmers[i];
         td[i].thread_id = i;
         std::cout << "Starting thread: " << i << std::endl;
@@ -258,9 +260,9 @@ void generate_kmers_encoding_threading(const std::vector<int> &allele_mask,
         void *status;
         pthread_join(threads[i], &status);
         dump_thread_result(precalc_file,
-                           kmer_idx[i],
-                           kmers_in_ref[i],
-                           kmer_sites[i]);
+                           sa_intervals_map[i],
+                           nonvar_kmers[i],
+                           sites_map[i]);
     }
 }
 

@@ -14,7 +14,7 @@
 
 TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
     const Kmer kmer = {1, 2, 3, 4};
-    const KmersRef kmers_in_ref = {kmer};
+    const NonVariantKmers kmers_in_ref = {kmer};
 
     Site first_site = {
             VariantSite(5, {9, 8, 7}),
@@ -183,9 +183,9 @@ TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
             {kmer}
     };
 
-    KmerIdx sa_intervals_map;
+    KmerSA_Intervals sa_intervals_map;
     KmerSites sites_map;
-    KmersRef nonvar_kmers;
+    NonVariantKmers nonvar_kmers;
 
     index_kmers(kmers,
                 sa_intervals_map,
@@ -197,7 +197,7 @@ TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
                 fm_index);
 
     auto &result = nonvar_kmers;
-    KmersRef expected = {};
+    NonVariantKmers expected = {};
     EXPECT_EQ(result, expected);
 }
 
@@ -214,9 +214,9 @@ TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
             {kmer}
     };
 
-    KmerIdx sa_intervals_map;
+    KmerSA_Intervals sa_intervals_map;
     KmerSites sites_map;
-    KmersRef nonvar_kmers;
+    NonVariantKmers nonvar_kmers;
 
     index_kmers(kmers,
                 sa_intervals_map,
@@ -228,7 +228,7 @@ TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
                 fm_index);
 
     auto &result = nonvar_kmers;
-    KmersRef expected = {};
+    NonVariantKmers expected = {};
     EXPECT_EQ(result, expected);
 }
 
@@ -245,9 +245,9 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
             {kmer}
     };
 
-    KmerIdx sa_intervals_map;
+    KmerSA_Intervals sa_intervals_map;
     KmerSites sites_map;
-    KmersRef nonvar_kmers;
+    NonVariantKmers nonvar_kmers;
 
     index_kmers(kmers,
                 sa_intervals_map,
@@ -278,9 +278,9 @@ TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
             {kmer}
     };
 
-    KmerIdx sa_intervals_map;
+    KmerSA_Intervals sa_intervals_map;
     KmerSites sites_map;
-    KmersRef nonvar_kmers;
+    NonVariantKmers nonvar_kmers;
 
     index_kmers(kmers,
                 sa_intervals_map,
