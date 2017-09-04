@@ -38,7 +38,15 @@ using Kmer = std::vector<uint8_t>;
 using Kmers = std::vector<Kmer>;
 using KmerSA_Intervals = sequence_map<Kmer, SA_Intervals>;
 using KmerSites = sequence_map<Kmer, Sites>;
+
+// Kmers added when not in variant site or when entierly within a single allele
 using NonVariantKmers = sequence_set<Kmer>;
+
+struct KmersData {
+    KmerSA_Intervals sa_intervals_map;
+    KmerSites sites_map;
+    NonVariantKmers nonvar_kmers;
+};
 
 struct ThreadData {
     KmerSA_Intervals *sa_intervals_map;
@@ -50,12 +58,6 @@ struct ThreadData {
     const DNA_Rank *rank_all;
     const std::vector<int> *allele_mask;
     uint64_t max_alphabet_num;
-};
-
-struct KmersData {
-    KmerSA_Intervals sa_intervals_map;
-    KmerSites sites_map;
-    NonVariantKmers nonvar_kmers;
 };
 
 uint8_t encode_dna_base(const char &base_str);
