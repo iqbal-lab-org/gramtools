@@ -15,7 +15,7 @@ void print_sa_interval(const SA_Intervals &sa_intervals);
 
 void print_sites(const Sites &sites);
 
-int quasimap_reads(KmersData &kmers, MasksParser &masks, const Parameters &params, const FM_Index &fm_index,
+int quasimap_reads(KmerIndex &kmers, MasksParser &masks, const Parameters &params, const FM_Index &fm_index,
                    const DNA_Rank &rank_all);
 
 std::vector<uint8_t> int_encode_read(const GenomicRead &read_sequence);
@@ -23,19 +23,19 @@ std::vector<uint8_t> int_encode_read(const GenomicRead &read_sequence);
 bool process_read(const std::vector<uint8_t> &encoded_read,
                   int &count_char_in_variant_site,
                   std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
-                  KmersData &kmers,
+                  KmerIndex &kmers,
                   MasksParser &masks,
                   const Parameters &params,
                   const DNA_Rank &rank_all,
                   const FM_Index &fm_index);
 
-bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmersData &kmers);
+bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmerIndex &kmers);
 
 bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
                    const std::vector<uint8_t> &encoded_read,
                    int &count_char_in_variant_site,
                    std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
-                   KmersData &kmers,
+                   KmerIndex &kmers,
                    MasksParser &masks,
                    const int kmer_size,
                    const DNA_Rank &rank_all,

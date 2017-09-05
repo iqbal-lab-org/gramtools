@@ -366,7 +366,7 @@ Site parse_site(const std::string &sites_part_str) {
 }
 
 
-void parse_kmer_index_entry(KmersData &kmers, const std::string &line) {
+void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line) {
     const std::vector<std::string> &parts = split(line, "|");
 
     Kmer encoded_kmer = parse_encoded_kmer(parts[0]);
@@ -390,11 +390,11 @@ void parse_kmer_index_entry(KmersData &kmers, const std::string &line) {
 }
 
 
-KmersData read_encoded_kmers(const std::string &encoded_kmers_fname) {
+KmerIndex read_encoded_kmers(const std::string &encoded_kmers_fname) {
     std::ifstream fhandle;
     fhandle.open(encoded_kmers_fname);
 
-    KmersData kmers;
+    KmerIndex kmers;
     std::string line;
     while (std::getline(fhandle, line)) {
         parse_kmer_index_entry(kmers, line);
@@ -414,7 +414,7 @@ int get_thread_count() {
 }
 
 
-KmersData get_kmers(const std::string &kmer_fname,
+KmerIndex get_kmers(const std::string &kmer_fname,
                     const std::vector<int> &allele_mask,
                     const uint64_t maxx,
                     const DNA_Rank &rank_all,
@@ -424,7 +424,7 @@ KmersData get_kmers(const std::string &kmer_fname,
 
     if (!fexists(encoded_kmers_fname)) {
         const int thread_count = get_thread_count();
-        std::cout << "Precalculated kmers not found, generating them using "
+        std::cout << "Kmer index not found, generating them using "
                   << thread_count << " threads" << std::endl;
         generate_kmers_encoding_threading(allele_mask, kmer_fname, maxx, thread_count, rank_all, fm_index);
         std::cout << "Finished precalculating kmers" << std::endl;

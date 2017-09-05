@@ -42,7 +42,7 @@ using KmerSites = sequence_map<Kmer, Sites>;
 // Kmers added when not in variant site or when entierly within a single allele
 using NonVariantKmers = sequence_set<Kmer>;
 
-struct KmersData {
+struct KmerIndex {
     KmerSA_Intervals sa_intervals_map;
     KmerSites sites_map;
     NonVariantKmers nonvar_kmers;
@@ -113,13 +113,13 @@ SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str);
 
 Site parse_site(const std::string &sites_part_str);
 
-void parse_kmer_index_entry(KmersData &kmers, const std::string &line);
+void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
 
-KmersData read_encoded_kmers(const std::string &encoded_kmers_fname);
+KmerIndex read_encoded_kmers(const std::string &encoded_kmers_fname);
 
 int get_thread_count();
 
-KmersData get_kmers(const std::string &kmer_fname,
+KmerIndex get_kmers(const std::string &kmer_fname,
                     const std::vector<int> &allele_mask,
                     const uint64_t maxx,
                     const DNA_Rank &rank_all,

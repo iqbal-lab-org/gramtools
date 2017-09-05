@@ -38,7 +38,7 @@ protected:
     }
 };
 
-
+/*
 TEST_F(QuasimapRead, todo_desc) {
     const std::string prg_raw = "taca5g6t5aat";
     const std::string read = "acagaat";
@@ -54,7 +54,7 @@ TEST_F(QuasimapRead, todo_desc) {
     const auto rank_all = calculate_ranks(fm_index);
     const auto encoded_read = encode_read(read);
 
-    KmersData kmers_data;
+    KmerIndex kmers_data;
     index_kmers(kmers,
                 kmers_data.sa_intervals_map,
                 kmers_data.sites_map,
@@ -101,3 +101,4 @@ TEST_F(QuasimapRead, todo_desc) {
         std::cout << std::endl;
     }
 }
+*/

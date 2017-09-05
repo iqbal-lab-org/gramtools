@@ -17,7 +17,7 @@ void update_coverage(MasksParser &masks, const std::list<Site> &sites, const std
                      const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 
-int quasimap_reads(KmersData &kmers,
+int quasimap_reads(KmerIndex &kmers,
                    MasksParser &masks,
                    const Parameters &params,
                    const FM_Index &fm_index,
@@ -59,7 +59,7 @@ int quasimap_reads(KmersData &kmers,
 bool process_read(const std::vector<uint8_t> &encoded_read,
                   int &count_char_in_variant_site,
                   std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
-                  KmersData &kmers,
+                  KmerIndex &kmers,
                   MasksParser &masks,
                   const Parameters &params,
                   const DNA_Rank &rank_all,
@@ -87,7 +87,7 @@ bool process_read(const std::vector<uint8_t> &encoded_read,
 }
 
 
-bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmersData &kmers) {
+bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmerIndex &kmers) {
     bool kmer_not_in_precalc = (kmers.sa_intervals_map.find(read_kmer_part) == kmers.sa_intervals_map.end()
                                 or kmers.sites_map.find(read_kmer_part) == kmers.sites_map.end());
     if (kmer_not_in_precalc)
@@ -124,7 +124,7 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
                    const std::vector<uint8_t> &encoded_read,
                    int &count_char_in_variant_site,
                    std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
-                   KmersData &kmers,
+                   KmerIndex &kmers,
                    MasksParser &masks,
                    const int kmer_size,
                    const DNA_Rank &rank_all,
