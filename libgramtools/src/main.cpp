@@ -22,7 +22,6 @@ int main(int argc, const char *const *argv) {
     std::cout << "Getting FM-index" << std::endl;
     const FM_Index fm_index = get_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
                                            params.prg_fpath, params.fm_index_memory_log_fpath);
-
     timer_report.record("Construct FM-index");
 
     std::cout << "Parsing sites_map and allele masks" << std::endl;
@@ -35,7 +34,7 @@ int main(int argc, const char *const *argv) {
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     std::cout << "Getting kmers" << std::endl;
-    KmerIndex kmers = get_kmers(params.prg_kmers_fpath, masks.allele, masks.max_alphabet_num, rank_all, fm_index);
+    KmerIndex kmers = get_kmer_index(params.prg_kmers_fpath, masks.allele, masks.max_alphabet_num, rank_all, fm_index);
     timer_report.record("Getting kmers");
 
     std::cout << "Mapping" << std::endl;

@@ -6,9 +6,6 @@
 #include "bidir_search_bwd.hpp"
 
 
-#define MAX_THREADS 1
-
-
 uint8_t encode_dna_base(const char &base_str) {
     switch (base_str) {
         case 'A':
@@ -89,10 +86,10 @@ std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites) {
 }
 
 
-std::string dump_kmer_precalc_entry(const Kmer &kmer,
-                                    const SA_Intervals &sa_intervals,
-                                    const NonVariantKmers &kmers_in_ref,
-                                    const KmerSites &kmer_sites) {
+std::string dump_kmer_index_entry(const Kmer &kmer,
+                                  const SA_Intervals &sa_intervals,
+                                  const NonVariantKmers &kmers_in_ref,
+                                  const KmerSites &kmer_sites) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
     stream << dump_kmer_in_ref_flag(kmer, kmers_in_ref) << "|";
@@ -103,7 +100,7 @@ std::string dump_kmer_precalc_entry(const Kmer &kmer,
 }
 
 
-void dump_kmer_index(std::ofstream &precalc_file,
+void dump_kmer_index(std::ofstream &kmer_index_file,
                      const KmerSA_Intervals &kmers_sa_intervals,
                      const NonVariantKmers &kmers_in_ref,
                      const KmerSites &kmer_sites) {
@@ -112,11 +109,11 @@ void dump_kmer_index(std::ofstream &precalc_file,
         const auto &kmer = kmer_sa_intervals.first;
         const SA_Intervals &sa_intervals = kmers_sa_intervals.at(kmer);
         const std::string kmer_entry =
-                dump_kmer_precalc_entry(kmer,
-                                        sa_intervals,
-                                        kmers_in_ref,
-                                        kmer_sites);
-        precalc_file << kmer_entry << std::endl;
+                dump_kmer_index_entry(kmer,
+                                      sa_intervals,
+                                      kmers_in_ref,
+                                      kmer_sites);
+        kmer_index_file << kmer_entry << std::endl;
     }
 }
 
@@ -164,25 +161,11 @@ void index_kmers(Kmers &kmers,
 }
 
 
-void *worker(void *st) {
-    auto *th = (ThreadData *) st;
-    index_kmers(*(th->kmers),
-                *(th->sa_intervals_map),
-                *(th->sites_map),
-                *(th->nonvar_kmers),
-                th->max_alphabet_num,
-                *(th->allele_mask),
-                *(th->rank_all),
-                *(th->fm_index));
-    return nullptr;
-}
-
-
-void generate_kmers_encoding_single_thread(const std::vector<int> &allele_mask,
-                                           const std::string &kmer_fname,
-                                           const uint64_t max_alphabet_num,
-                                           const DNA_Rank &rank_all,
-                                           const FM_Index &fm_index) {
+void generate_kmer_index(const std::vector<int> &allele_mask,
+                         const std::string &kmer_fname,
+                         const uint64_t max_alphabet_num,
+                         const DNA_Rank &rank_all,
+                         const FM_Index &fm_index) {
 
     std::ifstream kmer_fhandle;
     kmer_fhandle.open(kmer_fname);
@@ -203,68 +186,13 @@ void generate_kmers_encoding_single_thread(const std::vector<int> &allele_mask,
                 max_alphabet_num, allele_mask, rank_all,
                 fm_index);
 
-    std::ofstream precalc_file;
-    precalc_file.open(std::string(kmer_fname) + ".precalc");
+    std::ofstream kmer_index_file;
+    kmer_index_file.open(std::string(kmer_fname) + ".precalc");
 
-    dump_kmer_index(precalc_file,
+    dump_kmer_index(kmer_index_file,
                     sa_intervals_map,
                     nonvar_kmers,
                     sites_map);
-}
-
-
-void generate_kmers_encoding_threading(const std::vector<int> &allele_mask,
-                                       const std::string &kmer_fname,
-                                       const uint64_t max_alphabet_num,
-                                       const int thread_count,
-                                       const DNA_Rank &rank_all,
-                                       const FM_Index &fm_index) {
-
-    pthread_t threads[thread_count];
-    struct ThreadData td[thread_count];
-    Kmers kmers[thread_count];
-
-    std::ifstream kmer_fhandle;
-    kmer_fhandle.open(kmer_fname);
-
-    int j = 0;
-    std::string line;
-    while (std::getline(kmer_fhandle, line)) {
-        Kmer kmer = encode_dna_bases(line);
-        kmers[j++].push_back(kmer);
-        j %= thread_count;
-    }
-
-    KmerSA_Intervals sa_intervals_map[thread_count];
-    KmerSites sites_map[thread_count];
-    NonVariantKmers nonvar_kmers[thread_count];
-
-    for (int i = 0; i < thread_count; i++) {
-        td[i].fm_index = &fm_index;
-        td[i].sa_intervals_map = &sa_intervals_map[i];
-        td[i].sites_map = &sites_map[i];
-        td[i].allele_mask = &allele_mask;
-        td[i].max_alphabet_num = max_alphabet_num;
-        td[i].nonvar_kmers = &nonvar_kmers[i];
-        td[i].kmers = &kmers[i];
-        td[i].thread_id = i;
-        std::cout << "Starting thread: " << i << std::endl;
-        pthread_create(&threads[i], nullptr, worker, &td[i]);
-    }
-
-    std::cout << "Joining threads" << std::endl;
-
-    std::ofstream precalc_file;
-    precalc_file.open(std::string(kmer_fname) + ".precalc");
-
-    for (int i = 0; i < thread_count; i++) {
-        void *status;
-        pthread_join(threads[i], &status);
-        dump_kmer_index(precalc_file,
-                        sa_intervals_map[i],
-                        nonvar_kmers[i],
-                        sites_map[i]);
-    }
 }
 
 
@@ -391,7 +319,7 @@ void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line) {
 }
 
 
-KmerIndex read_encoded_kmers(const std::string &encoded_kmers_fname) {
+KmerIndex lead_kmer_index(const std::string &encoded_kmers_fname) {
     std::ifstream fhandle;
     fhandle.open(encoded_kmers_fname);
 
@@ -406,33 +334,25 @@ KmerIndex read_encoded_kmers(const std::string &encoded_kmers_fname) {
 }
 
 
-int get_thread_count() {
-    int count_total = std::thread::hardware_concurrency();
-    int selected_count = std::min(MAX_THREADS, count_total) - 1;
-    if (selected_count < 1)
-        return 1;
-    return selected_count;
-}
-
-
-KmerIndex get_kmers(const std::string &kmer_fname,
-                    const std::vector<int> &allele_mask,
-                    const uint64_t max_alphabet_num,
-                    const DNA_Rank &rank_all,
-                    const FM_Index &fm_index) {
+KmerIndex get_kmer_index(const std::string &kmer_fname,
+                         const std::vector<int> &allele_mask,
+                         const uint64_t max_alphabet_num,
+                         const DNA_Rank &rank_all,
+                         const FM_Index &fm_index) {
 
     const auto encoded_kmers_fname = std::string(kmer_fname) + ".precalc";
 
     if (!file_exists(encoded_kmers_fname)) {
-        const int thread_count = get_thread_count();
-        std::cout << "Kmer index not found, generating them using "
-                  << thread_count << " threads" << std::endl;
-        generate_kmers_encoding_threading(allele_mask, kmer_fname, max_alphabet_num,
-                                          thread_count, rank_all, fm_index);
-        std::cout << "Finished precalculating kmers" << std::endl;
+        std::cout << "Kmer index not found, building..." << std::endl;
+        generate_kmer_index(allele_mask,
+                            kmer_fname,
+                            max_alphabet_num,
+                            rank_all,
+                            fm_index);
+        std::cout << "Finished generating kmer index" << std::endl;
     }
 
-    std::cout << "Reading Kmers" << std::endl;
-    const auto kmers = read_encoded_kmers(encoded_kmers_fname);
-    return kmers;
+    std::cout << "Loading kmer index from file" << std::endl;
+    const auto kmer_index = lead_kmer_index(encoded_kmers_fname);
+    return kmer_index;
 }

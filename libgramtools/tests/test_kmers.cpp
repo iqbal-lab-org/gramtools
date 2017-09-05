@@ -34,10 +34,10 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
             {789, 424}
     };
 
-    const auto result = dump_kmer_precalc_entry(kmer,
-                                                sa_intervals,
-                                                kmers_in_ref,
-                                                kmer_sites);
+    const auto result = dump_kmer_index_entry(kmer,
+                                              sa_intervals,
+                                              kmers_in_ref,
+                                              kmer_sites);
     const auto expected = "1 2 3 4|1|123 456 789 424||5 9 8 7 @7 19 18 17 @|9 29 28 27 @11 39 38 37 @|";
     EXPECT_EQ(result, expected);
 }
