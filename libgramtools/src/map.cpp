@@ -32,7 +32,7 @@ int quasimap_reads(KmersData &kmers,
     int count_all_reads = 0;
 
     // variables which preserve some state across reads
-    int in_sites = 0;
+    int count_char_in_variant_site = 0;
     std::unordered_set<uint64_t> repeats_variant_site_edge_markers;
 
     for (const auto *const read: reads) {
@@ -44,7 +44,7 @@ int quasimap_reads(KmersData &kmers,
 
         const auto encoded_read = int_encode_read(*read);
         const bool read_mapped = process_read(encoded_read,
-                                              in_sites,
+                                              count_char_in_variant_site,
                                               repeats_variant_site_edge_markers,
                                               kmers, masks, params,
                                               rank_all, fm_index);
@@ -149,10 +149,6 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
                      masks.allele, masks.max_alphabet_num,
                      kmer_precalc_done, rank_all, fm_index);
 
-    std::cout << "sites_map.size(): " << sites.size() << std::endl;
-    print_sites(sites);
-    std::cout << "done printing sites_map" << std::endl;
-
     const bool read_mapps_too_many_alleles = sa_intervals.size() > 100;
     if (read_mapps_too_many_alleles)
         return false;
@@ -165,14 +161,11 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part,
                                        fm_index);
     }
 
-    std::cout << "Calling update_coverage" << std::endl;
     update_coverage(masks, sites, sa_intervals,
                     encoded_read, count_char_in_variant_site,
                     repeats_variant_site_edge_markers,
                     delete_first_interval,
                     rank_all, fm_index);
-    std::cout << "Done update_coverage" << std::endl;
-
     return true;
 }
 
@@ -247,8 +240,6 @@ void update_coverage(MasksParser &masks,
     const bool first_site_empty = first_site.empty();
     const uint64_t total_num_sa_intervals = sa_intervals.size();
 
-    std::cout << total_num_sa_intervals << std::endl;
-
     auto sites_it = sites.begin();
     auto sa_intervals_it = sa_intervals.begin();
     while (sa_intervals_it != sa_intervals.end() and sites_it != sites.end()) {
@@ -268,8 +259,14 @@ void update_coverage(MasksParser &masks,
                                              masks, fm_index);
             continue;
         }
-        if (sa_interval_is_first or delete_first_interval)
+
+        /*
+        if (sa_interval_is_first or delete_first_interval) {
+            ++sa_intervals_it;
+            ++sites_it;
             continue;
+        }
+         */
 
         update_site_sa_interval_coverage(masks,
                                          site,
@@ -335,9 +332,6 @@ void update_site_sa_interval_coverage(MasksParser &masks,
             }
             continue;
         }
-
-        if (alleles.empty())
-            continue;
 
         for (const auto &allele: alleles) {
             const auto variant_allele_idx = allele - 1;

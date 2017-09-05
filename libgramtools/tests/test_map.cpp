@@ -64,7 +64,6 @@ TEST_F(QuasimapRead, todo_desc) {
                 rank_all,
                 fm_index);
 
-    /*
     for (auto i: kmers_data.sites_map) {
         std::cout << "kmer: " << std::endl;
         auto &kmer = i.first;
@@ -80,16 +79,25 @@ TEST_F(QuasimapRead, todo_desc) {
         auto &sa_intervals = kmers_data.sa_intervals_map[kmer];
         print_sa_interval(sa_intervals);
     }
-     */
-    /*
+
+    int count_char_in_variant_site = 0;
+    std::unordered_set<uint64_t> repeats_variant_site_edge_markers;
+
     bool read_mapped = quasimap_read(kmer,
                                      encoded_read,
                                      count_char_in_variant_site,
                                      repeats_variant_site_edge_markers,
-                                     kmers,
+                                     kmers_data,
                                      masks,
                                      kmer.size(),
                                      rank_all,
                                      fm_index);
-                                     */
+
+    std::cout << "size: " <<  masks.allele_coverage.size() << std::endl;
+
+    for (uint64_t i = 0; i < masks.allele_coverage.size(); i++) {
+        for (uint64_t j = 0; j < masks.allele_coverage[i].size(); j++)
+            std::cout << masks.allele_coverage[i][j] << " ";
+        std::cout << std::endl;
+    }
 }
