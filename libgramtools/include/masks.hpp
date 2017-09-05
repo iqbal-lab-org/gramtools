@@ -7,6 +7,10 @@
 #include <fstream>
 
 
+using SitesMask = std::vector<uint64_t>;
+using AlleleMask = std::vector<int>;
+
+
 class MasksParser {
 public:
     uint64_t max_alphabet_num;

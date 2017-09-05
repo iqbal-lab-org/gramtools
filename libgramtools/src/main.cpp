@@ -4,7 +4,6 @@
 
 #include <iostream>
 
-#include <boost/timer/timer.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
@@ -12,6 +11,7 @@
 #include "bwt_search.hpp"
 #include "masks.hpp"
 #include "map.hpp"
+#include "timer_report.hpp"
 #include "main.hpp"
 
 
@@ -21,26 +21,26 @@ int main(int argc, const char *const *argv) {
 
     std::cout << "Getting FM-index" << std::endl;
     const FM_Index fm_index = get_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
-                                           params.prg_fpath, params.fm_index_memory_log_fpath);
+                                           params.linear_prg_fpath, params.fm_index_memory_log_fpath);
     timer_report.record("Construct FM-index");
 
     std::cout << "Parsing sites_map and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
     timer_report.record("Parse masks");
-    // TODO: should allele_coverage be separated from the masks data structure?
+    // TODO: should allele_coverage be separated from the masks data structure? No.
 
     const DNA_Rank rank_all = calculate_ranks(fm_index);
     timer_report.record("Calculating DNA ranks");
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
     std::cout << "Loading kmer index" << std::endl;
-    KmerIndex kmers = get_kmer_index(params.prg_kmers_fpath,
-                                     masks.allele, masks.max_alphabet_num,
-                                     rank_all, fm_index);
+    KmerIndex kmer_index = get_kmer_index(params.prg_kmers_fpath,
+                                          masks.allele, masks.max_alphabet_num,
+                                          rank_all, fm_index);
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;
-    auto count_mapped = quasimap_reads(kmers, masks, params, fm_index, rank_all);
+    auto count_mapped = quasimap_reads(kmer_index, masks, params, fm_index, rank_all);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
@@ -59,31 +59,31 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
 
     boost::program_options::options_description description("All parameters must be specified");
     description.add_options()
-            ("help", "produce help message")
-            ("prg,marker_porition", po::value<std::string>(&params.prg_fpath),
-             "input file containing linear prg")
-            ("csa,c", po::value<std::string>(&params.fm_index_fpath),
-             "output file where the FM-index is stored")
-            ("input,i", po::value<std::string>(&params.reads_fpath),
-             "reference file (FASTA or FASTQ)")
-            ("ps,s", po::value<std::string>(&params.site_mask_fpath),
-             "input file containing mask over the linear prg that indicates at "
-                     "each position whether you are inside a site and if so, which site")
-            ("pa,a", po::value<std::string>(&params.allele_mask_fpath),
-             "input file containing mask over the linear prg that indicates at "
-                     "each position whether you are inside a allele and if so, which allele")
-            ("co,v", po::value<std::string>(&params.allele_coverage_fpath),
-             "name of output file where coverages on each allele are printed")
-            ("ro,r", po::value<std::string>(&params.processed_reads_fpath),
-             "name of output file where reads that have been processed are printed")
-            ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath),
-             "output filename of binary file containing the prg in integer alphabet")
-            ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath),
-             "output memory log file for the FM-index")
-            ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath),
-             "input file listing all kmers in PRG")
-            ("ksize,k", po::value<int>(&params.kmers_size),
-             "size of pre-calculated kmers");
+                       ("help", "produce help message")
+                       ("prg,marker_porition", po::value<std::string>(&params.linear_prg_fpath),
+                        "input file containing linear prg")
+                       ("csa,c", po::value<std::string>(&params.fm_index_fpath),
+                        "output file where the FM-index is stored")
+                       ("input,i", po::value<std::string>(&params.reads_fpath),
+                        "reference file (FASTA or FASTQ)")
+                       ("ps,s", po::value<std::string>(&params.site_mask_fpath),
+                        "input file containing mask over the linear prg that indicates at "
+                                "each position whether you are inside a site and if so, which site")
+                       ("pa,a", po::value<std::string>(&params.allele_mask_fpath),
+                        "input file containing mask over the linear prg that indicates at "
+                                "each position whether you are inside a allele and if so, which allele")
+                       ("co,v", po::value<std::string>(&params.allele_coverage_fpath),
+                        "name of output file where coverages on each allele are printed")
+                       ("ro,r", po::value<std::string>(&params.processed_reads_fpath),
+                        "name of output file where reads that have been processed are printed")
+                       ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath),
+                        "output filename of binary file containing the prg in integer alphabet")
+                       ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath),
+                        "output memory log file for the FM-index")
+                       ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath),
+                        "input file listing all kmers in PRG")
+                       ("ksize,k", po::value<int>(&params.kmers_size),
+                        "size of pre-calculated kmers");
 
     boost::program_options::variables_map vm;
     boost::program_options::store(po::parse_command_line(argc, argv, description), vm);
@@ -102,32 +102,4 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     }
 
     return params;
-}
-
-
-void TimerReport::record(std::string note) {
-    boost::timer::cpu_times times = timer.elapsed();
-    double elapsed_time = (times.user + times.system) * 1e-9;
-    Entry entry = std::make_pair(note, elapsed_time);
-    logger.push_back(entry);
-}
-
-
-void TimerReport::report() const {
-    std::cout << "\nTimer report:" << std::endl;
-    cout_row(" ", "seconds");
-
-    for (const auto &entry: TimerReport::logger) {
-        auto &note = std::get<0>(entry);
-        auto &elapsed_time = std::get<1>(entry);
-        cout_row(note, elapsed_time);
-    }
-}
-
-
-template<typename TypeCol1, typename TypeCol2>
-void TimerReport::cout_row(TypeCol1 col1, TypeCol2 col2) const {
-    std::cout << std::setw(20) << std::right << col1
-              << std::setw(10) << std::right << col2
-              << std::endl;
 }

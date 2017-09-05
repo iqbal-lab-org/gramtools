@@ -3,7 +3,7 @@
 
 
 struct Parameters {
-    std::string prg_fpath;
+    std::string linear_prg_fpath;
     std::string fm_index_fpath;
     std::string reads_fpath;
     std::string site_mask_fpath;
