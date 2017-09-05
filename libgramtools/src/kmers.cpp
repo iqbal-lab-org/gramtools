@@ -63,8 +63,8 @@ std::string dump_sa_intervals(const SA_Intervals &sa_intervals) {
 }
 
 
-std::string dump_kmer_in_ref_flag(const Kmer &kmer,
-                                  const NonVariantKmers &kmers_in_ref) {
+std::string dump_crosses_marker_flag(const Kmer &kmer,
+                                     const NonVariantKmers &kmers_in_ref) {
     if (kmers_in_ref.count(kmer) != 0)
         return "1";
     return "0";
@@ -92,7 +92,7 @@ std::string dump_kmer_index_entry(const Kmer &kmer,
                                   const KmerSites &kmer_sites) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
-    stream << dump_kmer_in_ref_flag(kmer, kmers_in_ref) << "|";
+    stream << dump_crosses_marker_flag(kmer, kmers_in_ref) << "|";
     // additional bar because of reverse sa intervals
     stream << dump_sa_intervals(sa_intervals) << "||";
     stream << dump_sites(kmer, kmer_sites);

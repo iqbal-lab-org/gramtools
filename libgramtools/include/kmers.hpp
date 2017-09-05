@@ -56,8 +56,8 @@ std::string dump_kmer(const Kmer &kmer);
 
 std::string dump_sa_intervals(const SA_Intervals &sa_intervals);
 
-std::string dump_kmer_in_ref_flag(const Kmer &kmer,
-                                  const NonVariantKmers &kmers_in_ref);
+std::string dump_crosses_marker_flag(const Kmer &kmer,
+                                     const NonVariantKmers &kmers_in_ref);
 
 std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites);
 

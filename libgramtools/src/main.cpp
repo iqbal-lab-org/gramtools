@@ -33,9 +33,11 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Calculating DNA ranks");
     std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
 
-    std::cout << "Getting kmers" << std::endl;
-    KmerIndex kmers = get_kmer_index(params.prg_kmers_fpath, masks.allele, masks.max_alphabet_num, rank_all, fm_index);
-    timer_report.record("Getting kmers");
+    std::cout << "Loading kmer index" << std::endl;
+    KmerIndex kmers = get_kmer_index(params.prg_kmers_fpath,
+                                     masks.allele, masks.max_alphabet_num,
+                                     rank_all, fm_index);
+    timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;
     auto count_mapped = quasimap_reads(kmers, masks, params, fm_index, rank_all);
