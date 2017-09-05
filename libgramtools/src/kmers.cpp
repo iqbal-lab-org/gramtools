@@ -64,8 +64,8 @@ std::string dump_sa_intervals(const SA_Intervals &sa_intervals) {
 
 
 std::string dump_crosses_marker_flag(const Kmer &kmer,
-                                     const NonVariantKmers &kmers_in_ref) {
-    if (kmers_in_ref.count(kmer) != 0)
+                                     const NonVariantKmers &nonvar_kmers) {
+    if (nonvar_kmers.count(kmer) != 0)
         return "1";
     return "0";
 }
@@ -88,11 +88,11 @@ std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites) {
 
 std::string dump_kmer_index_entry(const Kmer &kmer,
                                   const SA_Intervals &sa_intervals,
-                                  const NonVariantKmers &kmers_in_ref,
+                                  const NonVariantKmers &nonvar_kmers,
                                   const KmerSites &kmer_sites) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
-    stream << dump_crosses_marker_flag(kmer, kmers_in_ref) << "|";
+    stream << dump_crosses_marker_flag(kmer, nonvar_kmers) << "|";
     // additional bar because of reverse sa intervals
     stream << dump_sa_intervals(sa_intervals) << "||";
     stream << dump_sites(kmer, kmer_sites);
@@ -102,7 +102,7 @@ std::string dump_kmer_index_entry(const Kmer &kmer,
 
 void dump_kmer_index(std::ofstream &kmer_index_file,
                      const KmerSA_Intervals &kmers_sa_intervals,
-                     const NonVariantKmers &kmers_in_ref,
+                     const NonVariantKmers &nonvar_kmers,
                      const KmerSites &kmer_sites) {
 
     for (const auto &kmer_sa_intervals: kmers_sa_intervals) {
@@ -111,7 +111,7 @@ void dump_kmer_index(std::ofstream &kmer_index_file,
         const std::string kmer_entry =
                 dump_kmer_index_entry(kmer,
                                       sa_intervals,
-                                      kmers_in_ref,
+                                      nonvar_kmers,
                                       kmer_sites);
         kmer_index_file << kmer_entry << std::endl;
     }

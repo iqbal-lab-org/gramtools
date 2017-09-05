@@ -14,7 +14,7 @@
 
 TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
     const Kmer kmer = {1, 2, 3, 4};
-    const NonVariantKmers kmers_in_ref = {kmer};
+    const NonVariantKmers nonvar_kmers = {kmer};
 
     Site first_site = {
             VariantSite(5, {9, 8, 7}),
@@ -36,7 +36,7 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
 
     const auto result = dump_kmer_index_entry(kmer,
                                               sa_intervals,
-                                              kmers_in_ref,
+                                              nonvar_kmers,
                                               kmer_sites);
     const auto expected = "1 2 3 4|1|123 456 789 424||5 9 8 7 @7 19 18 17 @|9 29 28 27 @11 39 38 37 @|";
     EXPECT_EQ(result, expected);

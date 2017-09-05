@@ -57,24 +57,24 @@ std::string dump_kmer(const Kmer &kmer);
 std::string dump_sa_intervals(const SA_Intervals &sa_intervals);
 
 std::string dump_crosses_marker_flag(const Kmer &kmer,
-                                     const NonVariantKmers &kmers_in_ref);
+                                     const NonVariantKmers &nonvar_kmers);
 
 std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites);
 
 std::string dump_kmer_index_entry(const Kmer &kmer,
                                   const SA_Intervals &sa_intervals,
-                                  const NonVariantKmers &kmers_in_ref,
+                                  const NonVariantKmers &nonvar_kmers,
                                   const KmerSites &kmer_sites);
 
 void dump_kmer_index(std::ofstream &precalc_file,
                      const KmerSA_Intervals &kmers_sa_intervals,
-                     const NonVariantKmers &kmers_in_ref,
+                     const NonVariantKmers &nonvar_kmers,
                      const KmerSites &kmer_sites);
 
 void index_kmers(Kmers &kmers,
                  KmerSA_Intervals &kmer_idx,
                  KmerSites &kmer_sites,
-                 NonVariantKmers &kmers_in_ref,
+                 NonVariantKmers &nonvar_kmers,
                  const uint64_t max_alphabet_num,
                  const std::vector<int> &allele_mask,
                  const DNA_Rank &rank_all,
