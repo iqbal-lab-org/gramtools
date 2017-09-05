@@ -78,10 +78,10 @@ std::string dump_kmer_precalc_entry(const Kmer &kmer,
                                     const NonVariantKmers &kmers_in_ref,
                                     const KmerSites &kmer_sites);
 
-void dump_thread_result(std::ofstream &precalc_file,
-                        const KmerSA_Intervals &kmers_sa_intervals,
-                        const NonVariantKmers &kmers_in_ref,
-                        const KmerSites &kmer_sites);
+void dump_kmer_index(std::ofstream &precalc_file,
+                     const KmerSA_Intervals &kmers_sa_intervals,
+                     const NonVariantKmers &kmers_in_ref,
+                     const KmerSites &kmer_sites);
 
 void index_kmers(Kmers &kmers, KmerSA_Intervals &kmer_idx, KmerSites &kmer_sites, NonVariantKmers &kmers_in_ref, const uint64_t maxx,
                  const std::vector<int> &allele_mask, const DNA_Rank &rank_all, const FM_Index &fm_index);
@@ -95,17 +95,17 @@ void generate_kmers_encoding_threading(const std::vector<int> &allele_mask,
                                        const DNA_Rank &rank_all,
                                        const FM_Index &fm_index);
 
-inline bool fexists(const std::string &name);
+inline bool file_exists(const std::string &name);
 
-static inline std::string &ltrim(std::string &s);
+static inline std::string &left_trim(std::string &s);
 
-static inline std::string &rtrim(std::string &s);
+static inline std::string &right_trim(std::string &s);
 
 static inline std::string &trim(std::string &s);
 
 std::vector<std::string> split(const std::string &cad, const std::string &delim);
 
-bool parse_in_reference_flag(const std::string &in_reference_flag_str);
+bool parse_crosses_marker_flag(const std::string &in_reference_flag_str);
 
 Kmer parse_encoded_kmer(const std::string &encoded_kmer_str);
 
