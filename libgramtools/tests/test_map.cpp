@@ -8,8 +8,6 @@
 #include <sdsl/suffix_arrays.hpp>
 
 #include "gtest/gtest.h"
-#include "common.hpp"
-#include "prg.hpp"
 #include "map.hpp"
 
 
@@ -52,7 +50,7 @@ TEST_F(QuasimapRead, todo_desc) {
 
     const auto fm_index = fm_index_from_raw_prg(prg_raw);
     const auto rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     KmerIndex kmers_data;
     index_kmers(kmers,

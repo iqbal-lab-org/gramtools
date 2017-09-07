@@ -7,8 +7,8 @@
 
 #include "gtest/gtest.h"
 
+#include "utils.hpp"
 #include "prg.hpp"
-#include "common.hpp"
 #include "kmers.hpp"
 
 
@@ -173,7 +173,7 @@ protected:
 
 TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_read("atgca");
+    auto kmer = encode_dna_bases("atgca");
     const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
     const uint64_t max_alphabet = max_alphabet_num(prg_raw);
@@ -204,7 +204,7 @@ TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
 
 TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_read("atgca");
+    auto kmer = encode_dna_bases("atgca");
     const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
     const uint64_t max_alphabet = max_alphabet_num(prg_raw);
@@ -235,7 +235,7 @@ TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
 
 TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_read("atgca");
+    auto kmer = encode_dna_bases("atgca");
     const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
     const uint64_t max_alphabet = max_alphabet_num(prg_raw);
@@ -268,7 +268,7 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
 
 TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_read("aggca");
+    auto kmer = encode_dna_bases("aggca");
     const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
     const uint64_t max_alphabet = max_alphabet_num(prg_raw);

@@ -9,7 +9,7 @@
 
 #include "gtest/gtest.h"
 
-#include "common.hpp"
+#include "utils.hpp"
 #include "map.hpp"
 #include "prg.hpp"
 #include "bidir_search_bwd.hpp"
@@ -49,7 +49,7 @@ TEST_F(BidirSearchBackward, MatchSingleCharecter) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
@@ -86,7 +86,7 @@ TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
@@ -124,7 +124,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -163,7 +163,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) 
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -195,7 +195,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -223,7 +223,7 @@ TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -263,7 +263,7 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -294,7 +294,7 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse)
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -323,7 +323,7 @@ TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesE
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -359,7 +359,7 @@ TEST_F(BidirSearchBackward, MatchVariantSiteAndNonVariantSite) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -401,7 +401,7 @@ TEST_F(BidirSearchBackward, MatchTwoLongVariantSites) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -439,7 +439,7 @@ TEST_F(BidirSearchBackward, ReadStartsInFirstAllele_AlleleMissingFromSitesAllele
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -470,7 +470,7 @@ TEST_F(BidirSearchBackward, ReadStartsInSecondAllele_AlleleMissingFromSitesAllel
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -501,7 +501,7 @@ TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllel
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -534,7 +534,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAl
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -567,7 +567,7 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_Si
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -607,7 +607,7 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpt
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -647,7 +647,7 @@ TEST_F(BidirSearchBackward, MatchLongSiteRepeatedSnpOnSiteEdge) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
@@ -687,7 +687,7 @@ TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     //each element on the list corresponds to a SA interval
     //these elements are vectors of pairs (pair=(site, list of alleles))
@@ -751,7 +751,7 @@ TEST_F(BidirSearchBackward, SingleMatchOverManySites) {
 
     const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
     const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_read(read);
+    const auto encoded_read = encode_dna_bases(read);
 
     SA_Intervals sa_intervals = {{0, fm_index.size()}};
     Sites sites = {Site()};
