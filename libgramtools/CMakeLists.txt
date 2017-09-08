@@ -15,7 +15,7 @@ set(LIB_DIRS
 	    /apps/well/htslib/1.4.1/lib/
         $ENV{HOME}/lib)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Werror -Wfatal-errors -march=native -msse4.2 -g -O3") #
+set(CMAKE_CXX_FLAGS "-std=c++14 -Werror -Wfatal-errors -march=native -msse4.2 -g -O3") #
 
 set(BOOST_ROOT /apps/well/boost/1.54.0/)
 set(LIBS
@@ -41,6 +41,7 @@ add_library(gramtools STATIC
     ${SOURCE}/map.cpp
     ${SOURCE}/utils.cpp
     ${SOURCE}/prg.cpp
+    ${SOURCE}/kmer_index.cpp
     ${SOURCE}/kmers.cpp
     ${SOURCE}/bidir_search_bwd.cpp
     ${SOURCE}/skip.cpp
