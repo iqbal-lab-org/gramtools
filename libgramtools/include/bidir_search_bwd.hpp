@@ -12,8 +12,7 @@ void bidir_search_bwd(SA_Intervals &sa_intervals, Sites &sites, bool &delete_fir
                       const uint64_t maxx, const bool kmer_precalc_done, const DNA_Rank &rank_all,
                       const FM_Index &fm_index);
 
-bool reduce_sa_intervals(Sites &sites, SA_Intervals &sa_intervals, const bool delete_first_interval,
-                         const uint8_t read_char,
+bool reduce_sa_intervals(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites, const bool delete_first_interval,
                          const bool read_char_is_last, const std::vector<int> &allele_mask, const uint64_t maxx,
                          const bool kmer_precalc_done, const DNA_Rank &rank_all, const FM_Index &fm_index);
 

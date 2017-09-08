@@ -51,24 +51,17 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
         assert((read_char >= 1) and (read_char <= 4));
 
         const bool read_char_is_last = read_it == read_end - 1;
-        delete_first_interval = reduce_sa_intervals(sites,
-                                                    sa_intervals,
-                                                    delete_first_interval,
-                                                    read_char,
-                                                    read_char_is_last,
-                                                    allele_mask,
-                                                    max_alphabet_num,
-                                                    kmer_precalc_done,
-                                                    rank_all,
-                                                    fm_index);
+        delete_first_interval = reduce_sa_intervals(read_char, sa_intervals, sites, delete_first_interval,
+                                                    read_char_is_last, allele_mask, max_alphabet_num, kmer_precalc_done,
+                                                    rank_all, fm_index);
     }
 }
 
 
-bool reduce_sa_intervals(Sites &sites,
+bool reduce_sa_intervals(const uint8_t read_char,
                          SA_Intervals &sa_intervals,
+                         Sites &sites,
                          const bool delete_first_interval,
-                         const uint8_t read_char,
                          const bool read_char_is_last,
                          const std::vector<int> &allele_mask,
                          const uint64_t max_alphabet_num,
