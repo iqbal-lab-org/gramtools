@@ -1,4 +1,4 @@
-#include <memory>
+#include <list>
 
 #include "bidir_search_bwd.hpp"
 #include "kmer_index.hpp"
@@ -11,151 +11,97 @@ using SA_Interval = std::pair<uint64_t, uint64_t>;
 using SA_Intervals = std::list<SA_Interval>;
 
 
-struct SA_IntervalsCacheNode {
-    std::unique_ptr<SA_Intervals> sa_intervals;
-    std::unique_ptr<Sites> sites;
-    uint8_t _dbg_base = 0;
-
-    std::weak_ptr<SA_IntervalsCacheNode> parent;
-    std::array<std::shared_ptr<SA_IntervalsCacheNode>, 4> children;
-    bool all_children_have_sa_intervals = false;
-};
-
-
 void print_sa_intervals(const SA_Intervals &sa_intervals) {
     for (const auto &sa_interval: sa_intervals)
         std::cout << "(" << sa_interval.first << ", " << sa_interval.second << ")" << "   ";
-}
-
-
-std::string kmer_cache_to_str(const std::shared_ptr<SA_IntervalsCacheNode> root);
-
-
-std::shared_ptr<SA_IntervalsCacheNode> construct_child_node(const std::shared_ptr<SA_IntervalsCacheNode> parent_node,
-                                                            const uint8_t kmer_base,
-                                                            const uint64_t max_alphabet_num,
-                                                            const std::vector<int> &allele_mask,
-                                                            const DNA_Rank &rank_all,
-                                                            const FM_Index &fm_index) {
-    auto child_node = std::make_shared<SA_IntervalsCacheNode>();
-    child_node->parent = parent_node;
-    child_node->_dbg_base = kmer_base;
-
-    SA_Intervals sa_intervals = *(parent_node->sa_intervals);
-    Sites sites = *(parent_node->sites);
-
-    reduce_sa_intervals(kmer_base,
-                        sa_intervals,
-                        sites,
-                        false, true,
-                        allele_mask,
-                        max_alphabet_num,
-                        false,
-                        rank_all,
-                        fm_index);
-
-    std::cout << (int) child_node->_dbg_base << ": size " << sa_intervals.size() << std::endl;
-    print_sa_intervals(sa_intervals);
     std::cout << std::endl;
-
-    child_node->sa_intervals = std::make_unique<SA_Intervals>(std::move(sa_intervals));
-    child_node->sites = std::make_unique<Sites>(std::move(sites));
-
-    return child_node;
 }
 
 
-void cache_kmer(const Kmer &kmer,
-                std::shared_ptr<SA_IntervalsCacheNode> kmer_cache_root,
-                const uint64_t max_alphabet_num,
-                const std::vector<int> &allele_mask,
-                const DNA_Rank &rank_all,
-                const FM_Index &fm_index) {
+struct CacheElement {
+    SA_Intervals sa_intervals;
+    Sites sites;
+    uint8_t base = 0;
+};
 
-    auto node = kmer_cache_root;
 
-    for (const auto &kmer_base: kmer) {
-        const int child_node_idx = (int) kmer_base - 1;
-        auto &next_node = node->children[child_node_idx];
-        if (next_node) {
-            node = next_node;
-            continue;
+using KmerCache = std::list<CacheElement>;
+
+
+void print_cache(const KmerCache &cache) {
+    for (const auto element: cache) {
+        std::cout << (int) element.base << ", ";
+    }
+    std::cout << std::endl;
+}
+
+
+void update_cache(std::list<CacheElement> &cache,
+                  const Kmer &kmer_suffix_diff,
+                  const uint64_t kmer_size,
+                  const uint64_t max_alphabet_num,
+                  const std::vector<int> &allele_mask,
+                  const DNA_Rank &rank_all,
+                  const FM_Index &fm_index) {
+
+    auto new_size = kmer_size - kmer_suffix_diff.size();
+    cache.resize(new_size);
+
+    for (const auto &base: kmer_suffix_diff) {
+        CacheElement new_cache_element;
+        new_cache_element.base = base;
+
+        if (cache.size() == 0) {
+            new_cache_element.sa_intervals = {{0, fm_index.size()}};
+            new_cache_element.sites = {Site()};
+        } else {
+            const auto &last_cache_element = cache.back();
+            new_cache_element.sa_intervals = last_cache_element.sa_intervals;
+            new_cache_element.sites = last_cache_element.sites;
         }
 
-        next_node = construct_child_node(node,
-                                         kmer_base,
-                                         max_alphabet_num,
-                                         allele_mask,
-                                         rank_all,
-                                         fm_index);
-        node = next_node;
+        reduce_sa_intervals(base,
+                            new_cache_element.sa_intervals,
+                            new_cache_element.sites,
+                            false, true,
+                            allele_mask,
+                            max_alphabet_num,
+                            false,
+                            rank_all,
+                            fm_index);
+
+        cache.emplace_back(new_cache_element);
     }
 }
 
 
-void generate_kmer_index(const Kmers &kmers,
+void generate_kmer_index(const Kmers &kmer_suffix_diffs,
                          const uint64_t max_alphabet_num,
                          const std::vector<int> &allele_mask,
                          const DNA_Rank &rank_all,
                          const FM_Index &fm_index) {
 
-    auto kmer_cache_root = std::make_shared<SA_IntervalsCacheNode>();
+    const uint64_t kmer_size = kmer_suffix_diffs[0].size();
+    std::list<CacheElement> cache;
 
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    kmer_cache_root->sa_intervals = std::make_unique<SA_Intervals>(std::move(sa_intervals));
+    for (const auto &kmer_suffix_diff: kmer_suffix_diffs) {
+        update_cache(cache,
+                     kmer_suffix_diff,
+                     kmer_size,
+                     max_alphabet_num,
+                     allele_mask,
+                     rank_all,
+                     fm_index);
 
-    Sites sites = {Site()};
-    kmer_cache_root->sites = std::make_unique<Sites>(std::move(sites));
+        print_cache(cache);
 
-    for (const auto &kmer: kmers)
-        cache_kmer(kmer, kmer_cache_root,
-                   max_alphabet_num,
-                   allele_mask,
-                   rank_all,
-                   fm_index);
+        for (const auto &elem: cache)
+            print_sa_intervals(elem.sa_intervals);
 
-    auto cache_str = kmer_cache_to_str(kmer_cache_root);
-    std::cout << cache_str << std::endl;
-}
+        //break;
 
-
-bool node_is_leaf(const std::shared_ptr<SA_IntervalsCacheNode> node) {
-    for (auto i = 0; i < 4; ++i) {
-        auto child = node->children[i];
-        if (child) {
-            return false;
-        }
+        // do things with last cache element
     }
-    return true;
-}
-
-
-std::string kmer_cache_to_str(const std::shared_ptr<SA_IntervalsCacheNode> root) {
-    std::stringstream s;
-    if (node_is_leaf(root)) {
-        s << (int) root->_dbg_base;
-        return s.str();
-    }
-
-    s << (int) root->_dbg_base << "[ ";
-    for (auto i = 0; i < 4; ++i) {
-        auto node = root->children[i];
-
-        if (!node) {
-            s << ".";
-            if (i != 3)
-                s << "  ";
-            continue;
-        }
-
-        auto rep = kmer_cache_to_str(node);
-        s << rep;
-        if (i != 3)
-            s << "  ";
-    }
-    s << " ]";
-
-    return s.str();
 }
 
 

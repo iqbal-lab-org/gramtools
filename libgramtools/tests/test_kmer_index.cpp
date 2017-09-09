@@ -53,8 +53,9 @@ TEST_F(GenerateKmerIndex, hip) {
 
     Kmers kmers = {
             {1, 2, 2},
-            {1, 2, 3},
-            {1, 3, 1},
+            {3},
+            {3, 2},
+            //{1, 3, 1},
             /*
             encode_dna_bases("catt"),
             encode_dna_bases("attt"),

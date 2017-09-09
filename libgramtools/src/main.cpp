@@ -11,6 +11,7 @@
 #include "bwt_search.hpp"
 #include "masks.hpp"
 #include "map.hpp"
+#include "kmer_index.hpp"
 #include "timer_report.hpp"
 #include "main.hpp"
 
