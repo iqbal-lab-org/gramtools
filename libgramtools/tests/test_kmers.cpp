@@ -168,16 +168,22 @@ protected:
         return fm_index;
     }
 
+    PRG_Info generate_prg_info(const std::string &prg_raw) {
+        PRG_Info prg_info;
+        prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
+        prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
+        prg_info.allele_mask = generate_allele_mask(prg_raw);
+        prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
+        return prg_info;
+    }
+
 };
 
 
 TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
     const std::string prg_raw = "aca5g6t5gcatt";
     auto kmer = encode_dna_bases("atgca");
-    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+    const auto prg_info = generate_prg_info(prg_raw);
 
     Kmers kmers = {
             {kmer}
@@ -187,14 +193,7 @@ TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
     KmerSites sites_map;
     NonVariantKmers nonvar_kmers;
 
-    index_kmers(kmers,
-                sa_intervals_map,
-                sites_map,
-                nonvar_kmers,
-                max_alphabet,
-                allele_mask,
-                rank_all,
-                fm_index);
+    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
 
     auto &result = nonvar_kmers;
     NonVariantKmers expected = {};
@@ -205,10 +204,7 @@ TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
 TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
     const std::string prg_raw = "aca5g6t5gcatt";
     auto kmer = encode_dna_bases("atgca");
-    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+    const auto prg_info = generate_prg_info(prg_raw);
 
     Kmers kmers = {
             {kmer}
@@ -218,14 +214,7 @@ TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
     KmerSites sites_map;
     NonVariantKmers nonvar_kmers;
 
-    index_kmers(kmers,
-                sa_intervals_map,
-                sites_map,
-                nonvar_kmers,
-                max_alphabet,
-                allele_mask,
-                rank_all,
-                fm_index);
+    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
 
     auto &result = nonvar_kmers;
     NonVariantKmers expected = {};
@@ -236,10 +225,7 @@ TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
 TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
     auto kmer = encode_dna_bases("atgca");
-    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+    const auto prg_info = generate_prg_info(prg_raw);
 
     Kmers kmers = {
             {kmer}
@@ -249,14 +235,7 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
     KmerSites sites_map;
     NonVariantKmers nonvar_kmers;
 
-    index_kmers(kmers,
-                sa_intervals_map,
-                sites_map,
-                nonvar_kmers,
-                max_alphabet,
-                allele_mask,
-                rank_all,
-                fm_index);
+    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
 
     auto &result = sites_map[kmer];
     Sites expected = {
@@ -269,10 +248,7 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
 TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
     auto kmer = encode_dna_bases("aggca");
-    const FM_Index &fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
+    const auto prg_info = generate_prg_info(prg_raw);
 
     Kmers kmers = {
             {kmer}
@@ -282,14 +258,7 @@ TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     KmerSites sites_map;
     NonVariantKmers nonvar_kmers;
 
-    index_kmers(kmers,
-                sa_intervals_map,
-                sites_map,
-                nonvar_kmers,
-                max_alphabet,
-                allele_mask,
-                rank_all,
-                fm_index);
+    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
 
     auto &result = sites_map[kmer];
     Sites expected = {

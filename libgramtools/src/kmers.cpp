@@ -92,10 +92,7 @@ void index_kmers(Kmers &kmers,
                  KmerSA_Intervals &sa_intervals_map,
                  KmerSites &sites_map,
                  NonVariantKmers &nonvar_kmers,
-                 const uint64_t max_alphabet_num,
-                 const std::vector<int> &allele_mask,
-                 const DNA_Rank &rank_all,
-                 const FM_Index &fm_index) {
+                 const PRG_Info &prg_info) {
 
     for (auto &kmer: kmers) {
         auto &sa_intervals = sa_intervals_map[kmer];
@@ -108,18 +105,16 @@ void index_kmers(Kmers &kmers,
         bool kmer_precalc_done = false;
 
         if (sa_intervals.empty()) {
-            sa_intervals.emplace_back(std::make_pair(0, fm_index.size()));
+            sa_intervals.emplace_back(std::make_pair(0, prg_info.fm_index.size()));
             sites.emplace_back(Site());
         }
 
         bidir_search_bwd(sa_intervals, sites,
                          delete_first_interval,
+                         kmer_precalc_done,
                          kmer.begin(),
                          kmer.end(),
-                         allele_mask,
-                         max_alphabet_num,
-                         kmer_precalc_done,
-                         rank_all, fm_index);
+                         prg_info);
 
         if (sa_intervals.empty()) {
             sa_intervals_map.erase(kmer);
@@ -131,11 +126,7 @@ void index_kmers(Kmers &kmers,
 }
 
 
-void generate_kmer_index(const std::vector<int> &allele_mask,
-                         const std::string &kmer_fname,
-                         const uint64_t max_alphabet_num,
-                         const DNA_Rank &rank_all,
-                         const FM_Index &fm_index) {
+void generate_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info) {
 
     std::ifstream kmer_fhandle;
     kmer_fhandle.open(kmer_fname);
@@ -152,9 +143,10 @@ void generate_kmer_index(const std::vector<int> &allele_mask,
     NonVariantKmers nonvar_kmers;
 
     index_kmers(kmers,
-                sa_intervals_map, sites_map, nonvar_kmers,
-                max_alphabet_num, allele_mask, rank_all,
-                fm_index);
+                sa_intervals_map,
+                sites_map,
+                nonvar_kmers,
+                prg_info);
 
     std::ofstream kmer_index_file;
     kmer_index_file.open(std::string(kmer_fname) + ".precalc");
@@ -310,11 +302,7 @@ KmerIndex get_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info
 
     if (!file_exists(encoded_kmers_fname)) {
         std::cout << "Kmer index not found, building..." << std::endl;
-        generate_kmer_index(prg_info.allele_mask,
-                            kmer_fname,
-                            prg_info.max_alphabet_num,
-                            prg_info.dna_rank,
-                            prg_info.fm_index);
+        generate_kmer_index(kmer_fname, prg_info);
         std::cout << "Finished generating kmer index" << std::endl;
     }
 

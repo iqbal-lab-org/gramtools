@@ -72,14 +72,8 @@ void dump_kmer_index(std::ofstream &precalc_file,
                      const NonVariantKmers &nonvar_kmers,
                      const KmerSites &kmer_sites);
 
-void index_kmers(Kmers &kmers,
-                 KmerSA_Intervals &kmer_idx,
-                 KmerSites &kmer_sites,
-                 NonVariantKmers &nonvar_kmers,
-                 const uint64_t max_alphabet_num,
-                 const std::vector<int> &allele_mask,
-                 const DNA_Rank &rank_all,
-                 const FM_Index &fm_index);
+void index_kmers(Kmers &kmers, KmerSA_Intervals &kmer_idx, KmerSites &kmer_sites, NonVariantKmers &nonvar_kmers,
+                 const PRG_Info &prg_info);
 
 inline bool file_exists(const std::string &name);
 
