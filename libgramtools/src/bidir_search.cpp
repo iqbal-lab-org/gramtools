@@ -17,28 +17,25 @@
 //char next_char for extending the current pattern
 
 
-SA_Interval bidir_search(const uint8_t next_char,
-                         const SA_Interval &sa_interval,
-                         const DNA_Rank &rank_all,
-                         const FM_Index &fm_index) {
+SA_Interval bidir_search(const uint8_t next_char, const SA_Interval &sa_interval, const PRG_Info &prg_info) {
 
     uint64_t left = sa_interval.first;
     uint64_t right = sa_interval.second;
 
     assert(left < right);
-    assert(right <= fm_index.size());
+    assert(right <= prg_info.fm_index.size());
 
     // next_char_interval_left (below) is the first occurrence/posn
     //          of char next_char in the far left column
     //          of the BW matrix
-    const uint64_t next_char_interval_left = fm_index.C[fm_index.char2comp[next_char]];
+    const uint64_t next_char_interval_left = prg_info.fm_index.C[prg_info.fm_index.char2comp[next_char]];
 
     // [ NB Since the suffixes are alphabetically ordered,
     // the position at which next_char appears for the first time
     // in this first column is equal to the number of
     // times characters smaller than next_char appear in text  ]
 
-    auto tmp = rank_all.find(next_char - 1)->second;
+    auto tmp = prg_info.dna_rank.find(next_char - 1)->second;
     if (left == 0)
         left = next_char_interval_left;
     else

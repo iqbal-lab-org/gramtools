@@ -49,23 +49,14 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
 
         const bool read_char_is_last = read_it == read_end - 1;
         delete_first_interval = reduce_sa_intervals(read_char, sa_intervals, sites, delete_first_interval,
-                                                    read_char_is_last, prg_info.allele_mask,
-                                                    prg_info.max_alphabet_num, kmer_precalc_done,
-                                                    prg_info.dna_rank, prg_info.fm_index);
+                                                    kmer_precalc_done, read_char_is_last, prg_info);
     }
 }
 
 
-bool reduce_sa_intervals(const uint8_t read_char,
-                         SA_Intervals &sa_intervals,
-                         Sites &sites,
-                         const bool delete_first_interval,
-                         const bool read_char_is_last,
-                         const AlleleMask &allele_mask,
-                         const uint64_t max_alphabet_num,
-                         const bool kmer_precalc_done,
-                         const DNA_Rank &rank_all,
-                         const FM_Index &fm_index) {
+bool
+reduce_sa_intervals(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites, const bool delete_first_interval,
+                    const bool kmer_precalc_done, const bool read_char_is_last, const PRG_Info &prg_info) {
 
     bool new_delete_first_interval = delete_first_interval;
 
@@ -79,12 +70,8 @@ bool reduce_sa_intervals(const uint8_t read_char,
 
             auto &sa_interval = *sa_intervals_it;
             auto &site = *sites_it;
-            process_reads_overlapping_variants(sa_intervals, sa_interval,
-                                               sites, site,
-                                               new_delete_first_interval,
-                                               max_alphabet_num,
-                                               allele_mask,
-                                               fm_index);
+            process_reads_overlapping_variants(sa_intervals, sa_interval, sites, site, new_delete_first_interval,
+                                               prg_info);
             ++sa_intervals_it;
             ++sites_it;
         }
@@ -99,8 +86,7 @@ bool reduce_sa_intervals(const uint8_t read_char,
            and sites_it != sites.end()) {
 
         auto &sa_interval = *sa_intervals_it;
-        auto reduced_sa_interval = bidir_search(read_char, sa_interval,
-                                                rank_all, fm_index);
+        auto reduced_sa_interval = bidir_search(read_char, sa_interval, prg_info);
 
         const uint64_t reduced_sa_interval_size = reduced_sa_interval.second
                                                   - reduced_sa_interval.first;
@@ -123,22 +109,16 @@ bool reduce_sa_intervals(const uint8_t read_char,
 }
 
 
-void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
-                                        SA_Interval &sa_interval,
-                                        Sites &sites,
-                                        Site &site,
-                                        const bool delete_first_interval,
-                                        const uint64_t max_alphabet_num,
-                                        const std::vector<int> &allele_mask,
-                                        const FM_Index &fm_index) {
+void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval, Sites &sites, Site &site,
+                                        const bool delete_first_interval, const PRG_Info &prg_info) {
 
     // check for edge of variant site
     const auto sa_interval_start = sa_interval.first;
     const auto sa_interval_end = sa_interval.second;
 
-    auto marker_positions = fm_index.wavelet_tree.range_search_2d(sa_interval_start,
-                                                                  sa_interval_end - 1,
-                                                                  5, max_alphabet_num).second;
+    auto marker_positions = prg_info.fm_index.wavelet_tree.range_search_2d(sa_interval_start,
+                                                                           sa_interval_end - 1,
+                                                                           5, prg_info.max_alphabet_num).second;
 
     uint64_t previous_marker = 0;
     uint64_t last_begin = 0;
@@ -172,7 +152,7 @@ void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
         // takes all suffix at edge of variant and adds variant charecter to them
         // ac6cc6at5agt -> 5ac6cc6at5agt
         // last -> is end of variant site marker or not
-        bool last = skip(new_sa_start, new_sa_end, max_alphabet_num, marker, fm_index);
+        bool last = skip(new_sa_start, new_sa_end, marker, prg_info);
 
         if (!last and (marker % 2 == 1)) {
             last_begin = marker;
@@ -181,12 +161,9 @@ void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
         }
 
         const bool at_first_sa_interval = sa_interval == sa_intervals.front();
-        bool res = update_sites_crossed_by_reads(sa_intervals, sites,
-                                                 new_sa_start, new_sa_end,
-                                                 at_first_sa_interval, ignore,
-                                                 last, last_begin, second_to_last,
-                                                 allele_mask, delete_first_interval,
-                                                 marker, marker_idx, fm_index);
+        bool res = update_sites_crossed_by_reads(sa_intervals, sites, new_sa_start, new_sa_end, at_first_sa_interval,
+                                                 ignore, last, last_begin, second_to_last, delete_first_interval,
+                                                 marker, marker_idx, prg_info);
 
         if (res)
             continue;
@@ -202,44 +179,25 @@ void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
 
         if (variant_site_marker == marker or variant_site_marker == marker - 1) {
             auto &allele = last_variant_site.second;
-            const auto variant_site = get_variant_site_edge(allele,
-                                                            marker,
-                                                            marker_idx,
-                                                            allele_mask,
-                                                            last,
-                                                            fm_index);
+            const auto variant_site = get_variant_site_edge(allele, marker, marker_idx, last, prg_info);
             last_variant_site = variant_site;
             continue;
         }
 
         std::vector<int> allele_empty;
         allele_empty.reserve(3500);
-        const auto variant_site = get_variant_site_edge(allele_empty,
-                                                        marker,
-                                                        marker_idx,
-                                                        allele_mask,
-                                                        last,
-                                                        fm_index);
+        const auto variant_site = get_variant_site_edge(allele_empty, marker, marker_idx, last, prg_info);
         site.push_back(variant_site);
         previous_marker = marker;
     }
 }
 
 
-bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
-                                   Sites &sites,
-                                   const uint64_t left_new,
-                                   const uint64_t right_new,
-                                   const bool at_first_sa_interval,
-                                   const bool ignore,
-                                   const bool last,
-                                   const uint64_t last_begin,
-                                   const bool second_to_last,
-                                   const std::vector<int> &allele_mask,
-                                   const bool delete_first_interval,
-                                   const uint64_t marker,
-                                   const uint64_t marker_idx,
-                                   const FM_Index &fm_index) {
+bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals, Sites &sites, const uint64_t left_new,
+                                   const uint64_t right_new, const bool at_first_sa_interval, const bool ignore,
+                                   const bool last, const uint64_t last_begin, const bool second_to_last,
+                                   const bool delete_first_interval, const uint64_t marker, const uint64_t marker_idx,
+                                   const PRG_Info &prg_info) {
 
     if (at_first_sa_interval and !delete_first_interval and !ignore) {
         auto sa_interval = std::make_pair(left_new, right_new);
@@ -247,11 +205,7 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
 
         std::vector<int> allele_empty;
         allele_empty.reserve(3500);
-        auto variant_site = get_variant_site_edge(allele_empty,
-                                                  marker,
-                                                  marker_idx,
-                                                  allele_mask,
-                                                  last, fm_index);
+        auto variant_site = get_variant_site_edge(allele_empty, marker, marker_idx, last, prg_info);
         Site site(1, variant_site);
         sites.push_back(site);
         sites.back().reserve(100);
@@ -265,23 +219,14 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
     if (ignore) {
         if ((marker == last_begin + 1) and second_to_last) {
             auto vec_item = *(std::prev(sites.end(), 2));
-            const auto variant_site = get_variant_site_edge(vec_item.back().second,
-                                                            marker,
-                                                            marker_idx,
-                                                            allele_mask,
-                                                            last,
-                                                            fm_index);
+            const auto variant_site = get_variant_site_edge(vec_item.back().second, marker, marker_idx, last,
+                                                            prg_info);
             vec_item.back() = variant_site;
         } else {
             auto &last_site = sites.back();
             auto &last_variant_site = last_site.back();
             auto &allele = last_variant_site.second;
-            auto variant_site = get_variant_site_edge(allele,
-                                                      marker,
-                                                      marker_idx,
-                                                      allele_mask,
-                                                      last,
-                                                      fm_index);
+            auto variant_site = get_variant_site_edge(allele, marker, marker_idx, last, prg_info);
             last_variant_site = variant_site;
         }
         return true;
@@ -293,9 +238,8 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals,
 VariantSite get_variant_site_edge(std::vector<int> &allele,
                                   const uint64_t marker,
                                   const uint64_t marker_idx,
-                                  const std::vector<int> &allele_mask,
                                   const bool last,
-                                  const FM_Index &fm_index) {
+                                  const PRG_Info &prg_info) {
     uint64_t site_edge_marker;
 
     bool marker_is_site_edge = marker % 2 == 1;
@@ -305,7 +249,7 @@ VariantSite get_variant_site_edge(std::vector<int> &allele,
             allele.push_back(1);
     } else {
         site_edge_marker = marker - 1;
-        allele.push_back(allele_mask[fm_index[marker_idx]]);
+        allele.push_back(prg_info.allele_mask[prg_info.fm_index[marker_idx]]);
     }
     return std::make_pair(site_edge_marker, allele);
 }
