@@ -69,7 +69,9 @@ add_custom_command(TARGET gramtools POST_BUILD
             ${PROJECT_SOURCE_DIR}/gramtools/lib)
 
 # gram executable
-add_executable(gram ${SOURCE}/main.cpp)
+add_executable(gram
+        ${SOURCE}/main.cpp
+        ${SOURCE}/timer_report.cpp)
 target_include_directories(gram PUBLIC
     ${INCLUDE}
     ${Boost_INCLUDE_DIRS})
