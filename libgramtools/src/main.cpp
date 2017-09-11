@@ -48,7 +48,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Mapping");
 
     std::cout << "Writing allele coverage to file" << std::endl;
-    output_allele_coverage(params, allele_coverage);
+    output_allele_coverage(allele_coverage, params);
     timer_report.record("Output coverage");
 
     timer_report.report();

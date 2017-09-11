@@ -308,7 +308,7 @@ std::vector<uint8_t> int_encode_read(const GenomicRead &read_sequence) {
 }
 
 
-void output_allele_coverage(Parameters &params, AlleleCoverage &allele_coverage) {
+void output_allele_coverage(AlleleCoverage &allele_coverage, Parameters &params) {
     std::ofstream allele_coverage_fhandle(params.allele_coverage_fpath);
     for (uint64_t i = 0; i < allele_coverage.size(); i++) {
         for (uint64_t j = 0; j < allele_coverage[i].size(); j++)

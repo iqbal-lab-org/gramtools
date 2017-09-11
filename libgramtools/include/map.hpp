@@ -43,6 +43,6 @@ void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const Sit
                                       const int in_sites, const std::vector<uint8_t> &readin_integer_seq,
                                       const uint64_t repeats, const PRG_Info &prg_info);
 
-void output_allele_coverage(Parameters &params, AlleleCoverage &allele_coverage);
+void output_allele_coverage(AlleleCoverage &allele_coverage, Parameters &params);
 
 #endif //GRAMTOOLS_MAP_HPP
