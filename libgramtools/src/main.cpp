@@ -40,9 +40,7 @@ int main(int argc, const char *const *argv) {
     std::cout << "Maximum alphabet number: " << prg_info.max_alphabet_num << std::endl;
 
     std::cout << "Loading kmer index" << std::endl;
-    KmerIndex kmer_index = get_kmer_index(params.prg_kmers_fpath,
-                                          prg_info.allele_mask, prg_info.max_alphabet_num,
-                                          prg_info.dna_rank, prg_info.fm_index);
+    KmerIndex kmer_index = get_kmer_index(params.prg_kmers_fpath, prg_info);
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;

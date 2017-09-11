@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 
+#include "prg.hpp"
 #include "fm_index.hpp"
 #include "ranks.hpp"
 
@@ -102,11 +103,7 @@ void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
 
 KmerIndex lead_kmer_index(const std::string &encoded_kmers_fname);
 
-KmerIndex get_kmer_index(const std::string &kmer_fname,
-                         const std::vector<int> &allele_mask,
-                         const uint64_t maxx,
-                         const DNA_Rank &rank_all,
-                         const FM_Index &fm_index);
+KmerIndex get_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info);
 
 
 #endif //GRAMTOOLS_KMERS_HPP

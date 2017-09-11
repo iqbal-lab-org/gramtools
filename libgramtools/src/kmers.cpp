@@ -304,21 +304,17 @@ KmerIndex lead_kmer_index(const std::string &encoded_kmers_fname) {
 }
 
 
-KmerIndex get_kmer_index(const std::string &kmer_fname,
-                         const std::vector<int> &allele_mask,
-                         const uint64_t max_alphabet_num,
-                         const DNA_Rank &rank_all,
-                         const FM_Index &fm_index) {
+KmerIndex get_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info) {
 
     const auto encoded_kmers_fname = std::string(kmer_fname) + ".precalc";
 
     if (!file_exists(encoded_kmers_fname)) {
         std::cout << "Kmer index not found, building..." << std::endl;
-        generate_kmer_index(allele_mask,
+        generate_kmer_index(prg_info.allele_mask,
                             kmer_fname,
-                            max_alphabet_num,
-                            rank_all,
-                            fm_index);
+                            prg_info.max_alphabet_num,
+                            prg_info.dna_rank,
+                            prg_info.fm_index);
         std::cout << "Finished generating kmer index" << std::endl;
     }
 
