@@ -32,8 +32,7 @@ add_executable(test_main
         main.cpp
         test_kmers.cpp
         test_kmer_index.cpp
-        test_bidir_search.cpp
-        test_bidir_search_slow.cpp
+        test_bidir_search_bwd.cpp
         test_prg.cpp
         test_map.cpp)
 target_link_libraries(test_main

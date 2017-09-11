@@ -6,13 +6,6 @@
 #ifndef GRAMTOOLS_BIDIR_SEARCH_BWD_HPP_HPP
 #define GRAMTOOLS_BIDIR_SEARCH_BWD_HPP_HPP
 
-
-void bidir_search_bwd(SA_Intervals &sa_intervals, Sites &sites, bool &delete_first_interval,
-                      const std::vector<uint8_t>::const_iterator read_begin,
-                      const std::vector<uint8_t>::const_iterator read_end, const std::vector<int> &allele_mask,
-                      const uint64_t maxx, const bool kmer_precalc_done, const DNA_Rank &rank_all,
-                      const FM_Index &fm_index);
-
 void bidir_search_bwd(SA_Intervals &sa_intervals,
                       Sites &sites,
                       bool &delete_first_interval,

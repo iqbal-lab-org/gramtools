@@ -33,13 +33,10 @@
 void bidir_search_bwd(SA_Intervals &sa_intervals,
                       Sites &sites,
                       bool &delete_first_interval,
+                      const bool kmer_precalc_done,
                       const std::vector<uint8_t>::const_iterator read_begin,
                       const std::vector<uint8_t>::const_iterator read_end,
-                      const std::vector<int> &allele_mask,
-                      const uint64_t max_alphabet_num,
-                      const bool kmer_precalc_done,
-                      const DNA_Rank &rank_all,
-                      const FM_Index &fm_index) {
+                      const PRG_Info &prg_info) {
 
     auto read_it = read_end;
     while (read_it > read_begin) {
@@ -52,30 +49,10 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
 
         const bool read_char_is_last = read_it == read_end - 1;
         delete_first_interval = reduce_sa_intervals(read_char, sa_intervals, sites, delete_first_interval,
-                                                    read_char_is_last, allele_mask, max_alphabet_num, kmer_precalc_done,
-                                                    rank_all, fm_index);
+                                                    read_char_is_last, prg_info.allele_mask,
+                                                    prg_info.max_alphabet_num, kmer_precalc_done,
+                                                    prg_info.dna_rank, prg_info.fm_index);
     }
-}
-
-
-void bidir_search_bwd(SA_Intervals &sa_intervals,
-                      Sites &sites,
-                      bool &delete_first_interval,
-                      const bool kmer_precalc_done,
-                      const std::vector<uint8_t>::const_iterator read_begin,
-                      const std::vector<uint8_t>::const_iterator read_end,
-                      const PRG_Info &prg_info) {
-
-    bidir_search_bwd(sa_intervals,
-                     sites,
-                     delete_first_interval,
-                     read_begin,
-                     read_end,
-                     prg_info.allele_mask,
-                     prg_info.max_alphabet_num,
-                     kmer_precalc_done,
-                     prg_info.dna_rank,
-                     prg_info.fm_index);
 }
 
 
