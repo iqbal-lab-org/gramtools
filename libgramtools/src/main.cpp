@@ -7,11 +7,10 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
+#include "prg.hpp"
 #include "parameters.hpp"
 #include "bwt_search.hpp"
-#include "masks.hpp"
 #include "map.hpp"
-#include "kmer_index.hpp"
 #include "timer_report.hpp"
 #include "main.hpp"
 
@@ -20,28 +19,34 @@ int main(int argc, const char *const *argv) {
     auto params = parse_command_line_parameters(argc, argv);
     TimerReport timer_report;
 
+    PRG_Info prg_info;
+
     std::cout << "Getting FM-index" << std::endl;
-    const FM_Index fm_index = get_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
+    prg_info.fm_index = get_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
                                            params.linear_prg_fpath, params.fm_index_memory_log_fpath);
     timer_report.record("Construct FM-index");
 
     std::cout << "Parsing sites_map and allele masks" << std::endl;
     MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
+    prg_info.sites_mask = masks.sites;
+    prg_info.allele_mask = masks.allele;
+    prg_info.max_alphabet_num = masks.max_alphabet_num;
+
     timer_report.record("Parse masks");
     // TODO: should allele_coverage be separated from the masks data structure? No.
 
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
+    prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
     timer_report.record("Calculating DNA ranks");
-    std::cout << "Maximum alphabet number: " << masks.max_alphabet_num << std::endl;
+    std::cout << "Maximum alphabet number: " << prg_info.max_alphabet_num << std::endl;
 
     std::cout << "Loading kmer index" << std::endl;
     KmerIndex kmer_index = get_kmer_index(params.prg_kmers_fpath,
-                                          masks.allele, masks.max_alphabet_num,
-                                          rank_all, fm_index);
+                                          prg_info.allele_mask, prg_info.max_alphabet_num,
+                                          prg_info.dna_rank, prg_info.fm_index);
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;
-    auto count_mapped = quasimap_reads(kmer_index, masks, params, fm_index, rank_all);
+    auto count_mapped = quasimap_reads(kmer_index, masks, params, prg_info.fm_index, prg_info.dna_rank);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
