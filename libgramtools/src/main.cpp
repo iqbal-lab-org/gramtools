@@ -31,9 +31,8 @@ int main(int argc, const char *const *argv) {
     prg_info.sites_mask = masks.sites;
     prg_info.allele_mask = masks.allele;
     prg_info.max_alphabet_num = masks.max_alphabet_num;
-
+    AlleleCoverage allele_coverage = masks.allele_coverage;
     timer_report.record("Parse masks");
-    // TODO: should allele_coverage be separated from the masks data structure? No.
 
     prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
     timer_report.record("Calculating DNA ranks");
@@ -44,12 +43,12 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;
-    auto count_mapped = quasimap_reads(kmer_index, masks, params, prg_info);
+    auto count_mapped = quasimap_reads(allele_coverage, params, kmer_index, prg_info);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 
     std::cout << "Writing allele coverage to file" << std::endl;
-    output_allele_coverage(params, masks);
+    output_allele_coverage(params, allele_coverage);
     timer_report.record("Output coverage");
 
     timer_report.report();
