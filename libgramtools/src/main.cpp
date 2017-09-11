@@ -44,7 +44,7 @@ int main(int argc, const char *const *argv) {
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;
-    auto count_mapped = quasimap_reads(kmer_index, masks, params, prg_info.fm_index, prg_info.dna_rank);
+    auto count_mapped = quasimap_reads(kmer_index, masks, params, prg_info);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
 

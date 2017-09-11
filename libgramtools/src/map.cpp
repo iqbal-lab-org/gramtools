@@ -17,11 +17,7 @@ void update_coverage(MasksParser &masks, const std::list<Site> &sites, const std
                      const DNA_Rank &rank_all, const FM_Index &fm_index);
 
 
-int quasimap_reads(KmerIndex &kmers,
-                   MasksParser &masks,
-                   const Parameters &params,
-                   const FM_Index &fm_index,
-                   const DNA_Rank &rank_all) {
+int quasimap_reads(KmerIndex &kmers, MasksParser &masks, const Parameters &params, const PRG_Info &prg_info) {
 
     SeqRead reads(params.reads_fpath.c_str());
 
@@ -47,7 +43,7 @@ int quasimap_reads(KmerIndex &kmers,
                                               count_char_in_variant_site,
                                               repeats_variant_site_edge_markers,
                                               kmers, masks, params,
-                                              rank_all, fm_index);
+                                              prg_info.dna_rank, prg_info.fm_index);
         if (read_mapped)
             ++count_mapped_reads;
     }

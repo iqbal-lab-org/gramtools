@@ -15,8 +15,7 @@ void print_sa_interval(const SA_Intervals &sa_intervals);
 
 void print_sites(const Sites &sites);
 
-int quasimap_reads(KmerIndex &kmers, MasksParser &masks, const Parameters &params, const FM_Index &fm_index,
-                   const DNA_Rank &rank_all);
+int quasimap_reads(KmerIndex &kmers, MasksParser &masks, const Parameters &params, const PRG_Info &prg_info);
 
 std::vector<uint8_t> int_encode_read(const GenomicRead &read_sequence);
 
