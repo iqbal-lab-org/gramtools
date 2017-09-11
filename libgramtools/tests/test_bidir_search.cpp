@@ -38,28 +38,35 @@ protected:
         sdsl::construct(fm_index, prg_fpath, 8);
         return fm_index;
     }
+
+    PRG_Info generate_prg_info(const std::string &prg_raw) {
+        PRG_Info prg_info;
+        prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
+        prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
+        prg_info.allele_mask = generate_allele_mask(prg_raw);
+        prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
+        return prg_info;
+    }
 };
 
 
 TEST_F(BidirSearchBackward, MatchSingleCharecter) {
     const std::string prg_raw = "a";
-    const std::string read = "a";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
+    const std::string read_raw = "a";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
     Sites sites = {Site()};
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -80,23 +87,21 @@ TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
     const std::string prg_raw = "catttacaca"
             "5g6t5"
             "aactagagagca";
-    const std::string read = "ttacacagaactagagag";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank &rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
+    const std::string read_raw = "ttacacagaactagagag";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
     Sites sites = {Site()};
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated, rank_all, fm_index);
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_TRUE(delete_first_interval);
 
@@ -118,24 +123,21 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
             "aactag"
             "7a8g7"
             "agcagggt";
-    const std::string read = "ttacacagaactagaagcag";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ttacacagaactagaagcag";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_TRUE(delete_first_interval);
 
@@ -157,24 +159,21 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) 
             "aactag"
             "7a8g7"
             "agcagggt";
-    const std::string read = "ttacacagaactagaagcag";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ttacacagaactagaagcag";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const Sites expected = {
             {VariantSite(7, {1}), VariantSite(5, {1})},
@@ -189,24 +188,21 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
             "aactag"
             "7a8g7"
             "agcagggt";
-    const std::string read = "ttacacagaactagaagcag";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ttacacagaactagaagcag";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_TRUE(delete_first_interval);
 }
@@ -217,24 +213,21 @@ TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
     const std::string prg_raw = "catttacaca"
             "5g6t5"
             "aactagagagcaacagaactctct";
-    const std::string read = "acagaac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "acagaac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -257,24 +250,21 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
     const std::string prg_raw = "catttacatt"
             "5c6t5"
             "aaagcaacagaac";
-    const std::string read = "acagaac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "acagaac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const Sites expected_sites = {
             {},
@@ -288,24 +278,21 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse)
     const std::string prg_raw = "catttacatt"
             "5c6t5"
             "aaagcaacagaac";
-    const std::string read = "acagaac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "acagaac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 }
@@ -317,24 +304,21 @@ TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesE
             "aactagagagcaacagaactcacagaactc"
             "7cga8cgc8"
             "t";
-    const std::string read = "acagaac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "acagaac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const SA_Intervals expected_sa_intervals = {
             {6, 9},
@@ -353,24 +337,21 @@ TEST_F(BidirSearchBackward, MatchVariantSiteAndNonVariantSite) {
     const std::string prg_raw = "catttacaca"
             "5g6t5"
             "aactagagagcaacataactctct";
-    const std::string read = "acataac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "acataac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -395,24 +376,21 @@ TEST_F(BidirSearchBackward, MatchTwoLongVariantSites) {
             "gctcgatgactagatagatag"
             "7cga8cgc8tga8tgc7"
             "ggcaacatctacga";
-    const std::string read = "gctcggctcgatgactagatagatagcgaggcaac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "gctcggctcgatgactagatagatagcgaggcaac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_TRUE(delete_first_interval);
 
@@ -433,24 +411,21 @@ TEST_F(BidirSearchBackward, ReadStartsInFirstAllele_AlleleMissingFromSitesAllele
     const std::string prg_raw = "acga"
             "5gctct6tt5"
             "gatat";
-    const std::string read = "ctctgata";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ctctgata";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const Sites expected_sites = {
             {VariantSite(5, {})},
@@ -464,24 +439,21 @@ TEST_F(BidirSearchBackward, ReadStartsInSecondAllele_AlleleMissingFromSitesAllel
     const std::string prg_raw = "acga"
             "5tt6gctct5"
             "gatat";
-    const std::string read = "ctctgata";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ctctgata";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const Sites expected_sites = {
             {VariantSite(5, {})},
@@ -495,24 +467,21 @@ TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllel
     const std::string prg_raw = "acgc"
             "5tt6agata5"
             "tatag";
-    const std::string read = "cgcagat";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "cgcagat";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const Sites expected_sites = {
             {VariantSite(5, {2})},
@@ -528,24 +497,21 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAl
             "gctcgatgactagatagatag"
             "7cga8cgc8tga8tgc7"
             "ggcaacatctacga";
-    const std::string read = "gctcggctcgatgactagatagatagcgaggcaac";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "gctcggctcgatgactagatagatagcgaggcaac";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     const Sites expected_sites = {
             {VariantSite(7, {1}), VariantSite(5, {})},
@@ -561,24 +527,21 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_Si
             "ggtgctagac"
             "7c8a7"
             "tcagctgctccacacagaga";
-    const std::string read = "ctgctccacacagaga";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ctgctccacacagaga";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -601,24 +564,21 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpt
             "ggtgctagac"
             "7c8a7"
             "tcag";
-    const std::string read = "ctgctccacacagaga";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "ctgctccacacagaga";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -641,24 +601,21 @@ TEST_F(BidirSearchBackward, MatchLongSiteRepeatedSnpOnSiteEdge) {
             "ggtgctagac"
             "7c8a7"
             "ccagctgctccacacagaga";
-    const std::string read = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "tagacacacagtgtcgcctcgtcggctttgagtggtgctagacccca";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_TRUE(delete_first_interval);
 
@@ -681,26 +638,21 @@ TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
             "gctcgtgataatgactagatagatag"
             "7cga8cgc8tga8tgc7"
             "taggcaacatctacga";
-    const std::string read = "tgata";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    //each element on the list corresponds to a SA interval
-    //these elements are vectors of pairs (pair=(site, list of alleles))
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "tgata";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_FALSE(delete_first_interval);
 
@@ -745,24 +697,21 @@ TEST_F(BidirSearchBackward, SingleMatchOverManySites) {
             "ggtc"
             "15atc16cat15"
             "ttcg";
-    const std::string read = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
-    const uint64_t max_alphabet = max_alphabet_num(prg_raw);
-    const std::vector<int> allele_mask = generate_allele_mask(prg_raw);
-
-    const FM_Index fm_index = fm_index_from_raw_prg(prg_raw);
-    const DNA_Rank rank_all = calculate_ranks(fm_index);
-    const auto encoded_read = encode_dna_bases(read);
-
-    SA_Intervals sa_intervals = {{0, fm_index.size()}};
-    Sites sites = {Site()};
+    const std::string read_raw = "cctacacatgatcgtgatcaccatagaggtcgctgggtccat";
 
     bool delete_first_interval = false;
     const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
 
-    bidir_search_bwd(sa_intervals, sites, delete_first_interval,
-                     encoded_read.begin(), encoded_read.end(),
-                     allele_mask, max_alphabet, kmer_index_generated,
-                     rank_all, fm_index);
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
 
     EXPECT_TRUE(delete_first_interval);
 

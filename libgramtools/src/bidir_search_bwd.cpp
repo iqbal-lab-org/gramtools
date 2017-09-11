@@ -58,6 +58,27 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
 }
 
 
+void bidir_search_bwd(SA_Intervals &sa_intervals,
+                      Sites &sites,
+                      bool &delete_first_interval,
+                      const bool kmer_precalc_done,
+                      const std::vector<uint8_t>::const_iterator read_begin,
+                      const std::vector<uint8_t>::const_iterator read_end,
+                      const PRG_Info &prg_info) {
+
+    bidir_search_bwd(sa_intervals,
+                     sites,
+                     delete_first_interval,
+                     read_begin,
+                     read_end,
+                     prg_info.allele_mask,
+                     prg_info.max_alphabet_num,
+                     kmer_precalc_done,
+                     prg_info.dna_rank,
+                     prg_info.fm_index);
+}
+
+
 bool reduce_sa_intervals(const uint8_t read_char,
                          SA_Intervals &sa_intervals,
                          Sites &sites,

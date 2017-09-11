@@ -1,5 +1,6 @@
 #include "ranks.hpp"
 #include "kmers.hpp"
+#include "prg.hpp"
 
 
 #ifndef GRAMTOOLS_BIDIR_SEARCH_BWD_HPP_HPP
@@ -11,6 +12,14 @@ void bidir_search_bwd(SA_Intervals &sa_intervals, Sites &sites, bool &delete_fir
                       const std::vector<uint8_t>::const_iterator read_end, const std::vector<int> &allele_mask,
                       const uint64_t maxx, const bool kmer_precalc_done, const DNA_Rank &rank_all,
                       const FM_Index &fm_index);
+
+void bidir_search_bwd(SA_Intervals &sa_intervals,
+                      Sites &sites,
+                      bool &delete_first_interval,
+                      const bool kmer_precalc_done,
+                      const std::vector<uint8_t>::const_iterator read_begin,
+                      const std::vector<uint8_t>::const_iterator read_end,
+                      const PRG_Info &prg_info);
 
 bool reduce_sa_intervals(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites, const bool delete_first_interval,
                          const bool read_char_is_last, const std::vector<int> &allele_mask, const uint64_t maxx,
