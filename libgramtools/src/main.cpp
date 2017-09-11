@@ -22,7 +22,7 @@ int main(int argc, const char *const *argv) {
     PRG_Info prg_info;
 
     std::cout << "Getting FM-index" << std::endl;
-    prg_info.fm_index = get_fm_index(true, params.fm_index_fpath, params.prg_integer_alphabet_fpath,
+    prg_info.fm_index = get_fm_index(true, params.fm_index_fpath, params.encoded_linear_prg_fpath,
                                            params.linear_prg_fpath, params.fm_index_memory_log_fpath);
     timer_report.record("Construct FM-index");
 
@@ -40,7 +40,7 @@ int main(int argc, const char *const *argv) {
     std::cout << "Maximum alphabet number: " << prg_info.max_alphabet_num << std::endl;
 
     std::cout << "Loading kmer index" << std::endl;
-    KmerIndex kmer_index = get_kmer_index(params.prg_kmers_fpath, prg_info);
+    KmerIndex kmer_index = get_kmer_index(params.kmers_fpath, prg_info);
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;
@@ -80,11 +80,11 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
                         "name of output file where coverages on each allele are printed")
                        ("ro,r", po::value<std::string>(&params.processed_reads_fpath),
                         "name of output file where reads that have been processed are printed")
-                       ("po,b", po::value<std::string>(&params.prg_integer_alphabet_fpath),
+                       ("po,b", po::value<std::string>(&params.encoded_linear_prg_fpath),
                         "output filename of binary file containing the prg in integer alphabet")
                        ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath),
                         "output memory log file for the FM-index")
-                       ("kfile,f", po::value<std::string>(&params.prg_kmers_fpath),
+                       ("kfile,f", po::value<std::string>(&params.kmers_fpath),
                         "input file listing all kmers in PRG")
                        ("ksize,k", po::value<int>(&params.kmers_size),
                         "size of pre-calculated kmers");

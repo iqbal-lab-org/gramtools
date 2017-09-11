@@ -10,9 +10,9 @@ struct Parameters {
     std::string allele_mask_fpath;
     std::string allele_coverage_fpath;
     std::string processed_reads_fpath;
-    std::string prg_integer_alphabet_fpath;
+    std::string encoded_linear_prg_fpath;
     std::string fm_index_memory_log_fpath;
-    std::string prg_kmers_fpath;
+    std::string kmers_fpath;
     int kmers_size;
 };
 
