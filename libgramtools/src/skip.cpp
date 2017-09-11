@@ -1,7 +1,6 @@
 #include <sdsl/suffix_arrays.hpp>
 
 #include "prg.hpp"
-#include "fm_index.hpp"
 #include "skip.hpp"
 
 
