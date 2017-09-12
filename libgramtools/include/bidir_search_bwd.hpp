@@ -14,7 +14,8 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
                       const std::vector<uint8_t>::const_iterator read_end,
                       const PRG_Info &prg_info);
 
-bool reduce_sa_intervals(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites, const bool delete_first_interval,
+bool reduce_search_scope(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites,
+                         const bool delete_first_interval,
                          const bool kmer_precalc_done, const bool read_char_is_last, const PRG_Info &prg_info);
 
 void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval, Sites &sites, Site &site,

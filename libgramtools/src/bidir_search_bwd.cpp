@@ -34,43 +34,53 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
                       Sites &sites,
                       bool &delete_first_interval,
                       const bool kmer_precalc_done,
-                      const std::vector<uint8_t>::const_iterator read_begin,
-                      const std::vector<uint8_t>::const_iterator read_end,
+                      const std::vector<uint8_t>::const_iterator pattern_begin,
+                      const std::vector<uint8_t>::const_iterator pattern_end,
                       const PRG_Info &prg_info) {
 
-    auto read_it = read_end;
-    while (read_it > read_begin) {
+    auto pattern_it = pattern_end;
+    while (pattern_it > pattern_begin) {
         if (sa_intervals.empty())
             return;
 
-        --read_it;
-        const uint8_t read_char = *read_it;
-        assert((read_char >= 1) and (read_char <= 4));
+        --pattern_it;
+        const uint8_t pattern_char = *pattern_it;
+        assert((pattern_char >= 1) and (pattern_char <= 4));
 
-        const bool read_char_is_last = read_it == read_end - 1;
-        delete_first_interval = reduce_sa_intervals(read_char, sa_intervals, sites, delete_first_interval,
-                                                    kmer_precalc_done, read_char_is_last, prg_info);
+        const bool last_pattern_char = pattern_it == pattern_end - 1;
+        delete_first_interval = reduce_search_scope(pattern_char,
+                                                    sa_intervals, sites,
+                                                    delete_first_interval,
+                                                    kmer_precalc_done,
+                                                    last_pattern_char,
+                                                    prg_info);
     }
 }
 
 
-bool
-reduce_sa_intervals(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites, const bool delete_first_interval,
-                    const bool kmer_precalc_done, const bool read_char_is_last, const PRG_Info &prg_info) {
+bool reduce_search_scope(const uint8_t read_char,
+                         SA_Intervals &sa_intervals,
+                         Sites &sites,
+                         const bool delete_first_interval,
+                         const bool kmer_index_generated,
+                         const bool read_char_is_last,
+                         const PRG_Info &prg_info) {
 
     bool new_delete_first_interval = delete_first_interval;
 
     auto sa_intervals_it = sa_intervals.begin();
     auto sites_it = sites.begin();
 
-    if (kmer_precalc_done or !read_char_is_last) {
+    if (kmer_index_generated or !read_char_is_last) {
         // loop sa interval (matches of current substring)
         const auto count_sa_intervals = sa_intervals.size();
         for (auto j = 0; j < count_sa_intervals; j++) {
 
             auto &sa_interval = *sa_intervals_it;
             auto &site = *sites_it;
-            process_reads_overlapping_variants(sa_intervals, sa_interval, sites, site, new_delete_first_interval,
+            process_reads_overlapping_variants(sa_intervals, sa_interval,
+                                               sites, site,
+                                               new_delete_first_interval,
                                                prg_info);
             ++sa_intervals_it;
             ++sites_it;
@@ -109,8 +119,10 @@ reduce_sa_intervals(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &
 }
 
 
-void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval, Sites &sites, Site &site,
-                                        const bool delete_first_interval, const PRG_Info &prg_info) {
+void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval,
+                                        Sites &sites, Site &site,
+                                        const bool delete_first_interval,
+                                        const PRG_Info &prg_info) {
 
     // check for edge of variant site
     const auto sa_interval_start = sa_interval.first;

@@ -181,7 +181,8 @@ void update_coverage(AlleleCoverage &allele_coverage, const std::list<Site> &sit
                      const std::list<SA_Interval> &sa_intervals, const std::vector<uint8_t> &encoded_read,
                      const int &count_char_in_variant_site,
                      const std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
-                     const bool delete_first_interval, const PRG_Info &prg_info) {
+                     const bool delete_first_interval,
+                     const PRG_Info &prg_info) {
 
     const uint64_t count_repeats_variant_site_edges = repeats_variant_site_edge_markers.size();
 
