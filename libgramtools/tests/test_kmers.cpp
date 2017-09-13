@@ -124,8 +124,8 @@ TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
             VariantSite(7, {19, 18, 17})
     };
 
-    const auto precalc_kmer_entry = "5 9 8 7 @7 19 18 17";
-    const std::vector<std::string> &parts = split(precalc_kmer_entry, "|");
+    const auto kmer_index_entry = "5 9 8 7 @7 19 18 17";
+    const std::vector<std::string> &parts = split(kmer_index_entry, "|");
     const auto &result = parse_site(parts[0]);
     EXPECT_EQ(result, expected);
 }
@@ -137,8 +137,8 @@ TEST(ParsePrecalc, GivenSitesTrailingAt_TrailingAtIgnored) {
             VariantSite(7, {19, 18, 17})
     };
 
-    const auto precalc_kmer_entry = "5 9 8 7 @7 19 18 17 @";
-    const std::vector<std::string> &parts = split(precalc_kmer_entry, "|");
+    const auto kmer_index_entry = "5 9 8 7 @7 19 18 17 @";
+    const std::vector<std::string> &parts = split(kmer_index_entry, "|");
     const auto &result = parse_site(parts[0]);
     EXPECT_EQ(result, expected);
 }
@@ -182,20 +182,18 @@ protected:
 
 TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_dna_bases("atgca");
     const auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer = encode_dna_bases("atgca");
+    const int kmer_size = 5;
 
     Kmers kmers = {
             {kmer}
     };
 
-    KmerSA_Intervals sa_intervals_map;
-    KmerSites sites_map;
-    NonVariantKmers nonvar_kmers;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
-
-    auto &result = nonvar_kmers;
+    auto &result = kmer_index.nonvar_kmers;
     NonVariantKmers expected = {};
     EXPECT_EQ(result, expected);
 }
@@ -203,41 +201,37 @@ TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
 
 TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_dna_bases("atgca");
     const auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer = encode_dna_bases("atgca");
+    const int kmer_size = 5;
 
     Kmers kmers = {
             {kmer}
     };
 
-    KmerSA_Intervals sa_intervals_map;
-    KmerSites sites_map;
-    NonVariantKmers nonvar_kmers;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
-
-    auto &result = nonvar_kmers;
+    auto &result = kmer_index.nonvar_kmers;
     NonVariantKmers expected = {};
     EXPECT_EQ(result, expected);
 }
 
 
 TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
-    const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_dna_bases("atgca");
+    const std::string prg_raw = "aca5g6t5gctc";
     const auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer = encode_dna_bases("atgct");
+    const int kmer_size = 5;
 
     Kmers kmers = {
             {kmer}
     };
 
-    KmerSA_Intervals sa_intervals_map;
-    KmerSites sites_map;
-    NonVariantKmers nonvar_kmers;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
-
-    auto &result = sites_map[kmer];
+    auto &result = kmer_index.sites_map[kmer];
     Sites expected = {
             { VariantSite(5, {2}) }
     };
@@ -247,22 +241,51 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
 
 TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
-    auto kmer = encode_dna_bases("aggca");
     const auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer = encode_dna_bases("aggca");
+    const int kmer_size = 5;
 
     Kmers kmers = {
             {kmer}
     };
 
-    KmerSA_Intervals sa_intervals_map;
-    KmerSites sites_map;
-    NonVariantKmers nonvar_kmers;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    index_kmers(kmers, sa_intervals_map, sites_map, nonvar_kmers, prg_info);
-
-    auto &result = sites_map[kmer];
+    auto &result = kmer_index.sites_map[kmer];
     Sites expected = {
             { VariantSite(5, {1}) }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST_F(IndexKmers, hip) {
+    const std::string prg_raw = "aca5g6c5tatt";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    auto first_full_kmer = encode_dna_bases("agtat");
+    auto kmer_suffix_diff = encode_dna_bases("ac");
+    auto second_full_kmer = encode_dna_bases("actat");
+
+    const int kmer_size = 5;
+
+    Kmers kmers = {
+            first_full_kmer,
+            kmer_suffix_diff
+    };
+
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto &result = kmer_index.sites_map[first_full_kmer];
+    Sites expected = {
+            { VariantSite(5, {1}) }
+    };
+    EXPECT_EQ(result, expected);
+
+    result = kmer_index.sites_map[second_full_kmer];
+    expected = {
+            { VariantSite(5, {2}) }
     };
     EXPECT_EQ(result, expected);
 }

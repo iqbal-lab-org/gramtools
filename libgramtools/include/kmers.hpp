@@ -10,7 +10,6 @@
 #ifndef GRAMTOOLS_KMERS_HPP
 #define GRAMTOOLS_KMERS_HPP
 
-
 template<typename SEQUENCE>
 struct seq_hash {
     std::size_t operator()(const SEQUENCE &seq) const {
@@ -49,6 +48,14 @@ struct KmerIndex {
     NonVariantKmers nonvar_kmers;
 };
 
+struct CacheElement {
+    SA_Intervals sa_intervals;
+    Sites sites;
+    uint8_t base = 0;
+};
+
+using KmerIndexCache = std::list<CacheElement>;
+
 uint8_t encode_dna_base(const char &base_str);
 
 std::vector<uint8_t> encode_dna_bases(const std::string &dna_str);
@@ -67,13 +74,9 @@ std::string dump_kmer_index_entry(const Kmer &kmer,
                                   const NonVariantKmers &nonvar_kmers,
                                   const KmerSites &kmer_sites);
 
-void dump_kmer_index(std::ofstream &precalc_file,
-                     const KmerSA_Intervals &kmers_sa_intervals,
-                     const NonVariantKmers &nonvar_kmers,
-                     const KmerSites &kmer_sites);
+void dump_kmer_index(std::ofstream &precalc_file, const KmerIndex &kmer_index);
 
-void index_kmers(Kmers &kmers, KmerSA_Intervals &kmer_idx, KmerSites &kmer_sites, NonVariantKmers &nonvar_kmers,
-                 const PRG_Info &prg_info);
+KmerIndex index_kmers(const Kmers &kmers, const int kmer_size, const PRG_Info &prg_info);
 
 inline bool file_exists(const std::string &name);
 
@@ -95,9 +98,8 @@ Site parse_site(const std::string &sites_part_str);
 
 void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
 
-KmerIndex lead_kmer_index(const std::string &encoded_kmers_fname);
+KmerIndex load_kmer_index(const std::string &encoded_kmers_fname);
 
-KmerIndex get_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info);
-
+KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info);
 
 #endif //GRAMTOOLS_KMERS_HPP

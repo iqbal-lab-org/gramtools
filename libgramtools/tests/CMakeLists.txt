@@ -31,7 +31,6 @@ set_target_properties(libgmock PROPERTIES
 add_executable(test_main
         main.cpp
         test_kmers.cpp
-        test_kmer_index.cpp
         test_bidir_search_bwd.cpp
         test_prg.cpp
         test_map.cpp)

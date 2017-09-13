@@ -39,7 +39,7 @@ int main(int argc, const char *const *argv) {
     std::cout << "Maximum alphabet number: " << prg_info.max_alphabet_num << std::endl;
 
     std::cout << "Loading kmer index" << std::endl;
-    KmerIndex kmer_index = get_kmer_index(params.kmers_fpath, prg_info);
+    KmerIndex kmer_index = get_kmer_index(params.kmers_fpath, params.kmers_size, prg_info);
     timer_report.record("Load kmer index");
 
     std::cout << "Mapping" << std::endl;

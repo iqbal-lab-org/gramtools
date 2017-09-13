@@ -93,16 +93,16 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part, const std::vector
     bool kmer_is_nonvar = kmers.nonvar_kmers.find(read_kmer_part) != kmers.nonvar_kmers.end();
     bool delete_first_interval = !kmer_is_nonvar;
 
-    auto &sites = kmers.sites_map[read_kmer_part];
     auto &sa_intervals = kmers.sa_intervals_map[read_kmer_part];
+    auto &sites = kmers.sites_map[read_kmer_part];
 
     const auto &read_begin = encoded_read.begin();
     const auto &read_end = encoded_read.begin() + encoded_read.size() - kmer_size;
 
-    const bool kmer_precalc_done = true;
+    const bool kmer_index_done = true;
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
-                     kmer_precalc_done,
+                     kmer_index_done,
                      read_begin, read_end,
                      prg_info);
 

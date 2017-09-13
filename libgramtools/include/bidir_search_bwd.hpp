@@ -9,14 +9,18 @@
 void bidir_search_bwd(SA_Intervals &sa_intervals,
                       Sites &sites,
                       bool &delete_first_interval,
-                      const bool kmer_precalc_done,
+                      const bool kmer_index_done,
                       const std::vector<uint8_t>::const_iterator read_begin,
                       const std::vector<uint8_t>::const_iterator read_end,
                       const PRG_Info &prg_info);
 
-bool reduce_search_scope(const uint8_t read_char, SA_Intervals &sa_intervals, Sites &sites,
+bool reduce_search_scope(const uint8_t read_char,
+                         SA_Intervals &sa_intervals,
+                         Sites &sites,
                          const bool delete_first_interval,
-                         const bool kmer_precalc_done, const bool read_char_is_last, const PRG_Info &prg_info);
+                         const bool kmer_index_done,
+                         const bool read_char_is_last,
+                         const PRG_Info &prg_info);
 
 void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval, Sites &sites, Site &site,
                                         const bool delete_first, const PRG_Info &prg_info);
@@ -41,6 +45,5 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals, Sites &sites, con
 
 VariantSite get_variant_site_edge(std::vector<int> &allele, const uint64_t marker, const uint64_t marker_idx, const bool last,
                                   const PRG_Info &prg_info);
-
 
 #endif //GRAMTOOLS_BIDIR_SEARCH_BWD_HPP_HPP

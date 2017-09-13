@@ -70,91 +70,211 @@ std::string dump_kmer_index_entry(const Kmer &kmer,
 }
 
 
-void dump_kmer_index(std::ofstream &kmer_index_file,
-                     const KmerSA_Intervals &kmers_sa_intervals,
-                     const NonVariantKmers &nonvar_kmers,
-                     const KmerSites &kmer_sites) {
-
-    for (const auto &kmer_sa_intervals: kmers_sa_intervals) {
+void dump_kmer_index(std::ofstream &kmer_index_file, const KmerIndex &kmer_index) {
+    for (const auto &kmer_sa_intervals: kmer_index.sa_intervals_map) {
         const auto &kmer = kmer_sa_intervals.first;
-        const SA_Intervals &sa_intervals = kmers_sa_intervals.at(kmer);
+        const SA_Intervals &sa_intervals = kmer_index.sa_intervals_map.at(kmer);
         const std::string kmer_entry =
                 dump_kmer_index_entry(kmer,
                                       sa_intervals,
-                                      nonvar_kmers,
-                                      kmer_sites);
+                                      kmer_index.nonvar_kmers,
+                                      kmer_index.sites_map);
         kmer_index_file << kmer_entry << std::endl;
     }
 }
 
 
-void index_kmers(Kmers &kmers,
-                 KmerSA_Intervals &sa_intervals_map,
-                 KmerSites &sites_map,
-                 NonVariantKmers &nonvar_kmers,
-                 const PRG_Info &prg_info) {
+void print_sa_intervals(const SA_Intervals &sa_intervals) {
+    std::cout << "sa_intervals size: " << sa_intervals.size() << std::endl;
+    for (const auto &sa_interval: sa_intervals)
+        std::cout << "(" << sa_interval.first << ", " << sa_interval.second << ")" << "   ";
+    if (sa_intervals.size() > 0)
+        std::cout << std::endl;
+}
 
-    for (auto &kmer: kmers) {
-        auto &sa_intervals = sa_intervals_map[kmer];
-        auto &sites = sites_map[kmer];
 
-        sa_intervals = SA_Intervals();
-        sites = Sites();
-
-        bool delete_first_interval = false;
-        bool kmer_precalc_done = false;
-
-        if (sa_intervals.empty()) {
-            sa_intervals.emplace_back(std::make_pair(0, prg_info.fm_index.size()));
-            sites.emplace_back(Site());
+void print_sites(const Sites &sites) {
+    std::cout << "sites length: " << sites.size() << std::endl;
+    for (const auto &site: sites) {
+        std::cout << "site length: " << site.size() << std::endl;
+        for (const auto &variant_site: site) {
+            std::cout << "variant site marker: " << variant_site.first << std::endl;
+            for (const auto &allele: variant_site.second)
+                std::cout << allele << ", ";
+            if (variant_site.second.size() > 0)
+                std::cout << std::endl;
         }
-
-        bidir_search_bwd(sa_intervals, sites,
-                         delete_first_interval,
-                         kmer_precalc_done,
-                         kmer.begin(),
-                         kmer.end(),
-                         prg_info);
-
-        if (sa_intervals.empty()) {
-            sa_intervals_map.erase(kmer);
-        }
-
-        if (!delete_first_interval)
-            nonvar_kmers.insert(kmer);
     }
 }
 
 
-void generate_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info) {
+void print_cache(const KmerIndexCache &cache) {
+    for (auto &elem: cache) {
+        std::cout << "***start elem" << std::endl;
+        std::cout << (int) elem.base << std::endl;
 
+        print_sa_intervals(elem.sa_intervals);
+        print_sites(elem.sites);
+        std::cout << "***end elem" << std::endl;
+        std::cout << std::endl;
+    }
+}
+
+
+CacheElement get_next_cache_element(SA_Intervals &sa_intervals,
+                                    Sites &sites,
+                                    const uint8_t base,
+                                    const PRG_Info &prg_info) {
+    CacheElement new_cache_element;
+    new_cache_element.sa_intervals = sa_intervals;
+    new_cache_element.sites = sites;
+
+    bool delete_first_interval = false;
+    const bool kmer_index_done = false;
+    // const bool last_base = it + 1 == kmer_suffix_diff.rend();
+    const bool last_base = false;
+
+    reduce_search_scope(base,
+                        new_cache_element.sa_intervals,
+                        new_cache_element.sites,
+                        delete_first_interval,
+                        kmer_index_done,
+                        last_base,
+                        prg_info);
+
+    new_cache_element.base = base;
+    return new_cache_element;
+}
+
+
+KmerIndexCache initial_kmer_index_cache(const Kmer &full_kmer,
+                                        const PRG_Info &prg_info) {
+    KmerIndexCache cache;
+
+    // reverse iteration normally provided by bidir_search_bwd, but we skip that func
+    for (auto it = full_kmer.rbegin(); it != full_kmer.rend(); ++it) {
+        const auto &base = *it;
+
+        if (cache.empty()) {
+            SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+            Sites sites = {Site()};
+            auto new_cache_element = get_next_cache_element(sa_intervals, sites,
+                                                            base, prg_info);
+            cache.emplace_back(new_cache_element);
+            continue;
+        }
+
+        auto &last_element = cache.back();
+        const auto &new_cache_element = get_next_cache_element(last_element.sa_intervals,
+                                                               last_element.sites,
+                                                               base, prg_info);
+        cache.emplace_back(new_cache_element);
+    }
+    return cache;
+}
+
+
+void update_kmer_index_cache(KmerIndexCache &cache,
+                             const Kmer &kmer_suffix_diff,
+                             const int kmer_size,
+                             const PRG_Info &prg_info) {
+
+    if (kmer_suffix_diff.size() == kmer_size) {
+        auto &full_kmer = kmer_suffix_diff;
+        cache = initial_kmer_index_cache(full_kmer, prg_info);
+        return;
+    }
+
+    // truncate cache
+    const auto new_cache_size = kmer_size - kmer_suffix_diff.size();
+    cache.resize(new_cache_size);
+
+    /*
+    auto start_erase = cache.begin();
+    std::advance(start_erase, new_cache_size);
+    cache.erase(start_erase, ++cache.end());
+     */
+
+    // reverse iteration normally provided by bidir_search_bwd, but we skip that func
+    for (auto it = kmer_suffix_diff.rbegin(); it != kmer_suffix_diff.rend(); ++it) {
+        const auto &base = *it;
+
+        auto &last_element = cache.back();
+        const auto &new_cache_element = get_next_cache_element(last_element.sa_intervals,
+                                                               last_element.sites,
+                                                               base, prg_info);
+        cache.emplace_back(new_cache_element);
+    }
+}
+
+
+void update_full_kmer(Kmer &full_kmer, const Kmer &kmer_suffix_diff, const int kmer_size) {
+    if (kmer_suffix_diff.size() == kmer_size) {
+        full_kmer = kmer_suffix_diff;
+        return;
+    }
+
+    auto start_idx = 0;
+    for (const auto &base: kmer_suffix_diff)
+        full_kmer[start_idx++] = base;
+}
+
+
+KmerIndex index_kmers(const Kmers &kmer_suffix_diffs,
+                      const int kmer_size,
+                      const PRG_Info &prg_info) {
+    KmerIndex kmer_index;
+    Kmer full_kmer;
+    KmerIndexCache cache;
+
+    for (auto &kmer_suffix_diff: kmer_suffix_diffs) {
+        update_full_kmer(full_kmer,
+                         kmer_suffix_diff,
+                         kmer_size);
+
+        std::cout << "**************** process suffix diff" << std::endl;
+        for (auto i: full_kmer)
+            std::cout << (int) i << ", ";
+        std::cout << std::endl;
+
+        update_kmer_index_cache(cache,
+                                kmer_suffix_diff,
+                                kmer_size,
+                                prg_info);
+
+        print_cache(cache);
+
+        const auto &last_cache_element = cache.back();
+        kmer_index.sa_intervals_map[full_kmer] = last_cache_element.sa_intervals;
+        kmer_index.sites_map[full_kmer] = last_cache_element.sites;
+
+        if (last_cache_element.sa_intervals.empty()) {
+            kmer_index.sa_intervals_map.erase(full_kmer);
+        }
+
+        const auto &first_sties_element = last_cache_element.sites.front();
+        if (first_sties_element.empty())
+            kmer_index.nonvar_kmers.insert(full_kmer);
+    }
+    return kmer_index;
+}
+
+
+void generate_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info) {
     std::ifstream kmer_fhandle;
     kmer_fhandle.open(kmer_fname);
 
-    Kmers kmers;
+    Kmers kmer_suffix_diffs;
     std::string line;
     while (std::getline(kmer_fhandle, line)) {
-        const Kmer &kmer = encode_dna_bases(line);
-        kmers.emplace_back(kmer);
+        const Kmer &kmer_suffix_diff = encode_dna_bases(line);
+        kmer_suffix_diffs.emplace_back(kmer_suffix_diff);
     }
 
-    KmerSA_Intervals sa_intervals_map;
-    KmerSites sites_map;
-    NonVariantKmers nonvar_kmers;
-
-    index_kmers(kmers,
-                sa_intervals_map,
-                sites_map,
-                nonvar_kmers,
-                prg_info);
-
+    KmerIndex kmer_index = index_kmers(kmer_suffix_diffs, kmer_size, prg_info);
     std::ofstream kmer_index_file;
     kmer_index_file.open(std::string(kmer_fname) + ".precalc");
-
-    dump_kmer_index(kmer_index_file,
-                    sa_intervals_map,
-                    nonvar_kmers,
-                    sites_map);
+    dump_kmer_index(kmer_index_file, kmer_index);
 }
 
 
@@ -281,7 +401,7 @@ void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line) {
 }
 
 
-KmerIndex lead_kmer_index(const std::string &encoded_kmers_fname) {
+KmerIndex load_kmer_index(const std::string &encoded_kmers_fname) {
     std::ifstream fhandle;
     fhandle.open(encoded_kmers_fname);
 
@@ -296,17 +416,17 @@ KmerIndex lead_kmer_index(const std::string &encoded_kmers_fname) {
 }
 
 
-KmerIndex get_kmer_index(const std::string &kmer_fname, const PRG_Info &prg_info) {
+KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info) {
 
     const auto encoded_kmers_fname = std::string(kmer_fname) + ".precalc";
 
     if (!file_exists(encoded_kmers_fname)) {
         std::cout << "Kmer index not found, building..." << std::endl;
-        generate_kmer_index(kmer_fname, prg_info);
+        generate_kmer_index(kmer_fname, kmer_size, prg_info);
         std::cout << "Finished generating kmer index" << std::endl;
     }
 
     std::cout << "Loading kmer index from file" << std::endl;
-    const auto kmer_index = lead_kmer_index(encoded_kmers_fname);
+    const auto kmer_index = load_kmer_index(encoded_kmers_fname);
     return kmer_index;
 }

@@ -33,7 +33,7 @@
 void bidir_search_bwd(SA_Intervals &sa_intervals,
                       Sites &sites,
                       bool &delete_first_interval,
-                      const bool kmer_precalc_done,
+                      const bool kmer_index_done,
                       const std::vector<uint8_t>::const_iterator pattern_begin,
                       const std::vector<uint8_t>::const_iterator pattern_end,
                       const PRG_Info &prg_info) {
@@ -51,7 +51,7 @@ void bidir_search_bwd(SA_Intervals &sa_intervals,
         delete_first_interval = reduce_search_scope(pattern_char,
                                                     sa_intervals, sites,
                                                     delete_first_interval,
-                                                    kmer_precalc_done,
+                                                    kmer_index_done,
                                                     last_pattern_char,
                                                     prg_info);
     }
@@ -62,8 +62,8 @@ bool reduce_search_scope(const uint8_t read_char,
                          SA_Intervals &sa_intervals,
                          Sites &sites,
                          const bool delete_first_interval,
-                         const bool kmer_index_generated,
-                         const bool read_char_is_last,
+                         const bool kmer_index_done,
+                         const bool last_pattern_char,
                          const PRG_Info &prg_info) {
 
     bool new_delete_first_interval = delete_first_interval;
@@ -71,7 +71,7 @@ bool reduce_search_scope(const uint8_t read_char,
     auto sa_intervals_it = sa_intervals.begin();
     auto sites_it = sites.begin();
 
-    if (kmer_index_generated or !read_char_is_last) {
+    if (kmer_index_done or !last_pattern_char) {
         // loop sa interval (matches of current substring)
         const auto count_sa_intervals = sa_intervals.size();
         for (auto j = 0; j < count_sa_intervals; j++) {
