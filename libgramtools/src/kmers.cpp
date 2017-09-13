@@ -96,13 +96,12 @@ void print_sa_intervals(const SA_Intervals &sa_intervals) {
 void print_sites(const Sites &sites) {
     std::cout << "sites length: " << sites.size() << std::endl;
     for (const auto &site: sites) {
-        std::cout << "site length: " << site.size() << std::endl;
         for (const auto &variant_site: site) {
-            std::cout << "variant site marker: " << variant_site.first << std::endl;
+            std::cout << "marker: " << variant_site.first << ": ";
             for (const auto &allele: variant_site.second)
                 std::cout << allele << ", ";
-            if (variant_site.second.size() > 0)
-                std::cout << std::endl;
+            //if (variant_site.second.size() > 0)
+            std::cout << std::endl;
         }
     }
 }
@@ -124,15 +123,15 @@ void print_cache(const KmerIndexCache &cache) {
 CacheElement get_next_cache_element(SA_Intervals &sa_intervals,
                                     Sites &sites,
                                     const uint8_t base,
-                                    const PRG_Info &prg_info) {
+                                    const PRG_Info &prg_info,
+                                    const bool last_base) {
     CacheElement new_cache_element;
     new_cache_element.sa_intervals = sa_intervals;
     new_cache_element.sites = sites;
+    new_cache_element.base = base;
 
     bool delete_first_interval = false;
     const bool kmer_index_done = false;
-    // const bool last_base = it + 1 == kmer_suffix_diff.rend();
-    const bool last_base = false;
 
     reduce_search_scope(base,
                         new_cache_element.sa_intervals,
@@ -142,7 +141,6 @@ CacheElement get_next_cache_element(SA_Intervals &sa_intervals,
                         last_base,
                         prg_info);
 
-    new_cache_element.base = base;
     return new_cache_element;
 }
 
@@ -154,12 +152,16 @@ KmerIndexCache initial_kmer_index_cache(const Kmer &full_kmer,
     // reverse iteration normally provided by bidir_search_bwd, but we skip that func
     for (auto it = full_kmer.rbegin(); it != full_kmer.rend(); ++it) {
         const auto &base = *it;
+        const bool last_base = it == full_kmer.rbegin();
 
         if (cache.empty()) {
             SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
             Sites sites = {Site()};
-            auto new_cache_element = get_next_cache_element(sa_intervals, sites,
-                                                            base, prg_info);
+            auto new_cache_element = get_next_cache_element(sa_intervals,
+                                                            sites,
+                                                            base,
+                                                            prg_info,
+                                                            last_base);
             cache.emplace_back(new_cache_element);
             continue;
         }
@@ -167,7 +169,9 @@ KmerIndexCache initial_kmer_index_cache(const Kmer &full_kmer,
         auto &last_element = cache.back();
         const auto &new_cache_element = get_next_cache_element(last_element.sa_intervals,
                                                                last_element.sites,
-                                                               base, prg_info);
+                                                               base,
+                                                               prg_info,
+                                                               last_base);
         cache.emplace_back(new_cache_element);
     }
     return cache;
@@ -189,20 +193,19 @@ void update_kmer_index_cache(KmerIndexCache &cache,
     const auto new_cache_size = kmer_size - kmer_suffix_diff.size();
     cache.resize(new_cache_size);
 
-    /*
-    auto start_erase = cache.begin();
-    std::advance(start_erase, new_cache_size);
-    cache.erase(start_erase, ++cache.end());
-     */
-
     // reverse iteration normally provided by bidir_search_bwd, but we skip that func
     for (auto it = kmer_suffix_diff.rbegin(); it != kmer_suffix_diff.rend(); ++it) {
         const auto &base = *it;
 
+        // the last kmer base is only handled by initial_kmer_index_cache(.)
+        const bool last_base = false;
+
         auto &last_element = cache.back();
         const auto &new_cache_element = get_next_cache_element(last_element.sa_intervals,
                                                                last_element.sites,
-                                                               base, prg_info);
+                                                               base,
+                                                               prg_info,
+                                                               last_base);
         cache.emplace_back(new_cache_element);
     }
 }

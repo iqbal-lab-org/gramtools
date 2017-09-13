@@ -15,7 +15,7 @@ set(LIB_DIRS
 	    /apps/well/htslib/1.4.1/lib/
         $ENV{HOME}/lib)
 
-set(CMAKE_CXX_FLAGS "-std=c++14 -Werror -Wfatal-errors -march=native -msse4.2 -g") #-O3") #
+set(CMAKE_CXX_FLAGS "-std=c++14 -Werror -Wfatal-errors -march=native -msse4.2 -g -O3") #
 
 set(BOOST_ROOT /apps/well/boost/1.54.0/)
 set(LIBS

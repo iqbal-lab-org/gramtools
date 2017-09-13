@@ -115,12 +115,15 @@ bool reduce_search_scope(const uint8_t read_char,
         ++sa_intervals_it;
         ++sites_it;
     }
+
     return new_delete_first_interval;
 }
 
 
-void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval,
-                                        Sites &sites, Site &site,
+void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
+                                        SA_Interval &sa_interval,
+                                        Sites &sites,
+                                        Site &site,
                                         const bool delete_first_interval,
                                         const PRG_Info &prg_info) {
 

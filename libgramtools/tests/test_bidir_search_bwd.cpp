@@ -490,6 +490,32 @@ TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllel
 }
 
 
+TEST_F(BidirSearchBackward, ReadEndsInFirstAllele_AlleleNumIncludedInSitesAlleleVector) {
+    // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
+    const std::string prg_raw = "aca5g6c5t";
+    const std::string read_raw = "acag";
+
+    bool delete_first_interval = false;
+    const bool kmer_index_generated = false;
+    PRG_Info prg_info = generate_prg_info(prg_raw);
+    const auto read = encode_dna_bases(read_raw);
+
+    SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
+    Sites sites = {Site()};
+
+    bidir_search_bwd(sa_intervals, sites,
+                     delete_first_interval,
+                     kmer_index_generated,
+                     read.begin(), read.end(),
+                     prg_info);
+
+    const Sites expected_sites = {
+            {VariantSite(5, {1})},
+    };
+    EXPECT_EQ(sites, expected_sites);
+}
+
+
 TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAlleleVector) {
     // Read aligns from middle of allele 3 of site 5 and allele 1 of site 7
     const std::string prg_raw = "acgacacat"
