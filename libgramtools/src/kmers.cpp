@@ -232,17 +232,10 @@ KmerIndex index_kmers(const Kmers &kmer_suffix_diffs,
                          kmer_suffix_diff,
                          kmer_size);
 
-        std::cout << "**************** process suffix diff" << std::endl;
-        for (auto i: full_kmer)
-            std::cout << (int) i << ", ";
-        std::cout << std::endl;
-
         update_kmer_index_cache(cache,
                                 kmer_suffix_diff,
                                 kmer_size,
                                 prg_info);
-
-        print_cache(cache);
 
         const auto &last_cache_element = cache.back();
         kmer_index.sa_intervals_map[full_kmer] = last_cache_element.sa_intervals;

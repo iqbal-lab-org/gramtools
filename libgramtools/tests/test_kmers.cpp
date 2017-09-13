@@ -260,7 +260,7 @@ TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
 }
 
 
-TEST_F(IndexKmers, hip) {
+TEST_F(IndexKmers, SingleFullKmerSingleKmerSuffixDiff_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
