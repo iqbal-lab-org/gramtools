@@ -9,7 +9,7 @@
 #include "bidir_search_bwd.hpp"
 
 
-void update_coverage(AlleleCoverage &allele_coverage, const std::list<Site> &sites,
+void update_coverage(AlleleCoverage &allele_coverage, const std::list<VariantSitePath> &sites,
                      const std::list<SA_Interval> &sa_intervals, const std::vector<uint8_t> &encoded_read,
                      const int &count_char_in_variant_site,
                      const std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
@@ -177,7 +177,7 @@ void update_coverage_from_sa_interval(AlleleCoverage &allele_coverage, const SA_
 
 
 
-void update_coverage(AlleleCoverage &allele_coverage, const std::list<Site> &sites,
+void update_coverage(AlleleCoverage &allele_coverage, const std::list<VariantSitePath> &sites,
                      const std::list<SA_Interval> &sa_intervals, const std::vector<uint8_t> &encoded_read,
                      const int &count_char_in_variant_site,
                      const std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
@@ -225,7 +225,7 @@ void update_coverage(AlleleCoverage &allele_coverage, const std::list<Site> &sit
 }
 
 
-void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const Site &site, const bool first_site_empty,
+void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const VariantSitePath &site, const bool first_site_empty,
                                       const SA_Interval &sa_interval, const bool sa_interval_is_first,
                                       const bool delete_first_interval, const uint64_t total_num_sa_intervals,
                                       const int count_char_in_variant_site, const std::vector<uint8_t> &encoded_read,

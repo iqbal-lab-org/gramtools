@@ -16,11 +16,11 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
     const Kmer kmer = {1, 2, 3, 4};
     const NonVariantKmers nonvar_kmers = {kmer};
 
-    Site first_site = {
+    VariantSitePath first_site = {
             VariantSite(5, {9, 8, 7}),
             VariantSite(7, {19, 18, 17})
     };
-    Site second_site = {
+    VariantSitePath second_site = {
             VariantSite(9, {29, 28, 27}),
             VariantSite(11, {39, 38, 37})
     };
@@ -44,11 +44,11 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
 
 
 TEST(GeneratePrecalc, GivenSites_DumpSitesCorrectly) {
-    Site first_site = {
+    VariantSitePath first_site = {
             VariantSite(5, {9, 8, 7}),
             VariantSite(7, {19, 18, 17})
     };
-    Site second_site = {
+    VariantSitePath second_site = {
             VariantSite(9, {29, 28, 27}),
             VariantSite(11, {39, 38, 37})
     };
@@ -119,7 +119,7 @@ TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
 
 
 TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
-    Site expected = {
+    VariantSitePath expected = {
             VariantSite(5, {9, 8, 7}),
             VariantSite(7, {19, 18, 17})
     };
@@ -132,7 +132,7 @@ TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
 
 
 TEST(ParsePrecalc, GivenSitesTrailingAt_TrailingAtIgnored) {
-    Site expected = {
+    VariantSitePath expected = {
             VariantSite(5, {9, 8, 7}),
             VariantSite(7, {19, 18, 17})
     };

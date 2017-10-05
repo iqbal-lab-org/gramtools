@@ -37,7 +37,7 @@ void populate_repeats_variant_edges(std::unordered_set<uint64_t> &repeats_varian
                                     int &count_char_in_variant_site, const Sites &sites,
                                     const SA_Intervals &sa_intervals, const PRG_Info &prg_info);
 
-void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const Site &site, const bool first_site_empty,
+void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const VariantSitePath &site, const bool first_site_empty,
                                       const SA_Interval &sa_interval, const bool is_first_sa_interval,
                                       const bool delete_first, const uint64_t total_num_sa_intervals,
                                       const int in_sites, const std::vector<uint8_t> &readin_integer_seq,

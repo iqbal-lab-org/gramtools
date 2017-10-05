@@ -156,7 +156,7 @@ KmerIndexCache initial_kmer_index_cache(const Kmer &full_kmer,
 
         if (cache.empty()) {
             SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-            Sites sites = {Site()};
+            Sites sites = {VariantSitePath()};
             auto new_cache_element = get_next_cache_element(sa_intervals,
                                                             sites,
                                                             base,
@@ -351,8 +351,8 @@ SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str) {
 }
 
 
-Site parse_site(const std::string &sites_part_str) {
-    Site site;
+VariantSitePath parse_site(const std::string &sites_part_str) {
+    VariantSitePath site;
     for (const auto &pair_i_v: split(sites_part_str, "@")) {
         std::vector<std::string> site_parts = split(pair_i_v, " ");
         if (site_parts.empty())
@@ -360,14 +360,14 @@ Site parse_site(const std::string &sites_part_str) {
 
         auto variant_site_marker = (VariantSiteMarker) std::stoi(site_parts[0]);
 
-        std::vector<int> allele;
+        Allele allele;
         for (uint64_t i = 1; i < site_parts.size(); i++) {
             const auto &allele_element = site_parts[i];
             if (!allele_element.empty())
-                allele.push_back(std::stoi(allele_element));
+                allele.push_back((uint64_t) std::stoi(allele_element));
         }
 
-        site.emplace_back(VariantSite(variant_site_marker, allele));
+        site.emplace_back(VariantSite {variant_site_marker, allele});
     }
     return site;
 }

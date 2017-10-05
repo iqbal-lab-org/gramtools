@@ -60,7 +60,7 @@ TEST_F(BidirSearchBackward, MatchSingleCharecter) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -95,7 +95,7 @@ TEST_F(BidirSearchBackward, MatchSingleVariantSiteOnly) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -131,7 +131,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -167,7 +167,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_TwoVariantSitesIdentified) 
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -196,7 +196,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSitesOnly_DeleteFirstIntervalTrue) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -221,7 +221,7 @@ TEST_F(BidirSearchBackward, MatchOneVariantSiteMatchOneNonVariantSite) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -258,7 +258,7 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_FirstSitesElementEmpty) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -286,7 +286,7 @@ TEST_F(BidirSearchBackward, MatchOneNonVariantSiteOnly_DeleteFirstIntervalFalse)
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -312,7 +312,7 @@ TEST_F(BidirSearchBackward, MatchToMultipleNonVariantSitesOnly_SingleEmptySitesE
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -345,7 +345,7 @@ TEST_F(BidirSearchBackward, MatchVariantSiteAndNonVariantSite) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -384,7 +384,7 @@ TEST_F(BidirSearchBackward, MatchTwoLongVariantSites) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -419,7 +419,7 @@ TEST_F(BidirSearchBackward, ReadStartsInFirstAllele_AlleleMissingFromSitesAllele
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -447,7 +447,7 @@ TEST_F(BidirSearchBackward, ReadStartsInSecondAllele_AlleleMissingFromSitesAllel
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -475,7 +475,7 @@ TEST_F(BidirSearchBackward, ReadEndsInSecondAllele_AlleleNumIncludedInSitesAllel
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -501,7 +501,7 @@ TEST_F(BidirSearchBackward, ReadEndsInFirstAllele_AlleleNumIncludedInSitesAllele
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -531,7 +531,7 @@ TEST_F(BidirSearchBackward, MatchTwoVariantSites_FirstMatchVariantSiteHasEmptyAl
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -561,7 +561,7 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleAndNonVariantSiteNoBoundaryCross_Si
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -598,7 +598,7 @@ TEST_F(BidirSearchBackward, MatchWithinAlleleNoCrossingBoundary_SitesVariantEmpt
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -635,7 +635,7 @@ TEST_F(BidirSearchBackward, MatchLongSiteRepeatedSnpOnSiteEdge) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -672,7 +672,7 @@ TEST_F(BidirSearchBackward, MatchOverMultipleSites) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,
@@ -731,7 +731,7 @@ TEST_F(BidirSearchBackward, SingleMatchOverManySites) {
     const auto read = encode_dna_bases(read_raw);
 
     SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-    Sites sites = {Site()};
+    Sites sites = {VariantSitePath()};
 
     bidir_search_bwd(sa_intervals, sites,
                      delete_first_interval,

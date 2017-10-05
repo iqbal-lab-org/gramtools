@@ -22,7 +22,7 @@ bool reduce_search_scope(const uint8_t read_char,
                          const bool read_char_is_last,
                          const PRG_Info &prg_info);
 
-void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval, Sites &sites, Site &site,
+void process_reads_overlapping_variants(SA_Intervals &sa_intervals, SA_Interval &sa_interval, Sites &sites, VariantSitePath &site,
                                         const bool delete_first, const PRG_Info &prg_info);
 
 bool match_next_charecter(const uint8_t next_char, bool delete_first_interval, SA_Intervals &sa_intervals,
@@ -43,7 +43,8 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals, Sites &sites, con
                                    const bool delete_first, const uint64_t marker, const uint64_t marker_idx,
                                    const PRG_Info &prg_info);
 
-VariantSite get_variant_site_edge(std::vector<int> &allele, const uint64_t marker, const uint64_t marker_idx, const bool last,
+VariantSite get_variant_site_edge(Allele &allele, const uint64_t marker, const uint64_t marker_idx,
+                                  const bool last,
                                   const PRG_Info &prg_info);
 
 #endif //GRAMTOOLS_BIDIR_SEARCH_BWD_HPP_HPP

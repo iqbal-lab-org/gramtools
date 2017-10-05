@@ -25,11 +25,11 @@ using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
 template<typename SEQUENCE>
 using sequence_set = std::unordered_set<SEQUENCE, seq_hash<SEQUENCE>>;
 
-using Allele = std::vector<int>;
+using Allele = std::vector<uint64_t>;
 using VariantSiteMarker = uint64_t;
 using VariantSite = std::pair<VariantSiteMarker, Allele>;
-using Site = std::vector<VariantSite>;
-using Sites = std::list<Site>;
+using VariantSitePath = std::list<VariantSite>;
+using Sites = std::list<VariantSitePath>;
 
 using SA_Interval = std::pair<uint64_t, uint64_t>;
 using SA_Intervals = std::list<SA_Interval>;
@@ -94,7 +94,7 @@ Kmer parse_encoded_kmer(const std::string &encoded_kmer_str);
 
 SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str);
 
-Site parse_site(const std::string &sites_part_str);
+VariantSitePath parse_site(const std::string &sites_part_str);
 
 void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
 

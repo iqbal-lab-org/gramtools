@@ -22,7 +22,7 @@
  * ** std::vector<int> -> each int is one allele, subset of alleles in variant site
  * (an index, starts at 1: 1 is first allele, 2 is second allele)
  *
- * * Site -> close variants sites_map expect reads to cross over,
+ * * VariantSitePath -> close variants sites_map expect reads to cross over,
  * tracks order of crossed (by read) variant sites_map if variant sites_map close together
  *
  *
@@ -123,7 +123,7 @@ bool reduce_search_scope(const uint8_t read_char,
 void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
                                         SA_Interval &sa_interval,
                                         Sites &sites,
-                                        Site &site,
+                                        VariantSitePath &site,
                                         const bool delete_first_interval,
                                         const PRG_Info &prg_info) {
 
@@ -199,7 +199,7 @@ void process_reads_overlapping_variants(SA_Intervals &sa_intervals,
             continue;
         }
 
-        std::vector<int> allele_empty;
+        Allele allele_empty;
         allele_empty.reserve(3500);
         const auto variant_site = get_variant_site_edge(allele_empty, marker, marker_idx, last, prg_info);
         site.push_back(variant_site);
@@ -218,12 +218,12 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals, Sites &sites, con
         auto sa_interval = std::make_pair(left_new, right_new);
         sa_intervals.push_back(sa_interval);
 
-        std::vector<int> allele_empty;
+        Allele allele_empty;
         allele_empty.reserve(3500);
         auto variant_site = get_variant_site_edge(allele_empty, marker, marker_idx, last, prg_info);
-        Site site(1, variant_site);
+        VariantSitePath site(1, variant_site);
         sites.push_back(site);
-        sites.back().reserve(100);
+        //sites.back().reserve(100);
 
         return true;
     }
@@ -250,7 +250,7 @@ bool update_sites_crossed_by_reads(SA_Intervals &sa_intervals, Sites &sites, con
 }
 
 
-VariantSite get_variant_site_edge(std::vector<int> &allele,
+VariantSite get_variant_site_edge(Allele &allele,
                                   const uint64_t marker,
                                   const uint64_t marker_idx,
                                   const bool last,
@@ -266,5 +266,5 @@ VariantSite get_variant_site_edge(std::vector<int> &allele,
         site_edge_marker = marker - 1;
         allele.push_back(prg_info.allele_mask[prg_info.fm_index[marker_idx]]);
     }
-    return std::make_pair(site_edge_marker, allele);
+    return VariantSite {site_edge_marker, allele};
 }
