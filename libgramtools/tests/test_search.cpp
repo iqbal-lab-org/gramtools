@@ -503,7 +503,7 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVar
 
     std::vector<VariantSite> result;
     for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.last_variant_site);
+        result.push_back(search_state.cached_variant_site);
 
     std::vector<VariantSite> expected = {
             {5, Allele {1}},
@@ -535,9 +535,9 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariant
 
     std::vector<bool> result;
     for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.variant_site_recorded);
+        result.push_back(search_state.cache_populated);
 
-    std::vector<bool> expected = {false, false, false};
+    std::vector<bool> expected = {true, true, true};
     EXPECT_EQ(result, expected);
 }
 
@@ -577,7 +577,7 @@ TEST_F(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             SA_Interval {16, 16},
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
-            false,
+            true,
             VariantSite {5, Allele {3}}
     };
     EXPECT_EQ(result, expected);
@@ -608,7 +608,7 @@ TEST_F(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             SA_Interval {16, 16},
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
-            false,
+            true,
             VariantSite {5, Allele {2}}
     };
     EXPECT_EQ(result, expected);
@@ -639,7 +639,7 @@ TEST_F(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             SA_Interval {16, 16},
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
-            false,
+            true,
             VariantSite {5, Allele {1}}
     };
     EXPECT_EQ(result, expected);

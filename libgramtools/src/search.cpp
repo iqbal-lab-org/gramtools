@@ -177,11 +177,11 @@ SearchStates get_allele_search_states(const uint64_t site_boundary_marker,
 
         search_state.variant_site_state
                 = SearchVariantSiteState::within_variant_site;
-        search_state.variant_site_recorded = false;
+        search_state.cache_populated = true;
 
         auto allele_number = get_allele_id(allele_marker_sa_index, prg_info);
-        search_state.last_variant_site.first = site_boundary_marker;
-        search_state.last_variant_site.second = Allele {allele_number};
+        search_state.cached_variant_site.first = site_boundary_marker;
+        search_state.cached_variant_site.second = Allele {allele_number};
 
         search_states.emplace_back(search_state);
     }
@@ -200,9 +200,9 @@ SearchState get_site_search_state(const uint64_t final_allele_id,
     search_state.variant_site_state
             = SearchVariantSiteState::within_variant_site;
 
-    search_state.variant_site_recorded = false;
-    search_state.last_variant_site.first = boundary_marker_info.marker_char;
-    search_state.last_variant_site.second = Allele {final_allele_id};
+    search_state.cached_variant_site.first = boundary_marker_info.marker_char;
+    search_state.cached_variant_site.second = Allele {final_allele_id};
+    search_state.cache_populated = true;
 
     return search_state;
 }
@@ -245,10 +245,10 @@ SearchState exiting_site_search_state(const SiteBoundaryMarkerInfo &boundary_mar
     bool read_started_in_allele = current_search_state.variant_site_state
                                   == SearchVariantSiteState::unknown;
     if (read_started_in_allele) {
-        new_search_state.variant_site_recorded = false;
+        new_search_state.cache_populated = true;
         // allele 1 because site boundary marker found
         // and exiting variant site with SearchVariantSiteState::unknown
-        new_search_state.last_variant_site = {boundary_marker_info.marker_char, Allele {1}};
+        new_search_state.cached_variant_site = {boundary_marker_info.marker_char, Allele {1}};
     }
 
     new_search_state.variant_site_state
@@ -329,12 +329,12 @@ SearchState process_allele_marker(const uint64_t allele_marker_char,
     auto internal_allele_text_index = prg_info.fm_index[sa_preceding_marker_index];
     auto allele_id = (uint64_t) prg_info.allele_mask[internal_allele_text_index];
 
-    const auto &last_variant_site = new_search_state.variant_site_path.front();
-    bool read_started_within_allele = last_variant_site.first != boundary_marker_char
-                                      or last_variant_site.second != Allele {allele_id};
+    const auto &cached_variant_site = new_search_state.variant_site_path.front();
+    bool read_started_within_allele = cached_variant_site.first != boundary_marker_char
+                                      or cached_variant_site.second != Allele {allele_id};
     if (read_started_within_allele) {
-        new_search_state.last_variant_site = {boundary_marker_char, Allele {allele_id}};
-        new_search_state.variant_site_recorded = false;
+        new_search_state.cached_variant_site = {boundary_marker_char, Allele {allele_id}};
+        new_search_state.cache_populated = true;
     }
     return new_search_state;
 }
