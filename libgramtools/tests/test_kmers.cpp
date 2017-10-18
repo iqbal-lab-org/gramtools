@@ -35,8 +35,8 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
     };
 
     const SA_Intervals sa_intervals = {
-            {123, 456},
-            {789, 424}
+            SA_Interval {123, 456},
+            SA_Interval {789, 424}
     };
 
     const auto result = dump_kmer_index_entry(kmer,
@@ -76,8 +76,8 @@ TEST(GeneratePrecalc, GivenSites_DumpSitesCorrectly) {
 
 TEST(GeneratePrecalc, GivenSaIntervals_DumpSaIntervalsStringCorrectly) {
     SA_Intervals sa_intervals = {
-            SA_Interval(1, 2),
-            SA_Interval(3, 4)
+            SA_Interval {1, 2},
+            SA_Interval {3, 4}
     };
     const auto result = dump_sa_intervals(sa_intervals);
     const auto expected = "1 2 3 4";
@@ -164,9 +164,9 @@ TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
     const auto result = parse_sa_intervals(full_sa_intervals_str);
 
     SA_Intervals expected{
-            {352511, 352512},
-            {352648, 352649},
-            {352648, 352649},
+            SA_Interval {352511, 352512},
+            SA_Interval {352648, 352649},
+            SA_Interval {352648, 352649},
     };
     EXPECT_EQ(result, expected);
 }
@@ -256,7 +256,6 @@ TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
 
     auto kmer = encode_dna_bases("gcatt");
     const int kmer_size = 5;
-
     Patterns kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
@@ -293,13 +292,15 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_VariantRegionRecordedInSites) {
 
     auto kmer = encode_dna_bases("atgct");
     const int kmer_size = 5;
-    Patterns kmers = {{kmer}};
+    Patterns kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
     auto &result = kmer_index.variant_site_paths_map[kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 2}}
+            VariantSitePath {
+                    VariantSite {5, 2}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -311,14 +312,15 @@ TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
 
     auto kmer = encode_dna_bases("aggca");
     const int kmer_size = 5;
-
-    Patterns kmers = {{kmer}};
+    Patterns kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
     auto &result = kmer_index.variant_site_paths_map[kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -328,12 +330,10 @@ TEST_F(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
+    const int kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
     auto kmer_suffix_diff = encode_dna_bases("ac");
     auto second_full_kmer = encode_dna_bases("actat");
-
-    const int kmer_size = 5;
-
     Patterns kmers = {
             first_full_kmer,
             kmer_suffix_diff
@@ -341,15 +341,23 @@ TEST_F(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
-    VariantSitePaths expected = {
-            {VariantSite {5, 1}}
-    };
-    EXPECT_EQ(result, expected);
+    auto &result = kmer_index.variant_site_paths_map;
+    KmerVariantSitePaths expected = {
+            {first_full_kmer,
+                    VariantSitePaths {
+                            VariantSitePath {
+                                    VariantSite {5, 1}
+                            }
+                    }
+            },
 
-    result = kmer_index.variant_site_paths_map[second_full_kmer];
-    expected = {
-            {VariantSite {5, 2}}
+            {second_full_kmer,
+                    VariantSitePaths {
+                            VariantSitePath {
+                                    VariantSite {5, 2}
+                            }
+                    }
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -359,12 +367,10 @@ TEST_F(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
+    const int kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
     auto kmer_suffix_diff = encode_dna_bases("aa");
     auto second_full_kmer = encode_dna_bases("aatat");
-
-    const int kmer_size = 5;
-
     Patterns kmers = {
             first_full_kmer,
             kmer_suffix_diff
@@ -374,7 +380,9 @@ TEST_F(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 
@@ -388,12 +396,10 @@ TEST_F(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
+    const int kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
     auto second_full_kmer = encode_dna_bases("actat");
     auto third_full_kmer = encode_dna_bases("aatat");
-
-    const int kmer_size = 5;
-
     Patterns kmers = {
             encode_dna_bases("agtat"),
             encode_dna_bases("ac"),
@@ -404,19 +410,25 @@ TEST_F(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 
     result = kmer_index.variant_site_paths_map[second_full_kmer];
     expected = {
-            {VariantSite {5, 2}}
+            VariantSitePath {
+                    VariantSite {5, 2}
+            }
     };
     EXPECT_EQ(result, expected);
 
     result = kmer_index.variant_site_paths_map[third_full_kmer];
     expected = {
-            {VariantSite {5, 3}}
+            VariantSitePath {
+                    VariantSite {5, 3}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -426,12 +438,10 @@ TEST_F(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
+    const int kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
     auto second_full_kmer = encode_dna_bases("actat");
     auto third_full_kmer = encode_dna_bases("attat");
-
-    const int kmer_size = 5;
-
     Patterns kmers = {
             encode_dna_bases("agtat"),
             encode_dna_bases("ac"),
@@ -442,13 +452,17 @@ TEST_F(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 
     result = kmer_index.variant_site_paths_map[second_full_kmer];
     expected = {
-            {VariantSite {5, 2}}
+            VariantSitePath {
+                    VariantSite {5, 2}
+            }
     };
     EXPECT_EQ(result, expected);
 
@@ -462,9 +476,8 @@ TEST_F(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
-    auto first_full_kmer = encode_dna_bases("gtat");
     const int kmer_size = 4;
-
+    auto first_full_kmer = encode_dna_bases("gtat");
     Patterns kmers = {
             encode_dna_bases("gtat"),
     };
@@ -473,7 +486,9 @@ TEST_F(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -483,10 +498,9 @@ TEST_F(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
+    const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("gtat");
     auto second_full_kmer = encode_dna_bases("ctat");
-    const int kmer_size = 4;
-
     Patterns kmers = {
             encode_dna_bases("gtat"),
             encode_dna_bases("c"),
@@ -496,13 +510,17 @@ TEST_F(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 
     result = kmer_index.variant_site_paths_map[second_full_kmer];
     expected = {
-            {VariantSite {5, 2}}
+            VariantSitePath {
+                    VariantSite {5, 2}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -512,9 +530,8 @@ TEST_F(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
     const std::string prg_raw = "aca5g6c5t";
     const auto prg_info = generate_prg_info(prg_raw);
 
-    auto first_full_kmer = encode_dna_bases("acag");
     const int kmer_size = 4;
-
+    auto first_full_kmer = encode_dna_bases("acag");
     Patterns kmers = {
             encode_dna_bases("acag"),
     };
@@ -523,7 +540,9 @@ TEST_F(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -533,10 +552,9 @@ TEST_F(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     const std::string prg_raw = "aca5g6c5t";
     const auto prg_info = generate_prg_info(prg_raw);
 
+    const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("acag");
     auto second_full_kmer = encode_dna_bases("acac");
-    const int kmer_size = 4;
-
     Patterns kmers = {
             encode_dna_bases("acag"),
             encode_dna_bases("acac"),
@@ -546,13 +564,17 @@ TEST_F(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 1}}
+            VariantSitePath {
+                    VariantSite {5, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 
     result = kmer_index.variant_site_paths_map[second_full_kmer];
     expected = {
-            {VariantSite {5, 2}}
+            VariantSitePath {
+                    VariantSite {5, 2}
+            }
     };
     EXPECT_EQ(result, expected);
 }
@@ -562,9 +584,8 @@ TEST_F(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath)
     const std::string prg_raw = "aca5g6c5tt7a8c7gg";
     const auto prg_info = generate_prg_info(prg_raw);
 
-    auto first_full_kmer = encode_dna_bases("ctta");
     const int kmer_size = 4;
-
+    auto first_full_kmer = encode_dna_bases("ctta");
     Patterns kmers = {
             encode_dna_bases("ctta"),
     };
@@ -573,7 +594,10 @@ TEST_F(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath)
 
     auto &result = kmer_index.variant_site_paths_map[first_full_kmer];
     VariantSitePaths expected = {
-            {VariantSite {5, 2}, VariantSite {7, 1}}
+            VariantSitePath {
+                    VariantSite {5, 2},
+                    VariantSite {7, 1}
+            }
     };
     EXPECT_EQ(result, expected);
 }
