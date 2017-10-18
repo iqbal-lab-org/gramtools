@@ -3,7 +3,7 @@ Let's assume a line from the .precalc file contains this:
 4 3 1 1 2 4 1 1 1 |1|2822259 2822282 2856211 2856212 2856211 2856212 |267393 267425 3413494 3413498 3413494 3413498 ||161 @161 1 @|161 @161 3 @|
 Fields are separated by '|' characters
 1st field is the  KMER: TGAACTAAA
-2nd field: whether the kmer is in nonvar_kmers or not
+2nd field: whether the kmer is in non_site_crossing_kmers or not
 3rd field: pairs of numbers extracted from sa_intervals_map[kmer]
 4th field: pairs of numbers extracted from  kmer_idx_rev
 Fields 5th onwards: every pair of numbers in 3rd/4th field is an interval,

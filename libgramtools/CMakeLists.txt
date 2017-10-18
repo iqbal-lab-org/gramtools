@@ -42,10 +42,8 @@ add_library(gramtools STATIC
     ${SOURCE}/utils.cpp
     ${SOURCE}/prg.cpp
     ${SOURCE}/kmers.cpp
-    ${SOURCE}/bidir_search_bwd.cpp
     ${SOURCE}/search.cpp
     ${SOURCE}/skip.cpp
-    ${SOURCE}/bidir_search.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/fm_index.cpp
     ${SOURCE}/ranks.cpp)

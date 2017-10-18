@@ -1,4 +1,6 @@
-#include "kmers.hpp"
+#include "utils.hpp"
+#include "prg.hpp"
+#include "kmer_index.hpp"
 
 
 #ifndef GRAMTOOLS_SEARCH_HPP
@@ -15,10 +17,11 @@ struct SearchState {
     VariantSitePath variant_site_path;
 
     SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
+
     bool cache_populated = false;
     VariantSite cached_variant_site;
 
-    bool operator==(const SearchState &other) const {
+    bool operator== (const SearchState &other) const {
         return this->sa_interval == other.sa_interval
                and this->variant_site_path == other.variant_site_path
                and this->variant_site_state == other.variant_site_state
@@ -27,25 +30,28 @@ struct SearchState {
     };
 };
 
-using SearchStates = std::list<SearchState>;
-using Pattern = std::vector<uint8_t>;
+std::string serialize_search_state(const SearchState &search_state);
 
-SearchStates initial_search_states(const Pattern &kmer,
-                                   const KmerIndex &kmer_index);
+std::ostream &operator<< (std::ostream &os, const SearchState &search_state);
+
+using SearchStates = std::list<SearchState>;
+
+SearchStates get_initial_search_states(const Pattern &kmer,
+                                       const KmerIndex &kmer_index);
 
 SearchStates search_read_bwd(const Pattern &read,
                              const Pattern &kmer,
                              const KmerIndex &kmer_index,
                              const PRG_Info &prg_info);
 
-SearchStates search_char_bwd(const uint8_t pattern_char,
+SearchStates search_base_bwd(const Base &pattern_char,
                              const SearchStates &search_states,
                              const PRG_Info &prg_info);
 
-uint64_t get_allele_id(const uint64_t allele_marker_sa_index,
+AlleleId get_allele_id(const SA_Index &allele_marker_sa_index,
                        const PRG_Info &prg_info);
 
-SA_Interval get_allele_marker_sa_interval(const uint64_t site_marker_char,
+SA_Interval get_allele_marker_sa_interval(const Marker &site_marker_char,
                                           const PRG_Info &prg_info);
 
 SearchStates process_markers_search_states(const SearchStates &search_states,

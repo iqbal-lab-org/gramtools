@@ -6,7 +6,7 @@
 #include "utils.hpp"
 
 
-uint8_t encode_dna_base(const char &base_str) {
+Base encode_dna_base(const char &base_str) {
     switch (base_str) {
         case 'A':
         case 'a':
@@ -31,7 +31,7 @@ uint8_t encode_dna_base(const char &base_str) {
 }
 
 
-std::vector<uint8_t> encode_dna_bases(const std::string &dna_str) {
+Pattern encode_dna_bases(const std::string &dna_str) {
     std::vector<uint8_t> dna;
     for (const auto &base_str: dna_str) {
         int encoded_base = encode_dna_base(base_str);

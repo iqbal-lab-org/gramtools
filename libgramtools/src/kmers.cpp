@@ -4,10 +4,9 @@
 #include "utils.hpp"
 #include "fm_index.hpp"
 #include "kmers.hpp"
-#include "bidir_search_bwd.hpp"
 
 
-std::string dump_kmer(const Kmer &kmer) {
+std::string dump_kmer(const Pattern &kmer) {
     std::stringstream stream;
     for (const auto &base: kmer) {
         stream << (int) base;
@@ -33,21 +32,25 @@ std::string dump_sa_intervals(const SA_Intervals &sa_intervals) {
 }
 
 
-std::string dump_crosses_marker_flag(const Kmer &kmer,
-                                     const NonVariantKmers &nonvar_kmers) {
+std::string dump_crosses_marker_flag(const Pattern &kmer,
+                                     const NonSiteCrossingKmers &nonvar_kmers) {
     if (nonvar_kmers.count(kmer) != 0)
         return "1";
     return "0";
 }
 
 
-std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites) {
+std::string dump_variant_site_paths(const Pattern &kmer, const KmerVariantSitePaths &kmer_variant_site_paths) {
     std::stringstream stream;
-    for (const auto &all_sites: kmer_sites.at(kmer)) {
-        for (const auto &sites: all_sites) {
-            stream << sites.first << " ";
-            for (const auto &allele: sites.second)
-                stream << (int) allele << " ";
+    const auto &variant_site_paths = kmer_variant_site_paths.at(kmer);
+    for (const auto &variant_site_path: variant_site_paths) {
+        for (const auto &variant_site: variant_site_path) {
+
+            const auto &site_marker = variant_site.first;
+            const auto &allele_id = variant_site.second;
+
+            stream << site_marker << " ";
+            stream << (int) allele_id << " ";
             stream << "@";
         }
         stream << "|";
@@ -56,16 +59,16 @@ std::string dump_sites(const Kmer &kmer, const KmerSites &kmer_sites) {
 }
 
 
-std::string dump_kmer_index_entry(const Kmer &kmer,
+std::string dump_kmer_index_entry(const Pattern &kmer,
                                   const SA_Intervals &sa_intervals,
-                                  const NonVariantKmers &nonvar_kmers,
-                                  const KmerSites &kmer_sites) {
+                                  const KmerVariantSitePaths &kmer_variant_site_paths,
+                                  const NonSiteCrossingKmers &nonvar_kmers) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
     stream << dump_crosses_marker_flag(kmer, nonvar_kmers) << "|";
     // additional bar because of reverse sa intervals
     stream << dump_sa_intervals(sa_intervals) << "||";
-    stream << dump_sites(kmer, kmer_sites);
+    stream << dump_variant_site_paths(kmer, kmer_variant_site_paths);
     return stream.str();
 }
 
@@ -75,103 +78,76 @@ void dump_kmer_index(std::ofstream &kmer_index_file, const KmerIndex &kmer_index
         const auto &kmer = kmer_sa_intervals.first;
         const SA_Intervals &sa_intervals = kmer_index.sa_intervals_map.at(kmer);
         const std::string kmer_entry =
-                dump_kmer_index_entry(kmer,
-                                      sa_intervals,
-                                      kmer_index.nonvar_kmers,
-                                      kmer_index.sites_map);
+                dump_kmer_index_entry(kmer, sa_intervals, kmer_index.variant_site_paths_map,
+                                      kmer_index.non_site_crossing_kmers);
         kmer_index_file << kmer_entry << std::endl;
     }
 }
 
 
-void print_sa_intervals(const SA_Intervals &sa_intervals) {
-    std::cout << "sa_intervals size: " << sa_intervals.size() << std::endl;
-    for (const auto &sa_interval: sa_intervals)
-        std::cout << "(" << sa_interval.first << ", " << sa_interval.second << ")" << "   ";
-    if (sa_intervals.size() > 0)
-        std::cout << std::endl;
-}
+CacheElement get_next_cache_element(const Base &base,
+                                    const bool kmer_base_is_last,
+                                    const CacheElement &last_cache_element,
+                                    const PRG_Info &prg_info) {
+    SearchStates new_search_states = last_cache_element.search_states;
 
-
-void print_sites(const Sites &sites) {
-    std::cout << "sites length: " << sites.size() << std::endl;
-    for (const auto &site: sites) {
-        for (const auto &variant_site: site) {
-            std::cout << "marker: " << variant_site.first << ": ";
-            for (const auto &allele: variant_site.second)
-                std::cout << allele << ", ";
-            //if (variant_site.second.size() > 0)
-            std::cout << std::endl;
-        }
+    if (not kmer_base_is_last) {
+        auto markers_search_states = process_markers_search_states(new_search_states,
+                                                                   prg_info);
+        new_search_states.splice(new_search_states.end(), markers_search_states);
     }
+
+    new_search_states = search_base_bwd(base,
+                                        new_search_states,
+                                        prg_info);
+    return CacheElement {
+            new_search_states,
+            base
+    };
 }
 
 
-void print_cache(const KmerIndexCache &cache) {
-    for (auto &elem: cache) {
-        std::cout << "***start elem" << std::endl;
-        std::cout << (int) elem.base << std::endl;
+CacheElement get_initial_cache_element(const Base &base,
+                                       const PRG_Info &prg_info) {
+    SearchState search_state = {
+            SA_Interval {0, prg_info.fm_index.size() - 1}
+    };
+    SearchStates search_states = {search_state};
+    CacheElement initial_cache_element = {search_states};
 
-        print_sa_intervals(elem.sa_intervals);
-        print_sites(elem.sites);
-        std::cout << "***end elem" << std::endl;
-        std::cout << std::endl;
-    }
+    bool kmer_base_is_last = true;
+    const auto &cache_element = get_next_cache_element(base,
+                                                       kmer_base_is_last,
+                                                       initial_cache_element,
+                                                       prg_info);
+    return cache_element;
 }
 
 
-CacheElement get_next_cache_element(SA_Intervals &sa_intervals,
-                                    Sites &sites,
-                                    const uint8_t base,
-                                    const PRG_Info &prg_info,
-                                    const bool last_base) {
-    CacheElement new_cache_element;
-    new_cache_element.sa_intervals = sa_intervals;
-    new_cache_element.sites = sites;
-    new_cache_element.base = base;
-
-    bool delete_first_interval = false;
-    const bool kmer_index_done = false;
-
-    reduce_search_scope(base,
-                        new_cache_element.sa_intervals,
-                        new_cache_element.sites,
-                        delete_first_interval,
-                        kmer_index_done,
-                        last_base,
-                        prg_info);
-
-    return new_cache_element;
-}
-
-
-KmerIndexCache initial_kmer_index_cache(const Kmer &full_kmer,
+KmerIndexCache initial_kmer_index_cache(const Pattern &full_kmer,
                                         const PRG_Info &prg_info) {
     KmerIndexCache cache;
 
-    // reverse iteration normally provided by bidir_search_bwd, but we skip that func
     for (auto it = full_kmer.rbegin(); it != full_kmer.rend(); ++it) {
         const auto &base = *it;
-        const bool last_base = it == full_kmer.rbegin();
+        const bool kmer_base_is_last = it == full_kmer.rbegin();
 
         if (cache.empty()) {
-            SA_Intervals sa_intervals = {{0, prg_info.fm_index.size()}};
-            Sites sites = {VariantSitePath()};
-            auto new_cache_element = get_next_cache_element(sa_intervals,
-                                                            sites,
-                                                            base,
-                                                            prg_info,
-                                                            last_base);
-            cache.emplace_back(new_cache_element);
+            auto cache_element = get_initial_cache_element(base, prg_info);
+            cache.emplace_back(cache_element);
             continue;
         }
 
-        auto &last_element = cache.back();
-        const auto &new_cache_element = get_next_cache_element(last_element.sa_intervals,
-                                                               last_element.sites,
-                                                               base,
-                                                               prg_info,
-                                                               last_base);
+        const auto &last_cache_element = cache.back();
+        if (last_cache_element.search_states.empty()) {
+            cache.emplace_back(CacheElement {});
+            continue;
+        }
+
+        const auto &new_cache_element = get_next_cache_element(base,
+                                                               kmer_base_is_last,
+                                                               last_cache_element,
+                                                               prg_info);
         cache.emplace_back(new_cache_element);
     }
     return cache;
@@ -179,7 +155,7 @@ KmerIndexCache initial_kmer_index_cache(const Kmer &full_kmer,
 
 
 void update_kmer_index_cache(KmerIndexCache &cache,
-                             const Kmer &kmer_suffix_diff,
+                             const Pattern &kmer_suffix_diff,
                              const int kmer_size,
                              const PRG_Info &prg_info) {
 
@@ -189,29 +165,28 @@ void update_kmer_index_cache(KmerIndexCache &cache,
         return;
     }
 
-    // truncate cache
+    // truncate cache given kmer suffix diff
     const auto new_cache_size = kmer_size - kmer_suffix_diff.size();
     cache.resize(new_cache_size);
 
-    // reverse iteration normally provided by bidir_search_bwd, but we skip that func
     for (auto it = kmer_suffix_diff.rbegin(); it != kmer_suffix_diff.rend(); ++it) {
         const auto &base = *it;
 
         // the last kmer base is only handled by initial_kmer_index_cache(.)
-        const bool last_base = false;
+        const bool kmer_base_is_last = false;
 
-        auto &last_element = cache.back();
-        const auto &new_cache_element = get_next_cache_element(last_element.sa_intervals,
-                                                               last_element.sites,
-                                                               base,
-                                                               prg_info,
-                                                               last_base);
+        auto &last_cache_element = cache.back();
+
+        const auto &new_cache_element = get_next_cache_element(base,
+                                                               kmer_base_is_last,
+                                                               last_cache_element,
+                                                               prg_info);
         cache.emplace_back(new_cache_element);
     }
 }
 
 
-void update_full_kmer(Kmer &full_kmer, const Kmer &kmer_suffix_diff, const int kmer_size) {
+void update_full_kmer(Pattern &full_kmer, const Pattern &kmer_suffix_diff, const int kmer_size) {
     if (kmer_suffix_diff.size() == kmer_size) {
         full_kmer = kmer_suffix_diff;
         return;
@@ -223,12 +198,40 @@ void update_full_kmer(Kmer &full_kmer, const Kmer &kmer_suffix_diff, const int k
 }
 
 
-KmerIndex index_kmers(const Kmers &kmer_suffix_diffs,
+void update_kmer_index(KmerIndex &kmer_index,
+                       const Pattern full_kmer,
+                       const CacheElement &cache_element) {
+    SA_Intervals sa_intervals;
+    for (const auto &search_state: cache_element.search_states)
+        sa_intervals.push_back(search_state.sa_interval);
+
+    VariantSitePaths variant_site_paths;
+    for (const auto &search_state: cache_element.search_states) {
+        if (not search_state.variant_site_path.empty())
+            variant_site_paths.push_back(search_state.variant_site_path);
+    }
+
+    const bool search_results_found = not cache_element.search_states.empty();
+    if (search_results_found) {
+        kmer_index.sa_intervals_map[full_kmer] = sa_intervals;
+        kmer_index.variant_site_paths_map[full_kmer] = variant_site_paths;
+
+        auto kmer_crosses_variant_site = not variant_site_paths.empty();
+        if (not kmer_crosses_variant_site)
+            kmer_index.non_site_crossing_kmers.insert(full_kmer);
+    } else {
+        kmer_index.sa_intervals_map.erase(full_kmer);
+        kmer_index.variant_site_paths_map.erase(full_kmer);
+    }
+}
+
+
+KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
                       const int kmer_size,
                       const PRG_Info &prg_info) {
     KmerIndex kmer_index;
-    Kmer full_kmer;
     KmerIndexCache cache;
+    Pattern full_kmer;
 
     for (auto &kmer_suffix_diff: kmer_suffix_diffs) {
         update_full_kmer(full_kmer,
@@ -241,16 +244,9 @@ KmerIndex index_kmers(const Kmers &kmer_suffix_diffs,
                                 prg_info);
 
         const auto &last_cache_element = cache.back();
-        kmer_index.sa_intervals_map[full_kmer] = last_cache_element.sa_intervals;
-        kmer_index.sites_map[full_kmer] = last_cache_element.sites;
-
-        if (last_cache_element.sa_intervals.empty()) {
-            kmer_index.sa_intervals_map.erase(full_kmer);
-        }
-
-        const auto &first_sties_element = last_cache_element.sites.front();
-        if (first_sties_element.empty())
-            kmer_index.nonvar_kmers.insert(full_kmer);
+        update_kmer_index(kmer_index,
+                          full_kmer,
+                          last_cache_element);
     }
     return kmer_index;
 }
@@ -260,10 +256,10 @@ void generate_kmer_index(const std::string &kmer_fname, const int kmer_size, con
     std::ifstream kmer_fhandle;
     kmer_fhandle.open(kmer_fname);
 
-    Kmers kmer_suffix_diffs;
+    Patterns kmer_suffix_diffs;
     std::string line;
     while (std::getline(kmer_fhandle, line)) {
-        const Kmer &kmer_suffix_diff = encode_dna_bases(line);
+        const Pattern &kmer_suffix_diff = encode_dna_bases(line);
         kmer_suffix_diffs.emplace_back(kmer_suffix_diff);
     }
 
@@ -328,10 +324,10 @@ bool parse_crosses_marker_flag(const std::string &in_reference_flag_str) {
 }
 
 
-Kmer parse_encoded_kmer(const std::string &encoded_kmer_str) {
-    Kmer encoded_kmer;
+Pattern parse_encoded_kmer(const std::string &encoded_kmer_str) {
+    Pattern encoded_kmer;
     for (const auto &encoded_base: split(encoded_kmer_str, " ")) {
-        const auto kmer_base = (uint8_t) std::stoi(encoded_base);
+        const auto kmer_base = (Base) std::stoi(encoded_base);
         encoded_kmer.push_back(kmer_base);
     }
     return encoded_kmer;
@@ -351,49 +347,50 @@ SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str) {
 }
 
 
-VariantSitePath parse_site(const std::string &sites_part_str) {
-    VariantSitePath site;
-    for (const auto &pair_i_v: split(sites_part_str, "@")) {
-        std::vector<std::string> site_parts = split(pair_i_v, " ");
-        if (site_parts.empty())
+VariantSitePath parse_variant_site_path(const std::string &path_data_str) {
+    VariantSitePath variant_site_path;
+    for (const auto &variant_site_str: split(path_data_str, "@")) {
+        std::vector<std::string> variant_site_split = split(variant_site_str, " ");
+        if (variant_site_split.empty())
             continue;
 
-        auto variant_site_marker = (VariantSiteMarker) std::stoi(site_parts[0]);
+        auto variant_site_marker = (Marker) std::stoi(variant_site_split[0]);
+        auto allele_id = (AlleleId) std::stoi(variant_site_split[1]);
 
-        Allele allele;
-        for (uint64_t i = 1; i < site_parts.size(); i++) {
-            const auto &allele_element = site_parts[i];
-            if (!allele_element.empty())
-                allele.push_back((uint64_t) std::stoi(allele_element));
-        }
-
-        site.emplace_back(VariantSite {variant_site_marker, allele});
+        VariantSite variant_site = {variant_site_marker, allele_id};
+        variant_site_path.emplace_back(variant_site);
     }
-    return site;
+    return variant_site_path;
 }
 
 
-void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line) {
+VariantSitePaths parse_vairant_site_paths(const std::vector<std::string> &index_entry_parts) {
+    VariantSitePaths variant_site_paths;
+    // start at i=4 because of reverse sa intervals
+    for (uint64_t i = 4; i < index_entry_parts.size(); i++) {
+        const auto &path_data_str = index_entry_parts[i];
+        const auto &variant_site_path = parse_variant_site_path(path_data_str);
+        variant_site_paths.emplace_back(variant_site_path);
+    }
+    return variant_site_paths;
+}
+
+
+void parse_kmer_index_entry(KmerIndex &kmer_index, const std::string &line) {
     const std::vector<std::string> &parts = split(line, "|");
 
-    Kmer encoded_kmer = parse_encoded_kmer(parts[0]);
+    Pattern encoded_kmer = parse_encoded_kmer(parts[0]);
     const auto crosses_marker = parse_crosses_marker_flag(parts[1]);
     if (!crosses_marker)
-        kmers.nonvar_kmers.insert(encoded_kmer);
+        kmer_index.non_site_crossing_kmers.insert(encoded_kmer);
 
     const auto sa_intervals = parse_sa_intervals(parts[2]);
     if (!sa_intervals.empty())
-        kmers.sa_intervals_map[encoded_kmer] = sa_intervals;
+        kmer_index.sa_intervals_map[encoded_kmer] = sa_intervals;
     else
         return;
 
-    Sites sites;
-    // start at i=4 because of reverse sa intervals
-    for (uint64_t i = 4; i < parts.size(); i++) {
-        const auto site = parse_site(parts[i]);
-        sites.push_back(site);
-    }
-    kmers.sites_map[encoded_kmer] = sites;
+    kmer_index.variant_site_paths_map[encoded_kmer] = parse_vairant_site_paths(parts);
 }
 
 
@@ -401,19 +398,20 @@ KmerIndex load_kmer_index(const std::string &encoded_kmers_fname) {
     std::ifstream fhandle;
     fhandle.open(encoded_kmers_fname);
 
-    KmerIndex kmers;
+    KmerIndex kmer_index;
     std::string line;
     while (std::getline(fhandle, line)) {
-        parse_kmer_index_entry(kmers, line);
+        parse_kmer_index_entry(kmer_index, line);
     }
 
-    assert(!kmers.sites_map.empty());
-    return kmers;
+    assert(not kmer_index.variant_site_paths_map.empty());
+    return kmer_index;
 }
 
 
-KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info) {
-
+KmerIndex get_kmer_index(const std::string &kmer_fname,
+                         const int kmer_size,
+                         const PRG_Info &prg_info) {
     const auto encoded_kmers_fname = std::string(kmer_fname) + ".precalc";
 
     if (!file_exists(encoded_kmers_fname)) {
@@ -425,4 +423,46 @@ KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, con
     std::cout << "Loading kmer index from file" << std::endl;
     const auto kmer_index = load_kmer_index(encoded_kmers_fname);
     return kmer_index;
+}
+
+
+std::string serialize_kmer_index_cache_element(const CacheElement &cache_element) {
+    std::stringstream ss;
+    ss << "****** Cache Element ******" << std::endl;
+
+    ss << "Base: " << (int) cache_element.base << std::endl;
+    ss << "Number of search states: "
+       << cache_element.search_states.size()
+       << std::endl;
+
+    for (const auto &search_state: cache_element.search_states) {
+        ss << search_state;
+    }
+
+    ss << "****** END Cache Element ******" << std::endl;
+    return ss.str();
+}
+
+
+std::ostream &operator<<(std::ostream &os, const CacheElement &cache_element) {
+    os << serialize_kmer_index_cache_element(cache_element);
+    return os;
+}
+
+
+std::string serialize_kmer_index_cache(const KmerIndexCache &cache) {
+    std::stringstream ss;
+    ss << "****** Cache ******" << std::endl;
+    for (const auto &cache_element: cache) {
+        ss << cache_element << std::endl;
+    }
+    return ss.str();
+    ss << "****** END Cache ******" << std::endl;
+    return ss.str();
+}
+
+
+std::ostream &operator<<(std::ostream &os, const KmerIndexCache &cache) {
+    os << serialize_kmer_index_cache(cache);
+    return os;
 }

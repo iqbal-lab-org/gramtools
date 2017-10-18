@@ -4,9 +4,8 @@
 #include <vector>
 
 #include "parameters.hpp"
-#include "bwt_search.hpp"
+#include "search.hpp"
 #include "map.hpp"
-#include "bidir_search_bwd.hpp"
 
 
 void update_coverage(AlleleCoverage &allele_coverage, const std::list<VariantSitePath> &sites,
@@ -72,7 +71,7 @@ bool process_read(const std::vector<uint8_t> &encoded_read, AlleleCoverage &alle
 
 bool discard_read_check(const std::vector<uint8_t> &read_kmer_part, const KmerIndex &kmers) {
     bool kmer_not_in_precalc = (kmers.sa_intervals_map.find(read_kmer_part) == kmers.sa_intervals_map.end()
-                                or kmers.sites_map.find(read_kmer_part) == kmers.sites_map.end());
+                                or kmers.variant_site_paths_map.find(read_kmer_part) == kmers.variant_site_paths_map.end());
     if (kmer_not_in_precalc)
         return true;
 
@@ -90,21 +89,24 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part, const std::vector
     //These are either in non-variable region, or are entirely within alleles
     //then the kmer does overlap a number, by definition.
     //no need to ignore first SA interval (if it was in the nonvar bit would ignore)
-    bool kmer_is_nonvar = kmers.nonvar_kmers.find(read_kmer_part) != kmers.nonvar_kmers.end();
+    bool kmer_is_nonvar = kmers.non_site_crossing_kmers.find(read_kmer_part) != kmers.non_site_crossing_kmers.end();
     bool delete_first_interval = !kmer_is_nonvar;
 
     auto &sa_intervals = kmers.sa_intervals_map[read_kmer_part];
-    auto &sites = kmers.sites_map[read_kmer_part];
+    auto &sites = kmers.variant_site_paths_map[read_kmer_part];
 
     const auto &read_begin = encoded_read.begin();
     const auto &read_end = encoded_read.begin() + encoded_read.size() - kmer_size;
 
     const bool kmer_index_done = true;
-    bidir_search_bwd(sa_intervals, sites,
-                     delete_first_interval,
-                     kmer_index_done,
-                     read_begin, read_end,
-                     prg_info);
+
+    // TODO
+    /*
+    SearchStates search_read_bwd(const Pattern &read,
+                                 const Pattern &kmer,
+                                 const KmerIndex &kmer_index,
+                                 const PRG_Info &prg_info)
+    */
 
     const bool read_mapps_too_many_alleles = sa_intervals.size() > 100;
     if (read_mapps_too_many_alleles)
@@ -128,7 +130,7 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part, const std::vector
 
 void populate_repeats_variant_edges(std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
                                     int &count_char_in_variant_site,
-                                    const Sites &sites,
+                                    const VariantSitePaths &sites,
                                     const SA_Intervals &sa_intervals,
                                     const PRG_Info &prg_info) {
 
@@ -237,10 +239,10 @@ void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const Var
         auto variant_site_marker = variant_site.first;
         const auto &alleles = variant_site.second;
 
-        if (variant_site != site.back() and alleles.empty())
+        if (variant_site != site.back() and alleles == 0)
             return;
 
-        if (variant_site == site.back() and alleles.empty()) {
+        if (variant_site == site.back() and alleles == 0) {
             for (auto ind = sa_interval.first; ind < sa_interval.second; ind++) {
                 const auto k = prg_info.fm_index[ind];
                 const auto &variant_allele_idx = prg_info.allele_mask[k] - 1;
@@ -265,23 +267,21 @@ void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const Var
             continue;
         }
 
-        for (const auto &allele: alleles) {
-            const auto variant_allele_idx = allele - 1;
-            uint64_t denominator = 0;
-            if (delete_first_interval) {
-                denominator = total_num_sa_intervals;
-            } else {
-                denominator = total_num_sa_intervals
-                              + sa_interval_size
-                              + count_repeats_variant_site_edges
-                              - count_char_in_variant_site
-                              - 1;
-            }
-            assert(denominator > 0);
-            const auto variant_marker_coverage_idx = (variant_site_marker - 5) / 2;
-            auto &coverage = allele_coverage[variant_marker_coverage_idx][variant_allele_idx];
-            coverage = (coverage + 1.0) / denominator;
+        const auto variant_allele_idx = alleles - 1;
+        uint64_t denominator = 0;
+        if (delete_first_interval) {
+            denominator = total_num_sa_intervals;
+        } else {
+            denominator = total_num_sa_intervals
+                          + sa_interval_size
+                          + count_repeats_variant_site_edges
+                          - count_char_in_variant_site
+                          - 1;
         }
+        assert(denominator > 0);
+        const auto variant_marker_coverage_idx = (variant_site_marker - 5) / 2;
+        auto &coverage = allele_coverage[variant_marker_coverage_idx][variant_allele_idx];
+        coverage = (coverage + 1.0) / denominator;
     }
 }
 

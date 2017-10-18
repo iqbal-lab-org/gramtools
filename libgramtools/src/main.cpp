@@ -9,7 +9,6 @@
 
 #include "prg.hpp"
 #include "parameters.hpp"
-#include "bwt_search.hpp"
 #include "map.hpp"
 #include "timer_report.hpp"
 #include "main.hpp"
@@ -42,6 +41,7 @@ int main(int argc, const char *const *argv) {
     KmerIndex kmer_index = get_kmer_index(params.kmers_fpath, params.kmers_size, prg_info);
     timer_report.record("Load kmer index");
 
+    /*
     std::cout << "Mapping" << std::endl;
     auto count_mapped = quasimap_reads(allele_coverage, params, kmer_index, prg_info);
     std::cout << "Count mapped: " << count_mapped << std::endl;
@@ -50,6 +50,7 @@ int main(int argc, const char *const *argv) {
     std::cout << "Writing allele coverage to file" << std::endl;
     output_allele_coverage(allele_coverage, params);
     timer_report.record("Output coverage");
+     */
 
     timer_report.report();
     return 0;

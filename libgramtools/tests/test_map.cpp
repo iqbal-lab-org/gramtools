@@ -42,7 +42,7 @@ TEST_F(QuasimapRead, todo_desc) {
     const std::string read = "acagaat";
     const std::vector<uint8_t> kmer = encode_read("agaat");
 
-    Kmers kmers = {kmer};
+    Patterns kmers = {kmer};
 
     MasksParser masks;
     masks.allele = generate_allele_mask(prg_raw);
@@ -56,7 +56,7 @@ TEST_F(QuasimapRead, todo_desc) {
     index_kmers(kmers,
                 kmers_data.sa_intervals_map,
                 kmers_data.sites_map,
-                kmers_data.nonvar_kmers,
+                kmers_data.non_site_crossing_kmers,
                 masks.max_alphabet_num,
                 masks.allele,
                 rank_all,
