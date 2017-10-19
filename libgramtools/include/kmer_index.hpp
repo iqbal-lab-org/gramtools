@@ -30,6 +30,8 @@ using KmerVariantSitePaths = sequence_map<Pattern, VariantSitePaths>;
 // Patterns added when not in variant site or when entierly within a single allele
 using NonSiteCrossingKmers = sequence_set<Pattern>;
 
+
+// TODO: KmerIndex should be a map from Pattern kmer to SearchStates
 struct KmerIndex {
     KmerSA_Intervals sa_intervals_map;
     KmerVariantSitePaths variant_site_paths_map;

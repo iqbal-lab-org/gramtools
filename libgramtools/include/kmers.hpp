@@ -31,8 +31,8 @@ std::string dump_crosses_marker_flag(const Pattern &kmer,
 
 std::string dump_variant_site_paths(const Pattern &kmer, const KmerVariantSitePaths &kmer_sites);
 
-std::string dump_kmer_index_entry(const Pattern &kmer, const SA_Intervals &sa_intervals, const KmerVariantSitePaths &kmer_sites,
-                                  const NonSiteCrossingKmers &nonvar_kmers);
+std::string
+dump_kmer_index_entry(const Pattern &kmer, const SA_Intervals &sa_intervals, const KmerVariantSitePaths &kmer_sites);
 
 void dump_kmer_index(std::ofstream &precalc_file, const KmerIndex &kmer_index);
 

@@ -32,14 +32,6 @@ std::string dump_sa_intervals(const SA_Intervals &sa_intervals) {
 }
 
 
-std::string dump_crosses_marker_flag(const Pattern &kmer,
-                                     const NonSiteCrossingKmers &nonvar_kmers) {
-    if (nonvar_kmers.count(kmer) != 0)
-        return "1";
-    return "0";
-}
-
-
 std::string dump_variant_site_paths(const Pattern &kmer,
                                     const KmerVariantSitePaths &kmer_variant_site_paths) {
     std::stringstream stream;
@@ -67,11 +59,9 @@ std::string dump_variant_site_paths(const Pattern &kmer,
 
 std::string dump_kmer_index_entry(const Pattern &kmer,
                                   const SA_Intervals &sa_intervals,
-                                  const KmerVariantSitePaths &kmer_variant_site_paths,
-                                  const NonSiteCrossingKmers &nonvar_kmers) {
+                                  const KmerVariantSitePaths &kmer_variant_site_paths) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
-    stream << dump_crosses_marker_flag(kmer, nonvar_kmers) << "|";
     stream << dump_sa_intervals(sa_intervals) << "|";
     stream << dump_variant_site_paths(kmer, kmer_variant_site_paths);
     return stream.str();
@@ -84,8 +74,8 @@ void dump_kmer_index(std::ofstream &kmer_index_file,
         const auto &kmer = kmer_sa_intervals.first;
         const SA_Intervals &sa_intervals = kmer_index.sa_intervals_map.at(kmer);
         const std::string kmer_entry =
-                dump_kmer_index_entry(kmer, sa_intervals, kmer_index.variant_site_paths_map,
-                                      kmer_index.non_site_crossing_kmers);
+                dump_kmer_index_entry(kmer, sa_intervals,
+                                      kmer_index.variant_site_paths_map);
         kmer_index_file << kmer_entry << std::endl;
     }
 }
@@ -333,11 +323,6 @@ std::vector<std::string> split(const std::string &cad,
 }
 
 
-bool parse_crosses_marker_flag(const std::string &in_reference_flag_str) {
-    return in_reference_flag_str == "1";
-}
-
-
 Pattern parse_encoded_kmer(const std::string &encoded_kmer_str) {
     Pattern encoded_kmer;
     for (const auto &encoded_base: split(encoded_kmer_str, " ")) {
@@ -379,7 +364,7 @@ VariantSitePath parse_variant_site_path(const std::string &path_data_str) {
 
 VariantSitePaths parse_vairant_site_paths(const std::vector<std::string> &index_entry_parts) {
     VariantSitePaths variant_site_paths;
-    for (uint64_t i = 3; i < index_entry_parts.size(); i++) {
+    for (uint64_t i = 2; i < index_entry_parts.size(); i++) {
         const auto &path_data_str = index_entry_parts[i];
         const auto &variant_site_path = parse_variant_site_path(path_data_str);
         variant_site_paths.emplace_back(variant_site_path);
@@ -392,11 +377,7 @@ void parse_kmer_index_entry(KmerIndex &kmer_index, const std::string &line) {
     const std::vector<std::string> &parts = split(line, "|");
 
     Pattern encoded_kmer = parse_encoded_kmer(parts[0]);
-    const auto crosses_marker = parse_crosses_marker_flag(parts[1]);
-    if (!crosses_marker)
-        kmer_index.non_site_crossing_kmers.insert(encoded_kmer);
-
-    const auto sa_intervals = parse_sa_intervals(parts[2]);
+    const auto sa_intervals = parse_sa_intervals(parts[1]);
     if (!sa_intervals.empty())
         kmer_index.sa_intervals_map[encoded_kmer] = sa_intervals;
     else
@@ -415,8 +396,6 @@ KmerIndex load_kmer_index(const std::string &encoded_kmers_fname) {
     while (std::getline(fhandle, line)) {
         parse_kmer_index_entry(kmer_index, line);
     }
-
-    assert(not kmer_index.variant_site_paths_map.empty());
     return kmer_index;
 }
 

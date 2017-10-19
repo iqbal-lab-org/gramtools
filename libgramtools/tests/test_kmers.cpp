@@ -14,7 +14,6 @@
 
 TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
     const Pattern kmer = {1, 2, 3, 4};
-    const NonSiteCrossingKmers non_site_crossing_kmers = {kmer};
 
     VariantSitePath first_path = {
             VariantSite {5, 9},
@@ -39,11 +38,8 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
             SA_Interval {789, 424}
     };
 
-    const auto result = dump_kmer_index_entry(kmer,
-                                              sa_intervals,
-                                              kmer_sites,
-                                              non_site_crossing_kmers);
-    const auto expected = "1 2 3 4|1|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
+    const auto result = dump_kmer_index_entry(kmer, sa_intervals, kmer_sites);
+    const auto expected = "1 2 3 4|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     EXPECT_EQ(result, expected);
 }
 
@@ -109,7 +105,7 @@ TEST(GeneratePrecalc, GivenDnaString_DnaBasesEncodedCorrectly) {
 
 TEST(ParsePrecalc, GivenKmerIndexEntryStr_SaIntervalsParsedCorrectly) {
     KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|1|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
+    const auto entry = "1 2 3 4|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
 
     const auto &result = kmer_index.sa_intervals_map;
@@ -127,7 +123,7 @@ TEST(ParsePrecalc, GivenKmerIndexEntryStr_SaIntervalsParsedCorrectly) {
 
 TEST(ParsePrecalc, GivenKmerIndexEntryStr_VariantSitePathsCorrectlyParsed) {
     KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|1|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
+    const auto entry = "1 2 3 4|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
 
     const auto &result = kmer_index.variant_site_paths_map;
@@ -228,39 +224,6 @@ protected:
     }
 
 };
-
-
-TEST_F(IndexKmers, KmerCrossesVariantRegion_KmerNotInNonVariantRegionSet) {
-    const std::string prg_raw = "aca5g6t5gcatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    auto kmer = encode_dna_bases("atgca");
-    const int kmer_size = 5;
-    Patterns kmers = {kmer};
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto &result = kmer_index.non_site_crossing_kmers;
-    NonSiteCrossingKmers expected = {};
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST_F(IndexKmers, KmerInNonVariantRegion_KmerIncludedInNonVarKmerSet) {
-    const std::string prg_raw = "aca5g6t5gcatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    auto kmer = encode_dna_bases("gcatt");
-    const int kmer_size = 5;
-    Patterns kmers = {kmer};
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto &result = kmer_index.non_site_crossing_kmers;
-    NonSiteCrossingKmers expected = {kmer};
-    EXPECT_EQ(result, expected);
-}
-
 
 
 /*
