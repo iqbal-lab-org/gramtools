@@ -45,14 +45,20 @@ std::string dump_variant_site_paths(const Pattern &kmer,
     std::stringstream stream;
     const auto &variant_site_paths = kmer_variant_site_paths.at(kmer);
     for (const auto &variant_site_path: variant_site_paths) {
-        for (const auto &variant_site: variant_site_path) {
 
+        auto i = 0;
+        for (const auto &variant_site: variant_site_path) {
             const auto &site_marker = variant_site.first;
             const auto &allele_id = variant_site.second;
 
             stream << site_marker << " ";
-            stream << (int) allele_id << " ";
-            stream << "@";
+            stream << (int) allele_id;
+
+            const bool last_variant_site = i == variant_site_path.size() - 1;
+            if (not last_variant_site)
+                stream << " ";
+
+            ++i;
         }
         stream << "|";
     }
@@ -358,15 +364,14 @@ SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str) {
 
 
 VariantSitePath parse_variant_site_path(const std::string &path_data_str) {
+    const auto path_split = split(path_data_str, " ");
+    if (path_split.empty())
+        return VariantSitePath {};
+
     VariantSitePath variant_site_path;
-    for (const auto &variant_site_str: split(path_data_str, "@")) {
-        std::vector<std::string> variant_site_split = split(variant_site_str, " ");
-        if (variant_site_split.empty())
-            continue;
-
-        auto variant_site_marker = (Marker) std::stoi(variant_site_split[0]);
-        auto allele_id = (AlleleId) std::stoi(variant_site_split[1]);
-
+    for (auto i = 0; i < path_split.size() - 1; i += 2) {
+        auto variant_site_marker = (Marker) std::stoi(path_split[i]);
+        auto allele_id = (AlleleId) std::stoi(path_split[i + 1]);
         VariantSite variant_site = {variant_site_marker, allele_id};
         variant_site_path.emplace_back(variant_site);
     }

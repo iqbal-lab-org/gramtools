@@ -43,7 +43,7 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
                                               sa_intervals,
                                               kmer_sites,
                                               non_site_crossing_kmers);
-    const auto expected = "1 2 3 4|1|123 456 789 424||5 9 @7 19 @9 1 @|9 29 @11 39 @|";
+    const auto expected = "1 2 3 4|1|123 456 789 424||5 9 7 19 9 1|9 29 11 39|";
     EXPECT_EQ(result, expected);
 }
 
@@ -69,7 +69,7 @@ TEST(GeneratePrecalc, GivenSites_DumpSitesCorrectly) {
             {kmer, paths},
     };
     const auto result = dump_variant_site_paths(kmer, kmer_sites);
-    const auto expected = "5 9 @7 19 @9 1 @|9 29 @11 39 @|";
+    const auto expected = "5 9 7 19 9 1|9 29 11 39|";
     EXPECT_EQ(result, expected);
 }
 
@@ -109,7 +109,7 @@ TEST(GeneratePrecalc, GivenDnaString_DnaBasesEncodedCorrectly) {
 
 TEST(ParsePrecalc, GivenKmerIndexEntryStr_SaIntervalsParsedCorrectly) {
     KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|1|123 456 789 424||5 9 @7 19 @9 1 @|9 29 @11 39 @|";
+    const auto entry = "1 2 3 4|1|123 456 789 424||5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
 
     const auto &result = kmer_index.sa_intervals_map;
@@ -127,7 +127,7 @@ TEST(ParsePrecalc, GivenKmerIndexEntryStr_SaIntervalsParsedCorrectly) {
 
 TEST(ParsePrecalc, GivenKmerIndexEntryStr_VariantSitePathsCorrectlyParsed) {
     KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|1|123 456 789 424||5 9 @7 19 @9 1 @|9 29 @11 39 @|";
+    const auto entry = "1 2 3 4|1|123 456 789 424||5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
 
     const auto &result = kmer_index.variant_site_paths_map;
@@ -173,10 +173,8 @@ TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
 
 
 TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
-    const auto kmer_index_entry = "5 9 @7 19";
-    const std::vector<std::string> &parts = split(kmer_index_entry, "|");
-
-    const auto &result = parse_variant_site_path(parts[0]);
+    const auto kmer_index_entry = "5 9 7 19";
+    const auto &result = parse_variant_site_path(kmer_index_entry);
     VariantSitePath expected = {
             VariantSite {5, 9},
             VariantSite {7, 19},
@@ -186,10 +184,8 @@ TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
 
 
 TEST(ParsePrecalc, GivenSitesTrailingAt_TrailingAtIgnored) {
-    const auto kmer_index_entry = "5 9 @7 19 @";
-    const std::vector<std::string> &parts = split(kmer_index_entry, "|");
-
-    const auto &result = parse_variant_site_path(parts[0]);
+    const auto kmer_index_entry = "5 9 7 19";
+    const auto &result = parse_variant_site_path(kmer_index_entry);
     VariantSitePath expected = {
             VariantSite {5, 9},
             VariantSite {7, 19},
