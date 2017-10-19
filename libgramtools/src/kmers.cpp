@@ -55,10 +55,9 @@ std::string dump_variant_site_paths(const Pattern &kmer,
             stream << (int) allele_id;
 
             const bool last_variant_site = i == variant_site_path.size() - 1;
+            ++i;
             if (not last_variant_site)
                 stream << " ";
-
-            ++i;
         }
         stream << "|";
     }
@@ -73,8 +72,7 @@ std::string dump_kmer_index_entry(const Pattern &kmer,
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
     stream << dump_crosses_marker_flag(kmer, nonvar_kmers) << "|";
-    // additional bar because of reverse sa intervals
-    stream << dump_sa_intervals(sa_intervals) << "||";
+    stream << dump_sa_intervals(sa_intervals) << "|";
     stream << dump_variant_site_paths(kmer, kmer_variant_site_paths);
     return stream.str();
 }
@@ -381,8 +379,7 @@ VariantSitePath parse_variant_site_path(const std::string &path_data_str) {
 
 VariantSitePaths parse_vairant_site_paths(const std::vector<std::string> &index_entry_parts) {
     VariantSitePaths variant_site_paths;
-    // start at i=4 because of reverse sa intervals
-    for (uint64_t i = 4; i < index_entry_parts.size(); i++) {
+    for (uint64_t i = 3; i < index_entry_parts.size(); i++) {
         const auto &path_data_str = index_entry_parts[i];
         const auto &variant_site_path = parse_variant_site_path(path_data_str);
         variant_site_paths.emplace_back(variant_site_path);

@@ -43,7 +43,7 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
                                               sa_intervals,
                                               kmer_sites,
                                               non_site_crossing_kmers);
-    const auto expected = "1 2 3 4|1|123 456 789 424||5 9 7 19 9 1|9 29 11 39|";
+    const auto expected = "1 2 3 4|1|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     EXPECT_EQ(result, expected);
 }
 
@@ -109,7 +109,7 @@ TEST(GeneratePrecalc, GivenDnaString_DnaBasesEncodedCorrectly) {
 
 TEST(ParsePrecalc, GivenKmerIndexEntryStr_SaIntervalsParsedCorrectly) {
     KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|1|123 456 789 424||5 9 7 19 9 1|9 29 11 39|";
+    const auto entry = "1 2 3 4|1|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
 
     const auto &result = kmer_index.sa_intervals_map;
@@ -127,7 +127,7 @@ TEST(ParsePrecalc, GivenKmerIndexEntryStr_SaIntervalsParsedCorrectly) {
 
 TEST(ParsePrecalc, GivenKmerIndexEntryStr_VariantSitePathsCorrectlyParsed) {
     KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|1|123 456 789 424||5 9 7 19 9 1|9 29 11 39|";
+    const auto entry = "1 2 3 4|1|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
 
     const auto &result = kmer_index.variant_site_paths_map;
@@ -160,13 +160,13 @@ TEST(ParsePrecalc, GivenEncodedKmerString_CorrectlyParsed) {
 
 
 TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
-    const auto full_sa_intervals_str = "352511 352512 352648 352649 352648 352649";
+    const auto full_sa_intervals_str = "352511 352512 352648 352649 2 3";
     const auto result = parse_sa_intervals(full_sa_intervals_str);
 
     SA_Intervals expected{
             SA_Interval {352511, 352512},
             SA_Interval {352648, 352649},
-            SA_Interval {352648, 352649},
+            SA_Interval {2, 3},
     };
     EXPECT_EQ(result, expected);
 }
