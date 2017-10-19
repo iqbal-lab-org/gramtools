@@ -2,8 +2,8 @@
 #include "search.hpp"
 
 
-SearchStates get_initial_search_states(const Pattern &kmer,
-                                       const KmerIndex &kmer_index) {
+SearchStates get_kmer_search_states(const Pattern &kmer,
+                                    const KmerIndex &kmer_index) {
 
     const bool kmer_not_in_index = kmer_index.sa_intervals_map.find(kmer)
                                    == kmer_index.sa_intervals_map.end();
@@ -38,7 +38,7 @@ SearchStates search_read_bwd(const Pattern &read,
                              const Pattern &kmer,
                              const KmerIndex &kmer_index,
                              const PRG_Info &prg_info) {
-    auto search_states = get_initial_search_states(kmer, kmer_index);
+    auto search_states = get_kmer_search_states(kmer, kmer_index);
     if (search_states.empty())
         return search_states;
 

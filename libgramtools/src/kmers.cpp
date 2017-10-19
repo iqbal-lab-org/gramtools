@@ -40,7 +40,8 @@ std::string dump_crosses_marker_flag(const Pattern &kmer,
 }
 
 
-std::string dump_variant_site_paths(const Pattern &kmer, const KmerVariantSitePaths &kmer_variant_site_paths) {
+std::string dump_variant_site_paths(const Pattern &kmer,
+                                    const KmerVariantSitePaths &kmer_variant_site_paths) {
     std::stringstream stream;
     const auto &variant_site_paths = kmer_variant_site_paths.at(kmer);
     for (const auto &variant_site_path: variant_site_paths) {
@@ -73,7 +74,8 @@ std::string dump_kmer_index_entry(const Pattern &kmer,
 }
 
 
-void dump_kmer_index(std::ofstream &kmer_index_file, const KmerIndex &kmer_index) {
+void dump_kmer_index(std::ofstream &kmer_index_file,
+                     const KmerIndex &kmer_index) {
     for (const auto &kmer_sa_intervals: kmer_index.sa_intervals_map) {
         const auto &kmer = kmer_sa_intervals.first;
         const SA_Intervals &sa_intervals = kmer_index.sa_intervals_map.at(kmer);
@@ -171,12 +173,10 @@ void update_kmer_index_cache(KmerIndexCache &cache,
 
     for (auto it = kmer_suffix_diff.rbegin(); it != kmer_suffix_diff.rend(); ++it) {
         const auto &base = *it;
-
         // the last kmer base is only handled by initial_kmer_index_cache(.)
         const bool kmer_base_is_last = false;
 
         auto &last_cache_element = cache.back();
-
         const auto &new_cache_element = get_next_cache_element(base,
                                                                kmer_base_is_last,
                                                                last_cache_element,
@@ -186,7 +186,9 @@ void update_kmer_index_cache(KmerIndexCache &cache,
 }
 
 
-void update_full_kmer(Pattern &full_kmer, const Pattern &kmer_suffix_diff, const int kmer_size) {
+void update_full_kmer(Pattern &full_kmer,
+                      const Pattern &kmer_suffix_diff,
+                      const int kmer_size) {
     if (kmer_suffix_diff.size() == kmer_size) {
         full_kmer = kmer_suffix_diff;
         return;
@@ -233,7 +235,12 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
     KmerIndexCache cache;
     Pattern full_kmer;
 
-    for (auto &kmer_suffix_diff: kmer_suffix_diffs) {
+    auto count = 0;
+    for (const auto &kmer_suffix_diff: kmer_suffix_diffs) {
+        if (count % 10000 == 0)
+            std::cout << "Kmer suffix diff count: " << count << std::endl;
+        count++;
+
         update_full_kmer(full_kmer,
                          kmer_suffix_diff,
                          kmer_size);
@@ -252,7 +259,9 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
 }
 
 
-void generate_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info) {
+void generate_kmer_index(const std::string &kmer_fname,
+                         const int kmer_size,
+                         const PRG_Info &prg_info) {
     std::ifstream kmer_fhandle;
     kmer_fhandle.open(kmer_fname);
 
@@ -296,7 +305,8 @@ static inline std::string &trim(std::string &s) {
 }
 
 
-std::vector<std::string> split(const std::string &cad, const std::string &delim) {
+std::vector<std::string> split(const std::string &cad,
+                               const std::string &delim) {
     std::vector<std::string> v;
     uint64_t p, q, d;
 
@@ -413,6 +423,8 @@ KmerIndex get_kmer_index(const std::string &kmer_fname,
                          const int kmer_size,
                          const PRG_Info &prg_info) {
     const auto encoded_kmers_fname = std::string(kmer_fname) + ".precalc";
+    std::cout << "Kmer index file path:" << std::endl
+              << encoded_kmers_fname << std::endl;
 
     if (!file_exists(encoded_kmers_fname)) {
         std::cout << "Kmer index not found, building..." << std::endl;
@@ -456,7 +468,6 @@ std::string serialize_kmer_index_cache(const KmerIndexCache &cache) {
     for (const auto &cache_element: cache) {
         ss << cache_element << std::endl;
     }
-    return ss.str();
     ss << "****** END Cache ******" << std::endl;
     return ss.str();
 }

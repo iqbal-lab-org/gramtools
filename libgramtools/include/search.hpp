@@ -36,8 +36,8 @@ std::ostream &operator<< (std::ostream &os, const SearchState &search_state);
 
 using SearchStates = std::list<SearchState>;
 
-SearchStates get_initial_search_states(const Pattern &kmer,
-                                       const KmerIndex &kmer_index);
+SearchStates get_kmer_search_states(const Pattern &kmer,
+                                    const KmerIndex &kmer_index);
 
 SearchStates search_read_bwd(const Pattern &read,
                              const Pattern &kmer,
