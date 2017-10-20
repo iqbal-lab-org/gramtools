@@ -2,43 +2,11 @@
 #include "search.hpp"
 
 
-SearchStates get_kmer_search_states(const Pattern &kmer,
-                                    const KmerIndex &kmer_index) {
-
-    const bool kmer_not_in_index = kmer_index.sa_intervals_map.find(kmer)
-                                   == kmer_index.sa_intervals_map.end();
-    if (kmer_not_in_index)
-        return SearchStates {};
-
-    SearchStates search_states = {};
-    const auto &sa_intervals = kmer_index.sa_intervals_map.at(kmer);
-
-    for (const auto &sa_interval: sa_intervals) {
-        SearchState search_state = {
-                sa_interval
-        };
-        search_states.emplace_back(search_state);
-    }
-
-    const auto &variant_site_paths = kmer_index.variant_site_paths_map.at(kmer);
-    const auto kmer_has_associated_paths = variant_site_paths.size() > 0;
-    if (not kmer_has_associated_paths)
-        return search_states;
-
-    for (const auto &variant_site_path: variant_site_paths) {
-        for (auto &search_state: search_states)
-            search_state.variant_site_path = variant_site_path;
-    }
-
-    return search_states;
-}
-
-
 SearchStates search_read_bwd(const Pattern &read,
                              const Pattern &kmer,
                              const KmerIndex &kmer_index,
                              const PRG_Info &prg_info) {
-    auto search_states = get_kmer_search_states(kmer, kmer_index);
+    auto search_states = kmer_index.at(kmer);
     if (search_states.empty())
         return search_states;
 
@@ -121,22 +89,6 @@ SearchStates search_base_bwd(const Base &pattern_char,
         auto new_search_state = search_state;
         new_search_state.sa_interval.first = next_sa_interval.first;
         new_search_state.sa_interval.second = next_sa_interval.second;
-
-        /*
-        if (search_state.cache_populated) {
-            const auto &last_variant_site = new_search_state.variant_site_path.front();
-            const auto cached_variant_site_already_recorded =
-                    new_search_state.cached_variant_site.first == last_variant_site.first
-                    and new_search_state.cached_variant_site.second == last_variant_site.second;
-
-            if (not cached_variant_site_already_recorded)
-                new_search_state.variant_site_path.push_front(search_state.cached_variant_site);
-
-            new_search_state.cached_variant_site.first = 0;
-            new_search_state.cached_variant_site.second = 0;
-            new_search_state.cache_populated = false;
-        }
-         */
 
         process_search_state_path_cache(new_search_state);
         new_search_states.emplace_back(new_search_state);

@@ -12,7 +12,7 @@
 
 using AlleleCoverage = std::vector<std::vector<double>>;
 
-void print_sa_interval(const SA_Intervals &sa_intervals);
+void print_sa_interval(const std::vector<SA_Interval> &sa_intervals);
 
 void print_sites(const VariantSitePaths &sites);
 
@@ -38,10 +38,11 @@ bool quasimap_read(const std::vector<uint8_t> &read_kmer_part, const std::vector
                    std::unordered_set<uint64_t> &repeats_variant_site_edge_markers, KmerIndex &kmers,
                    const int kmer_size, const PRG_Info &prg_info);
 
+/*
 void populate_repeats_variant_edges(std::unordered_set<uint64_t> &repeats_variant_site_edge_markers,
                                     int &count_char_in_variant_site, const VariantSitePaths &sites,
                                     const SA_Intervals &sa_intervals, const PRG_Info &prg_info);
-
+*/
 void update_site_sa_interval_coverage(AlleleCoverage &allele_coverage, const VariantSitePath &site,
                                       const bool first_site_empty,
                                       const SA_Interval &sa_interval, const bool is_first_sa_interval,

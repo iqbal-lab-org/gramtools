@@ -17,17 +17,17 @@ class Search : public ::testing::Test {
 protected:
     std::string prg_fpath;
 
-    virtual void SetUp() {
+    void SetUp() override {
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         const auto uuid_str = boost::lexical_cast<std::string>(uuid);
         prg_fpath = "./prg_" + uuid_str;
     }
 
-    virtual void TearDown() {
+    void TearDown() override {
         std::remove(prg_fpath.c_str());
     }
 
-    FM_Index fm_index_from_raw_prg(const auto &prg_raw) {
+    FM_Index fm_index_from_raw_prg(const std::string &prg_raw) {
         std::vector<uint64_t> prg = encode_prg(prg_raw);
         dump_encoded_prg(prg, prg_fpath);
         FM_Index fm_index;
@@ -36,7 +36,7 @@ protected:
         return fm_index;
     }
 
-    PRG_Info generate_prg_info(const auto &prg_raw) {
+    PRG_Info generate_prg_info(const std::string &prg_raw) {
         PRG_Info prg_info;
         prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
         prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
@@ -566,7 +566,7 @@ TEST_F(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedI
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
-    auto result = search_state.variant_site_path.front();
+    const auto &result = search_state.variant_site_path.front();
     VariantSite expected = {5, 2};
     EXPECT_EQ(result, expected);
 }
@@ -612,7 +612,6 @@ TEST_F(Search, GivenRead_CorrectResultSaInterval) {
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
     auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
-
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();

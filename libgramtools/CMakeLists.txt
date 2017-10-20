@@ -38,7 +38,7 @@ find_package(Boost COMPONENTS
 
 # libgramtools
 add_library(gramtools STATIC
-    ${SOURCE}/map.cpp
+    # ${SOURCE}/map.cpp
     ${SOURCE}/utils.cpp
     ${SOURCE}/prg.cpp
     ${SOURCE}/kmers.cpp

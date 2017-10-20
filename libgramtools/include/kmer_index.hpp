@@ -4,10 +4,17 @@
 #include <boost/functional/hash.hpp>
 
 #include "utils.hpp"
+#include "search_states.hpp"
 
 
 #ifndef GRAMTOOLS_KMER_INDEX_HPP
 #define GRAMTOOLS_KMER_INDEX_HPP
+
+struct CacheElement {
+    SearchStates search_states;
+    Base base = 0;
+};
+using KmerIndexCache = std::list<CacheElement>;
 
 template<typename SEQUENCE>
 struct seq_hash {
@@ -20,7 +27,9 @@ struct seq_hash {
 
 template<typename SEQUENCE, typename T>
 using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
+using KmerIndex = sequence_map<Pattern, SearchStates>;
 
+/*
 template<typename SEQUENCE>
 using sequence_set = std::unordered_set<SEQUENCE, seq_hash<SEQUENCE>>;
 
@@ -30,12 +39,12 @@ using KmerVariantSitePaths = sequence_map<Pattern, VariantSitePaths>;
 // Patterns added when not in variant site or when entierly within a single allele
 using NonSiteCrossingKmers = sequence_set<Pattern>;
 
-
 // TODO: KmerIndex should be a map from Pattern kmer to SearchStates
 struct KmerIndex {
     KmerSA_Intervals sa_intervals_map;
     KmerVariantSitePaths variant_site_paths_map;
     NonSiteCrossingKmers non_site_crossing_kmers;
 };
+*/
 
 #endif //GRAMTOOLS_KMER_INDEX_HPP

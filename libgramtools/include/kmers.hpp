@@ -2,21 +2,14 @@
 #include "prg.hpp"
 #include "fm_index.hpp"
 #include "ranks.hpp"
-#include "search.hpp"
+#include "search_states.hpp"
 #include "kmer_index.hpp"
 
 
 #ifndef GRAMTOOLS_KMERS_HPP
 #define GRAMTOOLS_KMERS_HPP
 
-struct CacheElement {
-    SearchStates search_states;
-    Base base = 0;
-};
-
-using KmerIndexCache = std::list<CacheElement>;
-
-std::ostream &operator<< (std::ostream &os, const KmerIndexCache &cache);
+std::ostream &operator<<(std::ostream &os, const KmerIndexCache &cache);
 
 Base encode_dna_base(const char &base_str);
 
@@ -24,15 +17,11 @@ std::vector<Base> encode_dna_bases(const std::string &dna_str);
 
 std::string dump_kmer(const Pattern &kmer);
 
-std::string dump_sa_intervals(const SA_Intervals &sa_intervals);
+std::string dump_sa_intervals(const SearchStates &search_states);
 
-std::string dump_crosses_marker_flag(const Pattern &kmer,
-                                     const NonSiteCrossingKmers &nonvar_kmers);
+std::string dump_variant_site_paths(const SearchStates &kmer_sites);
 
-std::string dump_variant_site_paths(const Pattern &kmer, const KmerVariantSitePaths &kmer_sites);
-
-std::string
-dump_kmer_index_entry(const Pattern &kmer, const SA_Intervals &sa_intervals, const KmerVariantSitePaths &kmer_sites);
+std::string dump_kmer_index_entry(const Pattern &kmer, const SearchStates &search_states);
 
 void dump_kmer_index(std::ofstream &precalc_file, const KmerIndex &kmer_index);
 
@@ -52,7 +41,7 @@ bool parse_crosses_marker_flag(const std::string &in_reference_flag_str);
 
 Pattern parse_encoded_kmer(const std::string &encoded_kmer_str);
 
-SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str);
+std::vector<SA_Interval> parse_sa_intervals(const std::string &full_sa_intervals_str);
 
 VariantSitePath parse_variant_site_path(const std::string &sites_part_str);
 

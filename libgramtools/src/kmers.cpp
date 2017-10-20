@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <thread>
+#include <unordered_map>
 
 #include "utils.hpp"
 #include "fm_index.hpp"
 #include "kmers.hpp"
+#include "search.hpp"
 
 
 std::string dump_kmer(const Pattern &kmer) {
@@ -18,36 +20,35 @@ std::string dump_kmer(const Pattern &kmer) {
 }
 
 
-std::string dump_sa_intervals(const SA_Intervals &sa_intervals) {
+std::string dump_sa_intervals(const SearchStates &search_states) {
     std::stringstream stream;
-    for (const auto &sa_interval: sa_intervals) {
+
+    for (const auto &search_state: search_states) {
+        const auto &sa_interval = search_state.sa_interval;
         stream << sa_interval.first
                << " "
                << sa_interval.second;
-        bool last_base = (&sa_interval == &sa_intervals.back());
-        if (!last_base)
+        bool last_search_state = (&search_state == &search_states.back());
+        if (not last_search_state)
             stream << " ";
     }
     return stream.str();
 }
 
 
-std::string dump_variant_site_paths(const Pattern &kmer,
-                                    const KmerVariantSitePaths &kmer_variant_site_paths) {
+std::string dump_variant_site_paths(const SearchStates &search_states) {
     std::stringstream stream;
-    const auto &variant_site_paths = kmer_variant_site_paths.at(kmer);
-    for (const auto &variant_site_path: variant_site_paths) {
 
-        auto i = 0;
+    for (const auto &search_state: search_states) {
+        const auto &variant_site_path = search_state.variant_site_path;
+
         for (const auto &variant_site: variant_site_path) {
             const auto &site_marker = variant_site.first;
             const auto &allele_id = variant_site.second;
 
-            stream << site_marker << " ";
-            stream << (int) allele_id;
+            stream << site_marker << " " << allele_id;
 
-            const bool last_variant_site = i == variant_site_path.size() - 1;
-            ++i;
+            const bool last_variant_site = &variant_site == &variant_site_path.back();
             if (not last_variant_site)
                 stream << " ";
         }
@@ -58,24 +59,21 @@ std::string dump_variant_site_paths(const Pattern &kmer,
 
 
 std::string dump_kmer_index_entry(const Pattern &kmer,
-                                  const SA_Intervals &sa_intervals,
-                                  const KmerVariantSitePaths &kmer_variant_site_paths) {
+                                  const SearchStates &search_states) {
     std::stringstream stream;
     stream << dump_kmer(kmer) << "|";
-    stream << dump_sa_intervals(sa_intervals) << "|";
-    stream << dump_variant_site_paths(kmer, kmer_variant_site_paths);
+    stream << dump_sa_intervals(search_states) << "|";
+    stream << dump_variant_site_paths(search_states);
     return stream.str();
 }
 
 
 void dump_kmer_index(std::ofstream &kmer_index_file,
                      const KmerIndex &kmer_index) {
-    for (const auto &kmer_sa_intervals: kmer_index.sa_intervals_map) {
-        const auto &kmer = kmer_sa_intervals.first;
-        const SA_Intervals &sa_intervals = kmer_index.sa_intervals_map.at(kmer);
-        const std::string kmer_entry =
-                dump_kmer_index_entry(kmer, sa_intervals,
-                                      kmer_index.variant_site_paths_map);
+    for (const auto &kmer_search_states: kmer_index) {
+        const auto &kmer = kmer_search_states.first;
+        const auto &search_states = kmer_search_states.second;
+        const auto &kmer_entry = dump_kmer_index_entry(kmer, search_states);
         kmer_index_file << kmer_entry << std::endl;
     }
 }
@@ -194,34 +192,6 @@ void update_full_kmer(Pattern &full_kmer,
 }
 
 
-void update_kmer_index(KmerIndex &kmer_index,
-                       const Pattern full_kmer,
-                       const CacheElement &cache_element) {
-    SA_Intervals sa_intervals;
-    for (const auto &search_state: cache_element.search_states)
-        sa_intervals.push_back(search_state.sa_interval);
-
-    VariantSitePaths variant_site_paths;
-    for (const auto &search_state: cache_element.search_states) {
-        if (not search_state.variant_site_path.empty())
-            variant_site_paths.push_back(search_state.variant_site_path);
-    }
-
-    const bool search_results_found = not cache_element.search_states.empty();
-    if (search_results_found) {
-        kmer_index.sa_intervals_map[full_kmer] = sa_intervals;
-        kmer_index.variant_site_paths_map[full_kmer] = variant_site_paths;
-
-        auto kmer_crosses_variant_site = not variant_site_paths.empty();
-        if (not kmer_crosses_variant_site)
-            kmer_index.non_site_crossing_kmers.insert(full_kmer);
-    } else {
-        kmer_index.sa_intervals_map.erase(full_kmer);
-        kmer_index.variant_site_paths_map.erase(full_kmer);
-    }
-}
-
-
 KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
                       const int kmer_size,
                       const PRG_Info &prg_info) {
@@ -231,7 +201,7 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
 
     auto count = 0;
     for (const auto &kmer_suffix_diff: kmer_suffix_diffs) {
-        if (count % 10000 == 0)
+        if (count > 0 and count % 10000 == 0)
             std::cout << "Kmer suffix diff count: " << count << std::endl;
         count++;
 
@@ -245,9 +215,7 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
                                 prg_info);
 
         const auto &last_cache_element = cache.back();
-        update_kmer_index(kmer_index,
-                          full_kmer,
-                          last_cache_element);
+        kmer_index[full_kmer] = last_cache_element.search_states;
     }
     return kmer_index;
 }
@@ -333,9 +301,9 @@ Pattern parse_encoded_kmer(const std::string &encoded_kmer_str) {
 }
 
 
-SA_Intervals parse_sa_intervals(const std::string &full_sa_intervals_str) {
+std::vector<SA_Interval> parse_sa_intervals(const std::string &full_sa_intervals_str) {
     std::vector<std::string> split_sa_intervals = split(full_sa_intervals_str, " ");
-    SA_Intervals sa_intervals;
+    std::vector<SA_Interval> sa_intervals;
     for (auto i = 0; i < split_sa_intervals.size(); i = i + 2) {
         auto sa_interval_start = (uint64_t) std::stoi(split_sa_intervals[i]);
         auto sa_interval_end = (uint64_t) std::stoi(split_sa_intervals[i + 1]);
@@ -376,14 +344,22 @@ VariantSitePaths parse_vairant_site_paths(const std::vector<std::string> &index_
 void parse_kmer_index_entry(KmerIndex &kmer_index, const std::string &line) {
     const std::vector<std::string> &parts = split(line, "|");
 
-    Pattern encoded_kmer = parse_encoded_kmer(parts[0]);
-    const auto sa_intervals = parse_sa_intervals(parts[1]);
-    if (!sa_intervals.empty())
-        kmer_index.sa_intervals_map[encoded_kmer] = sa_intervals;
-    else
-        return;
+    Pattern kmer = parse_encoded_kmer(parts[0]);
+    const auto &sa_intervals = parse_sa_intervals(parts[1]);
+    const auto &variant_site_paths = parse_vairant_site_paths(parts);
 
-    kmer_index.variant_site_paths_map[encoded_kmer] = parse_vairant_site_paths(parts);
+    auto i = 0;
+    SearchStates search_states;
+    for (const auto &variant_site_path: variant_site_paths) {
+        const auto &sa_interval = sa_intervals[i++];
+        const SearchState search_state = {
+                sa_interval,
+                variant_site_path
+        };
+        search_states.emplace_back(search_state);
+    }
+
+    kmer_index[kmer] = search_states;
 }
 
 
