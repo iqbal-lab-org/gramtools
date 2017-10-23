@@ -10,10 +10,9 @@
 #include "utils.hpp"
 #include "prg.hpp"
 #include "kmers.hpp"
-#include "search.hpp"
 
 
-TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
+TEST(GenerateKmerIndex, GivenDataForSingleKmerIndexEntry_CorrectRowDumpGenerated) {
     const Pattern kmer = {1, 2, 3, 4};
 
     VariantSitePath first_path = {
@@ -43,7 +42,36 @@ TEST(GeneratePrecalc, GivenDataForSinglePrecalcEntry_CorrectDumpRowGenerated) {
 }
 
 
-TEST(GeneratePrecalc, GivenVariantSitePaths_DumpVariantSitesPathsCorrectly) {
+TEST(GenerateKmerIndex, TwoSearchStateOneVairiantPath_CorrectKmerIndexEntryDump) {
+    const Pattern kmer = {1, 2, 3, 4};
+
+    VariantSitePath first_path = {
+            VariantSite {5, 9},
+            VariantSite {7, 19},
+            VariantSite {9, 1},
+    };
+    VariantSitePath second_path = {
+            VariantSite {9, 29},
+            VariantSite {11, 39},
+    };
+
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {123, 456},
+                    first_path
+            },
+            SearchState {
+                    SA_Interval {789, 424},
+            }
+    };
+
+    const auto result = dump_kmer_index_entry(kmer, search_states);
+    const auto expected = "1 2 3 4|123 456 789 424|5 9 7 19 9 1||";
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateKmerIndex, GivenVariantSitePaths_DumpVariantSitesPathsCorrectly) {
     VariantSitePath first_path = {
             VariantSite {5, 9},
             VariantSite {7, 19},
@@ -70,7 +98,7 @@ TEST(GeneratePrecalc, GivenVariantSitePaths_DumpVariantSitesPathsCorrectly) {
 }
 
 
-TEST(GeneratePrecalc, GivenSaIntervals_DumpSaIntervalsStringCorrectly) {
+TEST(GenerateKmerIndex, GivenSaIntervals_DumpSaIntervalsStringCorrectly) {
     SearchStates search_states = {
             SearchState {
                     SA_Interval {1, 2}
@@ -86,7 +114,7 @@ TEST(GeneratePrecalc, GivenSaIntervals_DumpSaIntervalsStringCorrectly) {
 }
 
 
-TEST(GeneratePrecalc, GivenKmer_DumpKmerStringCorrectly) {
+TEST(GenerateKmerIndex, GivenKmer_DumpKmerStringCorrectly) {
     const Pattern kmer = {1, 2, 3, 4};
     const auto result = dump_kmer(kmer);
     const auto expected = "1 2 3 4";
@@ -94,7 +122,7 @@ TEST(GeneratePrecalc, GivenKmer_DumpKmerStringCorrectly) {
 }
 
 
-TEST(GeneratePrecalc, GivenDnaString_DnaBasesEncodedCorrectly) {
+TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {
     const auto dna_str = "AAACCCGGGTTTACGT";
     const auto result = encode_dna_bases(dna_str);
     const Pattern expected = {
@@ -108,7 +136,7 @@ TEST(GeneratePrecalc, GivenDnaString_DnaBasesEncodedCorrectly) {
 }
 
 
-TEST(ParsePrecalc, GivenKmerIndexEntryStr_CorrectlyParsed) {
+TEST(ParseKmerIndex, GivenKmerIndexEntryStr_CorrectlyParsed) {
     KmerIndex kmer_index;
     const auto entry = "1 2 3 4|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
     parse_kmer_index_entry(kmer_index, entry);
@@ -141,7 +169,36 @@ TEST(ParsePrecalc, GivenKmerIndexEntryStr_CorrectlyParsed) {
 }
 
 
-TEST(ParsePrecalc, GivenEncodedKmerString_CorrectlyParsed) {
+TEST(ParseKmerIndex, IndexEntryTwoSearchStatesOneVariantSitePath_ParsedCorrectly) {
+    KmerIndex kmer_index;
+    const auto entry = "1 2 3 4|123 456 789 424||9 29 11 39|";
+    parse_kmer_index_entry(kmer_index, entry);
+
+    const auto &result = kmer_index;
+    KmerIndex expected = {
+            {Pattern {1, 2, 3, 4},
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {123, 456},
+                                    VariantSitePath {}
+                            },
+
+                            SearchState {
+                                    SA_Interval {789, 424},
+                                    VariantSitePath {
+                                            VariantSite {9, 29},
+                                            VariantSite {11, 39}
+                                    }
+                            }
+
+                    }
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ParseKmerIndex, GivenEncodedKmerString_CorrectlyParsed) {
     const auto encoded_kmer_str = "3 4 2 1 1 3 1 1 2";
     const auto result = parse_encoded_kmer(encoded_kmer_str);
     const Pattern expected = {3, 4, 2, 1, 1, 3, 1, 1, 2};
@@ -149,7 +206,7 @@ TEST(ParsePrecalc, GivenEncodedKmerString_CorrectlyParsed) {
 }
 
 
-TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
+TEST(ParseKmerIndex, GivenSaIntervalsString_CorrectlyParsed) {
     const auto full_sa_intervals_str = "352511 352512 352648 352649 2 3";
     const auto result = parse_sa_intervals(full_sa_intervals_str);
 
@@ -162,7 +219,7 @@ TEST(ParsePrecalc, GivenSaIntervalsString_CorrectlyParsed) {
 }
 
 
-TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
+TEST(ParseKmerIndex, GivenTwoSites_CorrectSiteStructGenerated) {
     const auto kmer_index_entry = "5 9 7 19";
     const auto &result = parse_variant_site_path(kmer_index_entry);
     VariantSitePath expected = {
@@ -173,7 +230,7 @@ TEST(ParsePrecalc, GivenTwoSites_CorrectSiteStructGenerated) {
 }
 
 
-TEST(ParsePrecalc, GivenSitesTrailingAt_TrailingAtIgnored) {
+TEST(ParseKmerIndex, GivenSitesTrailingAt_TrailingAtIgnored) {
     const auto kmer_index_entry = "5 9 7 19";
     const auto &result = parse_variant_site_path(kmer_index_entry);
     VariantSitePath expected = {
