@@ -379,6 +379,38 @@ TEST_F(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
 }
 
 
+TEST_F(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
+    auto prg_raw = "aca5g6c5tatt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer_size = 5;
+    auto first_full_kmer = encode_dna_bases("attat");
+    auto kmer_suffix_diff = encode_dna_bases("ac");
+    Patterns kmers = {
+            first_full_kmer,
+            kmer_suffix_diff
+    };
+    auto second_full_kmer = encode_dna_bases("actat");
+
+    auto result = index_kmers(kmers, kmer_size, prg_info);
+
+    KmerIndex expected = {
+            {second_full_kmer,
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {3, 3},
+                                    VariantSitePath {
+                                            VariantSite {5, 2}
+                                    },
+                                    SearchVariantSiteState::outside_variant_site
+                            }
+                    }
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST_F(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c5tatt";
     const auto prg_info = generate_prg_info(prg_raw);

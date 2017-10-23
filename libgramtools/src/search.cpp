@@ -6,6 +6,11 @@ SearchStates search_read_bwd(const Pattern &read,
                              const Pattern &kmer,
                              const KmerIndex &kmer_index,
                              const PRG_Info &prg_info) {
+
+    bool kmer_in_index = kmer_index.find(kmer) != kmer_index.end();
+    if (not kmer_in_index)
+        return SearchStates {};
+
     auto search_states = kmer_index.at(kmer);
     if (search_states.empty())
         return search_states;

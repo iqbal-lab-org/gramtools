@@ -601,6 +601,21 @@ TEST_F(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathIn
 }
 
 
+TEST_F(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
+    const auto prg_raw = "gcgct5c6g6t5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const auto read = encode_dna_bases("tagtaa");
+    Pattern kmer = encode_dna_bases("gtaa");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 0);
+}
+
+
 TEST_F(Search, GivenRead_CorrectResultSaInterval) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);

@@ -215,7 +215,8 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
                                 prg_info);
 
         const auto &last_cache_element = cache.back();
-        kmer_index[full_kmer] = last_cache_element.search_states;
+        if (not last_cache_element.search_states.empty())
+            kmer_index[full_kmer] = last_cache_element.search_states;
     }
     return kmer_index;
 }
