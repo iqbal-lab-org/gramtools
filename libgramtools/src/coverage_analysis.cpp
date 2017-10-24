@@ -112,7 +112,6 @@ AlleleCoverage make_allele_coverage_structure(const PRG_Info &prg_info) {
         }
 
         last_variant_site_marker = prg_char;
-
     }
     return allele_coverage;
 }

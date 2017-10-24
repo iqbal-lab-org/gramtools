@@ -42,12 +42,8 @@ void MasksParser::parse_allele(std::istream &stream) {
         if (a > allele_count)
             allele_count = a;
         if (a < allele_count && a != 0) {
-            MasksParser::allele_coverage.emplace_back(std::vector<double>(allele_count, 0));
             allele_count = a;
         }
         MasksParser::allele.push_back(a);
     }
-
-    if (allele_count > 0)
-        MasksParser::allele_coverage.emplace_back(std::vector<double>(allele_count, 0));
 }

@@ -9,8 +9,8 @@
 
 #include "prg.hpp"
 #include "parameters.hpp"
-#include "map.hpp"
 #include "timer_report.hpp"
+#include "kmers.hpp"
 #include "main.hpp"
 
 
@@ -30,7 +30,6 @@ int main(int argc, const char *const *argv) {
     prg_info.sites_mask = masks.sites;
     prg_info.allele_mask = masks.allele;
     prg_info.max_alphabet_num = masks.max_alphabet_num;
-    AlleleCoverage allele_coverage = masks.allele_coverage;
     timer_report.record("Parse masks");
 
     prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
@@ -46,10 +45,6 @@ int main(int argc, const char *const *argv) {
     auto count_mapped = quasimap_reads(allele_coverage, params, kmer_index, prg_info);
     std::cout << "Count mapped: " << count_mapped << std::endl;
     timer_report.record("Mapping");
-
-    std::cout << "Writing allele coverage to file" << std::endl;
-    output_allele_coverage(allele_coverage, params);
-    timer_report.record("Output coverage");
      */
 
     timer_report.report();

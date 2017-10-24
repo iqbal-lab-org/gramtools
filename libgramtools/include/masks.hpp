@@ -16,8 +16,7 @@ public:
     uint64_t max_alphabet_num;
     std::vector<uint64_t> sites;
 
-    std::vector<int> allele;
-    std::vector<std::vector<double>> allele_coverage;
+    std::vector<AlleleId> allele;
 
     MasksParser(){};
     MasksParser(const std::string &sites_fname, const std::string &alleles_fname);
