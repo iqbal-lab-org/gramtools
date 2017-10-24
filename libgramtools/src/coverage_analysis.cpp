@@ -16,14 +16,14 @@ uint64_t quasimap_reads(const Parameters &params,
     auto allele_coverage = make_allele_coverage_structure(prg_info);
 
     SeqRead reads(params.reads_fpath.c_str());
-    std::ofstream progress_fhandle(params.processed_reads_fpath);
+    std::ofstream progress_file_handle(params.processed_reads_fpath);
 
     uint64_t count_all_reads = 0;
     uint64_t count_mapped_reads = 0;
 
     for (const auto *const raw_read: reads) {
         if (count_all_reads++ % 100000 == 0)
-            progress_fhandle << count_all_reads << std::endl;
+            progress_file_handle << count_all_reads << std::endl;
 
         auto read = encode_dna_bases(*raw_read);
         bool read_mappred_exactly = quasimap_read(read,
@@ -34,7 +34,7 @@ uint64_t quasimap_reads(const Parameters &params,
         if (read_mappred_exactly)
             ++count_mapped_reads;
     }
-    progress_fhandle.close();
+    dump_allele_coverage(allele_coverage, params);
     return count_mapped_reads;
 }
 
@@ -46,9 +46,8 @@ bool quasimap_read(const Pattern &read,
                    const Parameters &params) {
     const auto kmer = get_kmer_from_read(params.kmers_size, read);
     const auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
-    const bool read_mapped_exactly = not search_states.empty();
-
     record_read_coverage(allele_coverage, search_states);
+    const bool read_mapped_exactly = not search_states.empty();
     return read_mapped_exactly;
 }
 
@@ -66,6 +65,23 @@ void record_read_coverage(AlleleCoverage &allele_coverage,
 
             allele_coverage[variant_site_cover_index][allele_cover_index] += 1;
         }
+    }
+}
+
+
+void dump_allele_coverage(const AlleleCoverage &allele_coverage,
+                          const Parameters &params) {
+    std::ofstream file_handle(params.allele_coverage_fpath);
+    for (const auto &variant_site_coverage: allele_coverage) {
+        auto allele_count = 0;
+        for (const auto &coverage: variant_site_coverage) {
+            file_handle << coverage;
+
+            auto not_last_coverage = allele_count++ < variant_site_coverage.size() - 1;
+            if (not_last_coverage)
+                file_handle << " ";
+        }
+        file_handle << std::endl;
     }
 }
 

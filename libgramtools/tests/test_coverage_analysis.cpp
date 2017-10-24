@@ -15,15 +15,18 @@ class CoverageAnalysis : public ::testing::Test {
 
 protected:
     std::string prg_fpath;
+    std::string allele_coverage_fpath;
 
     void SetUp() override {
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         const auto uuid_str = boost::lexical_cast<std::string>(uuid);
         prg_fpath = "./prg_" + uuid_str;
+        allele_coverage_fpath = "./allele_coverage_" + uuid_str;
     }
 
     void TearDown() override {
         std::remove(prg_fpath.c_str());
+        std::remove(allele_coverage_fpath.c_str());
     }
 
     FM_Index fm_index_from_raw_prg(const std::string &prg_raw) {
@@ -174,6 +177,29 @@ TEST_F(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage)
     AlleleCoverage expected = {
             {0, 0, 1},
             {1, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST_F(CoverageAnalysis, GivenAlleleCoverage_CorrectlyWrittenToFile) {
+    AlleleCoverage allele_coverage = {
+            {0, 0, 1},
+            {1, 0}
+    };
+    Parameters params;
+    params.allele_coverage_fpath = allele_coverage_fpath;
+    dump_allele_coverage(allele_coverage, params);
+
+    std::vector<std::string> result;
+    std::string line;
+    std::ifstream in_file_handle(allele_coverage_fpath);
+    while (std::getline(in_file_handle, line)) {
+        result.push_back(line);
+    }
+    std::vector<std::string> expected = {
+            "0 0 1",
+            "1 0"
     };
     EXPECT_EQ(result, expected);
 }
