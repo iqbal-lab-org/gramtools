@@ -2,12 +2,14 @@
 #include <string>
 #include <fstream>
 
+#include "utils.hpp"
+
 
 #ifndef GRAMTOOLS_PARSE_MASKS_H
 #define GRAMTOOLS_PARSE_MASKS_H
 
-using SitesMask = std::vector<uint64_t>;
-using AlleleMask = std::vector<int>;
+using SitesMask = std::vector<Marker>;
+using AlleleMask = std::vector<AlleleId>;
 
 class MasksParser {
 public:

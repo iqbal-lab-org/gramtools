@@ -1,11 +1,12 @@
 #include "gtest/gtest.h"
+#include "utils.hpp"
 #include "prg.hpp"
 
 
 TEST(GenerateAlleleMask, SingleVariantSite_CorrectAlleleMask) {
     const std::string prg_raw = "a5g6t5c";
     auto result = generate_allele_mask(prg_raw);
-    std::vector<int> expected = {
+    std::vector<AlleleId> expected = {
             0,
             0, 1,
             0, 2, 0,
@@ -18,7 +19,7 @@ TEST(GenerateAlleleMask, SingleVariantSite_CorrectAlleleMask) {
 TEST(GenerateAlleleMask, SingleVariantSiteThreeAlleles_CorrectAlleleMask) {
     const std::string prg_raw = "a5g6t6aa5c";
     auto result = generate_allele_mask(prg_raw);
-    std::vector<int> expected = {
+    std::vector<AlleleId> expected = {
             0,
             0, 1,
             0, 2,
@@ -32,7 +33,7 @@ TEST(GenerateAlleleMask, SingleVariantSiteThreeAlleles_CorrectAlleleMask) {
 TEST(GenerateAlleleMask, TwoVariantSites_CorrectAlleleMask) {
     const std::string prg_raw = "a5g6t5cc7aa8g7a";
     auto result = generate_allele_mask(prg_raw);
-    std::vector<int> expected = {
+    std::vector<AlleleId> expected = {
             0,
             0, 1,
             0, 2, 0,
@@ -48,7 +49,7 @@ TEST(GenerateAlleleMask, TwoVariantSites_CorrectAlleleMask) {
 TEST(GenerateAlleleMask, DoubleDigitMarker_CorrectAlleleMask) {
     const std::string prg_raw = "a13g14t13tt";
     auto result = generate_allele_mask(prg_raw);
-    std::vector<int> expected = {
+    std::vector<AlleleId> expected = {
             0,
             0, 1,
             0, 2, 0,

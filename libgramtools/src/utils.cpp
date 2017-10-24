@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 
+#include "sequence_read/seqread.hpp"
 #include "utils.hpp"
 
 
@@ -32,10 +33,24 @@ Base encode_dna_base(const char &base_str) {
 
 
 Pattern encode_dna_bases(const std::string &dna_str) {
-    std::vector<uint8_t> dna;
+    Pattern pattern;
     for (const auto &base_str: dna_str) {
         int encoded_base = encode_dna_base(base_str);
-        dna.emplace_back(encoded_base);
+        pattern.emplace_back(encoded_base);
     }
-    return dna;
+    return pattern;
+}
+
+
+Pattern encode_dna_bases(const GenomicRead &read_sequence) {
+    const auto sequence_length = strlen(read_sequence.seq);
+
+    Pattern pattern;
+    pattern.reserve(sequence_length);
+
+    for (uint32_t i = 0; i < sequence_length; i++) {
+        auto base = encode_dna_base(read_sequence.seq[i]);
+        pattern[i] = base;
+    }
+    return pattern;
 }

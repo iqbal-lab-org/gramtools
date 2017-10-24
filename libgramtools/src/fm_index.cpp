@@ -3,7 +3,6 @@
 #include <sdsl/suffix_arrays.hpp>
 
 #include "fm_index.hpp"
-#include "map.hpp"
 
 
 inline bool file_exist(const std::string& fname) {

@@ -30,10 +30,10 @@ set_target_properties(libgmock PROPERTIES
 
 add_executable(test_main
         main.cpp
+        test_coverage_analysis.cpp
         test_kmers.cpp
         test_search.cpp
-        test_prg.cpp
-        test_map.cpp)
+        test_prg.cpp)
 target_link_libraries(test_main
         gramtools
         libgmock

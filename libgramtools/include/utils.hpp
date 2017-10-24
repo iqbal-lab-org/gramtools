@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <string>
 
+#include "sequence_read/seqread.hpp"
+
 
 #ifndef GRAMTOOLS_UTILS_HPP
 #define GRAMTOOLS_UTILS_HPP
@@ -22,5 +24,6 @@ using SA_Index = uint64_t;
 using SA_Interval = std::pair<SA_Index, SA_Index>;
 
 Pattern encode_dna_bases(const std::string &dna_str);
+Pattern encode_dna_bases(const GenomicRead &read_sequence);
 
 #endif //GRAMTOOLS_UTILS_HPP

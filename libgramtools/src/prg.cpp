@@ -39,8 +39,8 @@ uint64_t max_alphabet_num(const std::string &prg_raw) {
 }
 
 
-std::vector<int> generate_allele_mask(const std::string &prg_raw) {
-    std::vector<int> allele_mask;
+std::vector<AlleleId> generate_allele_mask(const std::string &prg_raw) {
+    std::vector<AlleleId> allele_mask;
     uint64_t current_site_edge_marker = 0;
     int current_allele_number = 0;
 

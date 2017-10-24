@@ -13,7 +13,7 @@ struct Parameters {
     std::string encoded_linear_prg_fpath;
     std::string fm_index_memory_log_fpath;
     std::string kmers_fpath;
-    int kmers_size;
+    uint32_t kmers_size;
 };
 
 
