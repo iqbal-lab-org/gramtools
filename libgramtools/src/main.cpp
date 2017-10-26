@@ -1,57 +1,219 @@
-/* TODO:
- *  *   implement boost logging
-*/
-
 #include <iostream>
 
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/variant/get.hpp>
 
 #include "prg.hpp"
-#include "parameters.hpp"
 #include "timer_report.hpp"
 #include "kmers.hpp"
+#include "coverage_analysis.hpp"
 #include "main.hpp"
 
 
+namespace po = boost::program_options;
+
+
 int main(int argc, const char *const *argv) {
-    auto params = parse_command_line_parameters(argc, argv);
-    TimerReport timer_report;
-
-    PRG_Info prg_info;
-
-    std::cout << "Getting FM-index" << std::endl;
-    prg_info.fm_index = get_fm_index(true, params.fm_index_fpath, params.encoded_linear_prg_fpath,
-                                           params.linear_prg_fpath, params.fm_index_memory_log_fpath);
-    timer_report.record("Construct FM-index");
-
-    std::cout << "Parsing sites_map and allele masks" << std::endl;
-    MasksParser masks(params.site_mask_fpath, params.allele_mask_fpath);
-    prg_info.sites_mask = masks.sites;
-    prg_info.allele_mask = masks.allele;
-    prg_info.max_alphabet_num = masks.max_alphabet_num;
-    timer_report.record("Parse masks");
-
-    prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
-    timer_report.record("Calculating DNA ranks");
-    std::cout << "Maximum alphabet number: " << prg_info.max_alphabet_num << std::endl;
-
-    std::cout << "Loading kmer index" << std::endl;
-    KmerIndex kmer_index = get_kmer_index(params.kmers_fpath, params.kmers_size, prg_info);
-    timer_report.record("Load kmer index");
-
-    /*
-    std::cout << "Mapping" << std::endl;
-    auto count_mapped = quasimap_reads(allele_coverage, params, kmer_index, prg_info);
-    std::cout << "Count mapped: " << count_mapped << std::endl;
-    timer_report.record("Mapping");
-     */
-
-    timer_report.report();
+    Parameters parameters;
+    Commands command;
+    std::tie(parameters, command) = parse_command_line_parameters(argc, argv);
+    switch (command) {
+        case Commands::build:
+            build(parameters);
+            break;
+        case Commands::quasimap:
+            quasimap(parameters);
+            break;
+    }
     return 0;
 }
 
 
+void build(const Parameters &parameters) {
+    std::cout << "Executing build command" << std::endl;
+
+    std::cout << "Generating integer encoded PRG" << std::endl;
+    generate_encoded_prg(parameters);
+
+    std::cout << "Generating FM-Index" << std::endl;
+    generate_fm_index(parameters);
+
+    std::cout << "Generating kmer index" << std::endl;
+    const auto prg_info = load_prg_info(parameters);
+    generate_kmer_index(parameters, prg_info);
+}
+
+
+void quasimap(const Parameters &parameters) {
+    std::cout << "Executing quasimap command" << std::endl;
+    std::cout << "Loading data" << std::endl;
+    const auto prg_info = load_prg_info(parameters);
+    const auto kmer_index = load_kmer_index(parameters);
+
+    std::cout << "Running quasimap" << std::endl;
+
+    uint64_t all_reads_count = 0;
+    uint64_t skipped_reads_count = 0;
+    uint64_t mapped_reads_count = 0;
+
+    std::tie(all_reads_count,
+             skipped_reads_count,
+             mapped_reads_count) = quasimap_reads(parameters,
+                                                  kmer_index,
+                                                  prg_info);
+    std::cout << "Count all reads: " << all_reads_count << std::endl;
+    std::cout << "Count skipped reads: " << skipped_reads_count << std::endl;
+    std::cout << "Count mapped reads: " << mapped_reads_count << std::endl;
+}
+
+
+PRG_Info load_prg_info(const Parameters &parameters) {
+    MasksParser masks(parameters.site_mask_fpath,
+                      parameters.allele_mask_fpath);
+    return PRG_Info {
+            load_fm_index(parameters),
+            masks.sites,
+            masks.allele,
+            masks.max_alphabet_num
+    };
+}
+
+
+Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
+    po::options_description build_description("build options");
+    build_description.add_options()
+                             ("prg", po::value<std::string>(),
+                              "file containing a linear PRG")
+                             ("encoded-prg", po::value<std::string>(),
+                              "output file containing the integer encoded linear PRG")
+                             ("fm-index", po::value<std::string>(),
+                              "file containing the SDSL FM-Index")
+                             ("variant-site-mask", po::value<std::string>(),
+                              "vaiant site boundary marker mask over the linear PRG")
+                             ("allele-mask", po::value<std::string>(),
+                              "allele ID mask over the linear PRG")
+                             ("memory-log", po::value<std::string>(),
+                              "SDSL memory log of FM-index construction")
+                             ("kmers-suffix-diffs", po::value<std::string>(),
+                              "file continaing kmer suffix diffs used in consturcting the kmer index")
+                             ("kmer-index", po::value<std::string>(),
+                              "output destination of the kmer index")
+                             ("kmer-size", po::value<uint32_t>(),
+                              "kmer size used in constructing the kmer index");
+
+    std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
+                                                             po::include_positional);
+    opts.erase(opts.begin());
+
+    po::store(po::command_line_parser(opts).options(build_description).run(), vm);
+
+    Parameters parameters;
+    parameters.linear_prg_fpath = vm["prg"].as<std::string>();
+    parameters.encoded_prg_fpath = vm["encoded-prg"].as<std::string>();
+    parameters.fm_index_fpath = vm["fm-index"].as<std::string>();
+    parameters.site_mask_fpath = vm["variant-site-mask"].as<std::string>();
+    parameters.allele_mask_fpath = vm["allele-mask"].as<std::string>();
+    parameters.sdsl_memory_log_fpath = vm["memory-log"].as<std::string>();
+    parameters.kmer_suffix_diffs_fpath = vm["kmers-suffix-diffs"].as<std::string>();
+    parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
+    parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
+    return parameters;
+}
+
+
+Parameters parse_quasimap_parameters(po::variables_map &vm,
+                                     const po::parsed_options &parsed) {
+    po::options_description quasimap_description("quasimap options");
+    quasimap_description.add_options()
+                                ("prg", po::value<std::string>(),
+                                 "file containing a linear PRG")
+                                ("encoded-prg", po::value<std::string>(),
+                                 "output file containing the integer encoded linear PRG")
+                                ("fm-index", po::value<std::string>(),
+                                 "file containing the SDSL FM-Index")
+                                ("variant-site-mask", po::value<std::string>(),
+                                 "vaiant site boundary marker mask over the linear PRG")
+                                ("allele-mask", po::value<std::string>(),
+                                 "allele ID mask over the linear PRG")
+                                ("memory-log", po::value<std::string>(),
+                                 "SDSL memory log of FM-index construction")
+                                ("kmers-suffix-diffs", po::value<std::string>(),
+                                 "file continaing kmer suffix diffs used in consturcting the kmer index")
+                                ("kmer-index", po::value<std::string>(),
+                                 "output destination of the kmer index")
+                                ("kmer-size", po::value<uint32_t>(),
+                                 "kmer size used in constructing the kmer index")
+
+                                ("reads", po::value<std::string>(),
+                                 "file contining reads (FASTA or FASTQ)")
+                                ("allele-coverages", po::value<std::string>(),
+                                 "output file of read coverages over each allele and variant site")
+                                ("reads-progress", po::value<std::string>(),
+                                 "output file containing progress counts of reads processed");
+
+    std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
+                                                             po::include_positional);
+    opts.erase(opts.begin());
+    po::store(po::command_line_parser(opts).options(quasimap_description).run(), vm);
+
+    Parameters parameters;
+    parameters.linear_prg_fpath = vm["prg"].as<std::string>();
+    parameters.encoded_prg_fpath = vm["encoded-prg"].as<std::string>();
+    parameters.fm_index_fpath = vm["fm-index"].as<std::string>();
+    parameters.site_mask_fpath = vm["variant-site-mask"].as<std::string>();
+    parameters.allele_mask_fpath = vm["allele-mask"].as<std::string>();
+    parameters.sdsl_memory_log_fpath = vm["memory-log"].as<std::string>();
+    parameters.kmer_suffix_diffs_fpath = vm["kmers-suffix-diffs"].as<std::string>();
+    parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
+    parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
+
+    parameters.reads_fpath = vm["reads"].as<std::string>();
+    parameters.allele_coverage_fpath = vm["allele-coverages"].as<std::string>();
+    parameters.reads_progress_fpath = vm["reads-progress"].as<std::string>();
+
+    return parameters;
+}
+
+
+std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const char *const *argv) {
+    po::options_description global("Global options");
+    global.add_options()
+                  ("debug", "Turn on debug output")
+                  ("command", po::value<std::string>(), "command to execute")
+                  ("subargs", po::value<std::vector<std::string> >(), "Arguments for command");
+
+    po::positional_options_description pos;
+    pos.add("command", 1)
+       .add("subargs", -1);
+
+    po::variables_map vm;
+
+    po::parsed_options parsed =
+            po::command_line_parser(argc, argv)
+                    .options(global)
+                    .positional(pos)
+                    .allow_unregistered()
+                    .run();
+
+    po::store(parsed, vm);
+    std::string cmd = vm["command"].as<std::string>();
+
+    if (cmd == "build") {
+        auto parameters = parse_build_parameters(vm, parsed);
+        return std::make_pair(parameters, Commands::build);
+    } else if (cmd == "quasimap") {
+        auto parameters = parse_quasimap_parameters(vm, parsed);
+        return std::make_pair(parameters, Commands::quasimap);
+    }
+
+    // unrecognised command
+    throw po::invalid_option_value(cmd);
+}
+
+
+/*
 Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     namespace po = boost::program_options;
     Parameters params;
@@ -59,30 +221,28 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
     boost::program_options::options_description description("All parameters must be specified");
     description.add_options()
                        ("help", "produce help message")
-                       ("prg,marker_porition", po::value<std::string>(&params.linear_prg_fpath),
-                        "input file containing linear prg")
-                       ("csa,c", po::value<std::string>(&params.fm_index_fpath),
-                        "output file where the FM-index is stored")
-                       ("input,i", po::value<std::string>(&params.reads_fpath),
-                        "reference file (FASTA or FASTQ)")
-                       ("ps,s", po::value<std::string>(&params.site_mask_fpath),
-                        "input file containing mask over the linear prg that indicates at "
-                                "each position whether you are inside a site and if so, which site")
-                       ("pa,a", po::value<std::string>(&params.allele_mask_fpath),
-                        "input file containing mask over the linear prg that indicates at "
-                                "each position whether you are inside a allele and if so, which allele")
-                       ("co,v", po::value<std::string>(&params.allele_coverage_fpath),
-                        "name of output file where coverages on each allele are printed")
-                       ("ro,r", po::value<std::string>(&params.processed_reads_fpath),
-                        "name of output file where reads that have been processed are printed")
-                       ("po,b", po::value<std::string>(&params.encoded_linear_prg_fpath),
-                        "output filename of binary file containing the prg in integer alphabet")
-                       ("log,l", po::value<std::string>(&params.fm_index_memory_log_fpath),
-                        "output memory log file for the FM-index")
-                       ("kfile,f", po::value<std::string>(&params.kmers_fpath),
-                        "input file listing all kmers in PRG")
-                       ("ksize,k", po::value<int>(&params.kmers_size),
-                        "size of pre-calculated kmers");
+                       ("prg", po::value<std::string>(&params.linear_prg_fpath),
+                        "file containing a linear PRG")
+                       ("fm-index", po::value<std::string>(&params.fm_index_fpath),
+                        "file containing the SDSL FM-Index")
+                       ("reads,i", po::value<std::string>(&params.reads_fpath),
+                        "file contining reads (FASTA or FASTQ)")
+                       ("variant-site-mask", po::value<std::string>(&params.site_mask_fpath),
+                        "vaiant site boundary marker mask over the linear PRG")
+                       ("allele-mask", po::value<std::string>(&params.allele_mask_fpath),
+                        "allele ID mask over the linear PRG")
+                       ("coverages", po::value<std::string>(&params.allele_coverage_fpath),
+                        "output file of read coverages over each allele and variant site")
+                       ("reads-progress", po::value<std::string>(&params.reads_progress_fpath),
+                        "output file containing progress counts of reads processed")
+                       ("encoded-prg", po::value<std::string>(&params.encoded_linear_prg_fpath),
+                        "output file path of integer encoded linear PRG")
+                       ("memory-log", po::value<std::string>(&params.sdsl_memory_log_fpath),
+                        "SDSL memory log of FM-index construction")
+                       ("kmers-suffix-diffs", po::value<std::string>(&params.kmer_suffix_diffs_fpath),
+                        "file continaing kmer suffix diffs used in consturcting the kmer index")
+                       ("kmer-size", po::value<uint32_t>(&params.kmers_size),
+                        "kmer size used in constructing the kmer index");
 
     boost::program_options::variables_map vm;
     boost::program_options::store(po::parse_command_line(argc, argv, description), vm);
@@ -102,3 +262,4 @@ Parameters parse_command_line_parameters(int argc, const char *const *argv) {
 
     return params;
 }
+*/

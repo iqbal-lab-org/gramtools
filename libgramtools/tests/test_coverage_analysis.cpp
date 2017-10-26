@@ -41,7 +41,8 @@ protected:
     PRG_Info generate_prg_info(const std::string &prg_raw) {
         PRG_Info prg_info;
         prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
-        prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
+        prg_info.sites_mask = generate_sites_mask(prg_raw);
+        // prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
         prg_info.allele_mask = generate_allele_mask(prg_raw);
         prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
         return prg_info;
@@ -54,7 +55,7 @@ TEST_F(CoverageAnalysis, GivenOneVariantSite_CorrectAlleleCoverageStructure) {
     const auto prg_raw = "gcgct5gg6agtg5ctgt";
     const auto prg_info = generate_prg_info(prg_raw);
 
-    auto result = make_allele_coverage_structure(prg_info);
+    auto result = generate_allele_coverage_structure(prg_info);
     AlleleCoverage expected = {
             {0, 0}
     };
@@ -66,7 +67,7 @@ TEST_F(CoverageAnalysis, GivenTwoVariantSite_CorrectAlleleCoverageStructure) {
     const auto prg_raw = "gcgct5gg6agtg5cccc7t8g7t";
     const auto prg_info = generate_prg_info(prg_raw);
 
-    auto result = make_allele_coverage_structure(prg_info);
+    auto result = generate_allele_coverage_structure(prg_info);
     AlleleCoverage expected = {
             {0, 0},
             {0, 0}
@@ -79,7 +80,7 @@ TEST_F(CoverageAnalysis, GivenThreeVariantSites_CorrectAlleleCoverageStructure) 
     const auto prg_raw = "5gg6agtg5c7t8g8c7t9ccccc10t9";
     const auto prg_info = generate_prg_info(prg_raw);
 
-    auto result = make_allele_coverage_structure(prg_info);
+    auto result = generate_allele_coverage_structure(prg_info);
     AlleleCoverage expected = {
             {0, 0},
             {0, 0, 0},
@@ -101,7 +102,7 @@ TEST_F(CoverageAnalysis, GivenReadAndKmerSize_CorrectKmerReturned) {
 TEST_F(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = make_allele_coverage_structure(prg_info);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gccta");
     Patterns kmers = {kmer};
@@ -129,7 +130,7 @@ TEST_F(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCove
 TEST_F(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = make_allele_coverage_structure(prg_info);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -157,7 +158,7 @@ TEST_F(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCover
 TEST_F(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = make_allele_coverage_structure(prg_info);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};

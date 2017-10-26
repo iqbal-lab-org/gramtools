@@ -10,32 +10,46 @@
 #include "coverage_analysis.hpp"
 
 
-uint64_t quasimap_reads(const Parameters &params,
-                        const KmerIndex &kmer_index,
-                        const PRG_Info &prg_info) {
-    auto allele_coverage = make_allele_coverage_structure(prg_info);
+QuasimapStats quasimap_reads(const Parameters &params,
+                             const KmerIndex &kmer_index,
+                             const PRG_Info &prg_info) {
+    std::cout << "Generating allele coverage data structure" << std::endl;
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    std::cout << "Done generating allele coverage data structure" << std::endl;
 
     SeqRead reads(params.reads_fpath.c_str());
-    std::ofstream progress_file_handle(params.processed_reads_fpath);
+    std::ofstream progress_file_handle(params.reads_progress_fpath);
 
-    uint64_t count_all_reads = 0;
-    uint64_t count_mapped_reads = 0;
+    uint64_t all_reads_count = 0;
+    uint64_t skipped_reads_count = 0;
+    uint64_t mapped_reads_count = 0;
 
     for (const auto *const raw_read: reads) {
-        if (count_all_reads++ % 100000 == 0)
-            progress_file_handle << count_all_reads << std::endl;
+        if (all_reads_count % 10000 == 0) {
+            progress_file_handle << all_reads_count << std::endl;
+            std::cout << "Reads processed: "
+                      << all_reads_count
+                      << std::endl;
+        }
+        all_reads_count++;
 
         auto read = encode_dna_bases(*raw_read);
+        if (read.empty()) {
+            ++skipped_reads_count;
+            continue;
+        }
         bool read_mappred_exactly = quasimap_read(read,
                                                   allele_coverage,
                                                   kmer_index,
                                                   prg_info,
                                                   params);
         if (read_mappred_exactly)
-            ++count_mapped_reads;
+            ++mapped_reads_count;
     }
     dump_allele_coverage(allele_coverage, params);
-    return count_mapped_reads;
+    return std::make_tuple(all_reads_count,
+                           skipped_reads_count,
+                           mapped_reads_count);
 }
 
 
@@ -86,32 +100,30 @@ void dump_allele_coverage(const AlleleCoverage &allele_coverage,
 }
 
 
-AlleleCoverage make_allele_coverage_structure(const PRG_Info &prg_info) {
-    AlleleCoverage allele_coverage;
+AlleleCoverage generate_allele_coverage_structure(const PRG_Info &prg_info) {
+    const auto min_boundary_marker = 5;
+    const auto numer_of_variant_sites = (prg_info.max_alphabet_num
+                                         - min_boundary_marker
+                                         + 1)
+                                        / 2;
 
-    Marker last_variant_site_marker = 0;
-    uint32_t count_sites = 0;
+    AlleleCoverage allele_coverage(numer_of_variant_sites);
+    bool last_char_was_zero = true;
 
-    for (const auto &prg_char: prg_info.fm_index.text) {
-        if (prg_char <= 4)
-            continue;
+    for (const auto &prg_char: prg_info.sites_mask) {
 
-        bool char_is_allele_boundary_marker = prg_char % 2 == 0;
-        if (char_is_allele_boundary_marker) {
-            count_sites++;
-            continue;
-        }
-
-        auto done_with_variant_site = last_variant_site_marker == prg_char;
-        if (done_with_variant_site) {
-            std::vector<uint32_t> allele(count_sites + 1);
-            std::fill(allele.begin(), allele.end(), 0);
-            allele_coverage.emplace_back(allele);
-            count_sites = 0;
+        if (prg_char == 0) {
+            last_char_was_zero = true;
             continue;
         }
 
-        last_variant_site_marker = prg_char;
+        const auto &current_marker = prg_char;
+        if (last_char_was_zero) {
+            auto variant_site_cover_index = (current_marker - min_boundary_marker) / 2;
+            allele_coverage[variant_site_cover_index].push_back(0);
+
+            last_char_was_zero = false;
+        }
     }
     return allele_coverage;
 }

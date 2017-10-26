@@ -268,7 +268,7 @@ protected:
     PRG_Info generate_prg_info(const std::string &prg_raw) {
         PRG_Info prg_info;
         prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
-        prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
+        // prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
         prg_info.allele_mask = generate_allele_mask(prg_raw);
         prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
         return prg_info;

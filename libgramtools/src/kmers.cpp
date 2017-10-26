@@ -4,6 +4,7 @@
 
 #include "utils.hpp"
 #include "fm_index.hpp"
+#include "parameters.hpp"
 #include "kmers.hpp"
 #include "search.hpp"
 
@@ -222,29 +223,22 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
 }
 
 
-void generate_kmer_index(const std::string &kmer_fname,
-                         const int kmer_size,
+void generate_kmer_index(const Parameters &params,
                          const PRG_Info &prg_info) {
-    std::ifstream kmer_fhandle;
-    kmer_fhandle.open(kmer_fname);
+    std::ifstream kmers_fhandle;
+    kmers_fhandle.open(params.kmer_suffix_diffs_fpath);
 
     Patterns kmer_suffix_diffs;
     std::string line;
-    while (std::getline(kmer_fhandle, line)) {
-        const Pattern &kmer_suffix_diff = encode_dna_bases(line);
+    while (std::getline(kmers_fhandle, line)) {
+        const auto &kmer_suffix_diff = encode_dna_bases(line);
         kmer_suffix_diffs.emplace_back(kmer_suffix_diff);
     }
 
-    KmerIndex kmer_index = index_kmers(kmer_suffix_diffs, kmer_size, prg_info);
+    KmerIndex kmer_index = index_kmers(kmer_suffix_diffs, params.kmers_size, prg_info);
     std::ofstream kmer_index_file;
-    kmer_index_file.open(std::string(kmer_fname) + ".precalc");
+    kmer_index_file.open(params.kmer_index_fpath);
     dump_kmer_index(kmer_index_file, kmer_index);
-}
-
-
-inline bool file_exists(const std::string &name) {
-    std::ifstream f(name.c_str());
-    return f.good();
 }
 
 
@@ -364,34 +358,17 @@ void parse_kmer_index_entry(KmerIndex &kmer_index, const std::string &line) {
 }
 
 
-KmerIndex load_kmer_index(const std::string &encoded_kmers_fname) {
+KmerIndex load_kmer_index(const Parameters &params) {
+    const std::string &kmer_index_fpath = params.kmer_index_fpath;
+
     std::ifstream fhandle;
-    fhandle.open(encoded_kmers_fname);
+    fhandle.open(kmer_index_fpath);
 
     KmerIndex kmer_index;
     std::string line;
     while (std::getline(fhandle, line)) {
         parse_kmer_index_entry(kmer_index, line);
     }
-    return kmer_index;
-}
-
-
-KmerIndex get_kmer_index(const std::string &kmer_fname,
-                         const int kmer_size,
-                         const PRG_Info &prg_info) {
-    const auto encoded_kmers_fname = std::string(kmer_fname) + ".precalc";
-    std::cout << "Kmer index file path:" << std::endl
-              << encoded_kmers_fname << std::endl;
-
-    if (!file_exists(encoded_kmers_fname)) {
-        std::cout << "Kmer index not found, building..." << std::endl;
-        generate_kmer_index(kmer_fname, kmer_size, prg_info);
-        std::cout << "Finished generating kmer index" << std::endl;
-    }
-
-    std::cout << "Loading kmer index from file" << std::endl;
-    const auto kmer_index = load_kmer_index(encoded_kmers_fname);
     return kmer_index;
 }
 

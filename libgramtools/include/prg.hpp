@@ -14,7 +14,7 @@
 
 struct PRG_Info {
     FM_Index fm_index;
-    DNA_Rank dna_rank;
+    // DNA_Rank dna_rank;
     SitesMask sites_mask;
     AlleleMask allele_mask;
     uint64_t max_alphabet_num;
@@ -23,5 +23,7 @@ struct PRG_Info {
 uint64_t max_alphabet_num(const std::string &prg_raw);
 
 std::vector<AlleleId> generate_allele_mask(const std::string &prg_raw);
+
+SitesMask generate_sites_mask(const std::string &prg_raw);
 
 #endif //GRAMTOOLS_PRG_HPP

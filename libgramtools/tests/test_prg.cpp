@@ -3,6 +3,29 @@
 #include "prg.hpp"
 
 
+TEST(GenerateSitesMask, SingleVariantSiteTwoAlleles_CorrectSitesMask) {
+    const std::string prg_raw = "a5g6t5c";
+    auto result = generate_sites_mask(prg_raw);
+    SitesMask expected = {
+            0, 0, 5, 0, 5, 0, 0
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateSitesMask, TwoVariantSites_CorrectSitesMask) {
+    const std::string prg_raw = "a5g6t5cc7g8tt8aa7";
+    auto result = generate_sites_mask(prg_raw);
+    SitesMask expected = {
+            0,
+            0, 5, 0, 5, 0,
+            0, 0,
+            0, 7, 0, 7, 7, 0, 7, 7, 0
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(GenerateAlleleMask, SingleVariantSite_CorrectAlleleMask) {
     const std::string prg_raw = "a5g6t5c";
     auto result = generate_allele_mask(prg_raw);

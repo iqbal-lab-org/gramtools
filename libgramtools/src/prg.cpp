@@ -47,7 +47,7 @@ std::vector<AlleleId> generate_allele_mask(const std::string &prg_raw) {
     auto it = prg_raw.begin();
     auto end_it = prg_raw.end();
     while (it != prg_raw.end()) {
-        const auto not_marker = !isdigit(*it);
+        const auto not_marker = not isdigit(*it);
         if (not_marker) {
             allele_mask.push_back(current_allele_number);
             it++;
@@ -76,4 +76,39 @@ std::vector<AlleleId> generate_allele_mask(const std::string &prg_raw) {
         }
     }
     return allele_mask;
+}
+
+
+SitesMask generate_sites_mask(const std::string &prg_raw) {
+    SitesMask sites_mask;
+    uint64_t current_site_edge_marker = 0;
+
+    auto it = prg_raw.begin();
+    auto end_it = prg_raw.end();
+    while (it != prg_raw.end()) {
+        const auto not_marker = not isdigit(*it);
+        if (not_marker) {
+            sites_mask.push_back(current_site_edge_marker);
+            it++;
+            continue;
+        }
+
+        uint64_t marker = 0;
+        std::tie(marker, it) = get_marker(it, end_it);
+        it++;
+
+        sites_mask.push_back(0);
+
+        bool site_edge_marker = marker % 2 != 0;
+        if (site_edge_marker) {
+            const auto at_site_start = current_site_edge_marker == 0;
+            if (at_site_start) {
+                current_site_edge_marker = marker;
+            } else {
+                current_site_edge_marker = 0;
+            }
+            continue;
+        }
+    }
+    return sites_mask;
 }

@@ -26,8 +26,7 @@ Base encode_dna_base(const char &base_str) {
             return 4;
 
         default:
-            std::cout << "Error encoding base" << std::endl;
-            break;
+            return 0;
     }
 }
 
@@ -35,7 +34,9 @@ Base encode_dna_base(const char &base_str) {
 Pattern encode_dna_bases(const std::string &dna_str) {
     Pattern pattern;
     for (const auto &base_str: dna_str) {
-        int encoded_base = encode_dna_base(base_str);
+        Base encoded_base = encode_dna_base(base_str);
+        if (encoded_base == 0)
+            return Pattern {};
         pattern.emplace_back(encoded_base);
     }
     return pattern;
@@ -44,13 +45,12 @@ Pattern encode_dna_bases(const std::string &dna_str) {
 
 Pattern encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
-
     Pattern pattern;
-    pattern.reserve(sequence_length);
-
     for (uint32_t i = 0; i < sequence_length; i++) {
-        auto base = encode_dna_base(read_sequence.seq[i]);
-        pattern[i] = base;
+        Base encoded_base = encode_dna_base(read_sequence.seq[i]);
+        if (encoded_base == 0)
+            return Pattern {};
+        pattern.emplace_back(encoded_base);
     }
     return pattern;
 }
