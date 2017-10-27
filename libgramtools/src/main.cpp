@@ -33,27 +33,41 @@ int main(int argc, const char *const *argv) {
 
 void build(const Parameters &parameters) {
     std::cout << "Executing build command" << std::endl;
+    auto timer = TimerReport();
 
     std::cout << "Generating integer encoded PRG" << std::endl;
+    timer.start("Encoded PRG");
     generate_encoded_prg(parameters);
+    timer.stop();
 
     std::cout << "Generating FM-Index" << std::endl;
+    timer.start("Generate FM-Index");
     generate_fm_index(parameters);
+    timer.stop();
+
+    const auto prg_info = load_prg_info(parameters);
 
     std::cout << "Generating kmer index" << std::endl;
-    const auto prg_info = load_prg_info(parameters);
+    timer.start("Generate kmer index");
     generate_kmer_index(parameters, prg_info);
+    timer.stop();
+
+    timer.report();
 }
 
 
 void quasimap(const Parameters &parameters) {
     std::cout << "Executing quasimap command" << std::endl;
+    auto timer = TimerReport();
+
     std::cout << "Loading data" << std::endl;
+    timer.start("Load data");
     const auto prg_info = load_prg_info(parameters);
     const auto kmer_index = load_kmer_index(parameters);
+    timer.stop();
 
     std::cout << "Running quasimap" << std::endl;
-
+    timer.start("Quasimap");
     uint64_t all_reads_count = 0;
     uint64_t skipped_reads_count = 0;
     uint64_t mapped_reads_count = 0;
@@ -66,6 +80,8 @@ void quasimap(const Parameters &parameters) {
     std::cout << "Count all reads: " << all_reads_count << std::endl;
     std::cout << "Count skipped reads: " << skipped_reads_count << std::endl;
     std::cout << "Count mapped reads: " << mapped_reads_count << std::endl;
+    timer.stop();
+    timer.report();
 }
 
 

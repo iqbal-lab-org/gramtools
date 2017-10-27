@@ -60,8 +60,9 @@ bool quasimap_read(const Pattern &read,
                    const Parameters &params) {
     const auto kmer = get_kmer_from_read(params.kmers_size, read);
     const auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
-    record_read_coverage(allele_coverage, search_states);
     const bool read_mapped_exactly = not search_states.empty();
+    if (read_mapped_exactly)
+        record_read_coverage(allele_coverage, search_states);
     return read_mapped_exactly;
 }
 

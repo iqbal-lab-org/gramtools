@@ -6,14 +6,18 @@
 
 class TimerReport{
 public:
-    void record(std::string note);
+    void start(std::string note);
+    void stop();
     void report() const;
 
     template <typename TypeCol1, typename TypeCol2>
     void cout_row(TypeCol1 col1, TypeCol2 col2) const;
 
 private:
-    using Entry = std::pair<std::string, double>;
+    using Note = std::string;
+    using Entry = std::pair<Note, double>;
+
+    Note note;
     std::vector<Entry> logger;
     boost::timer::cpu_timer timer;
 };

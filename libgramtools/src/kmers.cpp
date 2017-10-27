@@ -160,9 +160,8 @@ void update_kmer_index_cache(KmerIndexCache &cache,
         return;
     }
 
-    // truncate cache given kmer suffix diff
-    const auto new_cache_size = kmer_size - kmer_suffix_diff.size();
-    cache.resize(new_cache_size);
+    const auto truncated_cache_size = kmer_size - kmer_suffix_diff.size();
+    cache.resize(truncated_cache_size);
 
     for (auto it = kmer_suffix_diff.rbegin(); it != kmer_suffix_diff.rend(); ++it) {
         const auto &base = *it;
@@ -382,9 +381,11 @@ std::string serialize_kmer_index_cache_element(const CacheElement &cache_element
        << cache_element.search_states.size()
        << std::endl;
 
+    /*
     for (const auto &search_state: cache_element.search_states) {
         ss << search_state;
     }
+     */
 
     ss << "****** END Cache Element ******" << std::endl;
     return ss.str();

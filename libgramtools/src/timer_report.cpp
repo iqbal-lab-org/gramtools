@@ -6,11 +6,20 @@
 #include "timer_report.hpp"
 
 
-void TimerReport::record(std::string note) {
+void TimerReport::start(std::string note) {
+    this->note = note;
+    timer.start();
+}
+
+
+void TimerReport::stop() {
+    if (this->note.empty())
+        std::cerr << "TimerReport stop called with empty note" << std::endl;
     boost::timer::cpu_times times = timer.elapsed();
     double elapsed_time = (times.user + times.system) * 1e-9;
     Entry entry = std::make_pair(note, elapsed_time);
     logger.push_back(entry);
+    this->note = "";
 }
 
 
