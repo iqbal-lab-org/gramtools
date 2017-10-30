@@ -43,7 +43,6 @@ add_library(gramtools STATIC
     ${SOURCE}/prg.cpp
     ${SOURCE}/kmers.cpp
     ${SOURCE}/search.cpp
-    ${SOURCE}/skip.cpp
     ${SOURCE}/masks.cpp
     ${SOURCE}/fm_index.cpp
     ${SOURCE}/ranks.cpp)
