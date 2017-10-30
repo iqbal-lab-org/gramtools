@@ -24,7 +24,7 @@ std::string dump_variant_site_paths(const SearchStates &kmer_sites);
 
 std::string dump_kmer_index_entry(const Pattern &kmer, const SearchStates &search_states);
 
-void dump_kmer_index(std::ofstream &precalc_file, const KmerIndex &kmer_index);
+void dump_kmer_index(std::ofstream &kmer_index_file, const KmerIndex &kmer_index);
 
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
 
