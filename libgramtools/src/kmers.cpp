@@ -150,20 +150,20 @@ KmerIndexCache initial_kmer_index_cache(const Pattern &full_kmer,
 
 
 void update_kmer_index_cache(KmerIndexCache &cache,
-                             const Pattern &kmer_suffix_diff,
+                             const Pattern &kmer_prefix_diff,
                              const int kmer_size,
                              const PRG_Info &prg_info) {
 
-    if (kmer_suffix_diff.size() == kmer_size) {
-        auto &full_kmer = kmer_suffix_diff;
+    if (kmer_prefix_diff.size() == kmer_size) {
+        auto &full_kmer = kmer_prefix_diff;
         cache = initial_kmer_index_cache(full_kmer, prg_info);
         return;
     }
 
-    const auto truncated_cache_size = kmer_size - kmer_suffix_diff.size();
+    const auto truncated_cache_size = kmer_size - kmer_prefix_diff.size();
     cache.resize(truncated_cache_size);
 
-    for (auto it = kmer_suffix_diff.rbegin(); it != kmer_suffix_diff.rend(); ++it) {
+    for (auto it = kmer_prefix_diff.rbegin(); it != kmer_prefix_diff.rend(); ++it) {
         const auto &base = *it;
         // the last kmer base is only handled by initial_kmer_index_cache(.)
         const bool kmer_base_is_last = false;
@@ -179,15 +179,15 @@ void update_kmer_index_cache(KmerIndexCache &cache,
 
 
 void update_full_kmer(Pattern &full_kmer,
-                      const Pattern &kmer_suffix_diff,
+                      const Pattern &kmer_prefix_diff,
                       const int kmer_size) {
-    if (kmer_suffix_diff.size() == kmer_size) {
-        full_kmer = kmer_suffix_diff;
+    if (kmer_prefix_diff.size() == kmer_size) {
+        full_kmer = kmer_prefix_diff;
         return;
     }
 
     auto start_idx = 0;
-    for (const auto &base: kmer_suffix_diff)
+    for (const auto &base: kmer_prefix_diff)
         full_kmer[start_idx++] = base;
 }
 
@@ -200,17 +200,17 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
     Pattern full_kmer;
 
     auto count = 0;
-    for (const auto &kmer_suffix_diff: kmer_suffix_diffs) {
+    for (const auto &kmer_prefix_diff: kmer_suffix_diffs) {
         if (count > 0 and count % 10000 == 0)
-            std::cout << "Kmer suffix diff count: " << count << std::endl;
+            std::cout << "Kmer prefix diff count: " << count << std::endl;
         count++;
 
         update_full_kmer(full_kmer,
-                         kmer_suffix_diff,
+                         kmer_prefix_diff,
                          kmer_size);
 
         update_kmer_index_cache(cache,
-                                kmer_suffix_diff,
+                                kmer_prefix_diff,
                                 kmer_size,
                                 prg_info);
 
@@ -230,8 +230,8 @@ void generate_kmer_index(const Parameters &params,
     Patterns kmer_suffix_diffs;
     std::string line;
     while (std::getline(kmers_fhandle, line)) {
-        const auto &kmer_suffix_diff = encode_dna_bases(line);
-        kmer_suffix_diffs.emplace_back(kmer_suffix_diff);
+        const auto &kmer_prefix_diff = encode_dna_bases(line);
+        kmer_suffix_diffs.emplace_back(kmer_prefix_diff);
     }
 
     KmerIndex kmer_index = index_kmers(kmer_suffix_diffs, params.kmers_size, prg_info);

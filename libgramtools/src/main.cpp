@@ -112,8 +112,8 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
                               "allele ID mask over the linear PRG")
                              ("memory-log", po::value<std::string>(),
                               "SDSL memory log of FM-index construction")
-                             ("kmers-suffix-diffs", po::value<std::string>(),
-                              "file continaing kmer suffix diffs used in consturcting the kmer index")
+                             ("kmers-prefix-diffs", po::value<std::string>(),
+                              "file continaing kmer prefix diffs used in consturcting the kmer index")
                              ("kmer-index", po::value<std::string>(),
                               "output destination of the kmer index")
                              ("kmer-size", po::value<uint32_t>(),
@@ -132,7 +132,7 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
     parameters.site_mask_fpath = vm["variant-site-mask"].as<std::string>();
     parameters.allele_mask_fpath = vm["allele-mask"].as<std::string>();
     parameters.sdsl_memory_log_fpath = vm["memory-log"].as<std::string>();
-    parameters.kmer_suffix_diffs_fpath = vm["kmers-suffix-diffs"].as<std::string>();
+    parameters.kmer_suffix_diffs_fpath = vm["kmers-prefix-diffs"].as<std::string>();
     parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     return parameters;
@@ -155,8 +155,8 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
                                  "allele ID mask over the linear PRG")
                                 ("memory-log", po::value<std::string>(),
                                  "SDSL memory log of FM-index construction")
-                                ("kmers-suffix-diffs", po::value<std::string>(),
-                                 "file continaing kmer suffix diffs used in consturcting the kmer index")
+                                ("kmers-prefix-diffs", po::value<std::string>(),
+                                 "file continaing kmer prefix diffs used in consturcting the kmer index")
                                 ("kmer-index", po::value<std::string>(),
                                  "output destination of the kmer index")
                                 ("kmer-size", po::value<uint32_t>(),
@@ -181,7 +181,7 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     parameters.site_mask_fpath = vm["variant-site-mask"].as<std::string>();
     parameters.allele_mask_fpath = vm["allele-mask"].as<std::string>();
     parameters.sdsl_memory_log_fpath = vm["memory-log"].as<std::string>();
-    parameters.kmer_suffix_diffs_fpath = vm["kmers-suffix-diffs"].as<std::string>();
+    parameters.kmer_suffix_diffs_fpath = vm["kmers-prefix-diffs"].as<std::string>();
     parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
 

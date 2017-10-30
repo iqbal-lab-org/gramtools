@@ -342,10 +342,10 @@ TEST_F(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
 
     auto kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
-    auto kmer_suffix_diff = encode_dna_bases("ac");
+    auto kmer_prefix_diff = encode_dna_bases("ac");
     Patterns kmers = {
             first_full_kmer,
-            kmer_suffix_diff
+            kmer_prefix_diff
     };
     auto second_full_kmer = encode_dna_bases("actat");
 
@@ -385,10 +385,10 @@ TEST_F(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
 
     auto kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("attat");
-    auto kmer_suffix_diff = encode_dna_bases("ac");
+    auto kmer_prefix_diff = encode_dna_bases("ac");
     Patterns kmers = {
             first_full_kmer,
-            kmer_suffix_diff
+            kmer_prefix_diff
     };
     auto second_full_kmer = encode_dna_bases("actat");
 
@@ -417,11 +417,11 @@ TEST_F(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
 
     const int kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
-    auto kmer_suffix_diff = encode_dna_bases("aa");
+    auto kmer_prefix_diff = encode_dna_bases("aa");
     auto second_full_kmer = encode_dna_bases("aatat");
     Patterns kmers = {
             first_full_kmer,
-            kmer_suffix_diff
+            kmer_prefix_diff
     };
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
