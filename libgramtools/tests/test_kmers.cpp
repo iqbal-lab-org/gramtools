@@ -647,3 +647,53 @@ TEST_F(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath)
     };
     EXPECT_EQ(result, expected);
 }
+
+
+/*
+PRG: ttt5ta6t5acg
+i	F	BWT	text	SA	suffix
+0	0	3	4	    12	0
+1	1	5	4	    9	1 2 3 0
+2	1	4	4	    5	1 6 4 5 1 2 3 0
+3	2	1	5	    10	2 3 0
+4	3	2	4	    11	3 0
+5	4	5	1	    4	4 1 6 4 5 1 2 3 0
+6	4	0	6	    0	4 4 4 5 4 1 6 4 5 1 2 3 0
+7	4	4	4	    1	4 4 5 4 1 6 4 5 1 2 3 0
+8	4	6	5	    7	4 5 1 2 3 0
+9	4	4	1	    2	4 5 4 1 6 4 5 1 2 3 0
+10	5	4	2	    8	5 1 2 3 0
+11	5	4	3	    3	5 4 1 6 4 5 1 2 3 0
+12	6	1	0	    6	6 4 5 1 2 3 0
+*/
+TEST_F(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) {
+    auto prg_raw = "ttt5ta6t5acg";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer_size = 4;
+    auto kmer = encode_dna_bases("tttt");
+    Patterns kmers = {kmer};
+
+    auto result = index_kmers(kmers, kmer_size, prg_info);
+    KmerIndex expected = {
+            {kmer,
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {6, 6},
+                                    VariantSitePath {
+                                            VariantSite {5, 1}
+                                    },
+                                    SearchVariantSiteState::outside_variant_site
+                            },
+                            SearchState {
+                                    SA_Interval {6, 6},
+                                    VariantSitePath {
+                                            VariantSite {5, 2}
+                                    },
+                                    SearchVariantSiteState::outside_variant_site
+                            }
+                    }
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
