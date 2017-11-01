@@ -12,11 +12,11 @@ def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('kmers',
                                    parents=[common_parser])
 
-    parser.add_argument('--reference',
+    parser.add_argument('--prg',
                         help='',
                         type=str,
                         required=True)
-    parser.add_argument('--output-fpath',
+    parser.add_argument('--kmer-prefix-diffs',
                         help='',
                         type=str,
                         required=True)
@@ -128,7 +128,7 @@ def _kmers_from_genome_path(path_parts, kmer_size):
 def _kmers_from_genome_paths(genome_paths, kmer_size, tot_num_paths=None, unique=False):
     """Generate all kmers which exist for a list of genome paths."""
     for i, path_parts in enumerate(genome_paths):
-        if i % 2000 == 0:
+        if i % 2000 == 0 and i > 10:
             print(i, tot_num_paths)
         kmers = _kmers_from_genome_path(path_parts, kmer_size)
 
@@ -184,7 +184,7 @@ def _generate_all_kmers(kmer_size, regions):
                 seen_kmers.add(kmer)
 
 
-def _generate(kmer_region_size, kmer_size, regions, all_kmers):
+def _generate_kmers(kmer_region_size, kmer_size, regions, all_kmers):
     """Generate kmers."""
     if all_kmers:
         generator = _generate_all_kmers(kmer_size, regions)
@@ -194,11 +194,52 @@ def _generate(kmer_region_size, kmer_size, regions, all_kmers):
     return (kmer for kmer in generator)
 
 
-def _dump_kmers(kmers, output_fpath):
+def _reverse_each_kmer(kmers):
+    reversed_kmers = []
+    for kmer in kmers:
+        reversed_kmer = ''.join(reversed(kmer))
+        reversed_kmers.append(reversed_kmer)
+    return reversed_kmers
+
+
+def _sort_kmers_for_prefix_diff(kmers):
+    reversed_kmers = _reverse_each_kmer(kmers)
+    reversed_kmers.sort()
+    kmers = _reverse_each_kmer(reversed_kmers)
+    return kmers
+
+
+def _generate_prefix_diffs(sorted_kmers):
+    last_full_kmer = None
+    kmer_prefix_diffs = []
+
+    for kmer in sorted_kmers:
+        if last_full_kmer is None:
+            last_full_kmer = kmer
+            kmer_prefix_diffs.append(last_full_kmer)
+            continue
+
+        diff = ''
+        diff_found = False
+        both_kmers = zip(reversed(kmer), reversed(last_full_kmer))
+        for current, last in both_kmers:
+            if current != last:
+                diff_found = True
+
+            if diff_found:
+                diff = current + diff
+
+        kmer_prefix_diffs.append(diff)
+        last_full_kmer = kmer
+
+    return kmer_prefix_diffs
+
+
+def _dump_kmer_prefix_diffs(kmer_prefix_diffs, kmer_prefix_diffs_file_path):
     count_written = 0
-    with open(output_fpath, 'w') as fhandle:
-        for kmer in kmers:
-            fhandle.write(''.join(kmer) + '\n')
+    with open(kmer_prefix_diffs_file_path, 'w') as fhandle:
+        for prefix_diff in kmer_prefix_diffs:
+            fhandle.write(prefix_diff + '\n')
             count_written += 1
     return count_written
 
@@ -207,16 +248,20 @@ def run(args):
     log.info('Start process: generate kmers')
 
     log.debug('Parsing PRG')
-    fasta_seq = str(SeqIO.read(args.reference, 'fasta').seq)
+    fasta_seq = str(SeqIO.read(args.prg, 'fasta').seq)
     regions = prg.parse(fasta_seq)
 
     log.debug('Generating Kmers')
-    kmers = _generate(args.kmer_region_size,
-                      args.kmer_size, regions,
-                      args.all_kmers)
+    kmers = _generate_kmers(args.kmer_region_size,
+                            args.kmer_size,
+                            regions,
+                            args.all_kmers)
 
-    log.debug('Writing kmers to file')
-    count_written = _dump_kmers(kmers, args.output_fpath)
-    log.debug('Number of kmers writen to file: %s', count_written)
+    sorted_kmers = _sort_kmers_for_prefix_diff(kmers)
+    kmer_prefix_diffs = _generate_prefix_diffs(sorted_kmers)
+
+    log.debug('Writing kmer prefix diffs to file')
+    count_written = _dump_kmer_prefix_diffs(kmer_prefix_diffs, args.kmer_prefix_diffs)
+    log.debug('Number of kmer prefix diffs written to file: %s', count_written)
 
     log.info('End process: generate kmers')

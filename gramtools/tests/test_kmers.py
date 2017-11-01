@@ -358,8 +358,8 @@ class TestGenerate(unittest.TestCase):
                       all_kmers, kmer_region_size=None):
         prg_seq = common.compose_prg(prg_structure)
         regions = prg.parse(prg_seq)
-        generated_kmers = kmers._generate(kmer_region_size, kmer_size,
-                                          regions, all_kmers)
+        generated_kmers = kmers._generate_kmers(kmer_region_size, kmer_size,
+                                                regions, all_kmers)
         result = {''.join(x) for x in generated_kmers}
         self.assertEqual(result, expected)
 

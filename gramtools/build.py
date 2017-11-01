@@ -6,6 +6,7 @@ import subprocess
 
 from . import common
 from . import kmers
+from . import paths
 
 log = logging.getLogger('gramtools')
 
@@ -13,7 +14,10 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('build',
                                    parents=[common_parser])
-
+    parser.add_argument('--gram-directory',
+                        help='',
+                        type=str,
+                        required=True)
     parser.add_argument('--vcf',
                         help='',
                         type=str,
@@ -26,78 +30,23 @@ def parse_args(common_parser, subparsers):
                         help='',
                         type=int,
                         required=True)
-
     parser.add_argument('--kmer-region-size',
-                        dest='kmer_region_size',
                         help='',
-                        type=int)
+                        type=int,
+                        required=True)
+
     parser.add_argument('--all-kmers',
                         help='',
                         action='store_true',
-                        default=False)
+                        required=False)
 
 
-def _get_project_dirpath(prg_fpath):
-    prg_fname = os.path.basename(prg_fpath)
-    if prg_fname.endswith('.prg'):
-        project_dir = prg_fname[:-len('.prg')]
-    else:
-        project_dir = prg_fname
-    project_dir = project_dir.split('.')[0]
-
-    current_working_directory = os.getcwd()
-    project_dirpath = os.path.join(current_working_directory, project_dir)
-    return project_dirpath
-
-
-def _get_paths(args):
-    project_dirpath = _get_project_dirpath(args.vcf)
-
-    paths = {
-        'project': project_dirpath,
-        'prg': os.path.join(project_dirpath, 'prg'),
-        'vcf': os.path.abspath(args.vcf),
-        'sites_mask': os.path.join(project_dirpath, 'sites_mask'),
-        'allele_mask': os.path.join(project_dirpath, 'allele_mask'),
-        'reference': args.reference,
-
-        'kmer': os.path.join(project_dirpath, 'kmer'),
-        'kmer_file': os.path.join(project_dirpath, 'kmer',
-                                  'ksize_' + str(args.kmer_size)),
-        'cache': os.path.join(project_dirpath, 'cache'),
-        'int_encoded_prg': os.path.join(
-            project_dirpath, 'cache', 'int_encoded_prg'),
-        'fm_index': os.path.join(project_dirpath, 'cache', 'fm_index'),
-        'kmer_suffix_array': os.path.join(project_dirpath, 'cache',
-                                          'kmer_suffix_array'),
-
-        'perl_generated_fa': os.path.join(project_dirpath,
-                                          'cache',
-                                          'perl_generated_fa'),
-    }
-    return paths
-
-
-def _setup_file_structure(paths):
-    dirs = [
-        paths['project'],
-        paths['cache'],
-        paths['kmer'],
-        paths['kmer_suffix_array'],
-    ]
-    for dirpath in dirs:
-        if os.path.isdir(dirpath):
-            continue
-        log.debug('Creating directory: %s', dirpath)
-        os.mkdir(dirpath)
-
-
-def _execute_command_generate_prg(paths, _):
+def _execute_command_generate_prg(build_paths, _):
     command = [
         'perl', common.prg_build_exec_fpath,
-        '--outfile', paths['prg'],
-        '--vcf', paths['vcf'],
-        '--ref', paths['reference'],
+        '--outfile', build_paths['prg'],
+        '--vcf', build_paths['vcf'],
+        '--ref', build_paths['reference'],
     ]
 
     log.debug('Executing command:\n\n%s\n', ' '.join(command))
@@ -110,57 +59,81 @@ def _execute_command_generate_prg(paths, _):
                                       stderr=subprocess.PIPE)
     common.handle_process_result(process_handle)
     timer_end = time.time()
-    log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
+    log.debug('Finished executing command: %.3f seconds',
+              timer_end - timer_start)
 
 
-def _file_cleanup_generate_prg(paths):
-    original_fpath = paths['prg'] + '.mask_alleles'
-    target_fpath = os.path.join(paths['project'], 'allele_mask')
-    os.rename(original_fpath, target_fpath)
-
-    original_fpath = paths['prg'] + '.mask_sites'
-    target_fpath = os.path.join(paths['project'], 'sites_mask')
-    os.rename(original_fpath, target_fpath)
-
-    original_fpath = paths['prg']
-    target_fpath = os.path.join(paths['project'], 'prg')
-    os.rename(original_fpath, target_fpath)
-
-    # TODO: should .prg.vcf be generated at all?
-    original_fpath = paths['prg'] + '.vcf'
-    target_fpath = os.path.join(paths['project'], 'cache',
-                                'perl_generated_vcf')
-    os.rename(original_fpath, target_fpath)
-
-    original_fpath = paths['prg'] + '.fa'
-    target_fpath = os.path.join(paths['project'], 'cache',
-                                'perl_generated_fa')
-    os.rename(original_fpath, target_fpath)
-
-
-def _generate_kmers(paths, args):
+def _generate_kmers(build_paths, args):
     log.debug('Generating kmers from PRG')
     timer_start = time.time()
 
     args = copy.copy(args)
-    args.reference = paths['perl_generated_fa']
-    args.output_fpath = paths['kmer_file']
+    args.prg = build_paths['perl_generated_fa']
+    args.kmer_prefix_diffs = build_paths['kmer_prefix_diffs']
 
     kmers.run(args)
 
     timer_end = time.time()
-    log.debug('Finished executing command: %.3f seconds', timer_end - timer_start)
+    log.debug('Finished executing command: %.3f seconds',
+              timer_end - timer_start)
+
+
+def _execute_gramtools_cpp_build(build_paths, args):
+    command = [
+        common.gramtools_exec_fpath,
+        'build',
+        '--prg', build_paths['prg'],
+        '--encoded-prg', build_paths['encoded_prg'],
+        '--fm-index', build_paths['fm_index'],
+        '--variant-site-mask', build_paths['variant_site_mask'],
+        '--allele-mask', build_paths['allele_mask'],
+        '--memory-log', build_paths['sdsl_memory_log'],
+        '--kmers-prefix-diffs', build_paths['kmer_prefix_diffs'],
+        '--kmer-index', build_paths['kmer_index'],
+        '--kmer-size', str(args.kmer_size),
+    ]
+
+    if args.debug:
+        command += ['--debug']
+
+    callgrind_command = [
+        'valgrind',
+        '--tool=callgrind',
+        '--callgrind-out-file=' + build_paths['callgrind_out'],
+    ]
+
+    callgrind_command = callgrind_command if args.profile else []
+    command = callgrind_command + command
+    command_str = ' '.join(command)
+
+    log.debug('Executing command:\n\n%s\n', command_str)
+
+    current_working_directory = os.getcwd()
+    log.debug('Using current working directory:\n%s',
+              current_working_directory)
+
+    process_handle = subprocess.Popen(command_str,
+                                      cwd=current_working_directory,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE,
+                                      shell=True)
+
+    process_result = common.handle_process_result(process_handle)
+    command_result, entire_stdout = process_result
+    return command_str, command_result, entire_stdout
 
 
 def run(args):
     log.info('Start process: build')
 
-    paths = _get_paths(args)
-    _setup_file_structure(paths)
+    build_paths = paths.generate_build_paths(args)
+    paths.check_project_file_structure(build_paths)
 
-    _execute_command_generate_prg(paths, args)
-    _file_cleanup_generate_prg(paths)
+    _execute_command_generate_prg(build_paths, args)
+    paths.perl_script_file_cleanup(build_paths)
 
-    _generate_kmers(paths, args)
+    _generate_kmers(build_paths, args)
+
+    _execute_gramtools_cpp_build(build_paths, args)
 
     log.info('End process: build')

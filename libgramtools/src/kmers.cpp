@@ -201,7 +201,7 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
 
     auto count = 0;
     for (const auto &kmer_prefix_diff: kmer_suffix_diffs) {
-        if (count > 0 and count % 10000 == 0)
+        if (count > 0 and count % 1000 == 0)
             std::cout << "Kmer prefix diff count: " << count << std::endl;
         count++;
 
