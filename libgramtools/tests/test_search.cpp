@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "prg.hpp"
-#include "kmers.hpp"
+#include "kmer_index.hpp"
 #include "search.hpp"
 #include "test_utils.hpp"
 

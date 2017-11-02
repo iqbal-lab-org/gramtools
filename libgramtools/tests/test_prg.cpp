@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 
 #include "test_utils.hpp"
-#include "prg.hpp"
 
 
 TEST(GetMaxAlphabetNum, GivenPrg_CorrectMaxAlphabetNum) {

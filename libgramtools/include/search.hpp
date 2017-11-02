@@ -1,6 +1,6 @@
 #include "utils.hpp"
-#include "kmer_index.hpp"
-#include "search_states.hpp"
+#include "kmer_index_types.hpp"
+#include "search_types.hpp"
 
 
 #ifndef GRAMTOOLS_SEARCH_HPP

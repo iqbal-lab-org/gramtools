@@ -4,12 +4,10 @@
 #include <iostream>
 #include <fstream>
 
-#include <sdsl/bit_vectors.hpp>
-
-#include "prg.hpp"
+#include "masks.hpp"
 
 
-sdsl::bit_vector generate_variant_site_markers_mask(const EncodedPRG &encoded_prg) {
+sdsl::bit_vector generate_markers_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::bit_vector variants_markers_mask(encoded_prg.size(), 0);
     for (unsigned int i = 0; i < encoded_prg.size(); i++)
         variants_markers_mask[i] = encoded_prg[i] > 4;

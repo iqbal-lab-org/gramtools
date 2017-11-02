@@ -4,8 +4,7 @@
 
 #include "utils.hpp"
 #include "fm_index.hpp"
-#include "parameters.hpp"
-#include "kmers.hpp"
+#include "kmer_index.hpp"
 #include "search.hpp"
 
 

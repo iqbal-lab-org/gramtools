@@ -2,14 +2,15 @@
 #include <string>
 #include <fstream>
 
+#include <sdsl/vectors.hpp>
+
 #include "utils.hpp"
 
 
-#ifndef GRAMTOOLS_PARSE_MASKS_H
-#define GRAMTOOLS_PARSE_MASKS_H
+#ifndef GRAMTOOLS_MASKS_H
+#define GRAMTOOLS_MASKS_H
 
-using SitesMask = std::vector<Marker>;
-using AlleleMask = std::vector<AlleleId>;
+sdsl::bit_vector generate_markers_mask(const sdsl::int_vector<> &encoded_prg);
 
 class MasksParser {
 public:
@@ -26,4 +27,4 @@ private:
     void parse_allele(std::istream &stream);
 };
 
-#endif //GRAMTOOLS_PARSE_MASKS_H
+#endif //GRAMTOOLS_MASKS_H

@@ -1,50 +1,58 @@
-#include <unordered_set>
-#include <unordered_map>
-
-#include <boost/functional/hash.hpp>
-
 #include "utils.hpp"
-#include "search_states.hpp"
+#include "parameters.hpp"
+#include "prg.hpp"
+#include "fm_index.hpp"
+#include "ranks.hpp"
+#include "search_types.hpp"
+#include "kmer_index_types.hpp"
 
 
-#ifndef GRAMTOOLS_KMER_INDEX_HPP
-#define GRAMTOOLS_KMER_INDEX_HPP
+#ifndef GRAMTOOLS_KMERS_HPP
+#define GRAMTOOLS_KMERS_HPP
 
-struct CacheElement {
-    SearchStates search_states;
-    Base base = 0;
-};
-using KmerIndexCache = std::list<CacheElement>;
+std::ostream &operator<<(std::ostream &os, const KmerIndexCache &cache);
 
-template<typename SEQUENCE>
-struct seq_hash {
-    std::size_t operator()(const SEQUENCE &seq) const {
-        std::size_t hash = 0;
-        boost::hash_range(hash, seq.begin(), seq.end());
-        return hash;
-    }
-};
+Base encode_dna_base(const char &base_str);
 
-template<typename SEQUENCE, typename T>
-using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
-using KmerIndex = sequence_map<Pattern, SearchStates>;
+std::vector<Base> encode_dna_bases(const std::string &dna_str);
 
-/*
-template<typename SEQUENCE>
-using sequence_set = std::unordered_set<SEQUENCE, seq_hash<SEQUENCE>>;
+std::string dump_kmer(const Pattern &kmer);
 
-using SA_Intervals = std::list<SA_Interval>;
-using KmerSA_Intervals = sequence_map<Pattern, SA_Intervals>;
-using KmerVariantSitePaths = sequence_map<Pattern, VariantSitePaths>;
-// Patterns added when not in variant site or when entierly within a single allele
-using NonSiteCrossingKmers = sequence_set<Pattern>;
+std::string dump_sa_intervals(const SearchStates &search_states);
 
-// TODO: KmerIndex should be a map from Pattern kmer to SearchStates
-struct KmerIndex {
-    KmerSA_Intervals sa_intervals_map;
-    KmerVariantSitePaths variant_site_paths_map;
-    NonSiteCrossingKmers non_site_crossing_kmers;
-};
-*/
+std::string dump_variant_site_paths(const SearchStates &kmer_sites);
 
-#endif //GRAMTOOLS_KMER_INDEX_HPP
+std::string dump_kmer_index_entry(const Pattern &kmer, const SearchStates &search_states);
+
+void dump_kmer_index(std::ofstream &kmer_index_file, const KmerIndex &kmer_index);
+
+KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
+
+inline bool file_exists(const std::string &name);
+
+static inline std::string &left_trim(std::string &s);
+
+static inline std::string &right_trim(std::string &s);
+
+static inline std::string &trim(std::string &s);
+
+std::vector<std::string> split(const std::string &cad, const std::string &delim);
+
+bool parse_crosses_marker_flag(const std::string &in_reference_flag_str);
+
+Pattern parse_encoded_kmer(const std::string &encoded_kmer_str);
+
+std::vector<SA_Interval> parse_sa_intervals(const std::string &full_sa_intervals_str);
+
+VariantSitePath parse_variant_site_path(const std::string &sites_part_str);
+
+void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
+
+KmerIndex load_kmer_index(const Parameters &params);
+
+void generate_kmer_index(const Parameters &params,
+                         const PRG_Info &prg_info);
+
+KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info);
+
+#endif //GRAMTOOLS_KMERS_HPP

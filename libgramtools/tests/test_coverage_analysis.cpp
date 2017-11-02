@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "test_utils.hpp"
-#include "kmers.hpp"
+#include "kmer_index.hpp"
 #include "coverage_analysis.hpp"
 
 

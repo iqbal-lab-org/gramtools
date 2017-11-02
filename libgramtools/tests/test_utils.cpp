@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "kmers.hpp"
+#include "kmer_index.hpp"
 #include "test_utils.hpp"
 
 
@@ -41,8 +41,8 @@ uint64_t max_alphabet_num(const std::string &prg_raw) {
 }
 
 
-SitesMask generate_sites_mask(const std::string &prg_raw) {
-    SitesMask sites_mask;
+std::vector<Marker> generate_sites_mask(const std::string &prg_raw) {
+    std::vector<Marker> sites_mask;
     uint64_t current_site_edge_marker = 0;
 
     auto it = prg_raw.begin();
@@ -140,7 +140,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
 TEST(GenerateSitesMask, SingleVariantSiteTwoAlleles_CorrectSitesMask) {
     const std::string prg_raw = "a5g6t5c";
     auto result = generate_sites_mask(prg_raw);
-    SitesMask expected = {
+    std::vector<Marker> expected = {
             0, 0, 5, 0, 5, 0, 0
     };
     EXPECT_EQ(result, expected);
@@ -150,7 +150,7 @@ TEST(GenerateSitesMask, SingleVariantSiteTwoAlleles_CorrectSitesMask) {
 TEST(GenerateSitesMask, TwoVariantSites_CorrectSitesMask) {
     const std::string prg_raw = "a5g6t5cc7g8tt8aa7";
     auto result = generate_sites_mask(prg_raw);
-    SitesMask expected = {
+    std::vector<Marker> expected = {
             0,
             0, 5, 0, 5, 0,
             0, 0,

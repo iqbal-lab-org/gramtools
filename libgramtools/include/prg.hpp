@@ -4,37 +4,35 @@
 #include <string>
 #include <tuple>
 
-#include "masks.hpp"
+#include "utils.hpp"
 #include "fm_index.hpp"
-#include "ranks.hpp"
 
 
 #ifndef GRAMTOOLS_PRG_HPP
 #define GRAMTOOLS_PRG_HPP
 
-using EncodedPRG = sdsl::int_vector<>;
-
 struct PRG_Info {
     FM_Index fm_index;
-    EncodedPRG encoded_prg;
+    sdsl::int_vector<> encoded_prg;
     // DNA_Rank dna_rank;
-    SitesMask sites_mask;
-    AlleleMask allele_mask;
+    std::vector<Marker> sites_mask;
+    std::vector<AlleleId> allele_mask;
+    sdsl::bit_vector markers_mask;
     uint64_t max_alphabet_num;
 };
 
-uint64_t get_max_alphabet_num(const EncodedPRG &encoded_prg);
+uint64_t get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg);
 
-EncodedPRG generate_encoded_prg(const Parameters &parameters);
+sdsl::int_vector<> generate_encoded_prg(const Parameters &parameters);
 
-EncodedPRG parse_prg(const std::string &prg_fpath);
+sdsl::int_vector<> parse_raw_prg_file(const std::string &prg_fpath);
 
 std::string load_raw_prg(const std::string &prg_fpath);
 
-EncodedPRG encode_prg(const std::string &prg_raw);
+sdsl::int_vector<> encode_prg(const std::string &prg_raw);
 
 void flush_marker_digits(std::vector<int> &marker_digits,
-                         EncodedPRG &encoded_prg,
+                         sdsl::int_vector<> &encoded_prg,
                          uint64_t &count_chars);
 
 uint64_t concat_marker_digits(const std::vector<int> &marker_digits);

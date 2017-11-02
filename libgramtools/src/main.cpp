@@ -5,9 +5,12 @@
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
 
+#include <sdsl/bit_vectors.hpp>
+
 #include "prg.hpp"
+#include "masks.hpp"
 #include "timer_report.hpp"
-#include "kmers.hpp"
+#include "kmer_index.hpp"
 #include "coverage_analysis.hpp"
 #include "main.hpp"
 
@@ -48,16 +51,21 @@ void build(const Parameters &parameters) {
     auto fm_index = generate_fm_index(parameters);
     timer.stop();
 
+    std::cout << "Loading PRG masks" << std::endl;
+    timer.start("Loading PRG masks");
     MasksParser masks(parameters.site_mask_fpath,
                       parameters.allele_mask_fpath);
-
-    // generate_variant_site_markers_mask(encoded_prg);
+    auto markers_mask = generate_markers_mask(encoded_prg);
+    auto markers_rank = sdsl::rank_support_v<1>(&markers_mask);
+    auto markers_select = sdsl::select_support_mcl<1>(&markers_mask);
+    timer.stop();
 
     PRG_Info prg_info = {
             fm_index,
             encoded_prg,
             masks.sites,
             masks.allele,
+            markers_mask,
             masks.max_alphabet_num
     };
 
@@ -95,6 +103,7 @@ void quasimap(const Parameters &parameters) {
     std::cout << "Count skipped reads: " << skipped_reads_count << std::endl;
     std::cout << "Count mapped reads: " << mapped_reads_count << std::endl;
     timer.stop();
+
     timer.report();
 }
 

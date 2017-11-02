@@ -1,8 +1,8 @@
-#include "kmers.hpp"
+#include "masks.hpp"
 #include "prg.hpp"
 
 
-uint64_t get_max_alphabet_num(const EncodedPRG &encoded_prg) {
+uint64_t get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg) {
     uint64_t max_alphabet_num = 0;
     for (const auto &x: encoded_prg) {
         if (x > max_alphabet_num)
@@ -12,14 +12,14 @@ uint64_t get_max_alphabet_num(const EncodedPRG &encoded_prg) {
 }
 
 
-EncodedPRG generate_encoded_prg(const Parameters &parameters) {
-    auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
+sdsl::int_vector<> generate_encoded_prg(const Parameters &parameters) {
+    auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
     sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
     return encoded_prg;
 }
 
 
-EncodedPRG parse_prg(const std::string &prg_fpath) {
+sdsl::int_vector<> parse_raw_prg_file(const std::string &prg_fpath) {
     const auto prg_raw = load_raw_prg(prg_fpath);
     auto encoded_prg = encode_prg(prg_raw);
     return encoded_prg;
@@ -45,8 +45,8 @@ std::string load_raw_prg(const std::string &prg_fpath) {
 }
 
 
-EncodedPRG encode_prg(const std::string &prg_raw) {
-    EncodedPRG encoded_prg(prg_raw.length(), 0, 64);
+sdsl::int_vector<> encode_prg(const std::string &prg_raw) {
+    sdsl::int_vector<> encoded_prg(prg_raw.length(), 0, 64);
 
     uint64_t count_chars = 0;
     // TODO: this should be possible without storing each individual digit
@@ -70,7 +70,7 @@ EncodedPRG encode_prg(const std::string &prg_raw) {
 
 
 void flush_marker_digits(std::vector<int> &marker_digits,
-                         EncodedPRG &encoded_prg,
+                         sdsl::int_vector<> &encoded_prg,
                          uint64_t &count_chars) {
     if (marker_digits.empty())
         return;
@@ -129,13 +129,15 @@ PRG_Info load_prg_info(const Parameters &parameters) {
     MasksParser masks(parameters.site_mask_fpath,
                       parameters.allele_mask_fpath);
     auto fm_index = load_fm_index(parameters);
-    auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
+    auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
+    auto markers_mask = generate_markers_mask(encoded_prg);
     auto max_alphabet_num = get_max_alphabet_num(encoded_prg);
     return PRG_Info {
             fm_index,
             encoded_prg,
             masks.sites,
             masks.allele,
+            markers_mask,
             max_alphabet_num
     };
 }
