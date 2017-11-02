@@ -99,21 +99,6 @@ void quasimap(const Parameters &parameters) {
 }
 
 
-PRG_Info load_prg_info(const Parameters &parameters) {
-    MasksParser masks(parameters.site_mask_fpath,
-                      parameters.allele_mask_fpath);
-    auto fm_index = load_fm_index(parameters);
-    auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
-    return PRG_Info {
-            fm_index,
-            encoded_prg,
-            masks.sites,
-            masks.allele,
-            masks.max_alphabet_num
-    };
-}
-
-
 Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
     po::options_description build_description("build options");
     build_description.add_options()

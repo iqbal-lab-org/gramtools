@@ -23,6 +23,8 @@ struct PRG_Info {
     uint64_t max_alphabet_num;
 };
 
+uint64_t get_max_alphabet_num(const EncodedPRG &encoded_prg);
+
 EncodedPRG generate_encoded_prg(const Parameters &parameters);
 
 EncodedPRG parse_prg(const std::string &prg_fpath);
@@ -43,5 +45,7 @@ struct EncodeResult{
 };
 
 EncodeResult encode_char(const char &c);
+
+PRG_Info load_prg_info(const Parameters &params);
 
 #endif //GRAMTOOLS_PRG_HPP

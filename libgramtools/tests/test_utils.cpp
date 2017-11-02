@@ -126,6 +126,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
 
     PRG_Info prg_info;
     prg_info.fm_index = generate_fm_index(parameters);
+    prg_info.encoded_prg = encoded_prg;
     prg_info.sites_mask = generate_sites_mask(prg_raw);
     prg_info.allele_mask = generate_allele_mask(prg_raw);
     prg_info.max_alphabet_num = max_alphabet_num(prg_raw);

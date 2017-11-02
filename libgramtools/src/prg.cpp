@@ -2,6 +2,16 @@
 #include "prg.hpp"
 
 
+uint64_t get_max_alphabet_num(const EncodedPRG &encoded_prg) {
+    uint64_t max_alphabet_num = 0;
+    for (const auto &x: encoded_prg) {
+        if (x > max_alphabet_num)
+            max_alphabet_num = x;
+    }
+    return max_alphabet_num;
+}
+
+
 EncodedPRG generate_encoded_prg(const Parameters &parameters) {
     auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
     sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
@@ -112,4 +122,20 @@ EncodeResult encode_char(const char &c) {
             encode_result.charecter = c - '0';
             return encode_result;
     }
+}
+
+
+PRG_Info load_prg_info(const Parameters &parameters) {
+    MasksParser masks(parameters.site_mask_fpath,
+                      parameters.allele_mask_fpath);
+    auto fm_index = load_fm_index(parameters);
+    auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
+    auto max_alphabet_num = get_max_alphabet_num(encoded_prg);
+    return PRG_Info {
+            fm_index,
+            encoded_prg,
+            masks.sites,
+            masks.allele,
+            max_alphabet_num
+    };
 }
