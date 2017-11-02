@@ -2,113 +2,114 @@
 #include "prg.hpp"
 
 
-std::pair<uint64_t, std::string::const_iterator> get_marker(const std::string::const_iterator start_it,
-                                                            const std::string::const_iterator end_it) {
-    std::string::const_iterator it = start_it;
-    std::string digits;
-    while (isdigit(*it) and it != end_it) {
-        digits += *it;
-        it++;
-    }
-    it--;
-    uint64_t marker = (uint64_t) std::atoi(digits.c_str());
-    return std::make_pair(marker, it);
+EncodedPRG generate_encoded_prg(const Parameters &parameters) {
+    auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
+    sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
+    return encoded_prg;
 }
 
 
-uint64_t max_alphabet_num(const std::string &prg_raw) {
-    uint64_t max_alphabet_num = 1;
-
-    auto it = prg_raw.begin();
-    auto end_it = prg_raw.end();
-    while (it != prg_raw.end()) {
-        const auto not_marker = !isdigit(*it);
-        if (not_marker) {
-            uint64_t encoded_base = (uint64_t) encode_dna_base(*it);
-            if (encoded_base > max_alphabet_num)
-                max_alphabet_num = encoded_base;
-        } else {
-            uint64_t marker = 0;
-            std::tie(marker, it) = get_marker(it, end_it);
-            if (marker > max_alphabet_num)
-                max_alphabet_num = marker;
-        }
-        it++;
-    }
-    return max_alphabet_num;
+EncodedPRG parse_prg(const std::string &prg_fpath) {
+    const auto prg_raw = load_raw_prg(prg_fpath);
+    auto encoded_prg = encode_prg(prg_raw);
+    return encoded_prg;
 }
 
 
-std::vector<AlleleId> generate_allele_mask(const std::string &prg_raw) {
-    std::vector<AlleleId> allele_mask;
-    uint64_t current_site_edge_marker = 0;
-    int current_allele_number = 0;
-
-    auto it = prg_raw.begin();
-    auto end_it = prg_raw.end();
-    while (it != prg_raw.end()) {
-        const auto not_marker = not isdigit(*it);
-        if (not_marker) {
-            allele_mask.push_back(current_allele_number);
-            it++;
-            continue;
-        }
-
-        uint64_t marker = 0;
-        std::tie(marker, it) = get_marker(it, end_it);
-        it++;
-
-        allele_mask.push_back(0);
-
-        bool site_edge_marker = marker % 2 != 0;
-        if (site_edge_marker) {
-            const auto at_site_start = current_site_edge_marker == 0;
-            if (at_site_start) {
-                current_site_edge_marker = marker;
-                current_allele_number = 1;
-            } else {
-                current_site_edge_marker = 0;
-                current_allele_number = 0;
-            }
-            continue;
-        } else {
-            current_allele_number++;
-        }
+std::string load_raw_prg(const std::string &prg_fpath) {
+    std::ifstream fhandle(prg_fpath, std::ios::in | std::ios::binary);
+    if (not fhandle) {
+        std::cout << "Problem reading PRG input file" << std::endl;
+        exit(1);
     }
-    return allele_mask;
+
+    std::string prg;
+    fhandle.seekg(0, std::ios::end);
+    prg.resize((unsigned long) fhandle.tellg());
+
+    fhandle.seekg(0, std::ios::beg);
+    fhandle.read(&prg[0], prg.size());
+    fhandle.close();
+
+    return prg;
 }
 
 
-SitesMask generate_sites_mask(const std::string &prg_raw) {
-    SitesMask sites_mask;
-    uint64_t current_site_edge_marker = 0;
+EncodedPRG encode_prg(const std::string &prg_raw) {
+    EncodedPRG encoded_prg(prg_raw.length(), 0, 64);
 
-    auto it = prg_raw.begin();
-    auto end_it = prg_raw.end();
-    while (it != prg_raw.end()) {
-        const auto not_marker = not isdigit(*it);
-        if (not_marker) {
-            sites_mask.push_back(current_site_edge_marker);
-            it++;
+    uint64_t count_chars = 0;
+    // TODO: this should be possible without storing each individual digit
+    std::vector<int> marker_digits;
+    for (const auto &c: prg_raw) {
+        EncodeResult encode_result = encode_char(c);
+
+        if (encode_result.is_dna) {
+            flush_marker_digits(marker_digits, encoded_prg, count_chars);
+            encoded_prg[count_chars++] = encode_result.charecter;
             continue;
         }
 
-        uint64_t marker = 0;
-        std::tie(marker, it) = get_marker(it, end_it);
-        it++;
-
-        sites_mask.push_back(0);
-
-        bool site_edge_marker = marker % 2 != 0;
-        if (site_edge_marker) {
-            const auto at_site_start = current_site_edge_marker == 0;
-            if (at_site_start) {
-                current_site_edge_marker = marker;
-            } else {
-                current_site_edge_marker = 0;
-            }
-            continue;
-        }
+        marker_digits.push_back(encode_result.charecter);
     }
-    return sites_mask;
+
+    flush_marker_digits(marker_digits, encoded_prg, count_chars);
+    encoded_prg.resize(count_chars);
+    return encoded_prg;
+}
+
+
+void flush_marker_digits(std::vector<int> &marker_digits,
+                         EncodedPRG &encoded_prg,
+                         uint64_t &count_chars) {
+    if (marker_digits.empty())
+        return;
+
+    uint64_t marker = concat_marker_digits(marker_digits);
+    encoded_prg[count_chars++] = marker;
+    marker_digits.clear();
+}
+
+
+uint64_t concat_marker_digits(const std::vector<int> &marker_digits) {
+    uint64_t marker = 0;
+    for (const auto &digit: marker_digits)
+        marker = marker * 10 + digit;
+    return marker;
+}
+
+
+EncodeResult encode_char(const char &c) {
+    EncodeResult encode_result;
+
+    switch (c) {
+        case 'A':
+        case 'a':
+            encode_result.is_dna = true;
+            encode_result.charecter = 1;
+            return encode_result;
+
+        case 'C':
+        case 'c':
+            encode_result.is_dna = true;
+            encode_result.charecter = 2;
+            return encode_result;
+
+        case 'G':
+        case 'g':
+            encode_result.is_dna = true;
+            encode_result.charecter = 3;
+            return encode_result;
+
+        case 'T':
+        case 't':
+            encode_result.is_dna = true;
+            encode_result.charecter = 4;
+            return encode_result;
+
+        default:
+            encode_result.is_dna = false;
+            encode_result.charecter = c - '0';
+            return encode_result;
+    }
 }

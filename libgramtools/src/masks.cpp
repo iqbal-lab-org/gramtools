@@ -3,12 +3,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 #include <sdsl/bit_vectors.hpp>
 
-#include "fm_index.hpp"
-#include "masks.hpp"
+#include "prg.hpp"
 
 
 sdsl::bit_vector generate_variant_site_markers_mask(const EncodedPRG &encoded_prg) {
