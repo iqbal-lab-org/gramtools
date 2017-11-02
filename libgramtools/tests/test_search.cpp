@@ -1,51 +1,11 @@
 #include <cctype>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-
 #include "gtest/gtest.h"
 
 #include "prg.hpp"
 #include "kmers.hpp"
 #include "search.hpp"
-
-
-class Search : public ::testing::Test {
-
-protected:
-    std::string prg_fpath;
-
-    void SetUp() override {
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        const auto uuid_str = boost::lexical_cast<std::string>(uuid);
-        prg_fpath = "./prg_" + uuid_str;
-    }
-
-    void TearDown() override {
-        std::remove(prg_fpath.c_str());
-    }
-
-    FM_Index fm_index_from_raw_prg(const std::string &prg_raw) {
-        std::vector<uint64_t> prg = encode_prg(prg_raw);
-        dump_encoded_prg(prg, prg_fpath);
-        FM_Index fm_index;
-        // TODO: constructing from memory with sdsl::construct_im appends 0 which corrupts
-        sdsl::construct(fm_index, prg_fpath, 8);
-        return fm_index;
-    }
-
-    PRG_Info generate_prg_info(const std::string &prg_raw) {
-        PRG_Info prg_info;
-        prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
-        // prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
-        prg_info.allele_mask = generate_allele_mask(prg_raw);
-        prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
-        return prg_info;
-    }
-
-};
+#include "test_utils.hpp"
 
 
 /*
@@ -72,7 +32,7 @@ i	F	BTW	text	SA
 */
 
 
-TEST_F(Search, SingleChar_CorrectSaIntervalReturned) {
+TEST(Search, SingleChar_CorrectSaIntervalReturned) {
     const auto prg_raw = "gcgctggagtgctgt";
     const auto prg_info = generate_prg_info(prg_raw);
     const auto pattern_char = encode_dna_base('g');
@@ -95,7 +55,7 @@ TEST_F(Search, SingleChar_CorrectSaIntervalReturned) {
 }
 
 
-TEST_F(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
+TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
     const auto prg_raw = "gcgctggagtgctgt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -125,7 +85,7 @@ TEST_F(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
 }
 
 
-TEST_F(Search, SingleCharFreqOneInText_SingleSA) {
+TEST(Search, SingleCharFreqOneInText_SingleSA) {
     const auto prg_raw = "gcgctggagtgctgt";
     const auto prg_info = generate_prg_info(prg_raw);
     const auto pattern_char = encode_dna_base('a');
@@ -148,7 +108,7 @@ TEST_F(Search, SingleCharFreqOneInText_SingleSA) {
 }
 
 
-TEST_F(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
+TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
     const auto prg_raw = "gcgctggagtgctgt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -173,7 +133,7 @@ TEST_F(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
 }
 
 
-TEST_F(Search, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
+TEST(Search, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
     const auto prg_raw = "gcgctggagtgctgt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -247,7 +207,7 @@ N/A
 */
 
 
-TEST_F(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
+TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
     const auto prg_raw = "gcgct5c6g6a5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     // first char: g
@@ -264,7 +224,7 @@ TEST_F(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST_F(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
+TEST(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
     const auto prg_raw = "gcgct5c6g6a5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     // first char: g
@@ -279,7 +239,7 @@ TEST_F(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
 }
 
 
-TEST_F(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
+TEST(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
     const auto prg_raw = "gcgct5c6g6a5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     // first char: c
@@ -297,7 +257,7 @@ TEST_F(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST_F(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
+TEST(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
     const auto prg_raw = "gcgct5c6g6a5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     // first char: a
@@ -310,7 +270,7 @@ TEST_F(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
 }
 
 
-TEST_F(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
+TEST(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
     const auto prg_raw = "gcgct5c6g6a5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     const auto boundary_marker = 5;
@@ -321,7 +281,7 @@ TEST_F(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
 }
 
 
-TEST_F(Search, GivenBoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
+TEST(Search, GivenBoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
     const auto prg_raw = "aca5g6t5gcatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -356,7 +316,7 @@ i	F	BWT	text	SA	suffix
  */
 
 
-TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedCorrectMarkerChars) {
+TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectMarkerChars) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -379,7 +339,7 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedCorrectMarkerChars) {
 }
 
 
-TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedCorrectSaIndexes) {
+TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectSaIndexes) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -400,7 +360,7 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedCorrectSaIndexes) {
 }
 
 
-TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSingleCharSaIntervals) {
+TEST(Search, CharAfterBoundaryEndMarker_ReturnedSingleCharSaIntervals) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -423,7 +383,7 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSingleCharSaIntervals) {
 }
 
 
-TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVariantSiteAttributes) {
+TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVariantSiteAttributes) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -447,7 +407,7 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVar
 }
 
 
-TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariantSiteRecordedAttributes) {
+TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariantSiteRecordedAttributes) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -465,7 +425,7 @@ TEST_F(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariant
     EXPECT_EQ(result, expected);
 }
 
-TEST_F(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
+TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -477,7 +437,7 @@ TEST_F(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
 }
 
 
-TEST_F(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -500,7 +460,7 @@ TEST_F(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST_F(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -523,7 +483,7 @@ TEST_F(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST_F(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -546,7 +506,7 @@ TEST_F(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST_F(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInPathHistory) {
+TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInPathHistory) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     const auto pattern_char = encode_dna_base('t');
@@ -572,7 +532,7 @@ TEST_F(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedI
 }
 
 
-TEST_F(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInResult) {
+TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInResult) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
     const auto pattern_char = encode_dna_base('t');
@@ -601,7 +561,7 @@ TEST_F(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathIn
 }
 
 
-TEST_F(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
+TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -616,7 +576,7 @@ TEST_F(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
 }
 
 
-TEST_F(Search, GivenRead_CorrectResultSaInterval) {
+TEST(Search, GivenRead_CorrectResultSaInterval) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -636,7 +596,7 @@ TEST_F(Search, GivenRead_CorrectResultSaInterval) {
 }
 
 
-TEST_F(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
+TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -658,7 +618,7 @@ TEST_F(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
 }
 
 
-TEST_F(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
+TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -680,7 +640,7 @@ TEST_F(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
 }
 
 
-TEST_F(Search, GivenReadCrossingAllele_CorrectVariantSitePath) {
+TEST(Search, GivenReadCrossingAllele_CorrectVariantSitePath) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -728,7 +688,7 @@ i	F	BWT	text   SA	suffix
 */
 
 
-TEST_F(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
+TEST(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7ct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -752,7 +712,7 @@ TEST_F(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
 }
 
 
-TEST_F(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
+TEST(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
     const auto prg_raw = "gct5c6g6t5ag7tct8c7ct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -776,7 +736,7 @@ TEST_F(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
 }
 
 
-TEST_F(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
+TEST(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -799,7 +759,7 @@ TEST_F(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
 }
 
 
-TEST_F(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
+TEST(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -822,7 +782,7 @@ TEST_F(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
 }
 
 
-TEST_F(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
+TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -846,7 +806,7 @@ TEST_F(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
 }
 
 
-TEST_F(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
+TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
 

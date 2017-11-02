@@ -14,6 +14,7 @@
 
 struct PRG_Info {
     FM_Index fm_index;
+    EncodedPRG encoded_prg;
     // DNA_Rank dna_rank;
     SitesMask sites_mask;
     AlleleMask allele_mask;

@@ -37,15 +37,29 @@ void build(const Parameters &parameters) {
 
     std::cout << "Generating integer encoded PRG" << std::endl;
     timer.start("Encoded PRG");
-    generate_encoded_prg(parameters);
+    auto encoded_prg = generate_encoded_prg(parameters);
     timer.stop();
+    std::cout << "Number of charecters in integer encoded linear PRG: "
+              << encoded_prg.size()
+              << std::endl;
 
     std::cout << "Generating FM-Index" << std::endl;
     timer.start("Generate FM-Index");
-    generate_fm_index(parameters);
+    auto fm_index = generate_fm_index(parameters);
     timer.stop();
 
-    const auto prg_info = load_prg_info(parameters);
+    MasksParser masks(parameters.site_mask_fpath,
+                      parameters.allele_mask_fpath);
+
+    // generate_variant_site_markers_mask(encoded_prg);
+
+    PRG_Info prg_info = {
+            fm_index,
+            encoded_prg,
+            masks.sites,
+            masks.allele,
+            masks.max_alphabet_num
+    };
 
     std::cout << "Generating kmer index" << std::endl;
     timer.start("Generate kmer index");
@@ -88,8 +102,11 @@ void quasimap(const Parameters &parameters) {
 PRG_Info load_prg_info(const Parameters &parameters) {
     MasksParser masks(parameters.site_mask_fpath,
                       parameters.allele_mask_fpath);
+    auto fm_index = load_fm_index(parameters);
+    auto encoded_prg = parse_prg(parameters.linear_prg_fpath);
     return PRG_Info {
-            load_fm_index(parameters),
+            fm_index,
+            encoded_prg,
             masks.sites,
             masks.allele,
             masks.max_alphabet_num

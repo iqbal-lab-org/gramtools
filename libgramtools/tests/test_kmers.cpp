@@ -1,14 +1,8 @@
 #include <cctype>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-
 #include "gtest/gtest.h"
 
-#include "utils.hpp"
-#include "prg.hpp"
+#include "test_utils.hpp"
 #include "kmers.hpp"
 
 
@@ -241,42 +235,6 @@ TEST(ParseKmerIndex, GivenSitesTrailingAt_TrailingAtIgnored) {
 }
 
 
-class IndexKmers : public ::testing::Test {
-
-protected:
-    std::string prg_fpath;
-
-    virtual void SetUp() {
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        const auto uuid_str = boost::lexical_cast<std::string>(uuid);
-        prg_fpath = "./prg_" + uuid_str;
-    }
-
-    virtual void TearDown() {
-        std::remove(prg_fpath.c_str());
-    }
-
-    FM_Index fm_index_from_raw_prg(const std::string &prg_raw) {
-        std::vector<uint64_t> prg = encode_prg(prg_raw);
-        dump_encoded_prg(prg, prg_fpath);
-        FM_Index fm_index;
-        // TODO: constructing from memory with sdsl::construct_im appends 0 which corrupts
-        sdsl::construct(fm_index, prg_fpath, 8);
-        return fm_index;
-    }
-
-    PRG_Info generate_prg_info(const std::string &prg_raw) {
-        PRG_Info prg_info;
-        prg_info.fm_index = fm_index_from_raw_prg(prg_raw);
-        // prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
-        prg_info.allele_mask = generate_allele_mask(prg_raw);
-        prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
-        return prg_info;
-    }
-
-};
-
-
 /*
 PRG: aca5g6t5gctc
 i	F	BWT	text	SA	suffix
@@ -296,7 +254,7 @@ i	F	BWT	text	SA	suffix
  */
 
 
-TEST_F(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
+TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
     const std::string prg_raw = "aca5g6t5gctc";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -316,7 +274,7 @@ TEST_F(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
 }
 
 
-TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
+TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -336,7 +294,7 @@ TEST_F(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
 }
 
 
-TEST_F(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
+TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
     auto prg_raw = "aca5g6c5tatt";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -379,7 +337,7 @@ TEST_F(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
 }
 
 
-TEST_F(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
+TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
     auto prg_raw = "aca5g6c5tatt";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -411,7 +369,7 @@ TEST_F(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
 }
 
 
-TEST_F(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
+TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -439,7 +397,7 @@ TEST_F(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
 }
 
 
-TEST_F(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
+TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -481,7 +439,7 @@ TEST_F(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
 }
 
 
-TEST_F(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
+TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -518,7 +476,7 @@ TEST_F(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
 }
 
 
-TEST_F(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
+TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -540,7 +498,7 @@ TEST_F(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
 }
 
 
-TEST_F(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
+TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -572,7 +530,7 @@ TEST_F(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
 }
 
 
-TEST_F(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
+TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
     const std::string prg_raw = "aca5g6c5t";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -594,7 +552,7 @@ TEST_F(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
 }
 
 
-TEST_F(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
+TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     const std::string prg_raw = "aca5g6c5t";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -626,7 +584,7 @@ TEST_F(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
 }
 
 
-TEST_F(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
+TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
     const std::string prg_raw = "aca5g6c5tt7a8c7gg";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -666,7 +624,7 @@ i	F	BWT	text	SA	suffix
 11	5	4	3	    3	5 4 1 6 4 5 1 2 3 0
 12	6	1	0	    6	6 4 5 1 2 3 0
 */
-TEST_F(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) {
+TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) {
     auto prg_raw = "ttt5ta6t5acg";
     auto prg_info = generate_prg_info(prg_raw);
 

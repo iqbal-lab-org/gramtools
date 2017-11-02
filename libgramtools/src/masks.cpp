@@ -5,7 +5,18 @@
 #include <fstream>
 #include <sstream>
 
+#include <sdsl/bit_vectors.hpp>
+
+#include "fm_index.hpp"
 #include "masks.hpp"
+
+
+sdsl::bit_vector generate_variant_site_markers_mask(const EncodedPRG &encoded_prg) {
+    sdsl::bit_vector variants_markers_mask(encoded_prg.size(), 0);
+    for (unsigned int i = 0; i < encoded_prg.size(); i++)
+        variants_markers_mask[i] = encoded_prg[i] > 4;
+    return variants_markers_mask;
+}
 
 
 MasksParser::MasksParser(const std::string &sites_fname, const std::string &alleles_fname) {
