@@ -34,7 +34,8 @@ add_executable(test_main
         test_coverage_analysis.cpp
         test_kmers.cpp
         test_search.cpp
-        test_prg.cpp)
+        test_prg.cpp
+        test_masks.cpp)
 target_link_libraries(test_main
         gramtools
         libgmock

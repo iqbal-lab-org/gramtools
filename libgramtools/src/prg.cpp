@@ -129,14 +129,17 @@ PRG_Info load_prg_info(const Parameters &parameters) {
     MasksParser masks(parameters.site_mask_fpath,
                       parameters.allele_mask_fpath);
     auto fm_index = load_fm_index(parameters);
+    auto allele_mask = load_allele_mask(parameters);
+
     auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
     auto markers_mask = generate_markers_mask(encoded_prg);
     auto max_alphabet_num = get_max_alphabet_num(encoded_prg);
+
     return PRG_Info {
             fm_index,
             encoded_prg,
             masks.sites,
-            masks.allele,
+            allele_mask,
             markers_mask,
             max_alphabet_num
     };

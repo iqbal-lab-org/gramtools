@@ -16,7 +16,7 @@ struct PRG_Info {
     sdsl::int_vector<> encoded_prg;
     // DNA_Rank dna_rank;
     std::vector<Marker> sites_mask;
-    std::vector<AlleleId> allele_mask;
+    sdsl::int_vector<> allele_mask;
     sdsl::bit_vector markers_mask;
     uint64_t max_alphabet_num;
 };

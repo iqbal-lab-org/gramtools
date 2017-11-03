@@ -51,20 +51,24 @@ void build(const Parameters &parameters) {
     auto fm_index = generate_fm_index(parameters);
     timer.stop();
 
-    std::cout << "Loading PRG masks" << std::endl;
-    timer.start("Loading PRG masks");
+    std::cout << "Generating PRG masks" << std::endl;
+    timer.start("Generating PRG masks");
     MasksParser masks(parameters.site_mask_fpath,
                       parameters.allele_mask_fpath);
+
+    auto allele_mask = generate_allele_mask(encoded_prg);
+    sdsl::store_to_file(allele_mask, parameters.allele_mask_fpath);
+
     auto markers_mask = generate_markers_mask(encoded_prg);
-    auto markers_rank = sdsl::rank_support_v<1>(&markers_mask);
-    auto markers_select = sdsl::select_support_mcl<1>(&markers_mask);
+    // auto markers_rank = sdsl::rank_support_v<1>(&markers_mask);
+    // auto markers_select = sdsl::select_support_mcl<1>(&markers_mask);
     timer.stop();
 
     PRG_Info prg_info = {
             fm_index,
             encoded_prg,
             masks.sites,
-            masks.allele,
+            allele_mask,
             markers_mask,
             masks.max_alphabet_num
     };
