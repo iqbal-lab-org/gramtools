@@ -126,8 +126,7 @@ EncodeResult encode_char(const char &c) {
 
 
 PRG_Info load_prg_info(const Parameters &parameters) {
-    MasksParser masks(parameters.site_mask_fpath,
-                      parameters.allele_mask_fpath);
+    MasksParser masks(parameters.site_mask_fpath);
     auto fm_index = load_fm_index(parameters);
     auto allele_mask = load_allele_mask(parameters);
 

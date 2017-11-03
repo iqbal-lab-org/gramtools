@@ -53,8 +53,7 @@ void build(const Parameters &parameters) {
 
     std::cout << "Generating PRG masks" << std::endl;
     timer.start("Generating PRG masks");
-    MasksParser masks(parameters.site_mask_fpath,
-                      parameters.allele_mask_fpath);
+    MasksParser masks(parameters.site_mask_fpath);
 
     auto allele_mask = generate_allele_mask(encoded_prg);
     sdsl::store_to_file(allele_mask, parameters.allele_mask_fpath);

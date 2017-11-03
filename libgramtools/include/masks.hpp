@@ -21,17 +21,10 @@ class MasksParser {
 public:
     uint64_t max_alphabet_num;
     std::vector<uint64_t> sites;
-
-    std::vector<AlleleId> allele;
-
     MasksParser() {};
-
-    MasksParser(const std::string &sites_fname, const std::string &alleles_fname);
-
+    MasksParser(const std::string &sites_fname);
 private:
     void parse_sites(std::istream &stream);
-
-    void parse_allele(std::istream &stream);
 };
 
 #endif //GRAMTOOLS_MASKS_H

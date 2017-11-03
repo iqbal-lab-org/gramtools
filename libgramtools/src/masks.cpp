@@ -64,7 +64,7 @@ sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
 }
 
 
-MasksParser::MasksParser(const std::string &sites_fname, const std::string &alleles_fname) {
+MasksParser::MasksParser(const std::string &sites_fname) {
     std::ifstream sites_stream(sites_fname);
     parse_sites(sites_stream);
 }
