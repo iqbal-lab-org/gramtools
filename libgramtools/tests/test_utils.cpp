@@ -90,9 +90,12 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
     prg_info.encoded_prg = encoded_prg;
     prg_info.sites_mask = generate_sites_mask(prg_raw);
     prg_info.allele_mask = generate_allele_mask(encoded_prg);
-    prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
+    
+    prg_info.markers_mask = generate_markers_mask(encoded_prg);
+    prg_info.markers_rank = sdsl::rank_support_v<1>(&prg_info.markers_mask);
+    prg_info.markers_select = sdsl::select_support_mcl<1>(&prg_info.markers_mask);
 
-    // prg_info.dna_rank = calculate_ranks(prg_info.fm_index);
+    prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
     return prg_info;
 }
 

@@ -14,10 +14,14 @@
 struct PRG_Info {
     FM_Index fm_index;
     sdsl::int_vector<> encoded_prg;
-    // DNA_Rank dna_rank;
+    
     std::vector<Marker> sites_mask;
     sdsl::int_vector<> allele_mask;
+
     sdsl::bit_vector markers_mask;
+    sdsl::rank_support_v<1> markers_rank;
+    sdsl::select_support_mcl<1> markers_select;
+
     uint64_t max_alphabet_num;
 };
 

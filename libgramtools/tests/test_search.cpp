@@ -42,9 +42,9 @@ TEST(Search, SingleChar_CorrectSaIntervalReturned) {
     };
     SearchStates search_states = {initial_search_state};
 
-    auto result = search_base_bwd(pattern_char,
-                                  search_states,
-                                  prg_info);
+    auto result = search_states_base_backwards(pattern_char,
+                                               search_states,
+                                               prg_info);
     SearchStates expected = {
             SearchState {
                     SA_Interval {5, 11},
@@ -65,14 +65,14 @@ TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
     SearchStates initial_search_states = {initial_search_state};
 
     const auto first_char = encode_dna_base('g');
-    auto first_search_states = search_base_bwd(first_char,
-                                               initial_search_states,
-                                               prg_info);
+    auto first_search_states = search_states_base_backwards(first_char,
+                                                            initial_search_states,
+                                                            prg_info);
 
     const auto second_char = encode_dna_base('t');
-    auto second_search_states = search_base_bwd(second_char,
-                                                first_search_states,
-                                                prg_info);
+    auto second_search_states = search_states_base_backwards(second_char,
+                                                             first_search_states,
+                                                             prg_info);
 
     const auto &result = second_search_states;
     SearchStates expected = {
@@ -95,9 +95,9 @@ TEST(Search, SingleCharFreqOneInText_SingleSA) {
     };
     SearchStates search_states = {initial_search_state};
 
-    auto result = search_base_bwd(pattern_char,
-                                  search_states,
-                                  prg_info);
+    auto result = search_states_base_backwards(pattern_char,
+                                               search_states,
+                                               prg_info);
     SearchStates expected = {
             SearchState {
                     SA_Interval {1, 1},
@@ -118,14 +118,14 @@ TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
     SearchStates initial_search_states = {initial_search_state};
 
     const auto first_char = encode_dna_base('a');
-    auto first_search_states = search_base_bwd(first_char,
-                                               initial_search_states,
-                                               prg_info);
+    auto first_search_states = search_states_base_backwards(first_char,
+                                                            initial_search_states,
+                                                            prg_info);
 
     const auto second_char = encode_dna_base('g');
-    auto second_search_states = search_base_bwd(second_char,
-                                                first_search_states,
-                                                prg_info);
+    auto second_search_states = search_states_base_backwards(second_char,
+                                                             first_search_states,
+                                                             prg_info);
 
     const auto &result = second_search_states.front().sa_interval;
     SA_Interval expected{5, 5};
@@ -143,14 +143,14 @@ TEST(Search, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
     SearchStates initial_search_states = {initial_search_state};
 
     const auto first_char = encode_dna_base('a');
-    auto first_search_states = search_base_bwd(first_char,
-                                               initial_search_states,
-                                               prg_info);
+    auto first_search_states = search_states_base_backwards(first_char,
+                                                            initial_search_states,
+                                                            prg_info);
 
     const auto second_char = encode_dna_base('c');
-    const auto &result = search_base_bwd(second_char,
-                                         first_search_states,
-                                         prg_info);
+    const auto &result = search_states_base_backwards(second_char,
+                                                      first_search_states,
+                                                      prg_info);
 
     SearchStates expected = {};
     EXPECT_EQ(result, expected);
@@ -520,9 +520,9 @@ TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInP
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    auto final_search_states = search_base_bwd(pattern_char,
-                                               initial_search_states,
-                                               prg_info);
+    auto final_search_states = search_states_base_backwards(pattern_char,
+                                                            initial_search_states,
+                                                            prg_info);
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
@@ -546,9 +546,9 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    auto final_search_states = search_base_bwd(pattern_char,
-                                               initial_search_states,
-                                               prg_info);
+    auto final_search_states = search_states_base_backwards(pattern_char,
+                                                            initial_search_states,
+                                                            prg_info);
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
@@ -571,7 +571,7 @@ TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 0);
 }
 
@@ -586,8 +586,8 @@ TEST(Search, GivenRead_CorrectResultSaInterval) {
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    ASSERT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
     auto result = search_state.sa_interval;
@@ -596,7 +596,7 @@ TEST(Search, GivenRead_CorrectResultSaInterval) {
 }
 
 
-TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
+TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -606,7 +606,7 @@ TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
@@ -618,7 +618,7 @@ TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
 }
 
 
-TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
+TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
     const auto prg_raw = "gcgct5c6g6t5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);
 
@@ -628,7 +628,7 @@ TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
@@ -650,7 +650,7 @@ TEST(Search, GivenReadCrossingAllele_CorrectVariantSitePath) {
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
@@ -699,7 +699,7 @@ TEST(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
 
     const auto read = encode_dna_bases("cagtct");
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
@@ -723,7 +723,7 @@ TEST(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
 
     const auto read = encode_dna_bases("cagtct");
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
@@ -747,7 +747,7 @@ TEST(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
 
     const auto read = encode_dna_bases("gccta");
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
@@ -770,7 +770,7 @@ TEST(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
 
     const auto read = encode_dna_bases("agccta");
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
@@ -793,7 +793,7 @@ TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
 
     const auto read = encode_dna_bases("tagt");
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
@@ -817,7 +817,7 @@ TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
 
     const auto read = encode_dna_bases("cttagt");
 
-    auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
@@ -827,4 +827,99 @@ TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
             VariantSite {7, 1}
     };
     EXPECT_EQ(result, expected);
+}
+
+
+TEST(Search, NoMarkersToLeft_SkippingToMarkerTrue) {
+    const auto prg_raw = "gcgct5c6g6t5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const auto read = encode_dna_bases("cgctg");
+    Pattern kmer = encode_dna_bases("gctg");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    auto search_state = search_states.front();
+    auto result = search_state.skipping_to_marker;
+    EXPECT_TRUE(result);
+}
+
+
+TEST(Search, NoMarkersToLeft_DistanceToNextMarkerGreaterThanOne) {
+    const auto prg_raw = "gcgct5c6g6t5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const auto read = encode_dna_bases("cgctg");
+    Pattern kmer = encode_dna_bases("gctg");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    auto search_state = search_states.front();
+
+    auto result = search_state.distance_to_next_marker;
+    ASSERT_TRUE(result > 1);
+}
+
+
+TEST(Search, MarkerToLeft_DistanceToNextMarkerIsKmerStartTextIndex) {
+    const auto prg_raw = "gcgct5c6g6t5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const auto read = encode_dna_bases("gtcct");
+    Pattern kmer = encode_dna_bases("tcct");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    auto search_state = search_states.front();
+
+    auto result = search_state.distance_to_next_marker;
+    auto expected = 2;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(Search, MarkerToImmediateLeft_SkippingToMarkerFlagFalse) {
+    const auto prg_raw = "gcgct5c6g6t5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const auto read = encode_dna_bases("agtcc");
+    Pattern kmer = encode_dna_bases("gtcc");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    ASSERT_EQ(search_states.size(), 1);
+
+    auto search_state = search_states.front();
+
+    auto result = search_state.skipping_to_marker;
+    EXPECT_FALSE(result);
+}
+
+
+TEST(Search, ReadLeadsToPrgEdge_NoSearchStatesFound) {
+    const auto prg_raw = "gcgct5c6g6t5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const auto read = encode_dna_bases("agcgc");
+    Pattern kmer = encode_dna_bases("gcgc");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    ASSERT_TRUE(search_states.empty());
 }

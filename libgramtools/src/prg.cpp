@@ -126,20 +126,19 @@ EncodeResult encode_char(const char &c) {
 
 
 PRG_Info load_prg_info(const Parameters &parameters) {
+    PRG_Info prg_info;
+
     MasksParser masks(parameters.site_mask_fpath);
-    auto fm_index = load_fm_index(parameters);
-    auto allele_mask = load_allele_mask(parameters);
+    prg_info.sites_mask = masks.sites;
 
-    auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
-    auto markers_mask = generate_markers_mask(encoded_prg);
-    auto max_alphabet_num = get_max_alphabet_num(encoded_prg);
+    prg_info.fm_index = load_fm_index(parameters);
+    prg_info.allele_mask = load_allele_mask(parameters);
 
-    return PRG_Info {
-            fm_index,
-            encoded_prg,
-            masks.sites,
-            allele_mask,
-            markers_mask,
-            max_alphabet_num
-    };
+    prg_info.encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
+    prg_info.markers_mask = generate_markers_mask(prg_info.encoded_prg);
+    prg_info.markers_rank = sdsl::rank_support_v<1>(&prg_info.markers_mask);
+    prg_info.markers_select = sdsl::select_support_mcl<1>(&prg_info.markers_mask);
+    prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
+
+    return prg_info;
 }

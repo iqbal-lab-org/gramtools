@@ -2,37 +2,182 @@
 #include "search.hpp"
 
 
-SearchStates search_read_bwd(const Pattern &read,
-                             const Pattern &kmer,
-                             const KmerIndex &kmer_index,
-                             const PRG_Info &prg_info) {
+#define USE_SKIP_OPTIMIZATION false
 
+SearchStates search_read_backwards(const Pattern &read,
+                                   const Pattern &kmer,
+                                   const KmerIndex &kmer_index,
+                                   const PRG_Info &prg_info) {
     bool kmer_in_index = kmer_index.find(kmer) != kmer_index.end();
     if (not kmer_in_index)
         return SearchStates {};
 
-    auto search_states = kmer_index.at(kmer);
-    if (search_states.empty())
-        return search_states;
+    auto kmer_index_search_states = kmer_index.at(kmer);
+    if (kmer_index_search_states.empty())
+        return kmer_index_search_states;
 
     auto read_begin = read.rbegin();
     std::advance(read_begin, kmer.size());
 
-    SearchStates new_search_states = search_states;
+    SearchStates new_search_states = kmer_index_search_states;
 
     for (auto it = read_begin; it != read.rend(); ++it) {
-        const Base &read_char = *it;
-        auto markers_search_states = process_markers_search_states(new_search_states,
-                                                                   prg_info);
-        new_search_states.splice(new_search_states.end(), markers_search_states);
-        new_search_states = search_base_bwd(read_char,
-                                            new_search_states,
-                                            prg_info);
-        if (new_search_states.empty())
+        const Base &pattern_char = *it;
+        set_state_skip_marker(new_search_states,
+                              prg_info);
+        new_search_states = process_read_char_search_states(pattern_char,
+                                                            new_search_states,
+                                                            prg_info);
+        auto read_not_mapped = new_search_states.empty();
+        if (read_not_mapped)
             break;
     }
 
     return new_search_states;
+}
+
+
+SearchState search_base_backwards(const Base &pattern_char,
+                                  const uint64_t char_first_sa_index,
+                                  const SearchState &search_state,
+                                  const PRG_Info &prg_info) {
+    auto next_sa_interval = base_next_sa_interval(pattern_char,
+                                                  char_first_sa_index,
+                                                  search_state.sa_interval,
+                                                  prg_info);
+    auto valid_sa_interval = next_sa_interval.first - 1 != next_sa_interval.second;
+    if (not valid_sa_interval) {
+        SearchState new_search_state;
+        new_search_state.invalid = true;
+        return new_search_state;
+    }
+
+    auto new_search_state = search_state;
+    new_search_state.sa_interval.first = next_sa_interval.first;
+    new_search_state.sa_interval.second = next_sa_interval.second;
+    return new_search_state;
+}
+
+
+SearchStates process_read_char_search_states(const Base &pattern_char,
+                                             const SearchStates &old_search_states,
+                                             const PRG_Info &prg_info) {
+
+    /* Process markers */
+
+    SearchStates post_markers_search_states = old_search_states;
+    SearchStates all_markers_new_search_states;
+    for (const auto &search_state: old_search_states) {
+        if (USE_SKIP_OPTIMIZATION and search_state.skipping_to_marker)
+            continue;
+        auto markers_search_states = process_markers_search_state(search_state, prg_info);
+        all_markers_new_search_states.splice(all_markers_new_search_states.end(),
+                                             markers_search_states);
+    }
+    post_markers_search_states.splice(post_markers_search_states.end(),
+                                      all_markers_new_search_states);
+
+    /* Process base */
+
+    auto char_alphabet_rank = prg_info.fm_index.char2comp[pattern_char];
+    auto char_first_sa_index = prg_info.fm_index.C[char_alphabet_rank];
+
+    SearchStates new_search_states = {};
+
+    for (const auto &search_state: post_markers_search_states) {
+        SearchState new_search_state;
+
+        if (USE_SKIP_OPTIMIZATION and search_state.skipping_to_marker) {
+            new_search_state = search_skipping_marker(search_state,
+                                                      pattern_char,
+                                                      prg_info);
+        } else {
+            new_search_state = search_base_backwards(pattern_char,
+                                                     char_first_sa_index,
+                                                     search_state,
+                                                     prg_info);
+        }
+
+        if (new_search_state.invalid)
+            continue;
+        process_search_state_path_cache(new_search_state);
+        new_search_states.emplace_back(new_search_state);
+    }
+
+    return new_search_states;
+}
+
+
+SearchState search_skipping_marker(const SearchState &search_state,
+                                   const Base &pattern_char,
+                                   const PRG_Info &prg_info) {
+    SearchState new_search_state = search_state;
+
+    auto previously_at_prg_edge = new_search_state.current_text_index == 0;
+    if (previously_at_prg_edge) {
+        new_search_state.invalid = true;
+        return new_search_state;
+    }
+
+    new_search_state.current_text_index--;
+    new_search_state.distance_to_next_marker--;
+
+    auto searching_past_prg_start = new_search_state.current_text_index < 0;
+    if (searching_past_prg_start) {
+        new_search_state.invalid = true;
+        return new_search_state;
+    }
+
+    auto search_is_valid = prg_info.encoded_prg[new_search_state.current_text_index]
+                           == pattern_char;
+    if (not search_is_valid) {
+        new_search_state.invalid = true;
+        return new_search_state;
+    }
+
+    auto stop_skipping_markers = new_search_state.distance_to_next_marker == 1;
+    if (stop_skipping_markers) {
+        new_search_state.skipping_to_marker = false;
+        auto sa_index = prg_info.fm_index.isa[new_search_state.current_text_index];
+        new_search_state.sa_interval.first = sa_index;
+        new_search_state.sa_interval.second = sa_index;
+        return new_search_state;
+    }
+
+    return new_search_state;
+}
+
+
+void set_state_skip_marker(SearchStates &search_states,
+                           const PRG_Info &prg_info) {
+    for (auto &search_state: search_states) {
+        if (search_state.skipping_to_marker)
+            continue;
+
+        auto &sa_interval = search_state.sa_interval;
+        auto state_unique_prg_match = sa_interval.first == sa_interval.second;
+        if (not state_unique_prg_match)
+            continue;
+
+        auto &sa_index = sa_interval.first;
+        auto state_text_index = prg_info.fm_index[sa_index];
+        auto num_markers_before = prg_info.markers_rank(state_text_index);
+
+        if (num_markers_before == 0) {
+            search_state.skipping_to_marker = true;
+            search_state.distance_to_next_marker = state_text_index + 1;
+            search_state.current_text_index = state_text_index;
+            continue;
+        }
+
+        auto next_marker_index = prg_info.markers_select(num_markers_before);
+        auto distance_to_next_marker = state_text_index - next_marker_index;
+        if (distance_to_next_marker > 1) {
+            search_state.skipping_to_marker = true;
+            search_state.distance_to_next_marker = distance_to_next_marker;
+            search_state.current_text_index = state_text_index;
+        }
+    }
 }
 
 
@@ -74,9 +219,9 @@ void process_search_state_path_cache(SearchState &search_state) {
 }
 
 
-SearchStates search_base_bwd(const Base &pattern_char,
-                             const SearchStates &search_states,
-                             const PRG_Info &prg_info) {
+SearchStates search_states_base_backwards(const Base &pattern_char,
+                                          const SearchStates &search_states,
+                                          const PRG_Info &prg_info) {
     auto char_alphabet_rank = prg_info.fm_index.char2comp[pattern_char];
     auto char_first_sa_index = prg_info.fm_index.C[char_alphabet_rank];
 
@@ -107,6 +252,12 @@ SearchStates process_markers_search_states(const SearchStates &search_states,
                                            const PRG_Info &prg_info) {
     SearchStates new_search_states;
     for (const auto &search_state: search_states) {
+        /*
+        if (search_state.skipping_to_marker) {
+            new_search_states.push_back(search_state);
+            continue;
+        }
+         */
         auto markers_search_states = process_markers_search_state(search_state, prg_info);
         new_search_states.splice(new_search_states.end(), markers_search_states);
     }

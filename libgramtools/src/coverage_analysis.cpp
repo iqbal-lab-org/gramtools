@@ -25,7 +25,7 @@ QuasimapStats quasimap_reads(const Parameters &params,
     uint64_t mapped_reads_count = 0;
 
     for (const auto *const raw_read: reads) {
-        if (all_reads_count % 10 == 0) {
+        if (all_reads_count % 1 == 0) {
             progress_file_handle << all_reads_count << std::endl;
             std::cout << "Reads processed: "
                       << all_reads_count
@@ -59,7 +59,7 @@ bool quasimap_read(const Pattern &read,
                    const PRG_Info &prg_info,
                    const Parameters &params) {
     const auto kmer = get_kmer_from_read(params.kmers_size, read);
-    const auto search_states = search_read_bwd(read, kmer, kmer_index, prg_info);
+    const auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     const bool read_mapped_exactly = not search_states.empty();
     if (read_mapped_exactly)
         record_read_coverage(allele_coverage, search_states);

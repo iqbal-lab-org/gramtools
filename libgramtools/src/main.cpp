@@ -59,8 +59,8 @@ void build(const Parameters &parameters) {
     sdsl::store_to_file(allele_mask, parameters.allele_mask_fpath);
 
     auto markers_mask = generate_markers_mask(encoded_prg);
-    // auto markers_rank = sdsl::rank_support_v<1>(&markers_mask);
-    // auto markers_select = sdsl::select_support_mcl<1>(&markers_mask);
+    auto markers_rank = sdsl::rank_support_v<1>(&markers_mask);
+    auto markers_select = sdsl::select_support_mcl<1>(&markers_mask);
     timer.stop();
 
     PRG_Info prg_info = {
@@ -69,6 +69,8 @@ void build(const Parameters &parameters) {
             masks.sites,
             allele_mask,
             markers_mask,
+            markers_rank,
+            markers_select,
             masks.max_alphabet_num
     };
 

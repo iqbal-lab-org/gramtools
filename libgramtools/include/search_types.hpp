@@ -10,14 +10,19 @@ enum class SearchVariantSiteState {
     unknown
 };
 
+
 struct SearchState {
     SA_Interval sa_interval;
     VariantSitePath variant_site_path;
-
     SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
-
     bool cache_populated = false;
     VariantSite cached_variant_site;
+
+    bool invalid = false;
+
+    bool skipping_to_marker = false;
+    uint64_t distance_to_next_marker = 0;
+    uint64_t current_text_index = 0;
 
     bool operator== (const SearchState &other) const {
         return this->sa_interval == other.sa_interval

@@ -122,6 +122,34 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     params.kmers_size = 5;
     auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
 
+    const auto read = encode_dna_bases("ctgagtcta");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 1, 0},
+            {1, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("gtcta");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 5;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
     const auto read = encode_dna_bases("tagtcta");
 
     quasimap_read(read,
@@ -134,6 +162,344 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     AlleleCoverage expected = {
             {0, 0, 1},
             {1, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("gtcta");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 5;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    const auto read = encode_dna_bases("tgtcta");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 0, 0},
+            {0, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, ReadEndsInAllele_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("ctc");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    const auto read = encode_dna_bases("gctc");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {1, 0, 0},
+            {0, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, ReadStartsInAllele_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    const auto read = encode_dna_bases("tagt");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 0, 1},
+            {1, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    const auto read = encode_dna_bases("tagc");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 0, 0},
+            {0, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, ReadMapsToThreePositions_CorrectAlleleCoverage) {
+    const auto prg_raw = "tag5tc6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    const auto read = encode_dna_bases("tagt");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {1, 0, 2},
+            {1, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, ReadEntierlyWithinAllele_CoverageNotRecorded) {
+    const auto prg_raw = "gct5cccc6g6t5ag";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("ccc");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    const auto read = encode_dna_bases("cccc");
+
+    quasimap_read(read,
+                  allele_coverage,
+                  kmer_index,
+                  prg_info,
+                  params);
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 0, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    Patterns reads = {
+            encode_dna_bases("tagt"),
+            encode_dna_bases("tagt")
+    };
+
+    for (const auto &read: reads) {
+        quasimap_read(read,
+                      allele_coverage,
+                      kmer_index,
+                      prg_info,
+                      params);
+    }
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 0, 2},
+            {2, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    Patterns reads = {
+            encode_dna_bases("gagt"),
+            encode_dna_bases("tagt")
+    };
+
+    for (const auto &read: reads) {
+        quasimap_read(read,
+                      allele_coverage,
+                      kmer_index,
+                      prg_info,
+                      params);
+    }
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {0, 1, 1},
+            {2, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    Patterns reads = {
+            encode_dna_bases("gagt"),
+            encode_dna_bases("tagt"),
+            encode_dna_bases("cagt")
+    };
+
+    for (const auto &read: reads) {
+        quasimap_read(read,
+                      allele_coverage,
+                      kmer_index,
+                      prg_info,
+                      params);
+    }
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {1, 1, 1},
+            {3, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
+    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Patterns kmers = {
+            encode_dna_bases("agt"),
+            encode_dna_bases("agc"),
+    };
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    Patterns reads = {
+            encode_dna_bases("gagt"),
+            encode_dna_bases("tagt"),
+            encode_dna_bases("cagc")
+    };
+
+    for (const auto &read: reads) {
+        quasimap_read(read,
+                      allele_coverage,
+                      kmer_index,
+                      prg_info,
+                      params);
+    }
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {1, 1, 1},
+            {2, 1}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CoverageAnalysis, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
+    const auto prg_raw = "gcac5t6g6c5ta7t8c7cta";
+    const auto prg_info = generate_prg_info(prg_raw);
+    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+
+    Patterns kmers = {
+            encode_dna_bases("cta"),
+            encode_dna_bases("act"),
+    };
+    Parameters params;
+    params.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, params.kmers_size, prg_info);
+
+    Patterns reads = {
+            encode_dna_bases("accta"),
+            encode_dna_bases("gcact"),
+    };
+
+    for (const auto &read: reads) {
+        quasimap_read(read,
+                      allele_coverage,
+                      kmer_index,
+                      prg_info,
+                      params);
+    }
+
+    const auto &result = allele_coverage;
+    AlleleCoverage expected = {
+            {1, 0, 1},
+            {0, 1}
     };
     EXPECT_EQ(result, expected);
 }
