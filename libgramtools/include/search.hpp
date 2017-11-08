@@ -6,9 +6,9 @@
 #ifndef GRAMTOOLS_SEARCH_HPP
 #define GRAMTOOLS_SEARCH_HPP
 
-std::string serialize_search_state(const SearchState &search_state);
+#define USE_SKIP_OPTIMIZATION false
 
-std::ostream &operator<< (std::ostream &os, const SearchState &search_state);
+
 
 SearchStates search_read_backwards(const Pattern &read,
                                    const Pattern &kmer,
@@ -18,6 +18,13 @@ SearchStates search_read_backwards(const Pattern &read,
 SearchStates search_states_base_backwards(const Base &pattern_char,
                                           const SearchStates &search_states,
                                           const PRG_Info &prg_info);
+
+using SaIndexRightOfMarker = uint64_t;
+using MarkersSearchResult = std::pair<SaIndexRightOfMarker, Marker>;
+using MarkersSearchResults = std::vector<MarkersSearchResult>;
+
+MarkersSearchResults left_markers_search(const SearchState &search_state,
+                                         const PRG_Info &prg_info);
 
 SA_Interval base_next_sa_interval(const Marker current_char,
                                   const SA_Index &current_char_first_sa_index,
@@ -48,5 +55,9 @@ SearchStates process_markers_search_states(const SearchStates &search_states,
 
 SearchStates process_markers_search_state(const SearchState &search_state,
                                           const PRG_Info &prg_info);
+
+std::string serialize_search_state(const SearchState &search_state);
+
+std::ostream &operator<< (std::ostream &os, const SearchState &search_state);
 
 #endif //GRAMTOOLS_SEARCH_HPP

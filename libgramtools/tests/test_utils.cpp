@@ -90,10 +90,16 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
     prg_info.encoded_prg = encoded_prg;
     prg_info.sites_mask = generate_sites_mask(prg_raw);
     prg_info.allele_mask = generate_allele_mask(encoded_prg);
-    
-    prg_info.markers_mask = generate_markers_mask(encoded_prg);
-    prg_info.markers_rank = sdsl::rank_support_v<1>(&prg_info.markers_mask);
-    prg_info.markers_select = sdsl::select_support_mcl<1>(&prg_info.markers_mask);
+
+    prg_info.prg_markers_mask = generate_prg_markers_mask(encoded_prg);
+    prg_info.prg_markers_rank = sdsl::rank_support_v<1>(&prg_info.prg_markers_mask);
+    prg_info.prg_markers_select = sdsl::select_support_mcl<1>(&prg_info.prg_markers_mask);
+
+    prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
+    prg_info.bwt_markers_rank = sdsl::rank_support_v<1>(&prg_info.bwt_markers_mask);
+    prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
+    prg_info.bwt_markers_mask_count_set_bits =
+            prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
 
     prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
     return prg_info;

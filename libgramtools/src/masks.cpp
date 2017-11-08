@@ -4,15 +4,22 @@
 #include <iostream>
 #include <fstream>
 
-#include "parameters.hpp"
 #include "masks.hpp"
 
 
-sdsl::bit_vector generate_markers_mask(const sdsl::int_vector<> &encoded_prg) {
+sdsl::bit_vector generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::bit_vector variants_markers_mask(encoded_prg.size(), 0);
-    for (unsigned int i = 0; i < encoded_prg.size(); i++)
+    for (uint64_t i = 0; i < encoded_prg.size(); i++)
         variants_markers_mask[i] = encoded_prg[i] > 4;
     return variants_markers_mask;
+}
+
+
+sdsl::bit_vector generate_bwt_markers_mask(const FM_Index &fm_index) {
+    sdsl::bit_vector bwt_markers_mask(fm_index.bwt.size(), 0);
+    for (uint64_t i = 0; i < fm_index.bwt.size(); i++)
+        bwt_markers_mask[i] = fm_index.bwt[i] > 4;
+    return bwt_markers_mask;
 }
 
 

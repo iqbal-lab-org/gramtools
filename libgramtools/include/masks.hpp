@@ -5,6 +5,7 @@
 #include <sdsl/vectors.hpp>
 
 #include "parameters.hpp"
+#include "fm_index.hpp"
 #include "utils.hpp"
 
 
@@ -15,7 +16,9 @@ sdsl::int_vector<> load_allele_mask(const Parameters &parameters);
 
 sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg);
 
-sdsl::bit_vector generate_markers_mask(const sdsl::int_vector<> &encoded_prg);
+sdsl::bit_vector generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg);
+
+sdsl::bit_vector generate_bwt_markers_mask(const FM_Index &fm_index);
 
 class MasksParser {
 public:

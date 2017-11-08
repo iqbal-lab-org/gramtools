@@ -183,11 +183,11 @@ i   F   BTW text  SA   suffix
 
 
 a sa interval: 1, 2
-sa_preceding_marker_index: 1
+sa_right_of_marker: 1
 marker_char: 5
 15, 15
 
-sa_preceding_marker_index: 2
+sa_right_of_marker: 2
 marker_char: 6
 17, 17
 
@@ -205,6 +205,41 @@ marker_char: 6
 t sa interval: 12, 14
 N/A
 */
+
+
+TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
+    const auto prg_raw = "gcgct5c6g6a5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+    // first char: a
+    SearchState initial_search_state = {
+            SA_Interval {1, 2}
+    };
+
+    auto result = left_markers_search(initial_search_state,
+                                      prg_info);
+    MarkersSearchResults expected = {
+            {1, 5},
+            {2, 6},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
+    const auto prg_raw = "gcgct5c6g6a5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+    // first char: g
+    SearchState initial_search_state = {
+            SA_Interval {8, 11}
+    };
+
+    auto result = left_markers_search(initial_search_state,
+                                      prg_info);
+    MarkersSearchResults expected = {
+            {11, 6},
+    };
+    EXPECT_EQ(result, expected);
+}
 
 
 TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
@@ -844,8 +879,11 @@ TEST(Search, NoMarkersToLeft_SkippingToMarkerTrue) {
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
-    auto result = search_state.skipping_to_marker;
-    EXPECT_TRUE(result);
+
+    if (USE_SKIP_OPTIMIZATION) {
+        auto result = search_state.skipping_to_marker;
+        EXPECT_TRUE(result);
+    }
 }
 
 
@@ -864,8 +902,10 @@ TEST(Search, NoMarkersToLeft_DistanceToNextMarkerGreaterThanOne) {
 
     auto search_state = search_states.front();
 
-    auto result = search_state.distance_to_next_marker;
-    ASSERT_TRUE(result > 1);
+    if (USE_SKIP_OPTIMIZATION) {
+        auto result = search_state.distance_to_next_marker;
+        ASSERT_TRUE(result > 1);
+    }
 }
 
 
@@ -884,9 +924,11 @@ TEST(Search, MarkerToLeft_DistanceToNextMarkerIsKmerStartTextIndex) {
 
     auto search_state = search_states.front();
 
-    auto result = search_state.distance_to_next_marker;
-    auto expected = 2;
-    EXPECT_EQ(result, expected);
+    if (USE_SKIP_OPTIMIZATION) {
+        auto result = search_state.distance_to_next_marker;
+        auto expected = 2;
+        EXPECT_EQ(result, expected);
+    }
 }
 
 

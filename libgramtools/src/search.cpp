@@ -2,8 +2,6 @@
 #include "search.hpp"
 
 
-#define USE_SKIP_OPTIMIZATION false
-
 SearchStates search_read_backwards(const Pattern &read,
                                    const Pattern &kmer,
                                    const KmerIndex &kmer_index,
@@ -23,8 +21,10 @@ SearchStates search_read_backwards(const Pattern &read,
 
     for (auto it = read_begin; it != read.rend(); ++it) {
         const Base &pattern_char = *it;
-        set_state_skip_marker(new_search_states,
-                              prg_info);
+        if (USE_SKIP_OPTIMIZATION) {
+            set_state_skip_marker(new_search_states,
+                                  prg_info);
+        }
         new_search_states = process_read_char_search_states(pattern_char,
                                                             new_search_states,
                                                             prg_info);
@@ -161,7 +161,7 @@ void set_state_skip_marker(SearchStates &search_states,
 
         auto &sa_index = sa_interval.first;
         auto state_text_index = prg_info.fm_index[sa_index];
-        auto num_markers_before = prg_info.markers_rank(state_text_index);
+        auto num_markers_before = prg_info.prg_markers_rank(state_text_index);
 
         if (num_markers_before == 0) {
             search_state.skipping_to_marker = true;
@@ -170,7 +170,7 @@ void set_state_skip_marker(SearchStates &search_states,
             continue;
         }
 
-        auto next_marker_index = prg_info.markers_select(num_markers_before);
+        auto next_marker_index = prg_info.prg_markers_select(num_markers_before);
         auto distance_to_next_marker = state_text_index - next_marker_index;
         if (distance_to_next_marker > 1) {
             search_state.skipping_to_marker = true;
@@ -187,7 +187,6 @@ SA_Interval base_next_sa_interval(const Marker current_char,
                                   const PRG_Info &prg_info) {
     const auto &current_sa_start = current_sa_interval.first;
     const auto &current_sa_end = current_sa_interval.second;
-    assert(current_sa_end <= prg_info.fm_index.size() - 1);
 
     SA_Index sa_start_offset;
     if (current_sa_start <= 0)
@@ -273,16 +272,16 @@ struct SiteBoundaryMarkerInfo {
 
 
 SiteBoundaryMarkerInfo site_boundary_marker_info(const Marker &marker_char,
-                                                 const SA_Index &sa_preceding_marker_index,
+                                                 const SA_Index &sa_right_of_marker,
                                                  const PRG_Info &prg_info) {
     auto alphabet_rank = prg_info.fm_index.char2comp[marker_char];
     auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
 
     uint64_t marker_sa_index_offset;
-    if (sa_preceding_marker_index <= 0)
+    if (sa_right_of_marker <= 0)
         marker_sa_index_offset = 0;
     else
-        marker_sa_index_offset = prg_info.fm_index.bwt.rank(sa_preceding_marker_index,
+        marker_sa_index_offset = prg_info.fm_index.bwt.rank(sa_right_of_marker,
                                                             marker_char);
     auto marker_sa_index = first_sa_index + marker_sa_index_offset;
     const auto marker_text_idx = prg_info.fm_index[marker_sa_index];
@@ -436,27 +435,42 @@ SearchState exiting_site_search_state(const SiteBoundaryMarkerInfo &boundary_mar
 }
 
 
-using MarkerIndexPrecedingSA = uint64_t;
-using MarkersSearchResults = std::vector<std::pair<MarkerIndexPrecedingSA, Marker>>;
-
-
 MarkersSearchResults left_markers_search(const SearchState &search_state,
                                          const PRG_Info &prg_info) {
+    MarkersSearchResults markers_search_results;
+
     const auto &sa_interval = search_state.sa_interval;
-    const auto &wt = prg_info.fm_index.wavelet_tree;
-    const auto wt_search_result = wt.range_search_2d(sa_interval.first, sa_interval.second,
-                                                     5, prg_info.max_alphabet_num);
-    const auto &markers = wt_search_result.second;
-    return markers;
+    auto max_sa_index = sa_interval.second;
+    auto sa_index = sa_interval.first;
+
+    auto num_markers_before = prg_info.bwt_markers_rank(sa_index);
+    uint64_t marker_count_offset = num_markers_before + 1;
+    if (marker_count_offset > prg_info.bwt_markers_mask_count_set_bits)
+        return markers_search_results;
+
+    auto bwt_marker_index = prg_info.bwt_markers_select(marker_count_offset);
+
+    while (bwt_marker_index <= max_sa_index) {
+        auto marker = prg_info.fm_index.bwt[bwt_marker_index];
+        auto search_result = std::make_pair(bwt_marker_index, marker);
+        markers_search_results.emplace_back(search_result);
+
+        ++marker_count_offset;
+        if (marker_count_offset > prg_info.bwt_markers_mask_count_set_bits)
+            return markers_search_results;
+        bwt_marker_index = prg_info.bwt_markers_select(marker_count_offset);
+    }
+
+    return markers_search_results;
 }
 
 
 SearchStates process_boundary_marker(const Marker &marker_char,
-                                     const SA_Index &sa_preceding_marker_index,
+                                     const SA_Index &sa_right_of_marker,
                                      const SearchState &current_search_state,
                                      const PRG_Info &prg_info) {
     auto boundary_marker_info = site_boundary_marker_info(marker_char,
-                                                          sa_preceding_marker_index,
+                                                          sa_right_of_marker,
                                                           prg_info);
 
     bool entering_variant_site = not boundary_marker_info.is_start_boundary;
@@ -478,7 +492,7 @@ SearchStates process_boundary_marker(const Marker &marker_char,
 
 
 SearchState process_allele_marker(const Marker &allele_marker_char,
-                                  const SA_Index &sa_preceding_marker_index,
+                                  const SA_Index &sa_right_of_marker,
                                   const SearchState &current_search_state,
                                   const PRG_Info &prg_info) {
 
@@ -502,7 +516,7 @@ SearchState process_allele_marker(const Marker &allele_marker_char,
     new_search_state.sa_interval.second = boundary_start_sa_index;
     new_search_state.variant_site_state = SearchVariantSiteState::outside_variant_site;
 
-    auto internal_allele_text_index = prg_info.fm_index[sa_preceding_marker_index];
+    auto internal_allele_text_index = prg_info.fm_index[sa_right_of_marker];
     auto allele_id = (AlleleId) prg_info.allele_mask[internal_allele_text_index];
 
     const auto &cached_variant_site = new_search_state.variant_site_path.front();
@@ -527,19 +541,19 @@ SearchStates process_markers_search_state(const SearchState &current_search_stat
     SearchStates markers_search_states = {};
 
     for (const auto &marker: markers) {
-        const auto &sa_preceding_marker_index = marker.first;
+        const auto &sa_right_of_marker = marker.first;
         const auto &marker_char = marker.second;
 
         const bool marker_is_site_boundary = marker_char % 2 == 1;
         if (marker_is_site_boundary) {
             auto new_search_states = process_boundary_marker(marker_char,
-                                                             sa_preceding_marker_index,
+                                                             sa_right_of_marker,
                                                              current_search_state,
                                                              prg_info);
             markers_search_states.splice(markers_search_states.end(), new_search_states);
         } else {
             auto new_search_state = process_allele_marker(marker_char,
-                                                          sa_preceding_marker_index,
+                                                          sa_right_of_marker,
                                                           current_search_state,
                                                           prg_info);
             markers_search_states.emplace_back(new_search_state);

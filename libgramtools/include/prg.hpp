@@ -18,9 +18,14 @@ struct PRG_Info {
     std::vector<Marker> sites_mask;
     sdsl::int_vector<> allele_mask;
 
-    sdsl::bit_vector markers_mask;
-    sdsl::rank_support_v<1> markers_rank;
-    sdsl::select_support_mcl<1> markers_select;
+    sdsl::bit_vector bwt_markers_mask;
+    sdsl::rank_support_v<1> bwt_markers_rank;
+    sdsl::select_support_mcl<1> bwt_markers_select;
+    uint64_t bwt_markers_mask_count_set_bits;
+
+    sdsl::bit_vector prg_markers_mask;
+    sdsl::rank_support_v<1> prg_markers_rank;
+    sdsl::select_support_mcl<1> prg_markers_select;
 
     uint64_t max_alphabet_num;
 };
