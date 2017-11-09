@@ -27,7 +27,9 @@ def parse_args(common_parser, subparsers):
                         type=str)
     parser.add_argument('--kmer-size',
                         help='',
-                        type=int)
+                        type=int,
+                        default=15,
+                        required=False)
 
 
 def _execute_command(quasimap_paths, args):

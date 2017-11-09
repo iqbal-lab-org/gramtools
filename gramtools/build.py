@@ -26,14 +26,22 @@ def parse_args(common_parser, subparsers):
                         help='',
                         type=str,
                         required=True)
+
     parser.add_argument('--kmer-size',
                         help='',
                         type=int,
-                        required=True)
+                        default=15,
+                        required=False)
     parser.add_argument('--kmer-region-size',
                         help='',
                         type=int,
-                        required=True)
+                        default=150,
+                        required=False)
+    parser.add_argument('--max-read-length',
+                        help='',
+                        type=int,
+                        default=150,
+                        required=False)
 
     parser.add_argument('--all-kmers',
                         help='',
@@ -126,6 +134,7 @@ def _execute_gramtools_cpp_build(build_paths, args):
 
 def run(args):
     log.info('Start process: build')
+    args.kmer_region_size = args.max_read_length
 
     build_paths = paths.generate_build_paths(args)
     paths.check_project_file_structure(build_paths)
