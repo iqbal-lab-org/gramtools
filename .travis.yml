@@ -3,20 +3,17 @@ compiler: gcc
 dist: trusty
 sudo: require
 before_install:
-  # C++14
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
-install: 
-  # C++14
+install:
   - sudo apt-get install -qq g++-6
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
-install:
-- sudo apt-get install libboost-all-dev
-- sudo apt-get install zlib1g-dev
-- git clone https://github.com/simongog/sdsl-lite.git
-- (cd sdsl-lite && sudo ./install.sh /usr/local/)
-- git clone https://github.com/samtools/htslib.git
-- (cd htslib && make && sudo make install)
+  - sudo apt-get install libboost-all-dev
+  - sudo apt-get install zlib1g-dev
+  - git clone https://github.com/simongog/sdsl-lite.git
+  - (cd sdsl-lite && sudo ./install.sh /usr/local/)
+  - git clone https://github.com/samtools/htslib.git
+  - (cd htslib && make && sudo make install)
 script:
   - mkdir cmake-build-debug
   - cd cmake-build-debug
