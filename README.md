@@ -12,7 +12,7 @@ Infer a reference genome from a population of genomes for better read mapping co
 
 Infering a reference genome from a population takes two steps:
 1) Generate a graph from population genetic variants (VCF) and a generic reference.
-2) Infer a reference genome from the graph by analysing read coverage.
+2) Infer a reference genome from the graph by analysing read coverage with exact matching.
 
 ### Build graph
 
