@@ -181,8 +181,8 @@ void set_state_skip_marker(SearchStates &search_states,
 }
 
 
-SA_Interval base_next_sa_interval(const Marker current_char,
-                                  const SA_Index &current_char_first_sa_index,
+SA_Interval base_next_sa_interval(const Marker next_char,
+                                  const SA_Index &next_char_first_sa_index,
                                   const SA_Interval &current_sa_interval,
                                   const PRG_Info &prg_info) {
     const auto &current_sa_start = current_sa_interval.first;
@@ -191,13 +191,27 @@ SA_Interval base_next_sa_interval(const Marker current_char,
     SA_Index sa_start_offset;
     if (current_sa_start <= 0)
         sa_start_offset = 0;
-    else
-        sa_start_offset = prg_info.fm_index.bwt.rank(current_sa_start, current_char);
+    else {
+        if (next_char > 4)
+            sa_start_offset = prg_info.fm_index.bwt.rank(current_sa_start, next_char);
+        else {
+            sa_start_offset = dna_bwt_rank(current_sa_start,
+                                           next_char,
+                                           prg_info);
+        }
+    }
 
-    SA_Index sa_end_offset = prg_info.fm_index.bwt.rank(current_sa_end + 1, current_char);
+    SA_Index sa_end_offset;
+    if (next_char > 4)
+        sa_end_offset = prg_info.fm_index.bwt.rank(current_sa_end + 1, next_char);
+    else {
+        sa_end_offset = dna_bwt_rank(current_sa_end + 1,
+                                     next_char,
+                                     prg_info);
+    }
 
-    auto new_start = current_char_first_sa_index + sa_start_offset;
-    auto new_end = current_char_first_sa_index + sa_end_offset - 1;
+    auto new_start = next_char_first_sa_index + sa_start_offset;
+    auto new_end = next_char_first_sa_index + sa_end_offset - 1;
     return SA_Interval {new_start, new_end};
 }
 

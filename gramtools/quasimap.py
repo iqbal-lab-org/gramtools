@@ -34,6 +34,7 @@ def _execute_command(quasimap_paths, args):
     command = [
         common.gramtools_exec_fpath,
         'quasimap',
+        '--gram', quasimap_paths['project'],
         '--prg', quasimap_paths['prg'],
         '--encoded-prg', quasimap_paths['encoded_prg'],
         '--fm-index', quasimap_paths['fm_index'],

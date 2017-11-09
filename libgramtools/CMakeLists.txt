@@ -34,7 +34,8 @@ endforeach(LIB)
 find_package(Boost COMPONENTS
         program_options
         timer
-        system REQUIRED)
+        system
+        filesystem REQUIRED)
 
 # libgramtools
 add_library(gramtools STATIC
@@ -44,6 +45,7 @@ add_library(gramtools STATIC
     ${SOURCE}/kmer_index.cpp
     ${SOURCE}/search.cpp
     ${SOURCE}/masks.cpp
+    ${SOURCE}/dna_ranks.cpp
     ${SOURCE}/fm_index.cpp
     ${SOURCE}/ranks.cpp)
 target_include_directories(gramtools PUBLIC

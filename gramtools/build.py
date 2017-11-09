@@ -82,6 +82,7 @@ def _execute_gramtools_cpp_build(build_paths, args):
     command = [
         common.gramtools_exec_fpath,
         'build',
+        '--gram', build_paths['project'],
         '--prg', build_paths['prg'],
         '--encoded-prg', build_paths['encoded_prg'],
         '--fm-index', build_paths['fm_index'],

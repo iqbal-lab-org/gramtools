@@ -7,6 +7,7 @@ enum class Commands {
 };
 
 struct Parameters {
+    std::string gram_dirpath;
     std::string linear_prg_fpath;
     std::string encoded_prg_fpath;
     std::string fm_index_fpath;

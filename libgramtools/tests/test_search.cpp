@@ -207,6 +207,40 @@ N/A
 */
 
 
+TEST(BaseNextSaInterval, GivenC_ProcessNextCharG_CorrectSaInterval) {
+    const auto prg_raw = "gcgct5c6g6a5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    Marker next_char = 3;
+    SA_Index next_char_first_sa_index = 8;
+    SA_Interval current_sa_interval = {3, 7};
+
+    auto result = base_next_sa_interval(next_char,
+                                        next_char_first_sa_index,
+                                        current_sa_interval,
+                                        prg_info);
+    SA_Interval expected = {8, 9};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(BaseNextSaInterval, GivenG_ProcessNextCharA_CorrectSaInterval) {
+    const auto prg_raw = "gcgct5c6g6a5agtcct";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    Marker next_char = 1;
+    SA_Index next_char_first_sa_index = 1;
+    SA_Interval current_sa_interval = {8, 11};
+
+    auto result = base_next_sa_interval(next_char,
+                                        next_char_first_sa_index,
+                                        current_sa_interval,
+                                        prg_info);
+    SA_Interval expected = {1, 1};
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
     const auto prg_raw = "gcgct5c6g6a5agtcct";
     const auto prg_info = generate_prg_info(prg_raw);

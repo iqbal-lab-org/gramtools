@@ -5,11 +5,13 @@
 #include <tuple>
 
 #include "utils.hpp"
+#include "dna_ranks.hpp"
 #include "fm_index.hpp"
 
 
 #ifndef GRAMTOOLS_PRG_HPP
 #define GRAMTOOLS_PRG_HPP
+
 
 struct PRG_Info {
     FM_Index fm_index;
@@ -27,8 +29,18 @@ struct PRG_Info {
     sdsl::rank_support_v<1> prg_markers_rank;
     sdsl::select_support_mcl<1> prg_markers_select;
 
+    DNA_BWT_Masks dna_bwt_masks;
+    sdsl::rank_support_v<1> rank_bwt_a;
+    sdsl::rank_support_v<1> rank_bwt_c;
+    sdsl::rank_support_v<1> rank_bwt_g;
+    sdsl::rank_support_v<1> rank_bwt_t;
+
     uint64_t max_alphabet_num;
 };
+
+uint64_t dna_bwt_rank(const uint64_t upper_index,
+                      const Marker &dna_base,
+                      const PRG_Info &prg_info);
 
 uint64_t get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg);
 

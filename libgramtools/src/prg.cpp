@@ -2,6 +2,24 @@
 #include "prg.hpp"
 
 
+uint64_t dna_bwt_rank(const uint64_t upper_index,
+                      const Marker &dna_base,
+                      const PRG_Info &prg_info) {
+    switch (dna_base) {
+        case 1:
+            return prg_info.rank_bwt_a(upper_index);
+        case 2:
+            return prg_info.rank_bwt_c(upper_index);
+        case 3:
+            return prg_info.rank_bwt_g(upper_index);
+        case 4:
+            return prg_info.rank_bwt_t(upper_index);
+        default:
+            return 0;
+    }
+}
+
+
 uint64_t get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg) {
     uint64_t max_alphabet_num = 0;
     for (const auto &x: encoded_prg) {
@@ -146,6 +164,12 @@ PRG_Info load_prg_info(const Parameters &parameters) {
     prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
     prg_info.bwt_markers_mask_count_set_bits =
             prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
+
+    prg_info.dna_bwt_masks = load_dna_bwt_masks(prg_info.fm_index, parameters);
+    prg_info.rank_bwt_a = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_a);
+    prg_info.rank_bwt_c = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_c);
+    prg_info.rank_bwt_g = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_g);
+    prg_info.rank_bwt_t = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_t);
 
     return prg_info;
 }

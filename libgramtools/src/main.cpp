@@ -55,6 +55,8 @@ void build(const Parameters &parameters) {
 
     std::cout << "Generating PRG masks" << std::endl;
     timer.start("Generating PRG masks");
+    generate_dna_bwt_masks(prg_info.fm_index, parameters);
+
     MasksParser masks(parameters.site_mask_fpath);
     prg_info.sites_mask = masks.sites;
     prg_info.max_alphabet_num = masks.max_alphabet_num;
@@ -71,6 +73,12 @@ void build(const Parameters &parameters) {
     prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
     prg_info.bwt_markers_mask_count_set_bits =
             prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
+
+    prg_info.dna_bwt_masks = load_dna_bwt_masks(prg_info.fm_index, parameters);
+    prg_info.rank_bwt_a = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_a);
+    prg_info.rank_bwt_c = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_c);
+    prg_info.rank_bwt_g = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_g);
+    prg_info.rank_bwt_t = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_t);
     timer.stop();
 
     std::cout << "Generating kmer index" << std::endl;
@@ -115,6 +123,8 @@ void quasimap(const Parameters &parameters) {
 Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
     po::options_description build_description("build options");
     build_description.add_options()
+                             ("gram", po::value<std::string>(),
+                              "gramtools directory")
                              ("prg", po::value<std::string>(),
                               "file containing a linear PRG")
                              ("encoded-prg", po::value<std::string>(),
@@ -141,6 +151,7 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
     po::store(po::command_line_parser(opts).options(build_description).run(), vm);
 
     Parameters parameters;
+    parameters.gram_dirpath = vm["gram"].as<std::string>();
     parameters.linear_prg_fpath = vm["prg"].as<std::string>();
     parameters.encoded_prg_fpath = vm["encoded-prg"].as<std::string>();
     parameters.fm_index_fpath = vm["fm-index"].as<std::string>();
@@ -158,6 +169,8 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
                                      const po::parsed_options &parsed) {
     po::options_description quasimap_description("quasimap options");
     quasimap_description.add_options()
+                                ("gram", po::value<std::string>(),
+                                 "gramtools directory")
                                 ("prg", po::value<std::string>(),
                                  "file containing a linear PRG")
                                 ("encoded-prg", po::value<std::string>(),
@@ -190,6 +203,7 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     po::store(po::command_line_parser(opts).options(quasimap_description).run(), vm);
 
     Parameters parameters;
+    parameters.gram_dirpath = vm["gram"].as<std::string>();
     parameters.linear_prg_fpath = vm["prg"].as<std::string>();
     parameters.encoded_prg_fpath = vm["encoded-prg"].as<std::string>();
     parameters.fm_index_fpath = vm["fm-index"].as<std::string>();

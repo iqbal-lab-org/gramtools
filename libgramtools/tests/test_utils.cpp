@@ -81,6 +81,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
     Parameters parameters;
     parameters.encoded_prg_fpath = "@encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";
+    parameters.gram_dirpath = "@gram_dir";
 
     auto encoded_prg = encode_prg(prg_raw);
     sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
@@ -100,6 +101,14 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
     prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
     prg_info.bwt_markers_mask_count_set_bits =
             prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
+
+    generate_dna_bwt_masks(prg_info.fm_index, parameters);
+    prg_info.dna_bwt_masks = load_dna_bwt_masks(prg_info.fm_index,
+                                                parameters);
+    prg_info.rank_bwt_a = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_a);
+    prg_info.rank_bwt_c = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_c);
+    prg_info.rank_bwt_g = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_g);
+    prg_info.rank_bwt_t = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_t);
 
     prg_info.max_alphabet_num = max_alphabet_num(prg_raw);
     return prg_info;
