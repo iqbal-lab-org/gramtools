@@ -1,7 +1,16 @@
 [![Build Status](https://travis-ci.org/iqbal-lab-org/gramtools.svg?branch=dev)](https://travis-ci.org/iqbal-lab-org/gramtools)
 
 # gramtools
-Infer a reference genome from a population of genomes for better read mapping coverage.
+Genomes evolve by recombination and mutation. 
+gramtools first models new genomes as recombinants (mosaics) of previous genomes,
+by "quasimapping" reads to the graph, and then genotyping within the graph.
+
+# Motivation
+Having found the nearest mosaic (a "personalised reference"), the user can either
+* use traditional mapping-based variant calling, 
+* or, wait until we finish implementing variant discovery on top of the graph.
+
+We recommend the first option for now.
 
 ## Install
 ```sudo pip install git+https://github.com/iqbal-lab-org/gramtools```
