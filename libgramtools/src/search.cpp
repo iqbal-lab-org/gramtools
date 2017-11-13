@@ -62,25 +62,11 @@ SearchState search_fm_index_base_backwards(const Base &pattern_char,
 SearchStates process_read_char_search_states(const Base &pattern_char,
                                              const SearchStates &old_search_states,
                                              const PRG_Info &prg_info) {
-
-    /* Process markers */
-
-    SearchStates post_markers_search_states = old_search_states;
-    SearchStates all_markers_new_search_states;
-    for (const auto &search_state: old_search_states) {
-        if (USE_SKIP_OPTIMIZATION and search_state.skipping_to_marker)
-            continue;
-        auto markers_search_states = process_markers_search_state(search_state, prg_info);
-        all_markers_new_search_states.splice(all_markers_new_search_states.end(),
-                                             markers_search_states);
-    }
-    post_markers_search_states.splice(post_markers_search_states.end(),
-                                      all_markers_new_search_states);
-
+    auto post_markers_search_states = process_markers_search_states(old_search_states,
+                                                                    prg_info);
     auto new_search_states = search_base_backwards(pattern_char,
                                                    post_markers_search_states,
                                                    prg_info);
-
     return new_search_states;
 }
 
@@ -241,19 +227,19 @@ SearchStates search_base_backwards(const Base &pattern_char,
 }
 
 
-SearchStates process_markers_search_states(const SearchStates &search_states,
+SearchStates process_markers_search_states(const SearchStates &old_search_states,
                                            const PRG_Info &prg_info) {
-    SearchStates new_search_states;
-    for (const auto &search_state: search_states) {
-        /*
-        if (search_state.skipping_to_marker) {
-            new_search_states.push_back(search_state);
+    SearchStates new_search_states = old_search_states;
+    SearchStates all_markers_new_search_states;
+    for (const auto &search_state: old_search_states) {
+        if (USE_SKIP_OPTIMIZATION and search_state.skipping_to_marker)
             continue;
-        }
-         */
         auto markers_search_states = process_markers_search_state(search_state, prg_info);
-        new_search_states.splice(new_search_states.end(), markers_search_states);
+        all_markers_new_search_states.splice(all_markers_new_search_states.end(),
+                                             markers_search_states);
     }
+    new_search_states.splice(new_search_states.end(),
+                             all_markers_new_search_states);
     return new_search_states;
 }
 

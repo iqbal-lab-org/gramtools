@@ -83,14 +83,14 @@ CacheElement get_next_cache_element(const Base &base,
                                     const bool kmer_base_is_last,
                                     const CacheElement &last_cache_element,
                                     const PRG_Info &prg_info) {
-    SearchStates new_search_states = last_cache_element.search_states;
-
+    const auto &old_search_states = last_cache_element.search_states;
+    SearchStates new_search_states;
     if (not kmer_base_is_last) {
-        auto markers_search_states = process_markers_search_states(new_search_states,
-                                                                   prg_info);
-        new_search_states.splice(new_search_states.end(), markers_search_states);
+        new_search_states = process_markers_search_states(old_search_states,
+                                                          prg_info);
+    } else {
+        new_search_states = old_search_states;
     }
-
     new_search_states = search_base_backwards(base,
                                               new_search_states,
                                               prg_info);

@@ -6,7 +6,7 @@
 #ifndef GRAMTOOLS_SEARCH_HPP
 #define GRAMTOOLS_SEARCH_HPP
 
-#define USE_SKIP_OPTIMIZATION false
+#define USE_SKIP_OPTIMIZATION true
 
 
 SearchStates search_read_backwards(const Pattern &read,
