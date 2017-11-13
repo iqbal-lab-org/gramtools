@@ -91,9 +91,9 @@ CacheElement get_next_cache_element(const Base &base,
         new_search_states.splice(new_search_states.end(), markers_search_states);
     }
 
-    new_search_states = search_states_base_backwards(base,
-                                                     new_search_states,
-                                                     prg_info);
+    new_search_states = search_base_backwards(base,
+                                              new_search_states,
+                                              prg_info);
     return CacheElement {
             new_search_states,
             base

@@ -9,15 +9,14 @@
 #define USE_SKIP_OPTIMIZATION false
 
 
-
 SearchStates search_read_backwards(const Pattern &read,
                                    const Pattern &kmer,
                                    const KmerIndex &kmer_index,
                                    const PRG_Info &prg_info);
 
-SearchStates search_states_base_backwards(const Base &pattern_char,
-                                          const SearchStates &search_states,
-                                          const PRG_Info &prg_info);
+SearchStates search_base_backwards(const Base &pattern_char,
+                                   const SearchStates &search_states,
+                                   const PRG_Info &prg_info);
 
 using SaIndexRightOfMarker = uint64_t;
 using MarkersSearchResult = std::pair<SaIndexRightOfMarker, Marker>;
