@@ -43,6 +43,35 @@ Pattern encode_dna_bases(const std::string &dna_str) {
 }
 
 
+Base compliment_encoded_base(const Base &encoded_base) {
+    switch (encoded_base) {
+        case 1:
+            return 4;
+        case 2:
+            return 3;
+        case 3:
+            return 2;
+        case 4:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+
+Pattern reverse_compliment_read(const Pattern &read) {
+    Pattern reverse_read;
+    reverse_read.reserve(read.size());
+
+    for (auto it = read.rbegin(); it != read.rend(); ++it) {
+        const auto &base = *it;
+        auto compliment_base = compliment_encoded_base(base);
+        reverse_read.push_back(compliment_base);
+    }
+    return reverse_read;
+}
+
+
 Pattern encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
     Pattern pattern;

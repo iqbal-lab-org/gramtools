@@ -145,9 +145,18 @@ TEST(MaxAlphabetNum, PrgWithVariantSite_LargestSiteMarkerAsMaxAlphabet) {
     EXPECT_EQ(result, expected);
 }
 
+
 TEST(MaxAlphabetNum, SingleCharPrg_CorrectBaseEncodingAsMaxAlphabet) {
     const std::string prg_raw = "c";
     auto result = max_alphabet_num(prg_raw);
     uint64_t expected = 2;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ReverseComplimentRead, GivenRead_ReverseComplimnetReadReturned) {
+    Pattern read = {1, 2, 1, 3, 4};
+    auto result = reverse_compliment_read(read);
+    Pattern expected = {1, 2, 4, 3, 4};
     EXPECT_EQ(result, expected);
 }
