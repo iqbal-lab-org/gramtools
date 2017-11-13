@@ -23,6 +23,7 @@ using VariantSitePaths = std::list<VariantSitePath>;
 using SA_Index = uint64_t;
 using SA_Interval = std::pair<SA_Index, SA_Index>;
 
+Pattern reverse_compliment_read(const Pattern &read);
 Pattern encode_dna_bases(const std::string &dna_str);
 Pattern encode_dna_bases(const GenomicRead &read_sequence);
 

@@ -20,36 +20,52 @@ QuasimapStats quasimap_reads(const Parameters &params,
     SeqRead reads(params.reads_fpath.c_str());
     std::ofstream progress_file_handle(params.reads_progress_fpath);
 
-    uint64_t all_reads_count = 0;
-    uint64_t skipped_reads_count = 0;
-    uint64_t mapped_reads_count = 0;
+    QuasimapStats quasimap_stats = {0, 0, 0};
 
     for (const auto *const raw_read: reads) {
-        if (all_reads_count % 1 == 0) {
-            progress_file_handle << all_reads_count << std::endl;
+        if (quasimap_stats.all_reads_count % 1 == 0) {
+            progress_file_handle
+                    << quasimap_stats.all_reads_count
+                    << std::endl;
             std::cout << "Reads processed: "
-                      << all_reads_count
+                      << quasimap_stats.all_reads_count
                       << std::endl;
         }
-        all_reads_count++;
+        quasimap_stats.all_reads_count += 2;
 
         auto read = encode_dna_bases(*raw_read);
         if (read.empty()) {
-            ++skipped_reads_count;
+            quasimap_stats.skipped_reads_count += 2;
             continue;
         }
-        bool read_mappred_exactly = quasimap_read(read,
-                                                  allele_coverage,
-                                                  kmer_index,
-                                                  prg_info,
-                                                  params);
-        if (read_mappred_exactly)
-            ++mapped_reads_count;
+        quasimap_forward_reverse(quasimap_stats,
+                                 allele_coverage,
+                                 read,
+                                 params,
+                                 kmer_index,
+                                 prg_info);
     }
     dump_allele_coverage(allele_coverage, params);
-    return std::make_tuple(all_reads_count,
-                           skipped_reads_count,
-                           mapped_reads_count);
+    return quasimap_stats;
+}
+
+
+void quasimap_forward_reverse(QuasimapStats &quasimap_stats,
+                              AlleleCoverage &allele_coverage,
+                              const Pattern &read,
+                              const Parameters &params,
+                              const KmerIndex &kmer_index,
+                              const PRG_Info &prg_info) {
+    bool read_mapped_exactly = quasimap_read(read, allele_coverage,
+                                             kmer_index, prg_info, params);
+    if (read_mapped_exactly)
+        ++quasimap_stats.mapped_reads_count;
+
+    auto reverse_read = reverse_compliment_read(read);
+    read_mapped_exactly = quasimap_read(reverse_read, allele_coverage,
+                                        kmer_index, prg_info, params);
+    if (read_mapped_exactly)
+        ++quasimap_stats.mapped_reads_count;
 }
 
 

@@ -102,18 +102,10 @@ void quasimap(const Parameters &parameters) {
 
     std::cout << "Running quasimap" << std::endl;
     timer.start("Quasimap");
-    uint64_t all_reads_count = 0;
-    uint64_t skipped_reads_count = 0;
-    uint64_t mapped_reads_count = 0;
-
-    std::tie(all_reads_count,
-             skipped_reads_count,
-             mapped_reads_count) = quasimap_reads(parameters,
-                                                  kmer_index,
-                                                  prg_info);
-    std::cout << "Count all reads: " << all_reads_count << std::endl;
-    std::cout << "Count skipped reads: " << skipped_reads_count << std::endl;
-    std::cout << "Count mapped reads: " << mapped_reads_count << std::endl;
+    auto quasimap_stats = quasimap_reads(parameters, kmer_index, prg_info);
+    std::cout << "Count all reads: " << quasimap_stats.all_reads_count << std::endl;
+    std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count << std::endl;
+    std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count << std::endl;
     timer.stop();
 
     timer.report();

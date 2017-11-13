@@ -42,9 +42,9 @@ TEST(Search, SingleChar_CorrectSaIntervalReturned) {
     };
     SearchStates search_states = {initial_search_state};
 
-    auto result = search_states_base_backwards(pattern_char,
-                                               search_states,
-                                               prg_info);
+    auto result = search_base_backwards(pattern_char,
+                                        search_states,
+                                        prg_info);
     SearchStates expected = {
             SearchState {
                     SA_Interval {5, 11},
@@ -65,14 +65,14 @@ TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
     SearchStates initial_search_states = {initial_search_state};
 
     const auto first_char = encode_dna_base('g');
-    auto first_search_states = search_states_base_backwards(first_char,
-                                                            initial_search_states,
-                                                            prg_info);
+    auto first_search_states = search_base_backwards(first_char,
+                                                     initial_search_states,
+                                                     prg_info);
 
     const auto second_char = encode_dna_base('t');
-    auto second_search_states = search_states_base_backwards(second_char,
-                                                             first_search_states,
-                                                             prg_info);
+    auto second_search_states = search_base_backwards(second_char,
+                                                      first_search_states,
+                                                      prg_info);
 
     const auto &result = second_search_states;
     SearchStates expected = {
@@ -95,9 +95,9 @@ TEST(Search, SingleCharFreqOneInText_SingleSA) {
     };
     SearchStates search_states = {initial_search_state};
 
-    auto result = search_states_base_backwards(pattern_char,
-                                               search_states,
-                                               prg_info);
+    auto result = search_base_backwards(pattern_char,
+                                        search_states,
+                                        prg_info);
     SearchStates expected = {
             SearchState {
                     SA_Interval {1, 1},
@@ -118,14 +118,14 @@ TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
     SearchStates initial_search_states = {initial_search_state};
 
     const auto first_char = encode_dna_base('a');
-    auto first_search_states = search_states_base_backwards(first_char,
-                                                            initial_search_states,
-                                                            prg_info);
+    auto first_search_states = search_base_backwards(first_char,
+                                                     initial_search_states,
+                                                     prg_info);
 
     const auto second_char = encode_dna_base('g');
-    auto second_search_states = search_states_base_backwards(second_char,
-                                                             first_search_states,
-                                                             prg_info);
+    auto second_search_states = search_base_backwards(second_char,
+                                                      first_search_states,
+                                                      prg_info);
 
     const auto &result = second_search_states.front().sa_interval;
     SA_Interval expected{5, 5};
@@ -143,14 +143,14 @@ TEST(Search, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
     SearchStates initial_search_states = {initial_search_state};
 
     const auto first_char = encode_dna_base('a');
-    auto first_search_states = search_states_base_backwards(first_char,
-                                                            initial_search_states,
-                                                            prg_info);
+    auto first_search_states = search_base_backwards(first_char,
+                                                     initial_search_states,
+                                                     prg_info);
 
     const auto second_char = encode_dna_base('c');
-    const auto &result = search_states_base_backwards(second_char,
-                                                      first_search_states,
-                                                      prg_info);
+    const auto &result = search_base_backwards(second_char,
+                                               first_search_states,
+                                               prg_info);
 
     SearchStates expected = {};
     EXPECT_EQ(result, expected);
@@ -589,9 +589,9 @@ TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInP
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    auto final_search_states = search_states_base_backwards(pattern_char,
-                                                            initial_search_states,
-                                                            prg_info);
+    auto final_search_states = search_base_backwards(pattern_char,
+                                                     initial_search_states,
+                                                     prg_info);
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
@@ -615,9 +615,9 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    auto final_search_states = search_states_base_backwards(pattern_char,
-                                                            initial_search_states,
-                                                            prg_info);
+    auto final_search_states = search_base_backwards(pattern_char,
+                                                     initial_search_states,
+                                                     prg_info);
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();

@@ -6,14 +6,22 @@
 
 using AlleleCoverage = std::vector<std::vector<uint32_t>>;
 
-using AllReadsCount = uint64_t;
-using SkippedReadsCount = uint64_t;
-using MappedReadsCount = uint64_t;
-using QuasimapStats = std::tuple<AllReadsCount, SkippedReadsCount, MappedReadsCount>;
+struct QuasimapStats {
+    uint64_t all_reads_count = 0;
+    uint64_t skipped_reads_count = 0;
+    uint64_t mapped_reads_count = 0;
+};
 
 QuasimapStats quasimap_reads(const Parameters &params,
                              const KmerIndex &kmer_index,
                              const PRG_Info &prg_info);
+
+void quasimap_forward_reverse(QuasimapStats &quasimap_stats,
+                              AlleleCoverage &allele_coverage,
+                              const Pattern &read,
+                              const Parameters &params,
+                              const KmerIndex &kmer_index,
+                              const PRG_Info &prg_info);
 
 bool quasimap_read(const Pattern &read,
                    AlleleCoverage &allele_coverage,

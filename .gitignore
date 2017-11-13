@@ -2,6 +2,7 @@ bin
 cmake-build-debug
 *.sublime-*
 .idea
+.cache
 __pycache__
 version.py
 git_version.hpp
