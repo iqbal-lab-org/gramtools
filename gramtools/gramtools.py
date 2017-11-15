@@ -1,3 +1,4 @@
+import json
 import logging
 import argparse
 import collections
@@ -55,15 +56,20 @@ def _parse_args():
 
 
 def _report_version(log):
-    log.info('Latest commit hash:\n%s', version.latest_commit)
-    log.info('Current branch: %s', version.current_branch)
-
-    if version.commit_log == 'NA':
-        commits = version.commit_log
+    if version.truncated_git_commits == 'NA':
+        commits = []
     else:
-        commits = version.commit_log.split('*****')[1:]
-        commits = '\n'.join(commits)
-    log.info('Truncated commit log:\n%s', commits)
+        commits = version.truncated_git_commits.split('*****')[1:]
+        commits = [x.strip() for x in commits]
+
+    report = collections.OrderedDict([
+        ('version_number', version.version_number),
+        ('last_git_commit_hash', version.last_git_commit_hash),
+        ('current_git_branch', version.current_git_branch),
+        ('truncated_git_commits', commits),
+    ])
+    report_json = json.dumps(report, indent=4)
+    print(report_json)
 
 
 def _get_log(args):

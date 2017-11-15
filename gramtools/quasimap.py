@@ -95,7 +95,7 @@ def _save_report(command_str,
         ('command_return_eq_0', command_result),
         ('entire_stdout', entire_stdout),
         ('command_str', command_str),
-        ('latest_commit_hash', version.latest_commit),
+        ('latest_commit_hash', version.last_commit),
         ('truncated_commit_log', commits),
         ('paths', quasimap_paths),
     ])
