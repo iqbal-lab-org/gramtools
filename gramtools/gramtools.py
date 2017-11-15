@@ -1,4 +1,3 @@
-import json
 import logging
 import argparse
 import collections
@@ -7,11 +6,7 @@ from . import build
 from . import kmers
 from . import simulate
 from . import quasimap
-
-try:
-    from .version import version
-except ImportError:
-    from .version import fallback_version as version
+from . import version
 
 
 def _setup_logging(level):
@@ -55,23 +50,6 @@ def _parse_args():
     return arguments
 
 
-def _report_version(log):
-    if version.truncated_git_commits == 'NA':
-        commits = []
-    else:
-        commits = version.truncated_git_commits.split('*****')[1:]
-        commits = [x.strip() for x in commits]
-
-    report = collections.OrderedDict([
-        ('version_number', version.version_number),
-        ('last_git_commit_hash', version.last_git_commit_hash),
-        ('current_git_branch', version.current_git_branch),
-        ('truncated_git_commits', commits),
-    ])
-    report_json = json.dumps(report, indent=4)
-    print(report_json)
-
-
 def _get_log(args):
     if hasattr(args, 'debug') and args.debug:
         level = logging.DEBUG
@@ -87,7 +65,8 @@ def run():
     log = _get_log(args)
 
     if args.version:
-        _report_version(log)
+        report_json, _ = version.report()
+        print(report_json)
         return
 
     try:

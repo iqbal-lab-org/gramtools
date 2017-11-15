@@ -5,13 +5,10 @@ import logging
 import subprocess
 import collections
 
+from . import version
 from . import common
 from . import paths
 
-try:
-    from .version import version
-except ImportError:
-    from .version import fallback_version as version
 
 log = logging.getLogger('gramtools')
 
@@ -82,21 +79,18 @@ def _save_report(command_str,
                  start_time,
                  entire_stdout,
                  quasimap_paths):
-    commits = version.commit_log.split('*****')[1:]
-    commits = '\n'.join(commits)
 
     end_time = str(time.time()).split('.')[0]
+    _, report_dict = version.report()
 
     report = collections.OrderedDict([
         ('start_time', start_time),
         ('end_time', end_time),
         ('total_runtime', int(end_time) - int(start_time)),
-        ('current_git_branch', version.current_branch),
+        ('version_report', report_dict),
         ('command_return_eq_0', command_result),
         ('entire_stdout', entire_stdout),
         ('command_str', command_str),
-        ('latest_commit_hash', version.last_commit),
-        ('truncated_commit_log', commits),
         ('paths', quasimap_paths),
     ])
 
