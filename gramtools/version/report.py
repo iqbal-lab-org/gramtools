@@ -3,6 +3,8 @@ import collections
 
 try:
     from . import version
+    if not hasattr(version, 'last_git_commit_hash'):
+        raise ImportError
 except ImportError:
     from . import fallback_version as version
 
