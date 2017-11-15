@@ -4,8 +4,7 @@ cmake-build-debug
 .idea
 .cache
 __pycache__
-version.py
-git_version.hpp
+gramtools/version/version.py
 *.egg-info
 *.pyc
 gramtools/lib

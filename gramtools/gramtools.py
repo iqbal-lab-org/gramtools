@@ -6,11 +6,7 @@ from . import build
 from . import kmers
 from . import simulate
 from . import quasimap
-
-try:
-    from .version import version
-except ImportError:
-    from .version import fallback_version as version
+from . import version
 
 
 def _setup_logging(level):
@@ -54,18 +50,6 @@ def _parse_args():
     return arguments
 
 
-def _report_version(log):
-    log.info('Latest commit hash:\n%s', version.latest_commit)
-    log.info('Current branch: %s', version.current_branch)
-
-    if version.commit_log == 'NA':
-        commits = version.commit_log
-    else:
-        commits = version.commit_log.split('*****')[1:]
-        commits = '\n'.join(commits)
-    log.info('Truncated commit log:\n%s', commits)
-
-
 def _get_log(args):
     if hasattr(args, 'debug') and args.debug:
         level = logging.DEBUG
@@ -81,7 +65,8 @@ def run():
     log = _get_log(args)
 
     if args.version:
-        _report_version(log)
+        report_json, _ = version.report()
+        print(report_json)
         return
 
     try:
