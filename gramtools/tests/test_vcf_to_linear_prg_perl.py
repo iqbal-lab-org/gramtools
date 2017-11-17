@@ -65,3 +65,9 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         '''Test make PRG, two adjacent SNPs, with >1 ALT'''
         self._test_one_run('prg_with_two_adjacent_snps_two_alts')
 
+
+    def test_prg_with_one_ins_and_one_del(self):
+        '''Test prg witn an insertion and deletion independent of each other'''
+        self._test_one_run('prg_with_one_ins_and_one_del')
+
+
