@@ -75,7 +75,7 @@ sub test_cluster_func
     my $res = recursive_get_haplotypes(\@arr);
     foreach my $c (@$res)
     {
-    print "$c\n";
+        print "$c\n";
     }
 }
 
@@ -102,13 +102,10 @@ sub print_linearised_poa_in_one_sweep
 
     get_clusters_in_one_sweep($vcf_file, \%clusters, $min_freq);
 
-
-
-
-#    if (!exists $href_refsequence->{$chrom})
-#    {
-#        die("Cannot find sequence for chromosome $chrom");
-#    }
+    #    if (!exists $href_refsequence->{$chrom})
+    #    {
+    #        die("Cannot find sequence for chromosome $chrom");
+    #    }
 
     my $seq = "";
     open(VCF, $vcf_file)||die("Cannot open VCF file $vcf_file");
@@ -118,231 +115,220 @@ sub print_linearised_poa_in_one_sweep
 
     while (<VCF>)
     {
-    my $lyne  = $_;
-    chomp $lyne;
+        my $lyne  = $_;
+        chomp $lyne;
 
-    if ($lyne =~ /^\#/)
-    {
-        print $ovcf_fh $lyne."\n";
-    }
-    else
-    {
-        ## I will work entirely in 1-based coordinates,
-        ## except at the point of extracting substrings.
-
-        my @sp = split(/\t/, $lyne);
-
-        if ($sp[0] ne $chrom)
-        {
-        ## we have moved on to a new chromosome.
-        ## finish prev chrom
-        if ($chrom ne "") #then $seq is defined
-        {
-            if ($curr_pos<length($seq)+1)
-            {
-            ##substr is 0-based and chromosomal pos is 1-based
-            print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
-            my $zzz=0;
-            while ($zzz<length($seq)-$curr_pos+1)
-            {
-                print $omask_fh_A "0 ";
-                print $omask_fh_S "0 ";
-                $zzz++;
-            }
-
-            }
-
-        }
-        $chrom = $sp[0];
-        $curr_pos=1; ## 1-based
-        if (!exists $href_refsequence->{$chrom})
-        {
-            die("Cannot find seq for chromosome $chrom");
-        }
-        $seq = $href_refsequence->{$chrom};
-
-        }
-
-        if ($sp[4] !~ /^[ACGTacgt]+$/)
-        {
-        ## excluding lines which do not
-        ## properly specify the alternate allele.
-        next;
-        }
-        elsif ($sp[6] ne "PASS")
-        {
-        next;
-        }
-
-        my $info = $sp[7];
-        if ($min_freq>0)
-        {
-
-        if ($info =~ /\;AF=([0123456789\.]+)/)
-        {
-            my $freq = $1;
-
-            if ($freq<$min_freq)
-            {
-            next; #ignore this variant if too rare
-            }
-        }
-        else
-        {
-            #if no allele frequency annotation, do not filter by frequency
-
-        }
-        }
-
-        if ($sp[1]==$last_varpos)
-        {
-        next; #ignore records which start at same place as previous
-        }
-        if ($curr_pos < $sp[1] )
-        {
-        my $len = $sp[1]-$curr_pos;
-        print $o_fh substr($seq, $curr_pos-1, $len);
-        my $y=0;
-        while ($y<$len)
-        {
-            print $omask_fh_A "0 ";
-            print $omask_fh_S "0 ";
-            $y++;
-        }
-        #$curr_pos=$sp[1];
-        }
-
-        #replace N with C
-        $sp[3]=~ s/[^ACGTacgt]/C/g;
-
-        if (exists $clusters{$chrom}{$sp[1]})
-        {
-        if ($clusters{$chrom}{$sp[1]} eq "0")
+        if ($lyne =~ /^\#/)
         {
             print $ovcf_fh $lyne."\n";
-            next;## this is a late record in a cluster
-                 ##so it is handled by merging seq into a haplotype
-                 ##starting at first variant in cluster
-
-        }
-        elsif ($clusters{$chrom}{$sp[1]} eq "1")
-        {
-
-            next;
-            ## this is a line in the VCF that overlaps a previous one
-            #ignore for PRG and dont print to VCF
         }
         else
         {
-            print $ovcf_fh $lyne."\n";
-            ##modify the ref/alt alleles to represent all possible haplotypes in the cluster
-            $sp[3]=$clusters{$chrom}{$sp[1]}->[0];
-            my $str="";
-            my $k;
+            ## I will work entirely in 1-based coordinates,
+            ## except at the point of extracting substrings.
+            my @sp = split(/\t/, $lyne);
 
-            for ($k=1; $k<scalar(@{$clusters{$chrom}{$sp[1]}}); $k++)
+            if ($sp[0] ne $chrom)
             {
-            $str=$str.($clusters{$chrom}{$sp[1]}->[$k]);
-            if ($k<scalar(@{$clusters{$chrom}{$sp[1]}})-1)
-            {
-                $str=$str.",";
-            }
-            }
-            $sp[4]=$str;
-
-        }
-        }
-        else
-        {
-        print $ovcf_fh $lyne."\n";
-        }
-
-
-        print $o_fh $nextvar;#left marker before the site starts
-        print $omask_fh_A "0 ";
-        print $omask_fh_S "0 ";
-        print $o_fh $sp[3];        ##print the ref allele first
-        my $x=0;
-        while ($x<length($sp[3]))
-        {
-        print $omask_fh_A "1 ";
-        print $omask_fh_S $nextvar." ";
-        $x++;
-        }
-        print $o_fh $nextvar+1;#even numbers between alleles
-        print $omask_fh_A "0 ";
-        print $omask_fh_S "0 ";
-
-        ##Now work our way through the alternate alleles
-        if ($sp[4]=~ /,/)
-        {
-        my @sp2 = split(/,/, $sp[4]);
-        my $i;
-
-        for ($i=0; $i<scalar(@sp2); $i++)
-        {
-            my $allele = $sp2[$i];
-            $allele =~ s/[^ACGTacgt]/C/g;
-            print $o_fh $allele;
-            my $tmp = $i+2;
-            my $len = length($allele);
-
-            my $z=0;
-            while ($z<$len)
-            {
-            print $omask_fh_A $tmp." ";
-            print $omask_fh_S $nextvar." ";
-            $z++;
+                ## we have moved on to a new chromosome.
+                ## finish prev chrom
+                if ($chrom ne "") #then $seq is defined
+                {
+                    if ($curr_pos<length($seq)+1)
+                    {
+                        ##substr is 0-based and chromosomal pos is 1-based
+                        print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
+                        my $zzz=0;
+                        while ($zzz<length($seq)-$curr_pos+1)
+                        {
+                            print $omask_fh_A "0 ";
+                            print $omask_fh_S "0 ";
+                            $zzz++;
+                        }
+                    }
+                }
+                $chrom = $sp[0];
+                $curr_pos=1; ## 1-based
+                if (!exists $href_refsequence->{$chrom})
+                {
+                    die("Cannot find seq for chromosome $chrom");
+                }
+                $seq = $href_refsequence->{$chrom};
             }
 
-            if ($i<scalar(@sp2)-1)
+            if ($sp[4] !~ /^[ACGTacgt]+$/)
             {
-            print $o_fh $nextvar+1;#even number between alleles
-            print $omask_fh_A "0 ";
-            print $omask_fh_S "0 ";
+                ## excluding lines which do not
+                ## properly specify the alternate allele.
+                next;
+            }
+            elsif ($sp[6] ne "PASS")
+            {
+                next;
+            }
+
+            my $info = $sp[7];
+            if ($min_freq>0)
+            {
+                if ($info =~ /\;AF=([0123456789\.]+)/)
+                {
+                    my $freq = $1;
+
+                    if ($freq<$min_freq)
+                    {
+                        next; #ignore this variant if too rare
+                    }
+                }
+                else
+                {
+                    #if no allele frequency annotation, do not filter by frequency
+                }
+            }
+
+            if ($sp[1]==$last_varpos)
+            {
+                next; #ignore records which start at same place as previous
+            }
+            if ($curr_pos < $sp[1] )
+            {
+                my $len = $sp[1]-$curr_pos;
+                print $o_fh substr($seq, $curr_pos-1, $len);
+                my $y=0;
+                while ($y<$len)
+                {
+                    print $omask_fh_A "0 ";
+                    print $omask_fh_S "0 ";
+                    $y++;
+                }
+                #$curr_pos=$sp[1];
+            }
+
+            #replace N with C
+            $sp[3]=~ s/[^ACGTacgt]/C/g;
+
+            if (exists $clusters{$chrom}{$sp[1]})
+            {
+                if ($clusters{$chrom}{$sp[1]} eq "0")
+                {
+                    print $ovcf_fh $lyne."\n";
+                    next;## this is a late record in a cluster
+                         ##so it is handled by merging seq into a haplotype
+                         ##starting at first variant in cluster
+                }
+                elsif ($clusters{$chrom}{$sp[1]} eq "1")
+                {
+                    next;
+                    ## this is a line in the VCF that overlaps a previous one
+                    #ignore for PRG and dont print to VCF
+                }
+                else
+                {
+                    print $ovcf_fh $lyne."\n";
+                    ##modify the ref/alt alleles to represent all possible haplotypes in the cluster
+                    $sp[3]=$clusters{$chrom}{$sp[1]}->[0];
+                    my $str="";
+                    my $k;
+
+                    for ($k=1; $k<scalar(@{$clusters{$chrom}{$sp[1]}}); $k++)
+                    {
+                        $str=$str.($clusters{$chrom}{$sp[1]}->[$k]);
+                        if ($k<scalar(@{$clusters{$chrom}{$sp[1]}})-1)
+                        {
+                            $str=$str.",";
+                        }
+                    }
+                    $sp[4]=$str;
+                }
             }
             else
             {
-            print $o_fh $nextvar;#last one goes back to nextvar (odd)
+                print $ovcf_fh $lyne."\n";
+            }
+
+            print $o_fh $nextvar;#left marker before the site starts
             print $omask_fh_A "0 ";
             print $omask_fh_S "0 ";
+            print $o_fh $sp[3];        ##print the ref allele first
+            my $x=0;
+            while ($x<length($sp[3]))
+            {
+                print $omask_fh_A "1 ";
+                print $omask_fh_S $nextvar." ";
+                $x++;
             }
-        }
-        }
-        else #we have just one alternate allele
-        {
-        $sp[4]=~ s/[^ACGTacgt]/C/g;
-        print $o_fh $sp[4];
-        my $yy=0;
-        while ($yy<length($sp[4]))
-        {
-            print $omask_fh_A "2 " ;
-            print $omask_fh_S $nextvar." " ;
-            $yy++;
-        }
-        print $o_fh $nextvar;
-        print $omask_fh_A "0 ";
-        print $omask_fh_S "0 ";
-        }
-        $nextvar+=2;
-        $curr_pos=$sp[1]+length($sp[3]);
-        $last_varpos=$sp[1];
+            print $o_fh $nextvar+1;#even numbers between alleles
+            print $omask_fh_A "0 ";
+            print $omask_fh_S "0 ";
 
-    }
+            ##Now work our way through the alternate alleles
+            if ($sp[4]=~ /,/)
+            {
+                my @sp2 = split(/,/, $sp[4]);
+                my $i;
+
+                for ($i=0; $i<scalar(@sp2); $i++)
+                {
+                    my $allele = $sp2[$i];
+                    $allele =~ s/[^ACGTacgt]/C/g;
+                    print $o_fh $allele;
+                    my $tmp = $i+2;
+                    my $len = length($allele);
+
+                    my $z=0;
+                    while ($z<$len)
+                    {
+                        print $omask_fh_A $tmp." ";
+                        print $omask_fh_S $nextvar." ";
+                        $z++;
+                    }
+
+                    if ($i<scalar(@sp2)-1)
+                    {
+                        print $o_fh $nextvar+1;#even number between alleles
+                        print $omask_fh_A "0 ";
+                        print $omask_fh_S "0 ";
+                    }
+                    else
+                    {
+                        print $o_fh $nextvar;#last one goes back to nextvar (odd)
+                        print $omask_fh_A "0 ";
+                        print $omask_fh_S "0 ";
+                    }
+                }
+            }
+            else #we have just one alternate allele
+            {
+                $sp[4]=~ s/[^ACGTacgt]/C/g;
+                print $o_fh $sp[4];
+                my $yy=0;
+                while ($yy<length($sp[4]))
+                {
+                    print $omask_fh_A "2 " ;
+                    print $omask_fh_S $nextvar." " ;
+                    $yy++;
+                }
+                print $o_fh $nextvar;
+                print $omask_fh_A "0 ";
+                print $omask_fh_S "0 ";
+            }
+            $nextvar+=2;
+            $curr_pos=$sp[1]+length($sp[3]);
+            $last_varpos=$sp[1];
+        }
     }
     close(VCF);
 
     if ($curr_pos<length($seq)+1)
     {
-    ##substr is 0-based and chr position is 10based
-    print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
-    my $zz=0;
-    while ($zz<length($seq)-$curr_pos+1)
-    {
-        print $omask_fh_A "0 ";
-        print $omask_fh_S "0 ";
-        $zz++;
-    }
+        ##substr is 0-based and chr position is 10based
+        print $o_fh substr($seq, $curr_pos-1, length($seq)-$curr_pos+1);
+        my $zz=0;
+        while ($zz<length($seq)-$curr_pos+1)
+        {
+            print $omask_fh_A "0 ";
+            print $omask_fh_S "0 ";
+            $zz++;
+        }
     }
 
     return $nextvar-1;
@@ -377,119 +363,108 @@ sub get_clusters_in_one_sweep
 
     while (<VCFF>)
     {
+        my $vcfline = $_;
+        chomp $vcfline;
+        if ($vcfline !~ /^\#/)
+        {
+            my @fields = split(/\t/, $vcfline);
 
-    my $vcfline = $_;
-    chomp $vcfline;
-    if ($vcfline !~ /^\#/)
-    {
-        my @fields = split(/\t/, $vcfline);
-
-        if ($fields[4] !~ /^[ACGTacgt]+$/)
-        {
-        ## excluding lines which do not
-        ## properly specify the alternate allele.
-        next;
-        }
-        elsif ($fields[6] ne "PASS")
-        {
-        next;
-        }
-        if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
-        {
-        my $freq = $1;
-        if ($freq<$min_frequency)
-        {
-            next; #ignore this variant if too rare
-        }
-        }
-        my $chromo = $fields[0];
-        if ($chromo ne $last_chrom)
-        {
-        $not_first_var_on_chrom=0;##first var on chrom
-        $last_start=-1;#start/end of ref allele
-        $last_end=-1;
-        $last_ref="";
-        $last_alt="";
-        $currently_in_cluster=0;
-        $current_cluster_start=0;
-        }
-
-        my $pos = $fields[1];
-        my $ref = $fields[3];
-        my $alt = $fields[4];
-        $last_chrom = $chromo;
-        if ($not_first_var_on_chrom==1)
-        {
-        if ($pos<$last_start)
-        {
-            die("Badly srted VCF. chr $chromo, pos $pos we have a variant BEFORE the previous line\n");
-        }
-        elsif ($pos==$last_start)
-        {
-            #die("Multiple records in this VCF starting at same line\n$vcfline\n");
-            next;
-        }
-
-        if ($pos<=$last_end)
-        {
-            ## this is a case of overlapping variants.
-            $href_cluster->{$chromo}{$pos}=0; ##basically tell downstream stuff to ignore this variant
-            next;
-        }
-        if ($pos==$last_end+1)
-        {
-            #abutting variants - cluster started at prev variant or even earlier
-            if ($currently_in_cluster==0)
+            if ($fields[4] !~ /^[ACGTacgt]+$/)
             {
-            ##cluster started at previous record
-            $currently_in_cluster=1;
-            $current_cluster_start=$last_start;
-            push @alleles, get_haplo_array($last_ref, $last_alt);
+                ## excluding lines which do not
+                ## properly specify the alternate allele.
+                next;
             }
-            else
+            elsif ($fields[6] ne "PASS")
             {
-            #another record in an ongoing cluster
+                next;
             }
-            $href_cluster->{$chromo}{$pos}=0;
-            push @alleles, get_haplo_array($ref, $alt);
-            $currently_in_cluster=1;
-        }
-        else
-            # there is a gap between current
-            # variant and previous one. No cluster any more
-        {
-            if ($currently_in_cluster==1)
+            if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
             {
-            #we have just got to the end of
-            #a cluster. Update the hash
-            #with a list of all possible haplotypes.
-            my $temp
-                =recursive_get_haplotypes(\@alleles);
-            $href_cluster->{$chromo}{$current_cluster_start}=$temp;
-
+                my $freq = $1;
+                if ($freq<$min_frequency)
+                {
+                    next; #ignore this variant if too rare
+                }
             }
-            $currently_in_cluster=0;
+            my $chromo = $fields[0];
+            if ($chromo ne $last_chrom)
+            {
+                $not_first_var_on_chrom=0;##first var on chrom
+                $last_start=-1;#start/end of ref allele
+                $last_end=-1;
+                $last_ref="";
+                $last_alt="";
+                $currently_in_cluster=0;
+                $current_cluster_start=0;
+            }
 
-            @alleles=();
+            my $pos = $fields[1];
+            my $ref = $fields[3];
+            my $alt = $fields[4];
+            $last_chrom = $chromo;
+            if ($not_first_var_on_chrom==1)
+            {
+                if ($pos<$last_start)
+                {
+                    die("Badly srted VCF. chr $chromo, pos $pos we have a variant BEFORE the previous line\n");
+                }
+                elsif ($pos==$last_start)
+                {
+                    #die("Multiple records in this VCF starting at same line\n$vcfline\n");
+                    next;
+                }
 
+                if ($pos<=$last_end)
+                {
+                    ## this is a case of overlapping variants.
+                    $href_cluster->{$chromo}{$pos}=0; ##basically tell downstream stuff to ignore this variant
+                    next;
+                }
+                if ($pos==$last_end+1)
+                {
+                    #abutting variants - cluster started at prev variant or even earlier
+                    if ($currently_in_cluster==0)
+                    {
+                        ##cluster started at previous record
+                        $currently_in_cluster=1;
+                        $current_cluster_start=$last_start;
+                        push @alleles, get_haplo_array($last_ref, $last_alt);
+                    }
+                    else
+                    {
+                        #another record in an ongoing cluster
+                    }
+                    $href_cluster->{$chromo}{$pos}=0;
+                    push @alleles, get_haplo_array($ref, $alt);
+                    $currently_in_cluster=1;
+                }
+                else
+                # there is a gap between current
+                # variant and previous one. No cluster any more
+                {
+                    if ($currently_in_cluster==1)
+                    {
+                        #we have just got to the end of
+                        #a cluster. Update the hash
+                        #with a list of all possible haplotypes.
+                        my $temp
+                            =recursive_get_haplotypes(\@alleles);
+                        $href_cluster->{$chromo}{$current_cluster_start}=$temp;
+                    }
+                    $currently_in_cluster=0;
+                    @alleles=();
+                }
+            }
+            $last_start = $pos;
+            $last_end = $pos+length($ref)-1;
+            $last_ref=$fields[3];
+            $last_alt=$fields[4];
 
+            $not_first_var_on_chrom=1;
         }
-        }
-        $last_start = $pos;
-        $last_end = $pos+length($ref)-1;
-        $last_ref=$fields[3];
-        $last_alt=$fields[4];
-
-        $not_first_var_on_chrom=1;
-
-    }
-
     }
     close(VCFF);
-
-
-
-
 }
 
 
@@ -502,16 +477,16 @@ sub get_haplo_array
     push @v, $refall;
     if ($altall =~ /,/)
     {
-    my @all = split(/,/, $altall);
-    my $i;
-    for ($i=0; $i<scalar(@all); $i++)
-    {
-        push @v, $all[$i];
-    }
+        my @all = split(/,/, $altall);
+        my $i;
+        for ($i=0; $i<scalar(@all); $i++)
+        {
+            push @v, $all[$i];
+        }
     }
     else
     {
-    push @v, $altall;
+        push @v, $altall;
     }
 
     return \@v;
@@ -526,8 +501,8 @@ sub recursive_get_haplotypes
 
     if (scalar (@$array_ref)==1)
     {
-    #then the alleles themselves are the haplotypes
-    return $array_ref->[0];
+        #then the alleles themselves are the haplotypes
+        return $array_ref->[0];
     }
 
 
@@ -544,20 +519,19 @@ sub recursive_get_haplotypes
     my @results=();
     for ($i=0; $i<scalar(@$results_for_prev); $i++)
     {
-    for($j=0; $j<scalar(@$last_aref); $j++)
-    {
-        #take each allele in the last variant
-        my $seq=$last_aref->[$j];
-        #create a new haplotype by extending the current
-        #one with this allele
-        my $new_haplo = ($results_for_prev->[$i]).$seq;
-        push @results, $new_haplo;
-    }
+        for($j=0; $j<scalar(@$last_aref); $j++)
+        {
+            #take each allele in the last variant
+            my $seq=$last_aref->[$j];
+            #create a new haplotype by extending the current
+            #one with this allele
+            my $new_haplo = ($results_for_prev->[$i]).$seq;
+            push @results, $new_haplo;
+        }
     }
 
     return \@results;
 }
-
 
 
 
@@ -572,30 +546,30 @@ sub get_ref_seq
 
     while (<FILE>)
     {
-    my $line = $_;
-    chomp $line;
+        my $line = $_;
+        chomp $line;
 
-    if ($line =~ /^>(\S+)/)
-    {
-        if ($first !=1)
+        if ($line =~ /^>(\S+)/)
         {
-        ## comment out following line in debug, if you like
-        ## can put nonstandard chars at end and start of chromosomes
-        ## to check they are transferred correctly
-        $seq =~ s/[^ACGTacgt]/C/g;
-        $seq=uc($seq);
-        $href->{$chr}=$seq;
+            if ($first !=1)
+            {
+                ## comment out following line in debug, if you like
+                ## can put nonstandard chars at end and start of chromosomes
+                ## to check they are transferred correctly
+                $seq =~ s/[^ACGTacgt]/C/g;
+                $seq=uc($seq);
+                $href->{$chr}=$seq;
+            }
+            $first=0;
+            $chr = $1;
+            push @$aref_chroms, $chr;
+            $seq="";
         }
-        $first=0;
-        $chr = $1;
-        push @$aref_chroms, $chr;
-        $seq="";
-    }
-    else
-    {
-        $seq .= uc($line);
-        #$href->{$chr}=($href->{$chr}).$line;
-    }
+        else
+        {
+            $seq .= uc($line);
+            #$href->{$chr}=($href->{$chr}).$line;
+        }
     }
     close(FILE);
 
@@ -616,50 +590,49 @@ sub check_args
 
     if ($href->{"help"})
     {
-    print "Usage: perl vcf_to_linear_prg.pl --vcf <VCF> --ref species.fasta --min_freq 0.01\n";
-    print "\n";
-    print "This script is not super-sophisticated - it builds a lin-PRG\n";
-    print "as it sweeps once through the VCF\n";
-    print "If it meets a new VCF record that overlaps an old one,\nit will ignore it.\n";
-    print "The most important consequence is that it won't encode SNPs \"underneath\" a long deletion\n";
-    exit(0);
+        print "Usage: perl vcf_to_linear_prg.pl --vcf <VCF> --ref species.fasta --min_freq 0.01\n";
+        print "\n";
+        print "This script is not super-sophisticated - it builds a lin-PRG\n";
+        print "as it sweeps once through the VCF\n";
+        print "If it meets a new VCF record that overlaps an old one,\nit will ignore it.\n";
+        print "The most important consequence is that it won't encode SNPs \"underneath\" a long deletion\n";
+        exit(0);
     }
 
     if ($href->{"vcf"} eq "")
     {
-    die("You must specify a VCF file with --vcf \n");
+        die("You must specify a VCF file with --vcf \n");
     }
 
     if ($href->{"outfile"} eq "")
     {
-    die("You must specify an output file with --outfile \n");
+        die("You must specify an output file with --outfile \n");
     }
 
     if ($href->{"ref"} eq "")
     {
-    die("You must specify a reference fasta file with --ref \n");
+        die("You must specify a reference fasta file with --ref \n");
     }
 
     if (!(-e $href->{"vcf"}))
     {
-    print "Specified VCF file ";
-    print $href->{"vcf"};
-    die(" does not exist");
+        print "Specified VCF file ";
+        print $href->{"vcf"};
+        die(" does not exist");
     }
 
 
     if (!(-e $href->{"ref"}))
     {
-    print "Specified reference fasta file ";
-    print $href->{"ref"};
-    die(" does not exist");
+        print "Specified reference fasta file ";
+        print $href->{"ref"};
+        die(" does not exist");
     }
 
     ##let's just avoid any mess with tiny numbers
     if ($href->{"min_freq"}<0.0001)
     {
-    $href->{"min_freq"}=0;
+        $href->{"min_freq"}=0;
     }
-
 }
 
