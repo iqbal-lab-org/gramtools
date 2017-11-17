@@ -71,3 +71,7 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         self._test_one_run('prg_with_one_ins_and_one_del')
 
 
+    def test_prg_with_complex_variant(self):
+        '''Test PRG when we have complex variant'''
+        self._test_one_run('prg_with_complex_variant')
+
