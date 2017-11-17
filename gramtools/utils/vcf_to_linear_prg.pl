@@ -157,6 +157,7 @@ sub print_linearised_poa_in_one_sweep
                 }
                 $seq = $href_refsequence->{$chrom};
                 $used_ref_names_from_vcf{$chrom} = 1;
+                $last_varpos=0;
             }
 
             if ($sp[4] !~ /^[ACGTacgt,]+$/)
@@ -192,6 +193,7 @@ sub print_linearised_poa_in_one_sweep
             {
                 next; #ignore records which start at same place as previous
             }
+
             if ($curr_pos < $sp[1] )
             {
                 my $len = $sp[1]-$curr_pos;
