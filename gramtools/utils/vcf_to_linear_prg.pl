@@ -367,114 +367,111 @@ sub get_clusters_in_one_sweep
     my $not_first_var_on_chrom=0;
     my $currently_in_cluster=0;
     my $current_cluster_start=0;
+    my $chromo="";
 
 
     open(VCFF, $vcf_f)||die("Cannot open $vcf_f");
     my $last_chrom="";
 
-    while (<VCFF>)
+    while (my $vcfline = <VCFF>)
     {
-        my $vcfline = $_;
+        next if $vcfline =~ /^#/;
         chomp $vcfline;
-        if ($vcfline !~ /^\#/)
+        my @fields = split(/\t/, $vcfline);
+
+        # excluding lines which do not # properly specify the alternate allele,
+        # or fail filter
+        next if ($fields[4] !~ /^[ACGTacgt]+$/ or $fields[6] ne "PASS");
+
+        #ignore this variant if too rare
+        if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
         {
-            my @fields = split(/\t/, $vcfline);
+            next if $1 < $min_frequency;
+        }
 
-            if ($fields[4] !~ /^[ACGTacgt]+$/)
+        $chromo = $fields[0];
+        if ($chromo ne $last_chrom)
+        {
+            $not_first_var_on_chrom=0;##first var on chrom
+            $last_start=-1;#start/end of ref allele
+            $last_end=-1;
+            $last_ref="";
+            $last_alt="";
+            $currently_in_cluster=0;
+            $current_cluster_start=0;
+        }
+
+        my $pos = $fields[1];
+        my $ref = $fields[3];
+        my $alt = $fields[4];
+        $last_chrom = $chromo;
+        if ($not_first_var_on_chrom==1)
+        {
+            if ($pos<$last_start)
             {
-                ## excluding lines which do not
-                ## properly specify the alternate allele.
+                die("Badly srted VCF. chr $chromo, pos $pos we have a variant BEFORE the previous line\n");
+            }
+            elsif ($pos==$last_start)
+            {
+                #die("Multiple records in this VCF starting at same line\n$vcfline\n");
                 next;
             }
-            elsif ($fields[6] ne "PASS")
+
+            if ($pos<=$last_end)
             {
+                ## this is a case of overlapping variants.
+                $href_cluster->{$chromo}{$pos}=0; ##basically tell downstream stuff to ignore this variant
                 next;
             }
-            if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
+            if ($pos==$last_end+1)
             {
-                my $freq = $1;
-                if ($freq<$min_frequency)
+                #abutting variants - cluster started at prev variant or even earlier
+                if ($currently_in_cluster==0)
                 {
-                    next; #ignore this variant if too rare
-                }
-            }
-            my $chromo = $fields[0];
-            if ($chromo ne $last_chrom)
-            {
-                $not_first_var_on_chrom=0;##first var on chrom
-                $last_start=-1;#start/end of ref allele
-                $last_end=-1;
-                $last_ref="";
-                $last_alt="";
-                $currently_in_cluster=0;
-                $current_cluster_start=0;
-            }
-
-            my $pos = $fields[1];
-            my $ref = $fields[3];
-            my $alt = $fields[4];
-            $last_chrom = $chromo;
-            if ($not_first_var_on_chrom==1)
-            {
-                if ($pos<$last_start)
-                {
-                    die("Badly srted VCF. chr $chromo, pos $pos we have a variant BEFORE the previous line\n");
-                }
-                elsif ($pos==$last_start)
-                {
-                    #die("Multiple records in this VCF starting at same line\n$vcfline\n");
-                    next;
-                }
-
-                if ($pos<=$last_end)
-                {
-                    ## this is a case of overlapping variants.
-                    $href_cluster->{$chromo}{$pos}=0; ##basically tell downstream stuff to ignore this variant
-                    next;
-                }
-                if ($pos==$last_end+1)
-                {
-                    #abutting variants - cluster started at prev variant or even earlier
-                    if ($currently_in_cluster==0)
-                    {
-                        ##cluster started at previous record
-                        $currently_in_cluster=1;
-                        $current_cluster_start=$last_start;
-                        push @alleles, get_haplo_array($last_ref, $last_alt);
-                    }
-                    else
-                    {
-                        #another record in an ongoing cluster
-                    }
-                    $href_cluster->{$chromo}{$pos}=0;
-                    push @alleles, get_haplo_array($ref, $alt);
+                    ##cluster started at previous record
                     $currently_in_cluster=1;
+                    $current_cluster_start=$last_start;
+                    push @alleles, get_haplo_array($last_ref, $last_alt);
                 }
                 else
-                # there is a gap between current
-                # variant and previous one. No cluster any more
                 {
-                    if ($currently_in_cluster==1)
-                    {
-                        #we have just got to the end of
-                        #a cluster. Update the hash
-                        #with a list of all possible haplotypes.
-                        my $temp
-                            =recursive_get_haplotypes(\@alleles);
-                        $href_cluster->{$chromo}{$current_cluster_start}=$temp;
-                    }
-                    $currently_in_cluster=0;
-                    @alleles=();
+                    #another record in an ongoing cluster
                 }
+                $href_cluster->{$chromo}{$pos}=0;
+                push @alleles, get_haplo_array($ref, $alt);
+                $currently_in_cluster=1;
             }
-            $last_start = $pos;
-            $last_end = $pos+length($ref)-1;
-            $last_ref=$fields[3];
-            $last_alt=$fields[4];
-
-            $not_first_var_on_chrom=1;
+            else
+            # there is a gap between current
+            # variant and previous one. No cluster any more
+            {
+                if ($currently_in_cluster==1)
+                {
+                    #we have just got to the end of
+                    #a cluster. Update the hash
+                    #with a list of all possible haplotypes.
+                    my $temp
+                        =recursive_get_haplotypes(\@alleles);
+                    $href_cluster->{$chromo}{$current_cluster_start}=$temp;
+                }
+                $currently_in_cluster=0;
+                @alleles=();
+            }
         }
+        $last_start = $pos;
+        $last_end = $pos+length($ref)-1;
+        $last_ref=$fields[3];
+        $last_alt=$fields[4];
+        $not_first_var_on_chrom=1;
     }
+
+    # last line of VCF could be part of a cluster.
+    if ($currently_in_cluster == 1)
+    {
+        my $temp = recursive_get_haplotypes(\@alleles);
+        $href_cluster->{$chromo}{$current_cluster_start}=$temp;
+    }
+
     close(VCFF);
 }
 
