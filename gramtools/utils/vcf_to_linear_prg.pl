@@ -381,7 +381,7 @@ sub get_clusters_in_one_sweep
 
         # excluding lines which do not # properly specify the alternate allele,
         # or fail filter
-        next if ($fields[4] !~ /^[ACGTacgt]+$/ or $fields[6] ne "PASS");
+        next if ($fields[4] !~ /^[ACGTacgt,]+$/ or $fields[6] ne "PASS");
 
         #ignore this variant if too rare
         if ($fields[7] =~ /\;AF=([0123456789\.]+)/)
