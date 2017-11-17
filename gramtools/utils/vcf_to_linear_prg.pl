@@ -535,6 +535,9 @@ sub recursive_get_haplotypes
 
 
 
+# $fasta = name fasta input file
+# $href = hash reference. Hash gets filled with seq name -> sequence string
+# $aref_chroms = array reference. Array gets filled with sequence names, in same order as in input file
 sub get_ref_seq
 {
     my ($fasta, $href, $aref_chroms) = @_;
