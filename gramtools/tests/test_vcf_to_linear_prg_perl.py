@@ -46,7 +46,8 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         self._test_one_run('prg_with_one_snp')
 
 
-    def test_prg_with_one_snp(self):
+    def test_prg_with_two_separate_snps(self):
         '''Test make PRG with two separate SNPs'''
         self._test_one_run('prg_with_two_separate_snps')
+
 
