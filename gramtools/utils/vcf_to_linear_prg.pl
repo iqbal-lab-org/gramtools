@@ -48,6 +48,7 @@ open($o_mask_s_fh, ">".$outmask_s)||die("Cannot open $outmask_s to write output\
 ## parse the VCF and print a linearised PRG in gramtools format
 
 my $last_varnumber = print_linearised_poa_in_one_sweep(\%refseq,
+    \@chroms,
     $vars{"vcf"}, $vars{"min_freq"},
     $output_fh, $output_vcf_fh,
     $o_mask_a_fh, $o_mask_s_fh);
@@ -82,7 +83,7 @@ sub test_cluster_func
 
 sub print_linearised_poa_in_one_sweep
 {
-    my ($href_refsequence, $vcf_file,
+    my ($href_refsequence, $aref_ref_names, $vcf_file,
     $min_freq, $o_fh, $ovcf_fh, $omask_fh_A, $omask_fh_S)= @_;
 
     my $nextvar=5;
@@ -112,6 +113,7 @@ sub print_linearised_poa_in_one_sweep
     my $curr_pos=1; ## 1-based
     my $chrom="";
     my $last_varpos=0;
+    my %used_ref_names_from_vcf;
 
     while (<VCF>)
     {
@@ -154,6 +156,7 @@ sub print_linearised_poa_in_one_sweep
                     die("Cannot find seq for chromosome $chrom");
                 }
                 $seq = $href_refsequence->{$chrom};
+                $used_ref_names_from_vcf{$chrom} = 1;
             }
 
             if ($sp[4] !~ /^[ACGTacgt]+$/)
@@ -329,6 +332,14 @@ sub print_linearised_poa_in_one_sweep
             print $omask_fh_S "0 ";
             $zz++;
         }
+    }
+
+    # Add sequences that were in the fasta file, but had
+    # no variants in the VCf file
+    for my $ref_name (@$aref_ref_names)
+    {
+        next if exists $used_ref_names_from_vcf{$ref_name};
+        print $o_fh $href_refsequence->{$ref_name};
     }
 
     return $nextvar-1;
