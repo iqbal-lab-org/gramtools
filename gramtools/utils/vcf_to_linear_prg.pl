@@ -159,7 +159,7 @@ sub print_linearised_poa_in_one_sweep
                 $used_ref_names_from_vcf{$chrom} = 1;
             }
 
-            if ($sp[4] !~ /^[ACGTacgt]+$/)
+            if ($sp[4] !~ /^[ACGTacgt,]+$/)
             {
                 ## excluding lines which do not
                 ## properly specify the alternate allele.
