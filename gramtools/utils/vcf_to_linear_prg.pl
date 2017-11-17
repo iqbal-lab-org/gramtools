@@ -47,7 +47,7 @@ open($o_mask_s_fh, ">".$outmask_s)||die("Cannot open $outmask_s to write output\
 
 ## parse the VCF and print a linearised PRG in gramtools format
 
-my $last_varnumber = print_linearised_poa_in_one_sweep(\%refseq, $vars{"ref"},
+my $last_varnumber = print_linearised_poa_in_one_sweep(\%refseq,
     $vars{"vcf"}, $vars{"min_freq"},
     $output_fh, $output_vcf_fh,
     $o_mask_a_fh, $o_mask_s_fh);
@@ -82,7 +82,7 @@ sub test_cluster_func
 
 sub print_linearised_poa_in_one_sweep
 {
-    my ($href_refsequence, $reff, $vcf_file,
+    my ($href_refsequence, $vcf_file,
     $min_freq, $o_fh, $ovcf_fh, $omask_fh_A, $omask_fh_S)= @_;
 
     my $nextvar=5;
