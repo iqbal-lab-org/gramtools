@@ -84,3 +84,15 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         '''Test PRG with two SNPs in the same plave in separate VCF lines'''
         self._test_one_run('prg_with_two_snps_same_place')
 
+
+    # If there is one variant inside another one, eg this test is:
+    # Ref:  AGCACGTCATGA
+    # var1: AG-----CATGA
+    # var2: AGCTCGTCATGA
+    #          * <- SNP here!
+    # Then only var1 is put into the graph, but both lines
+    # of VCF are put into the output.
+    # This should be fixed in the future
+    def test_prg_with_snp_inside_del(self):
+        '''Test when snp inside deletion'''
+        self._test_one_run('prg_with_snp_inside_del')
