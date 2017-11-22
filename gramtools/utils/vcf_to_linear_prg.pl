@@ -215,7 +215,10 @@ sub print_linearised_poa_in_one_sweep
             {
                 if ($clusters{$chrom}{$sp[1]} eq "0")
                 {
-                    print $ovcf_fh $lyne."\n";
+                    # We don't print this because its alleles are
+                    # printed in the previous iteration of this loop,
+                    # as one of the list of ALTs
+                    #print $ovcf_fh $lyne."\n";
                     next;## this is a late record in a cluster
                          ##so it is handled by merging seq into a haplotype
                          ##starting at first variant in cluster
@@ -229,7 +232,6 @@ sub print_linearised_poa_in_one_sweep
                 }
                 else
                 {
-                    print $ovcf_fh $lyne."\n";
                     ##modify the ref/alt alleles to represent all possible haplotypes in the cluster
                     $sp[3]=$clusters{$chrom}{$sp[1]}->[0];
                     my $str="";
@@ -244,6 +246,7 @@ sub print_linearised_poa_in_one_sweep
                         }
                     }
                     $sp[4]=$str;
+                    print $ovcf_fh join("\t", @sp) . "\n";
                 }
             }
             else
