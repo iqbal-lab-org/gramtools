@@ -19,6 +19,7 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         vcf_file = os.path.join(data_dir, file_prefix + '.vcf')
         ref_file = os.path.join(data_dir, file_prefix + '.ref.fa')
         expected_prg = os.path.join(data_dir, file_prefix + '.prg')
+        expected_vcf = os.path.join(data_dir, file_prefix + '.expect.vcf')
         outfile = 'tmp.' + file_prefix + '.prg'
         if os.path.exists(outfile):
             os.unlink(outfile)
@@ -32,6 +33,7 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         completed_process = subprocess.run(command, shell=True)
         self.assertEqual(0, completed_process.returncode)
         self.assertTrue(filecmp.cmp(expected_prg, outfile, shallow=False))
+        self.assertTrue(filecmp.cmp(expected_vcf, outfile + '.vcf', shallow=False))
         for suffix in ['', '.fa', '.mask_alleles', '.mask_sites', '.vcf']:
             os.unlink(outfile + suffix)
 
