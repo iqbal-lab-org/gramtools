@@ -222,6 +222,7 @@ sub print_linearised_poa_in_one_sweep
                 }
                 elsif ($clusters{$chrom}{$sp[1]} eq "1")
                 {
+                    warn "WARNING: Skipping VCF line that overlaps previous one: $lyne\n";
                     next;
                     ## this is a line in the VCF that overlaps a previous one
                     #ignore for PRG and dont print to VCF
