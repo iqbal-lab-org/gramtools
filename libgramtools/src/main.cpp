@@ -71,7 +71,7 @@ void build(const Parameters &parameters) {
     prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
     prg_info.bwt_markers_rank = sdsl::rank_support_v<1>(&prg_info.bwt_markers_mask);
     prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
-    prg_info.bwt_markers_mask_count_set_bits =
+    prg_info.markers_mask_count_set_bits =
             prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
 
     prg_info.dna_bwt_masks = load_dna_bwt_masks(prg_info.fm_index, parameters);
@@ -134,7 +134,9 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
                              ("kmer-index", po::value<std::string>(),
                               "output destination of the kmer index")
                              ("kmer-size", po::value<uint32_t>(),
-                              "kmer size used in constructing the kmer index");
+                              "kmer size used in constructing the kmer index")
+                             ("max-read-size", po::value<uint32_t>(),
+                              "read maximum size for the set of reads used when quasimaping");
 
     std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
                                                              po::include_positional);
@@ -153,6 +155,7 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
     parameters.kmer_suffix_diffs_fpath = vm["kmers-prefix-diffs"].as<std::string>();
     parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
+    parameters.max_read_size = vm["max-read-size"].as<uint32_t>();
     return parameters;
 }
 

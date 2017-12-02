@@ -3,7 +3,6 @@ import argparse
 import collections
 
 from . import build
-from . import kmers
 from . import simulate
 from . import quasimap
 from . import version
@@ -23,7 +22,6 @@ def _setup_logging(level):
 root_parser = argparse.ArgumentParser(prog='gramtools')
 commands = collections.OrderedDict([
     ('build', build),
-    ('kmers', kmers),
     ('simulate', simulate),
     ('quasimap', quasimap),
 ])

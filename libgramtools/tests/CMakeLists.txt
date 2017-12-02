@@ -33,6 +33,7 @@ add_executable(test_main
         test_utils.cpp
         test_coverage_analysis.cpp
         test_kmers.cpp
+        test_kmer_index.cpp
         test_search.cpp
         test_prg.cpp
         test_masks.cpp)

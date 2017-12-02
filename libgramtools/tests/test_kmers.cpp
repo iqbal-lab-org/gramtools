@@ -1,657 +1,1372 @@
-#include <cctype>
-
 #include "gtest/gtest.h"
 
 #include "test_utils.hpp"
-#include "kmer_index.hpp"
+#include "kmers.hpp"
 
 
-TEST(GenerateKmerIndex, GivenDataForSingleKmerIndexEntry_CorrectRowDumpGenerated) {
-    const Pattern kmer = {1, 2, 3, 4};
-
-    VariantSitePath first_path = {
-            VariantSite {5, 9},
-            VariantSite {7, 19},
-            VariantSite {9, 1},
-    };
-    VariantSitePath second_path = {
-            VariantSite {9, 29},
-            VariantSite {11, 39},
-    };
-
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {123, 456},
-                    first_path
-            },
-            SearchState {
-                    SA_Interval {789, 424},
-                    second_path
-            }
-    };
-
-    const auto result = dump_kmer_index_entry(kmer, search_states);
-    const auto expected = "1 2 3 4|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GenerateKmerIndex, TwoSearchStateOneVairiantPath_CorrectKmerIndexEntryDump) {
-    const Pattern kmer = {1, 2, 3, 4};
-
-    VariantSitePath first_path = {
-            VariantSite {5, 9},
-            VariantSite {7, 19},
-            VariantSite {9, 1},
-    };
-    VariantSitePath second_path = {
-            VariantSite {9, 29},
-            VariantSite {11, 39},
-    };
-
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {123, 456},
-                    first_path
-            },
-            SearchState {
-                    SA_Interval {789, 424},
-            }
-    };
-
-    const auto result = dump_kmer_index_entry(kmer, search_states);
-    const auto expected = "1 2 3 4|123 456 789 424|5 9 7 19 9 1||";
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GenerateKmerIndex, GivenVariantSitePaths_DumpVariantSitesPathsCorrectly) {
-    VariantSitePath first_path = {
-            VariantSite {5, 9},
-            VariantSite {7, 19},
-            VariantSite {9, 1},
-    };
-    VariantSitePath second_path = {
-            VariantSite {9, 29},
-            VariantSite {11, 39},
-    };
-
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {},
-                    first_path
-            },
-            SearchState {
-                    SA_Interval {},
-                    second_path
-            }
-    };
-    const auto result = dump_variant_site_paths(search_states);
-    const auto expected = "5 9 7 19 9 1|9 29 11 39|";
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GenerateKmerIndex, GivenSaIntervals_DumpSaIntervalsStringCorrectly) {
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {1, 2}
-            },
-            SearchState {
-                    SA_Interval {3, 4}
-            }
-    };
-
-    auto result = dump_sa_intervals(search_states);
-    const auto expected = "1 2 3 4";
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GenerateKmerIndex, GivenKmer_DumpKmerStringCorrectly) {
-    const Pattern kmer = {1, 2, 3, 4};
-    const auto result = dump_kmer(kmer);
-    const auto expected = "1 2 3 4";
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {
-    const auto dna_str = "AAACCCGGGTTTACGT";
-    const auto result = encode_dna_bases(dna_str);
-    const Pattern expected = {
-            1, 1, 1,
-            2, 2, 2,
-            3, 3, 3,
-            4, 4, 4,
-            1, 2, 3, 4,
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ParseKmerIndex, GivenKmerIndexEntryStr_CorrectlyParsed) {
-    KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|123 456 789 424|5 9 7 19 9 1|9 29 11 39|";
-    parse_kmer_index_entry(kmer_index, entry);
-
-    const auto &result = kmer_index;
-    KmerIndex expected = {
-            {Pattern {1, 2, 3, 4},
-                    SearchStates {
-                            SearchState {
-                                    SA_Interval {123, 456},
-                                    VariantSitePath {
-                                            VariantSite {5, 9},
-                                            VariantSite {7, 19},
-                                            VariantSite {9, 1}
-                                    }
-                            },
-
-                            SearchState {
-                                    SA_Interval {789, 424},
-                                    VariantSitePath {
-                                            VariantSite {9, 29},
-                                            VariantSite {11, 39}
-                                    }
-                            }
-
-                    }
-            }
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ParseKmerIndex, IndexEntryTwoSearchStatesOneVariantSitePath_ParsedCorrectly) {
-    KmerIndex kmer_index;
-    const auto entry = "1 2 3 4|123 456 789 424||9 29 11 39|";
-    parse_kmer_index_entry(kmer_index, entry);
-
-    const auto &result = kmer_index;
-    KmerIndex expected = {
-            {Pattern {1, 2, 3, 4},
-                    SearchStates {
-                            SearchState {
-                                    SA_Interval {123, 456},
-                                    VariantSitePath {}
-                            },
-
-                            SearchState {
-                                    SA_Interval {789, 424},
-                                    VariantSitePath {
-                                            VariantSite {9, 29},
-                                            VariantSite {11, 39}
-                                    }
-                            }
-
-                    }
-            }
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ParseKmerIndex, GivenEncodedKmerString_CorrectlyParsed) {
-    const auto encoded_kmer_str = "3 4 2 1 1 3 1 1 2";
-    const auto result = parse_encoded_kmer(encoded_kmer_str);
-    const Pattern expected = {3, 4, 2, 1, 1, 3, 1, 1, 2};
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ParseKmerIndex, GivenSaIntervalsString_CorrectlyParsed) {
-    const auto full_sa_intervals_str = "352511 352512 352648 352649 2 3";
-    const auto result = parse_sa_intervals(full_sa_intervals_str);
-
-    std::vector<SA_Interval> expected{
-            SA_Interval {352511, 352512},
-            SA_Interval {352648, 352649},
-            SA_Interval {2, 3},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ParseKmerIndex, GivenTwoSites_CorrectSiteStructGenerated) {
-    const auto kmer_index_entry = "5 9 7 19";
-    const auto &result = parse_variant_site_path(kmer_index_entry);
-    VariantSitePath expected = {
-            VariantSite {5, 9},
-            VariantSite {7, 19},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ParseKmerIndex, GivenSitesTrailingAt_TrailingAtIgnored) {
-    const auto kmer_index_entry = "5 9 7 19";
-    const auto &result = parse_variant_site_path(kmer_index_entry);
-    VariantSitePath expected = {
-            VariantSite {5, 9},
-            VariantSite {7, 19},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-/*
-PRG: aca5g6t5gctc
-i	F	BWT	text	SA	suffix
-0	0	2	1	    12	  0
-1	1	0	2	    0	  1 2 1 5 3 6 4 5 3 2 4 2 0
-2	1	2	1	    2	  1 5 3 6 4 5 3 2 4 2 0
-3	2	4	5	    11	  2 0
-4	2	1	3	    1	  2 1 5 3 6 4 5 3 2 4 2 0
-5	2	3	6	    9	  2 4 2 0
-6	3	5	4	    8	  3 2 4 2 0
-7	3	5	5	    4	  3 6 4 5 3 2 4 2 0
-8	4	2	3	    10	  4 2 0
-9	4	6	2	    6	  4 5 3 2 4 2 0
-10	5	4	4	    7	  5 3 2 4 2 0
-11	5	1	2	    3	  5 3 6 4 5 3 2 4 2 0
-12	6	3	0	    5	  6 4 5 3 2 4 2 0
- */
-
-
-TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
-    const std::string prg_raw = "aca5g6t5gctc";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    auto kmer = encode_dna_bases("atgct");
-    const int kmer_size = 5;
-    Patterns kmers = {kmer};
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-    auto search_states = kmer_index[kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-
-    VariantSitePath expected = {
-            VariantSite {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
-    const std::string prg_raw = "aca5g6t5gcatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    auto kmer = encode_dna_bases("aggca");
-    const int kmer_size = 5;
-    Patterns kmers = {kmer};
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-    auto search_states = kmer_index[kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
-    auto prg_raw = "aca5g6c5tatt";
+TEST(GetBoundaryMarkerIndexes, TwoVariantSites_CorrectSiteStartEndIndexes) {
+    auto prg_raw = "aca5g6c5tt7a8c7gg";
     auto prg_info = generate_prg_info(prg_raw);
 
-    auto kmer_size = 5;
-    auto first_full_kmer = encode_dna_bases("agtat");
-    auto kmer_prefix_diff = encode_dna_bases("ac");
-    Patterns kmers = {
-            first_full_kmer,
-            kmer_prefix_diff
-    };
-    auto second_full_kmer = encode_dna_bases("actat");
-
-    auto result = index_kmers(kmers, kmer_size, prg_info);
-
-    KmerIndex expected = {
-            {first_full_kmer,
-                    SearchStates {
-                            SearchState {
-                                    SA_Interval {3, 3},
-                                    VariantSitePath {
-                                            VariantSite {5, 1}
-                                    },
-                                    SearchVariantSiteState::outside_variant_site
-                            }
-                    }
-            },
-            {second_full_kmer,
-                    SearchStates {
-                            SearchState {
-                                    SA_Interval {3, 3},
-                                    VariantSitePath {
-                                            VariantSite {5, 2}
-                                    },
-                                    SearchVariantSiteState::outside_variant_site
-                            }
-                    }
-            }
+    auto result = get_boundary_marker_indexes(prg_info);
+    std::vector<PrgIndexRange> expected = {
+            {3,  7},
+            {10, 14},
     };
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
-    auto prg_raw = "aca5g6c5tatt";
+TEST(GetBoundaryMarkerIndexes, OneVariantSites_CorrectSiteStartEndIndexes) {
+    auto prg_raw = "acagctt7a8c7gg";
     auto prg_info = generate_prg_info(prg_raw);
 
-    auto kmer_size = 5;
-    auto first_full_kmer = encode_dna_bases("attat");
-    auto kmer_prefix_diff = encode_dna_bases("ac");
-    Patterns kmers = {
-            first_full_kmer,
-            kmer_prefix_diff
-    };
-    auto second_full_kmer = encode_dna_bases("actat");
-
-    auto result = index_kmers(kmers, kmer_size, prg_info);
-
-    KmerIndex expected = {
-            {second_full_kmer,
-                    SearchStates {
-                            SearchState {
-                                    SA_Interval {3, 3},
-                                    VariantSitePath {
-                                            VariantSite {5, 2}
-                                    },
-                                    SearchVariantSiteState::outside_variant_site
-                            }
-                    }
-            }
+    auto result = get_boundary_marker_indexes(prg_info);
+    std::vector<PrgIndexRange> expected = {
+            {7, 11}
     };
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
-    const std::string prg_raw = "aca5g6c5tatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 5;
-    auto first_full_kmer = encode_dna_bases("agtat");
-    auto kmer_prefix_diff = encode_dna_bases("aa");
-    auto second_full_kmer = encode_dna_bases("aatat");
-    Patterns kmers = {
-            first_full_kmer,
-            kmer_prefix_diff
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto first_search_states = kmer_index[first_full_kmer];
-    auto first_search_state = first_search_states.front();
-    auto first_result = first_search_state.variant_site_path;
-    VariantSitePath first_expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(first_result, first_expected);
-
-    auto second_search_states = kmer_index[second_full_kmer];
-    EXPECT_TRUE(second_search_states.empty());
-}
-
-
-TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 5;
-    auto first_full_kmer = encode_dna_bases("agtat");
-    auto second_full_kmer = encode_dna_bases("actat");
-    auto third_full_kmer = encode_dna_bases("aatat");
-    Patterns kmers = {
-            encode_dna_bases("agtat"),
-            encode_dna_bases("ac"),
-            encode_dna_bases("aa"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-
-    search_states = kmer_index[second_full_kmer];
-    search_state = search_states.front();
-    result = search_state.variant_site_path;
-    expected = {
-            VariantSite {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-
-    search_states = kmer_index[third_full_kmer];
-    search_state = search_states.front();
-    result = search_state.variant_site_path;
-    expected = {
-            VariantSite {5, 3}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 5;
-    auto first_full_kmer = encode_dna_bases("agtat");
-    auto second_full_kmer = encode_dna_bases("actat");
-    auto third_full_kmer = encode_dna_bases("attat");
-    Patterns kmers = {
-            encode_dna_bases("agtat"),
-            encode_dna_bases("ac"),
-            encode_dna_bases("at"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-
-    search_states = kmer_index[second_full_kmer];
-    search_state = search_states.front();
-    result = search_state.variant_site_path;
-    expected = {
-            VariantSite {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-
-    search_states = kmer_index[third_full_kmer];
-    EXPECT_TRUE(search_states.empty());
-}
-
-
-TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 4;
-    auto first_full_kmer = encode_dna_bases("gtat");
-    Patterns kmers = {
-            encode_dna_bases("gtat"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 4;
-    auto first_full_kmer = encode_dna_bases("gtat");
-    auto second_full_kmer = encode_dna_bases("ctat");
-    Patterns kmers = {
-            encode_dna_bases("gtat"),
-            encode_dna_bases("c"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-
-    search_states = kmer_index[second_full_kmer];
-    search_state = search_states.front();
-    result = search_state.variant_site_path;
-    expected = {
-            VariantSite {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
-    const std::string prg_raw = "aca5g6c5t";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 4;
-    auto first_full_kmer = encode_dna_bases("acag");
-    Patterns kmers = {
-            encode_dna_bases("acag"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
-    const std::string prg_raw = "aca5g6c5t";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 4;
-    auto first_full_kmer = encode_dna_bases("acag");
-    auto second_full_kmer = encode_dna_bases("acac");
-    Patterns kmers = {
-            encode_dna_bases("acag"),
-            encode_dna_bases("acac"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 1}
-    };
-    EXPECT_EQ(result, expected);
-
-    search_states = kmer_index[second_full_kmer];
-    search_state = search_states.front();
-    result = search_state.variant_site_path;
-    expected = {
-            VariantSite {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
-    const std::string prg_raw = "aca5g6c5tt7a8c7gg";
-    const auto prg_info = generate_prg_info(prg_raw);
-
-    const int kmer_size = 4;
-    auto first_full_kmer = encode_dna_bases("ctta");
-    Patterns kmers = {
-            encode_dna_bases("ctta"),
-    };
-
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = kmer_index[first_full_kmer];
-    auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
-    VariantSitePath expected = {
-            VariantSite {5, 2},
-            VariantSite {7, 1}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-/*
-PRG: ttt5ta6t5acg
-i	F	BWT	text	SA	suffix
-0	0	3	4	    12	0
-1	1	5	4	    9	1 2 3 0
-2	1	4	4	    5	1 6 4 5 1 2 3 0
-3	2	1	5	    10	2 3 0
-4	3	2	4	    11	3 0
-5	4	5	1	    4	4 1 6 4 5 1 2 3 0
-6	4	0	6	    0	4 4 4 5 4 1 6 4 5 1 2 3 0
-7	4	4	4	    1	4 4 5 4 1 6 4 5 1 2 3 0
-8	4	6	5	    7	4 5 1 2 3 0
-9	4	4	1	    2	4 5 4 1 6 4 5 1 2 3 0
-10	5	4	2	    8	5 1 2 3 0
-11	5	4	3	    3	5 4 1 6 4 5 1 2 3 0
-12	6	1	0	    6	6 4 5 1 2 3 0
-*/
-TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) {
-    auto prg_raw = "ttt5ta6t5acg";
+TEST(GetBoundaryMarkerIndexes, NoVariantSites_NoSiteIndexes) {
+    auto prg_raw = "acagcttagg";
     auto prg_info = generate_prg_info(prg_raw);
 
-    auto kmer_size = 4;
-    auto kmer = encode_dna_bases("tttt");
-    Patterns kmers = {kmer};
+    auto result = get_boundary_marker_indexes(prg_info);
+    std::vector<PrgIndexRange> expected = {};
+    EXPECT_EQ(result, expected);
+}
 
-    auto result = index_kmers(kmers, kmer_size, prg_info);
-    KmerIndex expected = {
-            {kmer,
-                    SearchStates {
-                            SearchState {
-                                    SA_Interval {6, 6},
-                                    VariantSitePath {
-                                            VariantSite {5, 1}
-                                    },
-                                    SearchVariantSiteState::outside_variant_site
-                            },
-                            SearchState {
-                                    SA_Interval {6, 6},
-                                    VariantSitePath {
-                                            VariantSite {5, 2}
-                                    },
-                                    SearchVariantSiteState::outside_variant_site
-                            }
-                    }
-            }
+
+TEST(GetKmerRegionRange, VariantSiteCloseToStart_CorrectKmerRegionEndIndexes) {
+    auto prg_raw = "t7a8c7acagctt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
+    uint64_t kmer_size = 3;
+    uint64_t max_read_size = 5;
+    auto result = get_kmer_region_ranges(end_site_marker_indexes, max_read_size, prg_info);
+    std::vector<PrgIndexRange> expected = {
+            {1, 9},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerRegionRange, VariantSiteCloseToEnd_CorrectKmerRegionEndIndexes) {
+    auto prg_raw = "cagcttt7a8c7acg";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
+    uint64_t kmer_size = 3;
+    uint64_t max_read_size = 150;
+    auto result = get_kmer_region_ranges(end_site_marker_indexes, max_read_size, prg_info);
+    std::vector<PrgIndexRange> expected = {
+            {7, 14}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerRegionRange, TwoVariantSites_FirstKmerRegionExtendedToBoundaryEndOfSecond) {
+    auto prg_raw = "tt5a6c5a7aa8cc7t";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
+    uint64_t kmer_size = 3;
+    uint64_t max_read_size = 4;
+    auto result = get_kmer_region_ranges(end_site_marker_indexes, max_read_size, prg_info);
+    std::vector<PrgIndexRange> expected = {
+            {2, 14},
+            {8, 15},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerRegionRange, GivenMaxReadSizeOne_RangeEndAtSiteBoundaryEnd) {
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
+    uint64_t max_read_size = 1;
+    auto result = get_kmer_region_ranges(end_site_marker_indexes,
+                                         max_read_size,
+                                         prg_info);
+    std::vector<PrgIndexRange> expected = {
+            {2, 6},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenAlleleIndex_ReturnSiteEndMarkerIndex) {
+    auto prg_raw = "t7a8c7acagctt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 2;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 5;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenAlleleIndexAndSiteEndingPrg_ReturnSiteEndMarkerIndex) {
+    auto prg_raw = "t7a8c7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 2;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 5;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenMultiCharAllele_ReturnSiteEndMarkerIndex) {
+    auto prg_raw = "t7a8cacag7acag";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 5;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 9;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenAlleleMarkerIndex_ReturnSiteEndMarkerIndex) {
+    auto prg_raw = "t7a8cacag7acag";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 3;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 9;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenStartBoundaryMarkerIndex_ReturnEndBoundaryMarkerIndex) {
+    auto prg_raw = "t7a8cacag7acag";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 1;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 9;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenSiteEndingAtPrgEnd_ReturnCorrectEndBoundaryMarkerIndex) {
+    auto prg_raw = "t7a8cacag7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 1;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 9;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteEndBoundary, GivenEndBoundaryMarkerIndex_ReturnEndBoundaryMarkerIndex) {
+    auto prg_raw = "t7a8cacag7acag";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 9;
+    auto result = find_site_end_boundary(within_site_index,
+                                         prg_info);
+    uint64_t expected = 9;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetSiteOrderedAlleles, GivenSiteWithMultiCharAlleles_CorrectAllelesExtracted) {
+    auto prg_raw = "tt5ga6ct5a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 2;
+    auto result = get_site_ordered_alleles(within_site_index,
+                                           prg_info);
+    SequencesList expected = {
+            {3, 1},
+            {2, 4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetSiteOrderedAlleles, GivenBondaryEndMarkerIndex_CorrectAllelesExtracted) {
+    auto prg_raw = "tt5ga6ct5a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 8;
+    auto result = get_site_ordered_alleles(within_site_index,
+                                           prg_info);
+    SequencesList expected = {
+            {3, 1},
+            {2, 4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetSiteOrderedAlleles, GivenSiteWithSingleCharAllele_CorrectAllelesExtracted) {
+    auto prg_raw = "tt5g6ct5a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 2;
+    auto result = get_site_ordered_alleles(within_site_index,
+                                           prg_info);
+    SequencesList expected = {
+            {3},
+            {2, 4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetSiteOrderedAlleles, GivenSiteWithThreeAlleles_CorrectAllelesExtracted) {
+    auto prg_raw = "tt5g6ct6aaa5a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_site_index = 2;
+    auto result = get_site_ordered_alleles(within_site_index,
+                                           prg_info);
+    SequencesList expected = {
+            {3},
+            {2, 4},
+            {1, 1, 1},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, NoSitesWithinRange_NoSiteEndIndexesReturned) {
+    auto prg_raw = "taagaact";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 7;
+    uint64_t kmer_size = 5;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, SiteOutsideKmerSize_NoSiteEndIndexesReturned) {
+    auto prg_raw = "t5g6a5act";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 8;
+    uint64_t kmer_size = 3;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, SiteStartIndexAtBoundaryEnd_SiteRecognizeBoundaryIndexReturned) {
+    auto prg_raw = "t5g6a5act";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 5;
+    uint64_t kmer_size = 3;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {5};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, SiteJustInsideKmerSize_SiteEndIndexReturned) {
+    auto prg_raw = "t5g6a5act";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 8;
+    uint64_t kmer_size = 4;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {5};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, KmerExtendsToFirstSiteMarker_SiteEndIndexReturned) {
+    auto prg_raw = "t7g8a7act";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 8;
+    uint64_t kmer_size = 8;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {5};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, KmerExtendsBeyondSite_SiteEndIndexReturned) {
+    auto prg_raw = "tgag7g8a7act";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 11;
+    uint64_t kmer_size = 10;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {8};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, KmerCoversMultipleSites_SiteEndIndexesReturned) {
+    auto prg_raw = "ta5g6a5act7g8aa7act";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 18;
+    uint64_t kmer_size = 17;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {6, 15};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, KmerCoverageEndsBeforeFirstSite_OnlySecondSiteEndIndexReturned) {
+    auto prg_raw = "ta5g6a5ct7g8aa7ac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 16;
+    uint64_t kmer_size = 5;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {14};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, KmerCoverageExtendsJustWithinFirstSite_SiteEndIndexesReturned) {
+    auto prg_raw = "ta5g6a5ct7g8aa7ac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 16;
+    uint64_t kmer_size = 6;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {6, 14};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(InrangeLeftSites, SecondSiteAlleleLengthsNotLimitKmerCoverage_BothSiteEndIndexesReturned) {
+    auto prg_raw = "ta5g6a5ct7gg8aa7ac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t outside_site_start_index = 17;
+    uint64_t kmer_size = 6;
+    auto result = sites_inrange_left(outside_site_start_index,
+                                     kmer_size,
+                                     prg_info);
+    std::list<uint64_t> expected = {6, 15};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetNonvariantRegion, GivenFirstSiteEndBoundaryIndex_ReturnRegionInclusiveRange) {
+    auto prg_raw = "ta5g6a5ct7gg8aa7ac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = get_nonvariant_region(site_end_boundary_index,
+                                        prg_info);
+    std::pair<uint64_t, uint64_t> expected = {7, 8};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetNonvariantRegion, GivenLastSiteEndBoundaryIndex_ReturnRegionInclusiveRange) {
+    auto prg_raw = "ta5g6a5ct7gg8aa7acc";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 15;
+    auto result = get_nonvariant_region(site_end_boundary_index,
+                                        prg_info);
+    std::pair<uint64_t, uint64_t> expected = {16, 18};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetNonvariantRegion, GivenSiteEndBoundaryIndexEndingPrg_ReturnZeroRange) {
+    auto prg_raw = "ta5g6a5";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = get_nonvariant_region(site_end_boundary_index,
+                                        prg_info);
+    std::pair<uint64_t, uint64_t> expected = {0, 0};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_ReturnRegionInclusiveRange) {
+    auto prg_raw = "ta5g6a5a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = get_nonvariant_region(site_end_boundary_index,
+                                        prg_info);
+    std::pair<uint64_t, uint64_t> expected = {7, 7};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforePrgEnd_CorrectNonvariantRegion) {
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = right_intersite_nonvariant_region(site_end_boundary_index,
+                                                    prg_info);
+    std::vector<Base> expected = {1, 2, 3, 4};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_CorrectNonvariantRegion) {
+    auto prg_raw = "ta5g6a5a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = right_intersite_nonvariant_region(site_end_boundary_index,
+                                                    prg_info);
+    std::vector<Base> expected = {1};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforeSecondSite_CorrectNonvariantRegion) {
+    auto prg_raw = "ta5g6a5acg7gg8aa7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = right_intersite_nonvariant_region(site_end_boundary_index,
+                                                    prg_info);
+    std::vector<Base> expected = {1, 2, 3};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractRightNonvariantRegion, GivenSingleBaseNonvariantRegion_CorrectNonvariantRegion) {
+    auto prg_raw = "ta5g6a5g7gg8aa7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t site_end_boundary_index = 6;
+    auto result = right_intersite_nonvariant_region(site_end_boundary_index,
+                                                    prg_info);
+    std::vector<Base> expected = {3};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromRegion, NoVariantSite_CorrectReverseKmers) {
+    auto prg_raw = "tagagcggaa";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    PrgIndexRange kmer_region_range = {5, 7};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_region(kmer_region_range,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<std::vector<Base>> expected = {
+            {3, 3, 2},
+            {3, 2, 3},
+            {2, 3, 1},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromRegion, KmerSizeKmerRangeStartsAtIndexZero_CorrectReverseKmer) {
+    auto prg_raw = "tagagcggaa";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    PrgIndexRange kmer_region_range = {0, 2};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_region(kmer_region_range,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<std::vector<Base>> expected = {
+            {3, 1, 4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromRegion, NoVariantSite_FourCorrectReverseKmersFromPrgEnd) {
+    auto prg_raw = "tagagcggaa";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    PrgIndexRange kmer_region_range = {6, 9};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_region(kmer_region_range,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<std::vector<Base>> expected = {
+            {1, 1, 3},
+            {1, 3, 3},
+            {3, 3, 2},
+            {3, 2, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FindSiteStartBoundary, GivenSiteEndIndex_CorrectSiteStartIndex) {
+    //                       9    15
+    auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t end_boundary_index = 15;
+    auto result = find_site_start_boundary(end_boundary_index,
+                                           prg_info);
+    uint64_t expected = 9;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerSizeRegionParts, TwoSitesInRange_CorrectRegionParts) {
+    //                    6       15  18
+    auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_range_end_index = 18;
+    std::list<uint64_t> inrange_sites = {6, 15};
+    uint64_t kmer_size = 3;
+    auto result = get_kmer_size_region_parts(current_range_end_index,
+                                             inrange_sites,
+                                             kmer_size,
+                                             prg_info);
+    std::list<SequencesList> expected = {
+            {{4, 1}},
+            {{3},    {1}},
+            {{3, 1}},
+            {{3, 3}, {1, 1}},
+            {{2, 3, 4}},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerSizeRegionParts, TwoSitesInRangeEndRegionAtSiteEnd_CorrectRegionParts) {
+    //                    6       15
+    auto prg_raw = "ta5g6a5ga7gg8aa7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_range_end_index = 15;
+    std::list<uint64_t> inrange_sites = {6, 15};
+    uint64_t kmer_size = 3;
+    auto result = get_kmer_size_region_parts(current_range_end_index,
+                                             inrange_sites,
+                                             kmer_size,
+                                             prg_info);
+    std::list<SequencesList> expected = {
+            {{4, 1}},
+            {{3},    {1}},
+            {{3, 1}},
+            {{3, 3}, {1, 1}},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerSizeRegionParts, TwoSitesInRangeSingleCharAfterSiteEnd_CorrectRegionParts) {
+    //                    6        15
+    auto prg_raw = "ta5g6a5ga7gg8aa7a";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_range_end_index = 16;
+    std::list<uint64_t> inrange_sites = {6, 15};
+    uint64_t kmer_size = 3;
+    auto result = get_kmer_size_region_parts(current_range_end_index,
+                                             inrange_sites,
+                                             kmer_size,
+                                             prg_info);
+    std::list<SequencesList> expected = {
+            {{4, 1}},
+            {{3},    {1}},
+            {{3, 1}},
+            {{3, 3}, {1, 1}},
+            {{1}},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(UpdateAlleleIndePath, GivenAllZerosAlleleIndexPath_LastIndexIncremented) {
+    std::vector<uint64_t> allele_current_index = {0, 0, 0};
+    std::vector<uint64_t> allele_counts = {2, 1, 2};
+
+    update_allele_index_path(allele_current_index,
+                             allele_counts);
+    auto result = allele_current_index;
+    std::vector<uint64_t> expected = {0, 0, 1};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(UpdateAlleleIndePath, GivenAlleleIndexPath_FirstIndexIncremented) {
+    std::vector<uint64_t> allele_current_index = {0, 0, 1};
+    std::vector<uint64_t> allele_counts = {2, 1, 2};
+
+    update_allele_index_path(allele_current_index,
+                             allele_counts);
+    auto result = allele_current_index;
+    std::vector<uint64_t> expected = {1, 0, 0};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(UpdateAlleleIndePath, GivenAlleleIndexPath_LastIndexIncremented) {
+    std::vector<uint64_t> allele_current_index = {1, 0, 0};
+    std::vector<uint64_t> allele_counts = {2, 1, 2};
+
+    update_allele_index_path(allele_current_index,
+                             allele_counts);
+    auto result = allele_current_index;
+    std::vector<uint64_t> expected = {1, 0, 1};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(UpdateAlleleIndePath, ThreeAllelesInLastPlace_LastIndexIncremented) {
+    std::vector<uint64_t> allele_current_index = {1, 0, 1};
+    std::vector<uint64_t> allele_counts = {2, 1, 3};
+
+    update_allele_index_path(allele_current_index,
+                             allele_counts);
+    auto result = allele_current_index;
+    std::vector<uint64_t> expected = {1, 0, 2};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(UpdateAlleleIndePath, ThreeAllelesInMidPlace_MidIndexIncremented) {
+    std::vector<uint64_t> allele_current_index = {1, 0, 2};
+    std::vector<uint64_t> allele_counts = {2, 2, 3};
+
+    update_allele_index_path(allele_current_index,
+                             allele_counts);
+    auto result = allele_current_index;
+    std::vector<uint64_t> expected = {1, 1, 0};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(UpdateAlleleIndePath, CantUpdateFurther_ReturnFalse) {
+    std::vector<uint64_t> allele_current_index = {1, 1, 2};
+    std::vector<uint64_t> allele_counts = {2, 2, 3};
+
+    auto result = update_allele_index_path(allele_current_index,
+                                           allele_counts);
+    EXPECT_FALSE(result);
+}
+
+
+TEST(GetPathsFromParts, GivenKmerSizeRegionParts_CorrectPaths) {
+    std::list<SequencesList> region_parts = {
+            {{3}, {1}},
+            {{3, 1}},
+            {{2}, {4}},
+    };
+    auto result = get_paths_from_parts(region_parts);
+    SequencesList expected = {
+            {3, 3, 1, 2},
+            {3, 3, 1, 4},
+            {1, 3, 1, 2},
+            {1, 3, 1, 4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPathsFromParts, GivenThreeCharAlleleInLastRegion_CorrectPaths) {
+    std::list<SequencesList> region_parts = {
+            {{3}, {1}},
+            {{3, 1}},
+            {{2}, {4, 4, 2}},
+    };
+    auto result = get_paths_from_parts(region_parts);
+    SequencesList expected = {
+            {3, 3, 1, 2},
+            {3, 3, 1, 4, 4, 2},
+            {1, 3, 1, 2},
+            {1, 3, 1, 4, 4, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPathsFromParts, MidRegionContainsTwoAlleles_CorrectPaths) {
+    std::list<SequencesList> region_parts = {
+            {{3},    {1}},
+            {{3, 1}, {2}},
+            {{2}},
+    };
+    auto result = get_paths_from_parts(region_parts);
+    SequencesList expected = {
+            {3, 3, 1, 2},
+            {3, 2, 2},
+            {1, 3, 1, 2},
+            {1, 2, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPathsFromParts, MidRegionContainsThreeAlleles_CorrectPaths) {
+    std::list<SequencesList> region_parts = {
+            {{3},    {1}},
+            {{3, 1}, {2}, {1}},
+            {{2}},
+    };
+    auto result = get_paths_from_parts(region_parts);
+    SequencesList expected = {
+            {3, 3, 1, 2},
+            {3, 2, 2},
+            {3, 1, 2},
+            {1, 3, 1, 2},
+            {1, 2, 2},
+            {1, 1, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPathsFromParts, SingleRegionWithSingleCharAllele_CorrectPath) {
+    std::list<SequencesList> region_parts = {
+            {{3}},
+    };
+    auto result = get_paths_from_parts(region_parts);
+    SequencesList expected = {
+            {3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromPath, GivenPath_CorrectReverseKmers) {
+    Sequence path = {3, 3, 1, 2};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_path(path, kmer_size);
+    unordered_vector_set<Sequence> expected = {
+            {2, 1, 3},
+            {1, 3, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromPath, GivenTooShortPath_NoKmers) {
+    Sequence path = {3, 3, 1};
+    uint64_t kmer_size = 4;
+    auto result = get_reverse_kmers_from_path(path, kmer_size);
+    unordered_vector_set<Sequence> expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromPath, GivenKmerSizePath_CorrectReverseKmer) {
+    Sequence path = {3, 3, 1};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_path(path, kmer_size);
+    unordered_vector_set<Sequence> expected = {
+            {1, 3, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectReverseKmers) {
+    //                2   6   10
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 10;
+    std::list<uint64_t> inrange_sites = {6};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
+    //                2   6   10
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 10;
+    std::list<uint64_t> inrange_sites = {6};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, SiteStartsAtPrgStart_CorrectReverseKmers) {
+    auto prg_raw = "5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 8;
+    std::list<uint64_t> inrange_sites = {4};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, SiteEndsAtPrgEnd_CorrectReverseKmers) {
+    auto prg_raw = "acgt5c6a5";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 8;
+    std::list<uint64_t> inrange_sites = {8};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {1, 4, 3},
+            {2, 4, 3},
+            {4, 3, 2},
+            {3, 2, 1},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) {
+    auto prg_raw = "acgt5cc6a5";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 8;
+    std::list<uint64_t> inrange_sites = {8};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {1, 4, 3},
+            {2, 4, 3},
+            {2, 2, 4},
+            {4, 3, 2},
+            {3, 2, 1},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, TwoSitesNoCrossingKmers_CorrectReverseKmers) {
+    auto prg_raw = "gt5c6a5tt7g8a7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 13;
+    std::list<uint64_t> inrange_sites = {6, 13};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {1, 4, 4},
+            {3, 4, 4},
+            {4, 4, 1},
+            {4, 4, 2},
+            {4, 1, 4},
+            {4, 2, 4},
+            {1, 4, 3},
+            {2, 4, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, TwoSitesWithCrossingKmers_CorrectReverseKmers) {
+    auto prg_raw = "5c6a5t7g8a7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 10;
+    std::list<uint64_t> inrange_sites = {4, 10};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {1, 4, 1},
+            {3, 4, 1},
+            {1, 4, 2},
+            {3, 4, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, SingleSiteSingleKmerFromAllele_CorrectReverseKmer) {
+    auto prg_raw = "5c6atg5";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 6;
+    std::list<uint64_t> inrange_sites = {6};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {3, 4, 1},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer) {
+    auto prg_raw = "5c6atgc5";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 6;
+    std::list<uint64_t> inrange_sites = {6};
+    uint64_t kmer_size = 3;
+    auto result = extract_variant_reverse_kmers(current_index,
+                                                inrange_sites,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {2, 3, 4},
+            {3, 4, 1},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectNewCurrentIndex) {
+    //                2   6   10
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_index = 10;
+    std::list<uint64_t> inrange_sites = {6};
+    uint64_t kmer_size = 3;
+    extract_variant_reverse_kmers(current_index,
+                                  inrange_sites,
+                                  kmer_size,
+                                  prg_info);
+    uint64_t result = current_index;
+    uint64_t expected = 1;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromRegion, GivenKmerRegionRange_CorrectReverseKmers) {
+    //                2   6   10
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    PrgIndexRange kmer_region_range = {0, 10};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_region(kmer_region_range,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CombineOverlappingRegions, SetOfRangesAllEncapsulatedWithinFirstRange_CorrectSingleRange) {
+    std::vector<PrgIndexRange> kmer_region_ranges = {
+            {1, 6},
+            {3, 4},
+            {2, 4},
+            {2, 3},
+    };
+
+    auto result = combine_overlapping_regions(kmer_region_ranges);
+    std::vector<PrgIndexRange> expected = {
+            {1, 6},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CombineOverlappingRegions, ExactlyTwoNonOverlappingRanges_CorrectTwoRanges) {
+    std::vector<PrgIndexRange> kmer_region_ranges = {
+            {1, 6},
+            {3, 7},
+            {8, 9},
+            {2, 3},
+    };
+
+    auto result = combine_overlapping_regions(kmer_region_ranges);
+    std::vector<PrgIndexRange> expected = {
+            {1, 7},
+            {8, 9},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CombineOverlappingRegions, TwoRangesEqualEndStart_CorrectRange) {
+    std::vector<PrgIndexRange> kmer_region_ranges = {
+            {2, 3},
+            {3, 4},
+    };
+
+    auto result = combine_overlapping_regions(kmer_region_ranges);
+    std::vector<PrgIndexRange> expected = {
+            {2, 4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CombineOverlappingRegions, StartOfSecondInMidOfFirst_SingleRange) {
+    std::vector<PrgIndexRange> kmer_region_ranges = {
+            {2, 4},
+            {3, 5},
+    };
+
+    auto result = combine_overlapping_regions(kmer_region_ranges);
+    std::vector<PrgIndexRange> expected = {
+            {2, 5},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CombineOverlappingRegions, CommonStart_SingleRegionWithLargestEnd) {
+    std::vector<PrgIndexRange> kmer_region_ranges = {
+            {2, 4},
+            {2, 5},
+    };
+
+    auto result = combine_overlapping_regions(kmer_region_ranges);
+    std::vector<PrgIndexRange> expected = {
+            {2, 5},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CombineOverlappingRegions, EmptyRange_EmptyRange) {
+    std::vector<PrgIndexRange> kmer_region_ranges = {};
+
+    auto result = combine_overlapping_regions(kmer_region_ranges);
+    std::vector<PrgIndexRange> expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(SortKmers, GivenRandomlyArrangedReverseKmers_KmersReversedAndSortedByRightMostBase) {
+    ordered_vector_set<Sequence> kmers = {
+            {2, 4, 1},
+            {1, 3, 5},
+            {1, 3, 4},
+            {3, 4, 5},
+    };
+
+    std::vector<Sequence> result = sort_kmers(kmers);
+    SequencesList expected = {
+            {4, 3, 1},
+            {5, 3, 1},
+            {1, 4, 2},
+            {5, 4, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(SortKmers, GivenSingleReverseKmer_CorrectReversedKmer) {
+    ordered_vector_set<Sequence> kmers = {
+            {2, 4, 1},
+    };
+
+    std::vector<Sequence> result = sort_kmers(kmers);
+    SequencesList expected = {
+            {1, 4, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(SortKmers, SortingReverseKmerFromRightToLeft_CorrectReversedKmers) {
+    ordered_vector_set<Sequence> kmers = {
+            {1, 3, 5},
+            {2, 4, 1},
+    };
+
+    std::vector<Sequence> result = sort_kmers(kmers);
+    SequencesList expected = {
+            {5, 3, 1},
+            {1, 4, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPrefixDiffs, GivenKmersDifferInLeftMostBaseOnly_CorrectPrefixDiffs) {
+    std::vector<Sequence> kmers = {
+            {1, 3, 1},
+            {2, 3, 1},
+            {3, 3, 1},
+            {4, 3, 1},
+    };
+
+    auto result = get_prefix_diffs(kmers);
+    std::vector<Sequence> expected = {
+            {1, 3, 1},
+            {2},
+            {3},
+            {4},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPrefixDiffs, GivenKmerDifferInRightMostBaseOnly_CorrectPrefixDiffs) {
+    std::vector<Sequence> kmers = {
+            {1, 3, 1},
+            {2, 3, 1},
+            {1, 3, 2},
+    };
+
+    auto result = get_prefix_diffs(kmers);
+    std::vector<Sequence> expected = {
+            {1, 3, 1},
+            {2},
+            {1, 3, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetPrefixDiffs, GivenMixOfOrderedKmers_CorrectPrefixDiffs) {
+    std::vector<Sequence> kmers = {
+            {1, 3, 1},
+            {2, 3, 1},
+            {1, 3, 2},
+            {1, 4, 2},
+            {3, 4, 2},
+    };
+
+    auto result = get_prefix_diffs(kmers);
+    std::vector<Sequence> expected = {
+            {1, 3, 1},
+            {2},
+            {1, 3, 2},
+            {1, 4},
+            {3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetAllReverseKmers, GivenOverkillMaxReadSize_AllPossibleKmersReturned) {
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 3;
+    parameters.max_read_size = 10;
+
+    auto result = get_all_reverse_kmers(parameters,
+                                        prg_info);
+    ordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetAllReverseKmers, KmerPossibleAfterVariantSite_ReverseKmerIncludedInResult) {
+    auto prg_raw = "cta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 3;
+    parameters.max_read_size = 10;
+
+    auto result = get_all_reverse_kmers(parameters,
+                                        prg_info);
+    ordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+            {1, 4, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetAllReverseKmers, SecondVariantSiteEndsAtPrgEnd_CorrectReverseKmers) {
+    auto prg_raw = "cta5g6a5acgt7cc8t7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 3;
+    parameters.max_read_size = 10;
+
+    auto result = get_all_reverse_kmers(parameters,
+                                        prg_info);
+    ordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+            {1, 4, 2},
+            {2, 4, 3},
+            {2, 2, 4},
+            {4, 4, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
+    auto prg_raw = "cta5g6a5cgt7cc8t7";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 5;
+    parameters.max_read_size = 10;
+
+    auto result = get_all_reverse_kmers(parameters,
+                                        prg_info);
+    ordered_vector_set<Sequence> expected = {
+            {4, 4, 3, 2, 1},
+            {4, 4, 3, 2, 3},
+            {2, 2, 4, 3, 2},
+            {2, 4, 3, 2, 1},
+            {2, 4, 3, 2, 3},
+            {4, 3, 2, 1, 1},
+            {4, 3, 2, 3, 1},
+            {3, 2, 1, 1, 4},
+            {3, 2, 3, 1, 4},
+            {2, 1, 1, 4, 2},
+            {2, 3, 1, 4, 2},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetAllReverseKmers, LimittingMaxReadSizeAvoidTwoLeftMostKmers_TwoLeftMostKmersAbsent) {
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 3;
+    parameters.max_read_size = 3;
+
+    auto result = get_all_reverse_kmers(parameters,
+                                        prg_info);
+    ordered_vector_set<Sequence> expected_absent = {
+            {4, 3, 2},
+            {3, 2, 1},
+    };
+    for (const auto &reverse_kmer: expected_absent) {
+        auto not_found = result.find(reverse_kmer) == result.end();
+        EXPECT_TRUE(not_found);
+    }
+}
+
+
+TEST(GetAllReverseKmers, MaxReadSizeLessThanKmerSize_AlleleKmersReturned) {
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 3;
+    parameters.max_read_size = 1;
+
+    auto result = get_all_reverse_kmers(parameters,
+                                        prg_info);
+    ordered_vector_set<Sequence> expected = {
+            {1, 1, 4},
+            {3, 1, 4}
     };
     EXPECT_EQ(result, expected);
 }

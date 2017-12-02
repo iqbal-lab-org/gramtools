@@ -425,7 +425,7 @@ MarkersSearchResults left_markers_search(const SearchState &search_state,
 
     auto num_markers_before = prg_info.bwt_markers_rank(sa_index);
     uint64_t marker_count_offset = num_markers_before + 1;
-    if (marker_count_offset > prg_info.bwt_markers_mask_count_set_bits)
+    if (marker_count_offset > prg_info.markers_mask_count_set_bits)
         return markers_search_results;
 
     auto bwt_marker_index = prg_info.bwt_markers_select(marker_count_offset);
@@ -436,7 +436,7 @@ MarkersSearchResults left_markers_search(const SearchState &search_state,
         markers_search_results.emplace_back(search_result);
 
         ++marker_count_offset;
-        if (marker_count_offset > prg_info.bwt_markers_mask_count_set_bits)
+        if (marker_count_offset > prg_info.markers_mask_count_set_bits)
             return markers_search_results;
         bwt_marker_index = prg_info.bwt_markers_select(marker_count_offset);
     }

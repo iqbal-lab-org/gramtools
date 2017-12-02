@@ -17,6 +17,7 @@ struct Parameters {
     std::string kmer_suffix_diffs_fpath;
     std::string kmer_index_fpath;
     uint32_t kmers_size;
+    uint32_t max_read_size;
 
     // quasimap specific parameters
     std::string reads_fpath;

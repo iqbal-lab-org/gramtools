@@ -1,9 +1,8 @@
 #include <algorithm>
 #include <thread>
 #include <unordered_map>
+#include <kmers.hpp>
 
-#include "utils.hpp"
-#include "fm_index.hpp"
 #include "kmer_index.hpp"
 #include "search.hpp"
 
@@ -191,15 +190,19 @@ void update_full_kmer(Pattern &full_kmer,
 }
 
 
-KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
+KmerIndex index_kmers(const Patterns &kmer_prefix_diffs,
                       const int kmer_size,
                       const PRG_Info &prg_info) {
     KmerIndex kmer_index;
     KmerIndexCache cache;
     Pattern full_kmer;
+    
+    std::cout << "Number of kmer prefix diffs: "
+              << kmer_prefix_diffs.size()
+              << std::endl << std::endl;
 
     auto count = 0;
-    for (const auto &kmer_prefix_diff: kmer_suffix_diffs) {
+    for (const auto &kmer_prefix_diff: kmer_prefix_diffs) {
         if (count > 0 and count % 1000 == 0)
             std::cout << "Kmer prefix diff count: " << count << std::endl;
         count++;
@@ -221,21 +224,14 @@ KmerIndex index_kmers(const Patterns &kmer_suffix_diffs,
 }
 
 
-void generate_kmer_index(const Parameters &params,
+void generate_kmer_index(const Parameters &parameters,
                          const PRG_Info &prg_info) {
-    std::ifstream kmers_fhandle;
-    kmers_fhandle.open(params.kmer_suffix_diffs_fpath);
+    Patterns kmer_prefix_diffs = get_kmers_prefix_diffs(parameters,
+                                                        prg_info);
 
-    Patterns kmer_suffix_diffs;
-    std::string line;
-    while (std::getline(kmers_fhandle, line)) {
-        const auto &kmer_prefix_diff = encode_dna_bases(line);
-        kmer_suffix_diffs.emplace_back(kmer_prefix_diff);
-    }
-
-    KmerIndex kmer_index = index_kmers(kmer_suffix_diffs, params.kmers_size, prg_info);
+    KmerIndex kmer_index = index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);
     std::ofstream kmer_index_file;
-    kmer_index_file.open(params.kmer_index_fpath);
+    kmer_index_file.open(parameters.kmer_index_fpath);
     dump_kmer_index(kmer_index_file, kmer_index);
 }
 

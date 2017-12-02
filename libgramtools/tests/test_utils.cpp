@@ -99,7 +99,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
     prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
     prg_info.bwt_markers_rank = sdsl::rank_support_v<1>(&prg_info.bwt_markers_mask);
     prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
-    prg_info.bwt_markers_mask_count_set_bits =
+    prg_info.markers_mask_count_set_bits =
             prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
 
     generate_dna_bwt_masks(prg_info.fm_index, parameters);

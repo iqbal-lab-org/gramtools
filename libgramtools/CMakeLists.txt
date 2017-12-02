@@ -42,6 +42,7 @@ add_library(gramtools STATIC
         ${SOURCE}/coverage_analysis.cpp
         ${SOURCE}/utils.cpp
         ${SOURCE}/prg.cpp
+        ${SOURCE}/kmers.cpp
         ${SOURCE}/kmer_index.cpp
         ${SOURCE}/search.cpp
         ${SOURCE}/masks.cpp

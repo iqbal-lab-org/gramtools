@@ -1,11 +1,9 @@
 import os
-import copy
 import time
 import logging
 import subprocess
 
 from . import common
-from . import kmers
 from . import paths
 
 log = logging.getLogger('gramtools')
@@ -71,21 +69,6 @@ def _execute_command_generate_prg(build_paths, _):
               timer_end - timer_start)
 
 
-def _generate_kmers(build_paths, args):
-    log.debug('Generating kmers from PRG')
-    timer_start = time.time()
-
-    args = copy.copy(args)
-    args.prg = build_paths['perl_generated_fa']
-    args.kmer_prefix_diffs = build_paths['kmer_prefix_diffs']
-
-    kmers.run(args)
-
-    timer_end = time.time()
-    log.debug('Finished executing command: %.3f seconds',
-              timer_end - timer_start)
-
-
 def _execute_gramtools_cpp_build(build_paths, args):
     command = [
         common.gramtools_exec_fpath,
@@ -100,6 +83,7 @@ def _execute_gramtools_cpp_build(build_paths, args):
         '--kmers-prefix-diffs', build_paths['kmer_prefix_diffs'],
         '--kmer-index', build_paths['kmer_index'],
         '--kmer-size', str(args.kmer_size),
+        '--max-read-size', str(args.max_read_length),
     ]
 
     if args.debug:
@@ -134,15 +118,14 @@ def _execute_gramtools_cpp_build(build_paths, args):
 
 def run(args):
     log.info('Start process: build')
-    args.kmer_region_size = args.max_read_length
+    if hasattr(args, 'max_read_length'):
+        args.kmer_region_size = args.max_read_length
 
     build_paths = paths.generate_build_paths(args)
     paths.check_project_file_structure(build_paths)
 
     _execute_command_generate_prg(build_paths, args)
     paths.perl_script_file_cleanup(build_paths)
-
-    _generate_kmers(build_paths, args)
 
     _execute_gramtools_cpp_build(build_paths, args)
 

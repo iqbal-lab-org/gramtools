@@ -162,7 +162,7 @@ PRG_Info load_prg_info(const Parameters &parameters) {
     prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
     prg_info.bwt_markers_rank = sdsl::rank_support_v<1>(&prg_info.bwt_markers_mask);
     prg_info.bwt_markers_select = sdsl::select_support_mcl<1>(&prg_info.bwt_markers_mask);
-    prg_info.bwt_markers_mask_count_set_bits =
+    prg_info.markers_mask_count_set_bits =
             prg_info.bwt_markers_rank(prg_info.bwt_markers_mask.size());
 
     prg_info.dna_bwt_masks = load_dna_bwt_masks(prg_info.fm_index, parameters);
