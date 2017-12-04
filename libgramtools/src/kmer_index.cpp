@@ -196,15 +196,18 @@ KmerIndex index_kmers(const Patterns &kmer_prefix_diffs,
     KmerIndex kmer_index;
     KmerIndexCache cache;
     Pattern full_kmer;
-    
-    std::cout << "Number of kmer prefix diffs: "
-              << kmer_prefix_diffs.size()
+
+    auto total_num_kmers = kmer_prefix_diffs.size();
+    std::cout << "Total number of unique kmers: "
+              << total_num_kmers
               << std::endl << std::endl;
 
     auto count = 0;
     for (const auto &kmer_prefix_diff: kmer_prefix_diffs) {
         if (count > 0 and count % 1000 == 0)
-            std::cout << "Kmer prefix diff count: " << count << std::endl;
+            std::cout << "Progress: "
+                      << count << " of " << total_num_kmers
+                      << std::endl;
         count++;
 
         update_full_kmer(full_kmer,
