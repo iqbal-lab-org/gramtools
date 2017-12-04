@@ -4,12 +4,15 @@ import subprocess
 import unittest
 
 this_file = os.path.abspath(__file__)
-vcf_to_linear_prg_pl = os.path.abspath(os.path.join(this_file, os.pardir, os.pardir, 'utils', 'vcf_to_linear_prg.pl'))
+vcf_to_linear_prg_pl = os.path.abspath(os.path.join(this_file, os.pardir,
+                                                    os.pardir, 'utils',
+                                                    'vcf_to_linear_prg.pl'))
 data_dir = os.path.abspath(os.path.join(this_file, os.pardir, 'data', 'vcf_to_linear_prg_perl'))
+
 
 class TestVcfToLinearPrgPerl(unittest.TestCase):
     def test_found_perl_script(self):
-        '''Test that we found the script vcf_to_linear_prg.pl'''
+        """Test that we found the script vcf_to_linear_prg.pl"""
         self.assertTrue(os.path.exists(vcf_to_linear_prg_pl))
 
     # Every test follows the same pattern: run the script and
@@ -26,7 +29,7 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         command = ' '.join([
             'perl', vcf_to_linear_prg_pl,
             '--vcf', vcf_file,
-            '--ref',  ref_file,
+            '--ref', ref_file,
             '--min_freq 0.01',
             '--outfile', outfile,
         ])
@@ -37,55 +40,45 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         for suffix in ['', '.fa', '.mask_alleles', '.mask_sites', '.vcf']:
             os.unlink(outfile + suffix)
 
-
     def test_prg_with_no_variants(self):
-        '''Test make PRG when no variants in VCF'''
+        """Test make PRG when no variants in VCF"""
         self._test_one_run('prg_with_no_variants')
 
-
     def test_prg_with_one_snp(self):
-        '''Test make PRG when one SNP VCF'''
+        """Test make PRG when one SNP VCF"""
         self._test_one_run('prg_with_one_snp')
 
-
     def test_prg_with_two_separate_snps(self):
-        '''Test make PRG with two separate SNPs'''
+        """Test make PRG with two separate SNPs"""
         self._test_one_run('prg_with_two_separate_snps')
 
-
     def test_prg_with_one_snp_two_alts(self):
-        '''Test make PRG with one snp that has two alts'''
+        """Test make PRG with one snp that has two alts"""
         self._test_one_run('prg_with_one_snp_two_alts')
 
-
     def test_prg_with_two_adjacent_snps(self):
-        '''Test make PRG with two adjacent snps'''
+        """Test make PRG with two adjacent snps"""
         self._test_one_run('prg_with_two_adjacent_snps')
 
-
     def test_prg_with_two_adjacent_snps_two_alts(self):
-        '''Test make PRG, two adjacent SNPs, with >1 ALT'''
+        """Test make PRG, two adjacent SNPs, with >1 ALT"""
         self._test_one_run('prg_with_two_adjacent_snps_two_alts')
 
-
     def test_prg_with_one_ins_and_one_del(self):
-        '''Test prg witn an insertion and deletion independent of each other'''
+        """Test prg witn an insertion and deletion independent of each other"""
         self._test_one_run('prg_with_one_ins_and_one_del')
 
-
     def test_prg_with_complex_variant(self):
-        '''Test PRG when we have complex variant'''
+        """Test PRG when we have complex variant"""
         self._test_one_run('prg_with_complex_variant')
-
 
     # The current behaviour of two SNPs in the same place but in separate
     # VCF lines is to only use the first one.  Testing this here to
     # document the behaviour as much as anything else.
     # We may want to fix this in the future.
     def test_prg_with_two_snps_same_place(self):
-        '''Test PRG with two SNPs in the same plave in separate VCF lines'''
+        """Test PRG with two SNPs in the same plave in separate VCF lines"""
         self._test_one_run('prg_with_two_snps_same_place')
-
 
     # If there is one variant inside another one, eg this test is:
     # Ref:  AGCACGTCATGA
@@ -96,5 +89,5 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
     # of VCF are put into the output.
     # This should be fixed in the future
     def test_prg_with_snp_inside_del(self):
-        '''Test when snp inside deletion'''
+        """Test when snp inside deletion"""
         self._test_one_run('prg_with_snp_inside_del')
