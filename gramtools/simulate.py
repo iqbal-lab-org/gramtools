@@ -84,7 +84,9 @@ def run(args):
     log.info('Start process: simulate')
 
     log.debug('Parsing PRG')
-    prg_seq = str(SeqIO.read(args.reference, 'fasta').seq)
+    with open(args.reference, 'r') as file_handle:
+        prg_seq = file_handle.read()
+
     regions = prg.parse(prg_seq)
 
     log.debug('Generating reads')
