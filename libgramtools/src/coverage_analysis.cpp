@@ -31,7 +31,7 @@ QuasimapStats quasimap_reads(const Parameters &params,
                       << quasimap_stats.all_reads_count
                       << std::endl;
         }
-        quasimap_stats.all_reads_count += 1;//2;
+        quasimap_stats.all_reads_count += 2;
 
         auto read = encode_dna_bases(*raw_read);
         if (read.empty()) {
@@ -60,24 +60,12 @@ void quasimap_forward_reverse(QuasimapStats &quasimap_stats,
                                              kmer_index, prg_info, params);
     if (read_mapped_exactly)
         ++quasimap_stats.mapped_reads_count;
-
-    if (not read_mapped_exactly) {
-        std::cout << "miss normal" << std::endl;
-        for (const auto &base: read)
-            std::cout << (int) base << " ";
-        std::cout << std::endl;
-        std::exit(0);
-    }
-
-    /*
+    
     auto reverse_read = reverse_compliment_read(read);
     read_mapped_exactly = quasimap_read(reverse_read, allele_coverage,
                                         kmer_index, prg_info, params);
     if (read_mapped_exactly)
         ++quasimap_stats.mapped_reads_count;
-    if (not read_mapped_exactly)
-        std::cout << "miss reverse" << std::endl;
-        */
 }
 
 
@@ -86,9 +74,9 @@ bool quasimap_read(const Pattern &read,
                    const KmerIndex &kmer_index,
                    const PRG_Info &prg_info,
                    const Parameters &params) {
-    const auto kmer = get_kmer_from_read(params.kmers_size, read);
-    const auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    const bool read_mapped_exactly = not search_states.empty();
+    auto kmer = get_kmer_from_read(params.kmers_size, read);
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    auto read_mapped_exactly = not search_states.empty();
     if (read_mapped_exactly)
         record_read_coverage(allele_coverage, search_states);
     return read_mapped_exactly;
@@ -130,8 +118,8 @@ void dump_allele_coverage(const AlleleCoverage &allele_coverage,
 
 
 AlleleCoverage generate_allele_coverage_structure(const PRG_Info &prg_info) {
-    const auto min_boundary_marker = 5;
-    const auto numer_of_variant_sites = (prg_info.max_alphabet_num
+    auto min_boundary_marker = 5;
+    auto numer_of_variant_sites = (prg_info.max_alphabet_num
                                          - min_boundary_marker
                                          + 1)
                                         / 2;
