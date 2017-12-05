@@ -33,9 +33,9 @@ i	F	BTW	text	SA
 
 
 TEST(Search, SingleChar_CorrectSaIntervalReturned) {
-    const auto prg_raw = "gcgctggagtgctgt";
-    const auto prg_info = generate_prg_info(prg_raw);
-    const auto pattern_char = encode_dna_base('g');
+    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_info = generate_prg_info(prg_raw);
+    auto pattern_char = encode_dna_base('g');
 
     SearchState initial_search_state = {
             SA_Interval {0, prg_info.fm_index.size() - 1}
@@ -56,20 +56,20 @@ TEST(Search, SingleChar_CorrectSaIntervalReturned) {
 
 
 TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
-    const auto prg_raw = "gcgctggagtgctgt";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_info = generate_prg_info(prg_raw);
 
     SearchState initial_search_state = {
             SA_Interval {0, prg_info.fm_index.size() - 1}
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    const auto first_char = encode_dna_base('g');
+    auto first_char = encode_dna_base('g');
     auto first_search_states = search_base_backwards(first_char,
                                                      initial_search_states,
                                                      prg_info);
 
-    const auto second_char = encode_dna_base('t');
+    auto second_char = encode_dna_base('t');
     auto second_search_states = search_base_backwards(second_char,
                                                       first_search_states,
                                                       prg_info);
@@ -86,9 +86,9 @@ TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
 
 
 TEST(Search, SingleCharFreqOneInText_SingleSA) {
-    const auto prg_raw = "gcgctggagtgctgt";
-    const auto prg_info = generate_prg_info(prg_raw);
-    const auto pattern_char = encode_dna_base('a');
+    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_info = generate_prg_info(prg_raw);
+    auto pattern_char = encode_dna_base('a');
 
     SearchState initial_search_state = {
             SA_Interval {0, prg_info.fm_index.size() - 1}
@@ -109,20 +109,20 @@ TEST(Search, SingleCharFreqOneInText_SingleSA) {
 
 
 TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
-    const auto prg_raw = "gcgctggagtgctgt";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_info = generate_prg_info(prg_raw);
 
     SearchState initial_search_state = {
             SA_Interval {0, prg_info.fm_index.size() - 1}
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    const auto first_char = encode_dna_base('a');
+    auto first_char = encode_dna_base('a');
     auto first_search_states = search_base_backwards(first_char,
                                                      initial_search_states,
                                                      prg_info);
 
-    const auto second_char = encode_dna_base('g');
+    auto second_char = encode_dna_base('g');
     auto second_search_states = search_base_backwards(second_char,
                                                       first_search_states,
                                                       prg_info);
@@ -134,20 +134,20 @@ TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
 
 
 TEST(Search, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
-    const auto prg_raw = "gcgctggagtgctgt";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_info = generate_prg_info(prg_raw);
 
     SearchState initial_search_state = {
             SA_Interval {0, prg_info.fm_index.size() - 1}
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    const auto first_char = encode_dna_base('a');
+    auto first_char = encode_dna_base('a');
     auto first_search_states = search_base_backwards(first_char,
                                                      initial_search_states,
                                                      prg_info);
 
-    const auto second_char = encode_dna_base('c');
+    auto second_char = encode_dna_base('c');
     const auto &result = search_base_backwards(second_char,
                                                first_search_states,
                                                prg_info);
@@ -208,8 +208,8 @@ N/A
 
 
 TEST(BaseNextSaInterval, GivenC_ProcessNextCharG_CorrectSaInterval) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Marker next_char = 3;
     SA_Index next_char_first_sa_index = 8;
@@ -225,8 +225,8 @@ TEST(BaseNextSaInterval, GivenC_ProcessNextCharG_CorrectSaInterval) {
 
 
 TEST(BaseNextSaInterval, GivenG_ProcessNextCharA_CorrectSaInterval) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Marker next_char = 1;
     SA_Index next_char_first_sa_index = 1;
@@ -242,8 +242,8 @@ TEST(BaseNextSaInterval, GivenG_ProcessNextCharA_CorrectSaInterval) {
 
 
 TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
     // first char: a
     SearchState initial_search_state = {
             SA_Interval {1, 2}
@@ -260,8 +260,8 @@ TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
 
 
 TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
     // first char: g
     SearchState initial_search_state = {
             SA_Interval {8, 11}
@@ -277,8 +277,8 @@ TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
 
 
 TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
     // first char: g
     SearchState initial_search_state = {
             SA_Interval {8, 11}
@@ -294,8 +294,8 @@ TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
 
 
 TEST(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
     // first char: g
     SearchState initial_search_state = {
             SA_Interval {8, 11}
@@ -309,8 +309,8 @@ TEST(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
 
 
 TEST(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
     // first char: c
     SearchState initial_search_state = {
             SA_Interval {3, 7}
@@ -327,8 +327,8 @@ TEST(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
 
 
 TEST(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
     // first char: a
     SearchState initial_search_state = {
             SA_Interval {1, 2}
@@ -340,9 +340,9 @@ TEST(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
 
 
 TEST(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
-    const auto prg_raw = "gcgct5c6g6a5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
-    const auto boundary_marker = 5;
+    auto prg_raw = "gcgct5c6g6a5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
+    auto boundary_marker = 5;
 
     auto result = get_allele_marker_sa_interval(boundary_marker, prg_info);
     SA_Interval expected = {17, 18};
@@ -351,8 +351,8 @@ TEST(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
 
 
 TEST(Search, GivenBoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
-    const auto prg_raw = "aca5g6t5gcatt";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "aca5g6t5gcatt";
+    auto prg_info = generate_prg_info(prg_raw);
 
     auto result = get_allele_marker_sa_interval(5, prg_info);
     SA_Interval expected = {13, 13};
@@ -386,8 +386,8 @@ i	F	BWT	text	SA	suffix
 
 
 TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectMarkerChars) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
     SearchState initial_search_state = {
@@ -409,8 +409,8 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectMarkerChars) {
 
 
 TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectSaIndexes) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
     SearchState initial_search_state = {
@@ -430,8 +430,8 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectSaIndexes) {
 
 
 TEST(Search, CharAfterBoundaryEndMarker_ReturnedSingleCharSaIntervals) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
     SearchState initial_search_state = {
@@ -453,8 +453,8 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSingleCharSaIntervals) {
 
 
 TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVariantSiteAttributes) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
     SearchState initial_search_state = {
@@ -477,8 +477,8 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVaria
 
 
 TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariantSiteRecordedAttributes) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
     SearchState initial_search_state = {
@@ -495,8 +495,8 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariantSi
 }
 
 TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t allele_marker_sa_index = 18;
     auto result = get_allele_id(allele_marker_sa_index,
@@ -507,8 +507,8 @@ TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
 
 
 TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: t
     SearchState initial_search_state = {
@@ -530,8 +530,8 @@ TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 
 
 TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: g
     SearchState initial_search_state = {
@@ -553,8 +553,8 @@ TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 
 
 TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     // first char: c
     SearchState initial_search_state = {
@@ -576,9 +576,9 @@ TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 
 
 TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInPathHistory) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
-    const auto pattern_char = encode_dna_base('t');
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
+    auto pattern_char = encode_dna_base('t');
 
     SearchState initial_search_state = {
             SA_Interval {16, 16},
@@ -602,9 +602,9 @@ TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInP
 
 
 TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInResult) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
-    const auto pattern_char = encode_dna_base('t');
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
+    auto pattern_char = encode_dna_base('t');
 
     SearchState initial_search_state = {
             SA_Interval {16, 16},
@@ -631,10 +631,10 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
 
 
 TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("tagtaa");
+    auto read = encode_dna_bases("tagtaa");
     Pattern kmer = encode_dna_bases("gtaa");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -646,10 +646,10 @@ TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
 
 
 TEST(Search, GivenRead_CorrectResultSaInterval) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("tagtcc");
+    auto read = encode_dna_bases("tagtcc");
     Pattern kmer = encode_dna_bases("gtcc");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -666,10 +666,10 @@ TEST(Search, GivenRead_CorrectResultSaInterval) {
 
 
 TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("tagtcc");
+    auto read = encode_dna_bases("tagtcc");
     Pattern kmer = encode_dna_bases("gtcc");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -688,10 +688,10 @@ TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
 
 
 TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("cgctg");
+    auto read = encode_dna_bases("cgctg");
     Pattern kmer = encode_dna_bases("gctg");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -710,10 +710,10 @@ TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
 
 
 TEST(Search, GivenReadCrossingAllele_CorrectVariantSitePath) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("ctgag");
+    auto read = encode_dna_bases("ctgag");
     Pattern kmer = encode_dna_bases("tgag");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -758,15 +758,15 @@ i	F	BWT	text   SA	suffix
 
 
 TEST(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
-    const auto prg_raw = "gct5c6g6t5ag7t8c7ct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gct5c6g6t5ag7t8c7ct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tct");
     Patterns kmers = {kmer};
     auto kmer_size = 3;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    const auto read = encode_dna_bases("cagtct");
+    auto read = encode_dna_bases("cagtct");
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
@@ -782,15 +782,15 @@ TEST(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
 
 
 TEST(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
-    const auto prg_raw = "gct5c6g6t5ag7tct8c7ct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gct5c6g6t5ag7tct8c7ct";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tct");
     Patterns kmers = {kmer};
     auto kmer_size = 3;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    const auto read = encode_dna_bases("cagtct");
+    auto read = encode_dna_bases("cagtct");
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
@@ -806,15 +806,15 @@ TEST(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
 
 
 TEST(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
-    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("cta");
     Patterns kmers = {kmer};
     auto kmer_size = 3;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    const auto read = encode_dna_bases("gccta");
+    auto read = encode_dna_bases("gccta");
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
@@ -829,15 +829,15 @@ TEST(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
 
 
 TEST(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
-    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("gccta");
     Patterns kmers = {kmer};
     auto kmer_size = 5;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    const auto read = encode_dna_bases("agccta");
+    auto read = encode_dna_bases("agccta");
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
@@ -852,15 +852,15 @@ TEST(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
 
 
 TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
-    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
     auto kmer_size = 3;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    const auto read = encode_dna_bases("tagt");
+    auto read = encode_dna_bases("tagt");
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
@@ -876,15 +876,15 @@ TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
 
 
 TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
-    const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+    auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tagt");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
-    const auto read = encode_dna_bases("cttagt");
+    auto read = encode_dna_bases("cttagt");
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
@@ -900,10 +900,10 @@ TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
 
 
 TEST(Search, NoMarkersToLeft_SkippingToMarkerTrue) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("cgctg");
+    auto read = encode_dna_bases("cgctg");
     Pattern kmer = encode_dna_bases("gctg");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -922,10 +922,10 @@ TEST(Search, NoMarkersToLeft_SkippingToMarkerTrue) {
 
 
 TEST(Search, NoMarkersToLeft_DistanceToNextMarkerGreaterThanOne) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("cgctg");
+    auto read = encode_dna_bases("cgctg");
     Pattern kmer = encode_dna_bases("gctg");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -944,10 +944,10 @@ TEST(Search, NoMarkersToLeft_DistanceToNextMarkerGreaterThanOne) {
 
 
 TEST(Search, MarkerToLeft_DistanceToNextMarkerIsKmerStartTextIndex) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("gtcct");
+    auto read = encode_dna_bases("gtcct");
     Pattern kmer = encode_dna_bases("tcct");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -967,10 +967,10 @@ TEST(Search, MarkerToLeft_DistanceToNextMarkerIsKmerStartTextIndex) {
 
 
 TEST(Search, MarkerToImmediateLeft_SkippingToMarkerFlagFalse) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("agtcc");
+    auto read = encode_dna_bases("agtcc");
     Pattern kmer = encode_dna_bases("gtcc");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
@@ -987,10 +987,10 @@ TEST(Search, MarkerToImmediateLeft_SkippingToMarkerFlagFalse) {
 
 
 TEST(Search, ReadLeadsToPrgEdge_NoSearchStatesFound) {
-    const auto prg_raw = "gcgct5c6g6t5agtcct";
-    const auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
 
-    const auto read = encode_dna_bases("agcgc");
+    auto read = encode_dna_bases("agcgc");
     Pattern kmer = encode_dna_bases("gcgc");
     Patterns kmers = {kmer};
     auto kmer_size = 4;
