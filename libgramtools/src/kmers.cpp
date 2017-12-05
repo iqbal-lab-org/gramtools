@@ -508,21 +508,6 @@ std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_rang
 
     if (not nonvariant_region.empty())
         region_parts.emplace_back(SequencesList {nonvariant_region});
-
-    /*
-    auto end_boundary_index = inrange_sites.back();
-    auto final_nonvariant_region_size = current_range_end_index - end_boundary_index;
-    std::vector<Base> final_nonvariant_region;
-    final_nonvariant_region.reserve(final_nonvariant_region_size);
-
-    for (auto i = end_boundary_index + 1; i <= current_range_end_index; ++i) {
-        auto base = (Base) prg_info.encoded_prg[i];
-        final_nonvariant_region.push_back(base);
-    }
-
-    if (not final_nonvariant_region.empty())
-        region_parts.emplace_back(SequencesList {final_nonvariant_region});
-    */
     return region_parts;
 }
 
