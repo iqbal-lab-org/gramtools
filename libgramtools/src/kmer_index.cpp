@@ -151,7 +151,6 @@ void update_kmer_index_cache(KmerIndexCache &cache,
                              const Pattern &kmer_prefix_diff,
                              const int kmer_size,
                              const PRG_Info &prg_info) {
-
     if (kmer_prefix_diff.size() == kmer_size) {
         auto &full_kmer = kmer_prefix_diff;
         cache = initial_kmer_index_cache(full_kmer, prg_info);
@@ -229,9 +228,8 @@ KmerIndex index_kmers(const Patterns &kmer_prefix_diffs,
 
 void generate_kmer_index(const Parameters &parameters,
                          const PRG_Info &prg_info) {
-    Patterns kmer_prefix_diffs = get_kmers_prefix_diffs(parameters,
-                                                        prg_info);
-
+    Patterns kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                       prg_info);
     KmerIndex kmer_index = index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);
     std::ofstream kmer_index_file;
     kmer_index_file.open(parameters.kmer_index_fpath);

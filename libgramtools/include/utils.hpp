@@ -27,4 +27,6 @@ Pattern reverse_compliment_read(const Pattern &read);
 Pattern encode_dna_bases(const std::string &dna_str);
 Pattern encode_dna_bases(const GenomicRead &read_sequence);
 
+Base encode_dna_base(const char &base_str);
+
 #endif //GRAMTOOLS_UTILS_HPP

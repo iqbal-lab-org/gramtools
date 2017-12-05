@@ -535,6 +535,48 @@ TEST(GetReverseKmersFromRegion, NoVariantSite_FourCorrectReverseKmersFromPrgEnd)
 }
 
 
+TEST(GetReverseKmersFromRegion, GivenKmerRegionRange_CorrectReverseKmers) {
+    //                2   6   10
+    auto prg_raw = "ta5g6a5acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    PrgIndexRange kmer_region_range = {0, 10};
+    uint64_t kmer_size = 3;
+    auto result = get_reverse_kmers_from_region(kmer_region_range,
+                                                kmer_size,
+                                                prg_info);
+    unordered_vector_set<Sequence> expected = {
+            {3, 1, 4},
+            {1, 1, 4},
+            {1, 3, 1},
+            {1, 1, 1},
+            {4, 3, 2},
+            {3, 2, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromRegion, GivenKmerRegion_CorrectReverseKmerFound) {
+    // kmer:         |                         |
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 150;
+    PrgIndexRange kmer_region_range = {11, 41};
+    auto reverse_kmers = get_reverse_kmers_from_region(kmer_region_range,
+                                                       parameters.kmers_size,
+                                                       prg_info);
+    Sequence expected_reverse_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
+    auto result = reverse_kmers.find(expected_reverse_kmer) != reverse_kmers.end();
+    EXPECT_TRUE(result);
+}
+
+
 TEST(FindSiteStartBoundary, GivenSiteEndIndex_CorrectSiteStartIndex) {
     //                       9    15
     auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
@@ -556,6 +598,29 @@ TEST(GetKmerSizeRegionParts, TwoSitesInRange_CorrectRegionParts) {
     uint64_t current_range_end_index = 18;
     std::list<uint64_t> inrange_sites = {6, 15};
     uint64_t kmer_size = 3;
+    auto result = get_kmer_size_region_parts(current_range_end_index,
+                                             inrange_sites,
+                                             kmer_size,
+                                             prg_info);
+    std::list<SequencesList> expected = {
+            {{4, 1}},
+            {{3},    {1}},
+            {{3, 1}},
+            {{3, 3}, {1, 1}},
+            {{2, 3, 4}},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetKmerSizeRegionParts, NonVariantTailAfterLastSite_TailIncludedAsRegionPart) {
+    //                    6       15  18
+    auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_range_end_index = 8;
+    std::list<uint64_t> inrange_sites = {6};
+    uint64_t kmer_size = 5;
     auto result = get_kmer_size_region_parts(current_range_end_index,
                                              inrange_sites,
                                              kmer_size,
@@ -768,6 +833,25 @@ TEST(GetPathsFromParts, SingleRegionWithSingleCharAllele_CorrectPath) {
 }
 
 
+TEST(GetPathsFromParts, GivenPrgAndSinglePath_CorrectPathExtractedFromPrg) {
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t current_range_end_index = 41;
+    std::list<uint64_t> inrange_sites = {23, 30};
+    uint64_t kmer_size = 15;
+
+    auto region_parts = get_kmer_size_region_parts(current_range_end_index,
+                                                   inrange_sites,
+                                                   kmer_size,
+                                                   prg_info);
+    auto paths = get_paths_from_parts(region_parts);
+    Sequence expected_path = {1, 4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4};
+    auto result = std::find(paths.begin(), paths.end(), expected_path) != paths.end();
+    EXPECT_TRUE(result);
+}
+
+
 TEST(GetReverseKmersFromPath, GivenPath_CorrectReverseKmers) {
     Sequence path = {3, 3, 1, 2};
     uint64_t kmer_size = 3;
@@ -797,6 +881,16 @@ TEST(GetReverseKmersFromPath, GivenKmerSizePath_CorrectReverseKmer) {
             {1, 3, 3},
     };
     EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetReverseKmersFromPath, GivenPath_CorrectReverseKmerExtracted) {
+    Sequence path = {1, 4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4};
+    uint64_t kmer_size = 15;
+    auto reverse_kmers = get_reverse_kmers_from_path(path, kmer_size);
+    Sequence expected_reverse_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
+    auto result = reverse_kmers.find(expected_reverse_kmer) != reverse_kmers.end();
+    EXPECT_TRUE(result);
 }
 
 
@@ -898,8 +992,8 @@ TEST(ExtractVariantReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) 
     auto prg_raw = "acgt5cc6a5";
     auto prg_info = generate_prg_info(prg_raw);
 
-    uint64_t current_index = 8;
-    std::list<uint64_t> inrange_sites = {8};
+    uint64_t current_index = 9;
+    std::list<uint64_t> inrange_sites = {9};
     uint64_t kmer_size = 3;
     auto result = extract_variant_reverse_kmers(current_index,
                                                 inrange_sites,
@@ -985,7 +1079,7 @@ TEST(ExtractVariantReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 6;
-    std::list<uint64_t> inrange_sites = {6};
+    std::list<uint64_t> inrange_sites = {7};
     uint64_t kmer_size = 3;
     auto result = extract_variant_reverse_kmers(current_index,
                                                 inrange_sites,
@@ -1013,30 +1107,6 @@ TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectNewCurrentIndex) {
                                   prg_info);
     uint64_t result = current_index;
     uint64_t expected = 1;
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GetReverseKmersFromRegion, GivenKmerRegionRange_CorrectReverseKmers) {
-    //                2   6   10
-    auto prg_raw = "ta5g6a5acgt";
-    auto prg_info = generate_prg_info(prg_raw);
-
-    PrgIndexRange kmer_region_range = {0, 10};
-    uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_region(kmer_region_range,
-                                                kmer_size,
-                                                prg_info);
-    unordered_vector_set<Sequence> expected = {
-            {3, 1, 4},
-            {1, 1, 4},
-            {1, 3, 1},
-            {1, 1, 1},
-            {4, 3, 2},
-            {3, 2, 1},
-            {2, 1, 1},
-            {2, 1, 3},
-    };
     EXPECT_EQ(result, expected);
 }
 
@@ -1125,7 +1195,7 @@ TEST(CombineOverlappingRegions, EmptyRange_EmptyRange) {
 }
 
 
-TEST(SortKmers, GivenRandomlyArrangedReverseKmers_KmersReversedAndSortedByRightMostBase) {
+TEST(GetReversedKmers, GivenRandomlyArrangedReverseKmers_KmersReversedAndSortedByRightMostBase) {
     ordered_vector_set<Sequence> kmers = {
             {2, 4, 1},
             {1, 3, 5},
@@ -1133,7 +1203,7 @@ TEST(SortKmers, GivenRandomlyArrangedReverseKmers_KmersReversedAndSortedByRightM
             {3, 4, 5},
     };
 
-    std::vector<Sequence> result = sort_kmers(kmers);
+    std::vector<Sequence> result = reverse_kmers_inplace(kmers);
     SequencesList expected = {
             {4, 3, 1},
             {5, 3, 1},
@@ -1144,12 +1214,12 @@ TEST(SortKmers, GivenRandomlyArrangedReverseKmers_KmersReversedAndSortedByRightM
 }
 
 
-TEST(SortKmers, GivenSingleReverseKmer_CorrectReversedKmer) {
+TEST(GetReversedKmers, GivenSingleReverseKmer_CorrectReversedKmer) {
     ordered_vector_set<Sequence> kmers = {
             {2, 4, 1},
     };
 
-    std::vector<Sequence> result = sort_kmers(kmers);
+    std::vector<Sequence> result = reverse_kmers_inplace(kmers);
     SequencesList expected = {
             {1, 4, 2},
     };
@@ -1157,13 +1227,13 @@ TEST(SortKmers, GivenSingleReverseKmer_CorrectReversedKmer) {
 }
 
 
-TEST(SortKmers, SortingReverseKmerFromRightToLeft_CorrectReversedKmers) {
+TEST(GetReversedKmers, SortingReverseKmerFromRightToLeft_CorrectReversedKmers) {
     ordered_vector_set<Sequence> kmers = {
             {1, 3, 5},
             {2, 4, 1},
     };
 
-    std::vector<Sequence> result = sort_kmers(kmers);
+    std::vector<Sequence> result = reverse_kmers_inplace(kmers);
     SequencesList expected = {
             {5, 3, 1},
             {1, 4, 2},
@@ -1333,7 +1403,7 @@ TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
 }
 
 
-TEST(GetAllReverseKmers, LimittingMaxReadSizeAvoidTwoLeftMostKmers_TwoLeftMostKmersAbsent) {
+TEST(GetAllReverseKmers, TwoLeftMostKmersWithinRange_TwoLeftMostKmersIncluded) {
     auto prg_raw = "ta5g6a5acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -1348,8 +1418,8 @@ TEST(GetAllReverseKmers, LimittingMaxReadSizeAvoidTwoLeftMostKmers_TwoLeftMostKm
             {3, 2, 1},
     };
     for (const auto &reverse_kmer: expected_absent) {
-        auto not_found = result.find(reverse_kmer) == result.end();
-        EXPECT_TRUE(not_found);
+        auto found_flag = result.find(reverse_kmer) != result.end();
+        EXPECT_TRUE(found_flag);
     }
 }
 
@@ -1365,8 +1435,89 @@ TEST(GetAllReverseKmers, MaxReadSizeLessThanKmerSize_AlleleKmersReturned) {
     auto result = get_all_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Sequence> expected = {
+            {1, 1, 1},
             {1, 1, 4},
-            {3, 1, 4}
+            {3, 1, 4},
+            {1, 3, 1},
+            {2, 1, 1},
+            {2, 1, 3},
+            {3, 1, 4},
+            {3, 2, 1},
+            {4, 3, 2},
     };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetAllReverseKmers, GivenPrg_CorrectReverseKmerFound) {
+    //               |                         |
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 150;
+
+    auto reverse_kmers = get_all_reverse_kmers(parameters,
+                                               prg_info);
+    Sequence expected_reverse_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
+    auto result = reverse_kmers.find(expected_reverse_kmer) != reverse_kmers.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(GetAllReverseKmers, GivenPrgWithLongNonVariantTail_PreviouslyAbsentKmerFound) {
+    // kmer          |                         |
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgattccccgacga";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 20;
+
+    auto kmers = get_all_reverse_kmers(parameters,
+                                       prg_info);
+    Sequence expected_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
+    auto result = kmers.find(expected_kmer) != kmers.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(GetAllOrderedKmers, GivenPrg_CorrectForwardKmerFound) {
+    //               |                         |
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 150;
+
+    auto kmers = get_all_ordered_kmers(parameters,
+                                       prg_info);
+    Sequence expected_kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
+    auto result = std::find(kmers.begin(), kmers.end(), expected_kmer) != kmers.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound) {
+    //               |                         |
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 150;
+
+    auto kmers = get_all_ordered_kmers(parameters,
+                                       prg_info);
+    Sequence kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
+    auto kmer_it = std::find(kmers.begin(), kmers.end(), kmer);
+    auto index = std::distance(kmers.begin(), kmer_it);
+
+    auto prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                              prg_info);
+    auto result = prefix_diffs[index];
+    Sequence expected = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3};
     EXPECT_EQ(result, expected);
 }

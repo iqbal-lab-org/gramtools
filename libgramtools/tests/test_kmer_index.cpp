@@ -2,8 +2,8 @@
 
 #include "gtest/gtest.h"
 
-#include "test_utils.hpp"
 #include "kmer_index.hpp"
+#include "test_utils.hpp"
 
 
 TEST(GenerateKmerIndex, GivenDataForSingleKmerIndexEntry_CorrectRowDumpGenerated) {
@@ -654,4 +654,106 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
             }
     };
     EXPECT_EQ(result, expected);
+}
+
+
+TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
+    //               |                               |
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 20;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
+    auto result = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleCharExtracted) {
+    //                                                  |                          |
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 20;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {1, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2};
+    auto result = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracted) {
+    //                                                     |                        |
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 20;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2, 2};
+    auto result = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
+    //                                                                     |             |
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    //                                                                    ^region end
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 20;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
+    auto result = kmer_index.find(target_kmer) == kmer_index.end();
+    EXPECT_TRUE(result);
+}
+
+
+TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
+    //                                                                     |             |
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    //                                                                     ^region end
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 15;
+    parameters.max_read_size = 21;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
+    auto result = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(result);
 }

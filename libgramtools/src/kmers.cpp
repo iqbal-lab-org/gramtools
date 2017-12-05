@@ -409,9 +409,12 @@ uint64_t find_site_start_boundary(const uint64_t &end_boundary_index,
 }
 
 
-Sequence get_pre_site_part(const uint64_t first_site_start_boundary,
+Sequence get_pre_site_part(const uint64_t site_end_boundary,
                            const uint64_t kmer_size,
                            const PRG_Info &prg_info) {
+    auto first_site_start_boundary = find_site_start_boundary(site_end_boundary,
+                                                              prg_info);
+
     Sequence pre_site_part = {};
     if (first_site_start_boundary != 0) {
         int64_t end_index = first_site_start_boundary - kmer_size - 1;
@@ -420,7 +423,7 @@ Sequence get_pre_site_part(const uint64_t first_site_start_boundary,
 
         for (int64_t i = first_site_start_boundary - 1;
              i >= end_index; --i) {
-            auto base = (uint64_t) prg_info.encoded_prg[i];
+            auto base = (Base) prg_info.encoded_prg[i];
             if (base > 4)
                 break;
             pre_site_part.push_back(base);
@@ -439,10 +442,7 @@ std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_rang
     std::list<SequencesList> region_parts = {};
 
     auto first_site_end_boundary = inrange_sites.front();
-    auto first_site_start_boundary = find_site_start_boundary(first_site_end_boundary,
-                                                              prg_info);
-
-    Sequence pre_site_part = get_pre_site_part(first_site_start_boundary,
+    Sequence pre_site_part = get_pre_site_part(first_site_end_boundary,
                                                kmer_size,
                                                prg_info);
     if (not pre_site_part.empty())
@@ -455,25 +455,74 @@ std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_rang
         region_parts.push_back(ordered_alleles);
 
         auto at_last_site = site_count++ == inrange_sites.size() - 1;
-        if (at_last_site) {
-            auto final_nonvariant_region_size = current_range_end_index - end_boundary_index;
-            std::vector<Base> final_nonvariant_region;
-            final_nonvariant_region.reserve(final_nonvariant_region_size);
-
-            for (auto i = end_boundary_index + 1; i <= current_range_end_index; ++i) {
-                auto base = (Base) prg_info.encoded_prg[i];
-                final_nonvariant_region.push_back(base);
-            }
-
-            if (not final_nonvariant_region.empty())
-                region_parts.emplace_back(SequencesList {final_nonvariant_region});
+        if (at_last_site)
             continue;
-        }
 
         auto nonvariant_region = right_intersite_nonvariant_region(end_boundary_index,
                                                                    prg_info);
         region_parts.emplace_back(SequencesList {nonvariant_region});
     }
+
+    auto within_site = [](uint64_t index, const PRG_Info &prg_info) {
+        return prg_info.allele_mask[index] > 0
+               or prg_info.prg_markers_mask[index] != 0;
+    };
+
+    auto end_boundary_index = inrange_sites.back();
+    if (end_boundary_index == prg_info.encoded_prg.size() - 1)
+        return region_parts;
+
+    auto index = end_boundary_index + 1;
+    uint64_t number_consumed_kmer_bases = 0;
+
+    Sequence nonvariant_region = {};
+
+    while (number_consumed_kmer_bases < kmer_size + 1
+            and index <= prg_info.encoded_prg.size() - 1) {
+
+        if (within_site(index, prg_info)) {
+            if (not nonvariant_region.empty()) {
+                region_parts.emplace_back(SequencesList {nonvariant_region});
+                nonvariant_region = {};
+            }
+
+            auto site_end_boundary = find_site_end_boundary(index, prg_info);
+            auto ordered_alleles = get_site_ordered_alleles(site_end_boundary,
+                                                            prg_info);
+            region_parts.push_back(ordered_alleles);
+
+            if (site_end_boundary == prg_info.encoded_prg.size() - 1)
+                return region_parts;
+            else
+                index = site_end_boundary + 1;
+            number_consumed_kmer_bases++;
+            continue;
+        }
+
+        auto base = (Base) prg_info.encoded_prg[index];
+        nonvariant_region.push_back(base);
+
+        index++;
+        number_consumed_kmer_bases++;
+    }
+
+    if (not nonvariant_region.empty())
+        region_parts.emplace_back(SequencesList {nonvariant_region});
+
+    /*
+    auto end_boundary_index = inrange_sites.back();
+    auto final_nonvariant_region_size = current_range_end_index - end_boundary_index;
+    std::vector<Base> final_nonvariant_region;
+    final_nonvariant_region.reserve(final_nonvariant_region_size);
+
+    for (auto i = end_boundary_index + 1; i <= current_range_end_index; ++i) {
+        auto base = (Base) prg_info.encoded_prg[i];
+        final_nonvariant_region.push_back(base);
+    }
+
+    if (not final_nonvariant_region.empty())
+        region_parts.emplace_back(SequencesList {final_nonvariant_region});
+    */
     return region_parts;
 }
 
@@ -599,6 +648,7 @@ unordered_vector_set<Sequence> get_reverse_kmers_from_region(const PrgIndexRange
         auto inrange_sites = sites_inrange_left(current_index,
                                                 kmer_size,
                                                 prg_info);
+
         auto sites_in_range = not inrange_sites.empty();
         if (sites_in_range) {
             auto reverse_kmers = extract_variant_reverse_kmers(current_index,
@@ -613,7 +663,7 @@ unordered_vector_set<Sequence> get_reverse_kmers_from_region(const PrgIndexRange
 
         auto within_site = prg_info.allele_mask[current_index] > 0
                            or prg_info.prg_markers_mask[current_index] != 0;
-        if (not within_site and not sites_in_range) {
+        if (not within_site) {
             auto reverse_kmer = extract_simple_reverse_kmer(current_index,
                                                             kmer_size,
                                                             prg_info);
@@ -736,7 +786,7 @@ std::vector<Sequence> get_prefix_diffs(const std::vector<Sequence> &kmers) {
 }
 
 
-std::vector<Sequence> sort_kmers(const ordered_vector_set<Sequence> &reverse_kmers) {
+std::vector<Sequence> reverse_kmers_inplace(const ordered_vector_set<Sequence> &reverse_kmers) {
     std::vector<Sequence> kmers;
     for (auto reverse_kmer: reverse_kmers) {
         std::reverse(reverse_kmer.begin(), reverse_kmer.end());
@@ -747,11 +797,19 @@ std::vector<Sequence> sort_kmers(const ordered_vector_set<Sequence> &reverse_kme
 }
 
 
-std::vector<Sequence> get_kmers_prefix_diffs(const Parameters &parameters,
-                                             const PRG_Info &prg_info) {
+std::vector<Sequence> get_all_ordered_kmers(const Parameters &parameters,
+                                            const PRG_Info &prg_info) {
     auto reverse_kmers = get_all_reverse_kmers(parameters,
                                                prg_info);
-    auto kmers = sort_kmers(reverse_kmers);
+    auto kmers = reverse_kmers_inplace(reverse_kmers);
+    return kmers;
+}
+
+
+std::vector<Sequence> get_kmer_prefix_diffs(const Parameters &parameters,
+                                            const PRG_Info &prg_info) {
+    auto kmers = get_all_ordered_kmers(parameters,
+                                       prg_info);
     auto prefix_diffs = get_prefix_diffs(kmers);
     return prefix_diffs;
 }

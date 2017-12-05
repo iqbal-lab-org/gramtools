@@ -40,7 +40,6 @@ def _execute_command(quasimap_paths, args):
         '--variant-site-mask', quasimap_paths['variant_site_mask'],
         '--allele-mask', quasimap_paths['allele_mask'],
         '--memory-log', quasimap_paths['sdsl_memory_log'],
-        '--kmers-prefix-diffs', quasimap_paths['kmer_prefix_diffs'],
         '--kmer-index', quasimap_paths['kmer_index'],
         '--kmer-size', str(args.kmer_size),
 

@@ -31,7 +31,7 @@ QuasimapStats quasimap_reads(const Parameters &params,
                       << quasimap_stats.all_reads_count
                       << std::endl;
         }
-        quasimap_stats.all_reads_count += 2;
+        quasimap_stats.all_reads_count += 1;//2;
 
         auto read = encode_dna_bases(*raw_read);
         if (read.empty()) {
@@ -61,11 +61,23 @@ void quasimap_forward_reverse(QuasimapStats &quasimap_stats,
     if (read_mapped_exactly)
         ++quasimap_stats.mapped_reads_count;
 
+    if (not read_mapped_exactly) {
+        std::cout << "miss normal" << std::endl;
+        for (const auto &base: read)
+            std::cout << (int) base << " ";
+        std::cout << std::endl;
+        std::exit(0);
+    }
+
+    /*
     auto reverse_read = reverse_compliment_read(read);
     read_mapped_exactly = quasimap_read(reverse_read, allele_coverage,
                                         kmer_index, prg_info, params);
     if (read_mapped_exactly)
         ++quasimap_stats.mapped_reads_count;
+    if (not read_mapped_exactly)
+        std::cout << "miss reverse" << std::endl;
+        */
 }
 
 

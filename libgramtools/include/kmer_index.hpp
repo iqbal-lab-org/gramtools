@@ -5,16 +5,15 @@
 #include "ranks.hpp"
 #include "search_types.hpp"
 #include "kmer_index_types.hpp"
+#include "kmers.hpp"
 
 
-#ifndef GRAMTOOLS_KMERS_HPP
-#define GRAMTOOLS_KMERS_HPP
+#ifndef GRAMTOOLS_KMER_INDEX_HPP
+#define GRAMTOOLS_KMER_INDEX_HPP
 
 std::ostream &operator<<(std::ostream &os, const KmerIndexCache &cache);
 
 Base encode_dna_base(const char &base_str);
-
-std::vector<Base> encode_dna_bases(const std::string &dna_str);
 
 std::string dump_kmer(const Pattern &kmer);
 
@@ -55,4 +54,4 @@ void generate_kmer_index(const Parameters &params,
 
 KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info);
 
-#endif //GRAMTOOLS_KMERS_HPP
+#endif //GRAMTOOLS_KMER_INDEX_HPP

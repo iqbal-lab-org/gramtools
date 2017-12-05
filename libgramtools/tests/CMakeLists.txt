@@ -28,6 +28,9 @@ set_target_properties(libgmock PROPERTIES
         "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
         "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
 
+set(INCLUDE
+        ${PROJECT_SOURCE_DIR}/libgramtools/include)
+
 add_executable(test_main
         main.cpp
         test_utils.cpp
@@ -43,9 +46,7 @@ target_link_libraries(test_main
         ${LIBS_PATHS}
         ${Boost_LIBRARIES})
 target_include_directories(test_main PUBLIC
-        ${SOURCE}
         ${INCLUDE}
-        ${UTILS}
         ${source_dir}/googletest/include
         ${source_dir}/googlemock/include)
 add_custom_command(TARGET test_main POST_BUILD

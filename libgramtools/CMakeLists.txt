@@ -5,9 +5,7 @@ add_custom_target(py_git_version
 set(SOURCE
         ${PROJECT_SOURCE_DIR}/libgramtools/src)
 set(INCLUDE
-        ${PROJECT_SOURCE_DIR}/libgramtools/include
-        $ENV{HOME}/include
-        /apps/well/htslib/1.4.1/include)
+        ${PROJECT_SOURCE_DIR}/libgramtools/include)
 set(LIB_DIRS
         ${PROJECT_SOURCE_DIR}/libgramtools/lib
         $ENV{LD_LIBRARY_PATH}
@@ -48,9 +46,20 @@ add_library(gramtools STATIC
         ${SOURCE}/masks.cpp
         ${SOURCE}/dna_ranks.cpp
         ${SOURCE}/fm_index.cpp
-        ${SOURCE}/ranks.cpp)
+        ${SOURCE}/ranks.cpp
+
+        ${INCLUDE}/coverage_analysis.hpp
+        ${INCLUDE}/utils.hpp
+        ${INCLUDE}/prg.hpp
+        ${INCLUDE}/kmers.hpp
+        ${INCLUDE}/kmer_index.hpp
+        ${INCLUDE}/kmer_index_types.hpp
+        ${INCLUDE}/search.hpp
+        ${INCLUDE}/masks.hpp
+        ${INCLUDE}/dna_ranks.hpp
+        ${INCLUDE}/fm_index.hpp
+        ${INCLUDE}/ranks.hpp)
 target_include_directories(gramtools PUBLIC
-        ${SOURCE}
         ${INCLUDE}
         ${Boost_INCLUDE_DIRS})
 target_link_libraries(gramtools LINK_PUBLIC

@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "utils.hpp"
 #include "masks.hpp"
 #include "kmer_index.hpp"
 #include "test_utils.hpp"

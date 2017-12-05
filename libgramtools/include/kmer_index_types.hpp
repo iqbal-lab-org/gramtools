@@ -7,8 +7,8 @@
 #include "search_types.hpp"
 
 
-#ifndef GRAMTOOLS_KMER_INDEX_HPP
-#define GRAMTOOLS_KMER_INDEX_HPP
+#ifndef GRAMTOOLS_KMER_INDEX_TYPES_HPP
+#define GRAMTOOLS_KMER_INDEX_TYPES_HPP
 
 struct CacheElement {
     SearchStates search_states;
@@ -29,4 +29,4 @@ template<typename SEQUENCE, typename T>
 using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
 using KmerIndex = sequence_map<Pattern, SearchStates>;
 
-#endif //GRAMTOOLS_KMER_INDEX_HPP
+#endif //GRAMTOOLS_KMER_INDEX_TYPES_HPP

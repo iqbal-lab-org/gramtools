@@ -80,7 +80,6 @@ def _execute_gramtools_cpp_build(build_paths, args):
         '--variant-site-mask', build_paths['variant_site_mask'],
         '--allele-mask', build_paths['allele_mask'],
         '--memory-log', build_paths['sdsl_memory_log'],
-        '--kmers-prefix-diffs', build_paths['kmer_prefix_diffs'],
         '--kmer-index', build_paths['kmer_index'],
         '--kmer-size', str(args.kmer_size),
         '--max-read-size', str(args.max_read_length),
