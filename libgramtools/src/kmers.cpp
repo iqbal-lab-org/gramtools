@@ -414,7 +414,6 @@ Sequence get_pre_site_part(const uint64_t site_end_boundary,
                            const PRG_Info &prg_info) {
     auto first_site_start_boundary = find_site_start_boundary(site_end_boundary,
                                                               prg_info);
-
     Sequence pre_site_part = {};
     if (first_site_start_boundary != 0) {
         int64_t end_index = first_site_start_boundary - kmer_size - 1;
@@ -428,26 +427,28 @@ Sequence get_pre_site_part(const uint64_t site_end_boundary,
                 break;
             pre_site_part.push_back(base);
         }
-
         std::reverse(pre_site_part.begin(), pre_site_part.end());
     }
     return pre_site_part;
 }
 
 
-std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
-                                                    const std::list<uint64_t> &inrange_sites,
-                                                    const uint64_t kmer_size,
-                                                    const PRG_Info &prg_info) {
-    std::list<SequencesList> region_parts = {};
-
+void add_pre_site_region(std::list<SequencesList> &region_parts,
+                         const std::list<uint64_t> &inrange_sites,
+                         const uint64_t kmer_size,
+                         const PRG_Info &prg_info) {
     auto first_site_end_boundary = inrange_sites.front();
     Sequence pre_site_part = get_pre_site_part(first_site_end_boundary,
                                                kmer_size,
                                                prg_info);
     if (not pre_site_part.empty())
         region_parts.emplace_back(SequencesList {pre_site_part});
+}
 
+
+void add_site_regions(std::list<SequencesList> &region_parts,
+                      const std::list<uint64_t> &inrange_sites,
+                      const PRG_Info &prg_info) {
     auto site_count = 0;
     for (const auto &end_boundary_index: inrange_sites) {
         auto ordered_alleles = get_site_ordered_alleles(end_boundary_index,
@@ -462,15 +463,16 @@ std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_rang
                                                                    prg_info);
         region_parts.emplace_back(SequencesList {nonvariant_region});
     }
+}
 
-    auto within_site = [](uint64_t index, const PRG_Info &prg_info) {
-        return prg_info.allele_mask[index] > 0
-               or prg_info.prg_markers_mask[index] != 0;
-    };
 
+void add_post_site_regions(std::list<SequencesList> &region_parts,
+                           const std::list<uint64_t> &inrange_sites,
+                           const uint64_t kmer_size,
+                           const PRG_Info &prg_info) {
     auto end_boundary_index = inrange_sites.back();
     if (end_boundary_index == prg_info.encoded_prg.size() - 1)
-        return region_parts;
+        return;
 
     auto index = end_boundary_index + 1;
     uint64_t number_consumed_kmer_bases = 0;
@@ -478,36 +480,57 @@ std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_rang
     Sequence nonvariant_region = {};
 
     while (number_consumed_kmer_bases < kmer_size + 1
-            and index <= prg_info.encoded_prg.size() - 1) {
+           and index <= prg_info.encoded_prg.size() - 1) {
 
-        if (within_site(index, prg_info)) {
-            if (not nonvariant_region.empty()) {
-                region_parts.emplace_back(SequencesList {nonvariant_region});
-                nonvariant_region = {};
-            }
+        auto within_site = prg_info.allele_mask[index] > 0
+                           or prg_info.prg_markers_mask[index] != 0;
+        if (not within_site) {
+            auto base = (Base) prg_info.encoded_prg[index];
+            nonvariant_region.push_back(base);
 
-            auto site_end_boundary = find_site_end_boundary(index, prg_info);
-            auto ordered_alleles = get_site_ordered_alleles(site_end_boundary,
-                                                            prg_info);
-            region_parts.push_back(ordered_alleles);
-
-            if (site_end_boundary == prg_info.encoded_prg.size() - 1)
-                return region_parts;
-            else
-                index = site_end_boundary + 1;
+            index++;
             number_consumed_kmer_bases++;
             continue;
         }
 
-        auto base = (Base) prg_info.encoded_prg[index];
-        nonvariant_region.push_back(base);
+        if (not nonvariant_region.empty()) {
+            region_parts.emplace_back(SequencesList {nonvariant_region});
+            nonvariant_region = {};
+        }
 
-        index++;
+        auto site_end_boundary = find_site_end_boundary(index, prg_info);
+        auto ordered_alleles = get_site_ordered_alleles(site_end_boundary,
+                                                        prg_info);
+        region_parts.push_back(ordered_alleles);
+
+        if (site_end_boundary == prg_info.encoded_prg.size() - 1)
+            break;
+        else
+            index = site_end_boundary + 1;
         number_consumed_kmer_bases++;
     }
 
     if (not nonvariant_region.empty())
         region_parts.emplace_back(SequencesList {nonvariant_region});
+}
+
+
+std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
+                                                    const std::list<uint64_t> &inrange_sites,
+                                                    const uint64_t kmer_size,
+                                                    const PRG_Info &prg_info) {
+    std::list<SequencesList> region_parts = {};
+    add_pre_site_region(region_parts,
+                        inrange_sites,
+                        kmer_size,
+                        prg_info);
+    add_site_regions(region_parts,
+                     inrange_sites,
+                     prg_info);
+    add_post_site_regions(region_parts,
+                          inrange_sites,
+                          kmer_size,
+                          prg_info);
     return region_parts;
 }
 
