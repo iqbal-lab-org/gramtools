@@ -4,6 +4,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
+#include <boost/filesystem.hpp>
 
 #include <sdsl/bit_vectors.hpp>
 
@@ -16,6 +17,7 @@
 
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 
 int main(int argc, const char *const *argv) {
@@ -112,25 +114,20 @@ void quasimap(const Parameters &parameters) {
 }
 
 
+std::string full_path(const std::string &gram_dirpath,
+                      const std::string &file_name) {
+    fs::path dir(gram_dirpath);
+    fs::path file(file_name);
+    fs::path full_path = dir / file;
+    return full_path.string();
+}
+
+
 Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
     po::options_description build_description("build options");
     build_description.add_options()
                              ("gram", po::value<std::string>(),
                               "gramtools directory")
-                             ("prg", po::value<std::string>(),
-                              "file containing a linear PRG")
-                             ("encoded-prg", po::value<std::string>(),
-                              "output file containing the integer encoded linear PRG")
-                             ("fm-index", po::value<std::string>(),
-                              "file containing the SDSL FM-Index")
-                             ("variant-site-mask", po::value<std::string>(),
-                              "vaiant site boundary marker mask over the linear PRG")
-                             ("allele-mask", po::value<std::string>(),
-                              "allele ID mask over the linear PRG")
-                             ("memory-log", po::value<std::string>(),
-                              "SDSL memory log of FM-index construction")
-                             ("kmer-index", po::value<std::string>(),
-                              "output destination of the kmer index")
                              ("kmer-size", po::value<uint32_t>(),
                               "kmer size used in constructing the kmer index")
                              ("max-read-size", po::value<uint32_t>(),
@@ -142,15 +139,18 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
 
     po::store(po::command_line_parser(opts).options(build_description).run(), vm);
 
+    std::string gram_dirpath = vm["gram"].as<std::string>();
+
     Parameters parameters;
-    parameters.gram_dirpath = vm["gram"].as<std::string>();
-    parameters.linear_prg_fpath = vm["prg"].as<std::string>();
-    parameters.encoded_prg_fpath = vm["encoded-prg"].as<std::string>();
-    parameters.fm_index_fpath = vm["fm-index"].as<std::string>();
-    parameters.site_mask_fpath = vm["variant-site-mask"].as<std::string>();
-    parameters.allele_mask_fpath = vm["allele-mask"].as<std::string>();
-    parameters.sdsl_memory_log_fpath = vm["memory-log"].as<std::string>();
-    parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
+    parameters.gram_dirpath = gram_dirpath;
+    parameters.linear_prg_fpath = full_path(gram_dirpath, "prg");
+    parameters.encoded_prg_fpath = full_path(gram_dirpath, "encoded_prg");
+    parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
+    parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
+    parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
+    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
+    parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
+
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.max_read_size = vm["max-read-size"].as<uint32_t>();
     return parameters;
@@ -163,20 +163,6 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     quasimap_description.add_options()
                                 ("gram", po::value<std::string>(),
                                  "gramtools directory")
-                                ("prg", po::value<std::string>(),
-                                 "file containing a linear PRG")
-                                ("encoded-prg", po::value<std::string>(),
-                                 "output file containing the integer encoded linear PRG")
-                                ("fm-index", po::value<std::string>(),
-                                 "file containing the SDSL FM-Index")
-                                ("variant-site-mask", po::value<std::string>(),
-                                 "vaiant site boundary marker mask over the linear PRG")
-                                ("allele-mask", po::value<std::string>(),
-                                 "allele ID mask over the linear PRG")
-                                ("memory-log", po::value<std::string>(),
-                                 "SDSL memory log of FM-index construction")
-                                ("kmer-index", po::value<std::string>(),
-                                 "output destination of the kmer index")
                                 ("kmer-size", po::value<uint32_t>(),
                                  "kmer size used in constructing the kmer index")
 
@@ -192,17 +178,19 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     opts.erase(opts.begin());
     po::store(po::command_line_parser(opts).options(quasimap_description).run(), vm);
 
-    Parameters parameters;
-    parameters.gram_dirpath = vm["gram"].as<std::string>();
-    parameters.linear_prg_fpath = vm["prg"].as<std::string>();
-    parameters.encoded_prg_fpath = vm["encoded-prg"].as<std::string>();
-    parameters.fm_index_fpath = vm["fm-index"].as<std::string>();
-    parameters.site_mask_fpath = vm["variant-site-mask"].as<std::string>();
-    parameters.allele_mask_fpath = vm["allele-mask"].as<std::string>();
-    parameters.sdsl_memory_log_fpath = vm["memory-log"].as<std::string>();
-    parameters.kmer_index_fpath = vm["kmer-index"].as<std::string>();
-    parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
+    std::string gram_dirpath = vm["gram"].as<std::string>();
 
+    Parameters parameters;
+    parameters.gram_dirpath = gram_dirpath;
+    parameters.linear_prg_fpath = full_path(gram_dirpath, "prg");
+    parameters.encoded_prg_fpath = full_path(gram_dirpath, "encoded_prg");
+    parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
+    parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
+    parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
+    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
+    parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
+    
+    parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.reads_fpath = vm["reads"].as<std::string>();
     parameters.allele_coverage_fpath = vm["allele-coverages"].as<std::string>();
     parameters.reads_progress_fpath = vm["reads-progress"].as<std::string>();

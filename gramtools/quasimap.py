@@ -34,13 +34,6 @@ def _execute_command(quasimap_paths, args):
         common.gramtools_exec_fpath,
         'quasimap',
         '--gram', quasimap_paths['project'],
-        '--prg', quasimap_paths['prg'],
-        '--encoded-prg', quasimap_paths['encoded_prg'],
-        '--fm-index', quasimap_paths['fm_index'],
-        '--variant-site-mask', quasimap_paths['variant_site_mask'],
-        '--allele-mask', quasimap_paths['allele_mask'],
-        '--memory-log', quasimap_paths['sdsl_memory_log'],
-        '--kmer-index', quasimap_paths['kmer_index'],
         '--kmer-size', str(args.kmer_size),
 
         '--reads', quasimap_paths['reads'],

@@ -74,13 +74,6 @@ def _execute_gramtools_cpp_build(build_paths, args):
         common.gramtools_exec_fpath,
         'build',
         '--gram', build_paths['project'],
-        '--prg', build_paths['prg'],
-        '--encoded-prg', build_paths['encoded_prg'],
-        '--fm-index', build_paths['fm_index'],
-        '--variant-site-mask', build_paths['variant_site_mask'],
-        '--allele-mask', build_paths['allele_mask'],
-        '--memory-log', build_paths['sdsl_memory_log'],
-        '--kmer-index', build_paths['kmer_index'],
         '--kmer-size', str(args.kmer_size),
         '--max-read-size', str(args.max_read_length),
     ]

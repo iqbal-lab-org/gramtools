@@ -6,8 +6,6 @@ log = logging.getLogger('gramtools')
 
 def _generate_project_paths(args):
     project_dir = args.gram_directory
-    kmer_prefix_diffs_file_name = \
-        'kmer_prefix_diffs_' + str(args.kmer_size)
     kmer_index_file_name = \
         'kmer_index_' + str(args.kmer_size)
 
@@ -38,10 +36,6 @@ def _generate_project_paths(args):
         'fm_index': project_path('fm_index'),
         'sdsl_memory_log': project_path('sdsl_memory_log'),
 
-        'kmers_dir': project_path('kmers'),
-        'kmer_prefix_diffs': os.path.join(project_dir,
-                                          'kmers',
-                                          kmer_prefix_diffs_file_name),
         'kmer_index': os.path.join(project_dir,
                                    'kmers',
                                    kmer_index_file_name),
@@ -135,7 +129,6 @@ def check_project_file_structure(paths):
     log.debug('Checking project file structure')
     dir_names = [
         'project',
-        'kmers_dir',
         'quasimap_outputs_dirpath',
         'quasimap_run_dirpath',
     ]
