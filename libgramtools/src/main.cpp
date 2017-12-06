@@ -163,11 +163,10 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     quasimap_description.add_options()
                                 ("gram", po::value<std::string>(),
                                  "gramtools directory")
-                                ("kmer-size", po::value<uint32_t>(),
-                                 "kmer size used in constructing the kmer index")
-
                                 ("reads", po::value<std::string>(),
                                  "file contining reads (FASTA or FASTQ)")
+                                ("kmer-size", po::value<uint32_t>(),
+                                 "kmer size used in constructing the kmer index")
                                 ("allele-coverages", po::value<std::string>(),
                                  "output file of read coverages over each allele and variant site")
                                 ("reads-progress", po::value<std::string>(),

@@ -22,6 +22,10 @@ def parse_args(common_parser, subparsers):
     parser.add_argument('--reads',
                         help='',
                         type=str)
+    parser.add_argument('--output-directory',
+                        help='',
+                        type=str,
+                        required=False)
     parser.add_argument('--kmer-size',
                         help='',
                         type=int,
@@ -34,9 +38,8 @@ def _execute_command(quasimap_paths, args):
         common.gramtools_exec_fpath,
         'quasimap',
         '--gram', quasimap_paths['project'],
-        '--kmer-size', str(args.kmer_size),
-
         '--reads', quasimap_paths['reads'],
+        '--kmer-size', str(args.kmer_size),
         '--allele-coverages', quasimap_paths['allele_coverage'],
         '--reads-progress', quasimap_paths['reads_progress'],
     ]

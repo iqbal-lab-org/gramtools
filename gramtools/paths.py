@@ -95,8 +95,12 @@ def _generate_quasimap_run_dirpath(quasimap_outputs_dirpath,
 
 def generate_quasimap_paths(args, start_time):
     project_paths = _generate_project_paths(args)
-    outputs_dirpath = os.path.join(project_paths['project'],
-                                   'quasimap_outputs')
+
+    if hasattr(args, 'output_directory'):
+        outputs_dirpath = args.output_directory
+    else:
+        outputs_dirpath = os.path.join(project_paths['project'],
+                                       'quasimap_outputs')
     run_dirpath = _generate_quasimap_run_dirpath(outputs_dirpath,
                                                  args.kmer_size,
                                                  start_time)
@@ -124,17 +128,17 @@ def generate_quasimap_paths(args, start_time):
 
 def check_project_file_structure(paths):
     log.debug('Checking project file structure')
-    dir_names = [
+    directory_keys = [
         'project',
         'quasimap_outputs_dirpath',
         'quasimap_run_dirpath',
     ]
-    for dir_name in dir_names:
+    for directory_key in directory_keys:
         try:
-            dir_path = paths[dir_name]
+            directory_path = paths[directory_key]
         except KeyError:
             continue
-        if os.path.isdir(dir_path):
+        if os.path.isdir(directory_path):
             continue
-        log.debug('Creating missing directory:\n%s', dir_path)
-        os.mkdir(dir_path)
+        log.debug('Creating missing directory:\n%s', directory_path)
+        os.mkdir(directory_path)
