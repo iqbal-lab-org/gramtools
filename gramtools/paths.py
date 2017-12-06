@@ -40,8 +40,6 @@ def _generate_project_paths(args):
                                    'kmers',
                                    kmer_index_file_name),
 
-        'callgrind_out': project_path('callgrind.out'),
-
         'perl_generated_vcf': project_path('perl_generated_vcf'),
         'perl_generated_fa': project_path('perl_generated_fa'),
     }
@@ -111,7 +109,6 @@ def generate_quasimap_paths(args, start_time):
         'quasimap_run_dirpath': run_dirpath,
 
         'run_report': run_path('report.json'),
-        'callgrind_out': run_path('callgrind.out'),
         'sdsl_memory_log': run_path('sdsl_memory_log'),
         'allele_coverage': run_path('allele_coverage'),
         'reads_progress': run_path('reads_progress'),

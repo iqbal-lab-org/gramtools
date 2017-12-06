@@ -80,15 +80,6 @@ def _execute_gramtools_cpp_build(build_paths, args):
 
     if args.debug:
         command += ['--debug']
-
-    callgrind_command = [
-        'valgrind',
-        '--tool=callgrind',
-        '--callgrind-out-file=' + build_paths['callgrind_out'],
-    ]
-
-    callgrind_command = callgrind_command if args.profile else []
-    command = callgrind_command + command
     command_str = ' '.join(command)
 
     log.debug('Executing command:\n\n%s\n', command_str)

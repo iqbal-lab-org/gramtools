@@ -38,8 +38,6 @@ def _parse_args():
     common_parser = subparsers.add_parser('common', add_help=False)
     common_parser.add_argument('--debug', help='',
                                action='store_true')
-    common_parser.add_argument('--profile', help='',
-                               action='store_true')
 
     for command in commands.values():
         command.parse_args(common_parser, subparsers)

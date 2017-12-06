@@ -41,15 +41,6 @@ def _execute_command(quasimap_paths, args):
         '--reads-progress', quasimap_paths['reads_progress'],
     ]
 
-    callgrind_command = [
-        'valgrind',
-        '--tool=callgrind',
-        '--callgrind-out-file=' + quasimap_paths['callgrind_out'],
-    ]
-
-    callgrind_command = callgrind_command if args.profile else []
-    command = callgrind_command + command
-
     command_str = ' '.join(command)
     log.debug('Executing command:\n\n%s\n', command_str)
 
