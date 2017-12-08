@@ -672,8 +672,8 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
                                   parameters.kmers_size,
                                   prg_info);
     Pattern target_kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
-    auto result = kmer_index.find(target_kmer) != kmer_index.end();
-    EXPECT_TRUE(result);
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
 }
 
 
@@ -692,8 +692,8 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleChar
                                   parameters.kmers_size,
                                   prg_info);
     Pattern target_kmer = {1, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2};
-    auto result = kmer_index.find(target_kmer) != kmer_index.end();
-    EXPECT_TRUE(result);
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
 }
 
 
@@ -712,8 +712,8 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracte
                                   parameters.kmers_size,
                                   prg_info);
     Pattern target_kmer = {4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2, 2};
-    auto result = kmer_index.find(target_kmer) != kmer_index.end();
-    EXPECT_TRUE(result);
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
 }
 
 
@@ -733,8 +733,8 @@ TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
                                   parameters.kmers_size,
                                   prg_info);
     Pattern target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
-    auto result = kmer_index.find(target_kmer) == kmer_index.end();
-    EXPECT_TRUE(result);
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_FALSE(found);
 }
 
 
@@ -754,6 +754,86 @@ TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
                                   parameters.kmers_size,
                                   prg_info);
     Pattern target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
-    auto result = kmer_index.find(target_kmer) != kmer_index.end();
-    EXPECT_TRUE(result);
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
+}
+
+
+TEST(IndexKmers, KmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
+    //                 last site overlapping kmer end: |
+    auto prg_raw = "t25cg26cc26tg26tc25ctcacagacgattctcctgac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 18;
+    parameters.max_read_size = 22;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {1, 2, 1, 3, 1, 2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1, 2};
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
+}
+
+
+TEST(IndexKmers, KmerEndJustOutsideMaxReadSize_KmerNotFoundInIndex) {
+    //                 last site overlapping kmer end: |
+    auto prg_raw = "t25cg26cc26tg26tc25ctcacagacgattctcctgac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 18;
+    parameters.max_read_size = 21;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {1, 2, 1, 3, 1, 2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1, 2};
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_FALSE(found);
+}
+
+
+TEST(IndexKmers, TwoSitesAndKmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
+    //                  last base given max read size:   |
+    auto prg_raw = "t25cg26cc26tg26tc25ct27ca28ca27gacgattctcctgac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 5;
+    parameters.max_read_size = 8;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {2, 3, 1, 4, 4};
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
+}
+
+
+TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFound) {
+    //                  last base given max read size:   |
+    auto prg_raw = "t25cg26cc26tg26tc25ct27ca28ca27gacgattctcctgac";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Parameters parameters;
+    parameters.kmers_size = 5;
+    parameters.max_read_size = 7;
+
+    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
+                                                   prg_info);
+    auto kmer_index = index_kmers(kmer_prefix_diffs,
+                                  parameters.kmers_size,
+                                  prg_info);
+    Pattern target_kmer = {2, 3, 1, 4, 4};
+    auto found = kmer_index.find(target_kmer) != kmer_index.end();
+    EXPECT_FALSE(found);
 }
