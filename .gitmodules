@@ -1,0 +1,3 @@
+[submodule "libgramtools/lib/htslib"]
+	path = libgramtools/lib/htslib
+	url = https://github.com/samtools/htslib

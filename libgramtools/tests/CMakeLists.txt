@@ -43,8 +43,8 @@ add_executable(test_main
 target_link_libraries(test_main
         gramtools
         libgmock
-        ${LIBS_PATHS}
-        ${Boost_LIBRARIES})
+        -lpthread
+        -lm)
 target_include_directories(test_main PUBLIC
         ${INCLUDE}
         ${source_dir}/googletest/include

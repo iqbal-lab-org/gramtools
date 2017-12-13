@@ -1,39 +1,77 @@
+include(ExternalProject)
+
+execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/src)
+
+ExternalProject_Add(sdsl
+        GIT_REPOSITORY https://github.com/simongog/sdsl-lite.git
+        GIT_TAG master
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+        INSTALL_COMMAND "")
+add_custom_command(TARGET sdsl
+        POST_BUILD
+        COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/src/sdsl/install.sh ${CMAKE_CURRENT_BINARY_DIR}")
+
+ExternalProject_Add(zlib
+        GIT_REPOSITORY https://github.com/madler/zlib.git
+        GIT_TAG master
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+        INSTALL_COMMAND "")
+add_custom_command(TARGET zlib
+        POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/zlib
+        COMMAND bash -c "./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND bash -c "make install")
+
+add_custom_target(htslib
+        COMMAND bash -c "cp -r ${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib ${CMAKE_CURRENT_BINARY_DIR}/src")
+add_custom_command(TARGET htslib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/htslib
+        COMMAND bash -c "autoheader"
+        COMMAND bash -c "autoconf"
+        COMMAND bash -c "env CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}/include LDFLAGS=-L${CMAKE_CURRENT_BINARY_DIR}/lib ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND bash -c "make"
+        COMMAND bash -c "make install")
+add_dependencies(htslib zlib)
+
+add_custom_target(boost
+        COMMAND wget https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz --timestamping --directory-prefix=${CMAKE_CURRENT_BINARY_DIR}/src
+        COMMAND tar -xvzf ${CMAKE_CURRENT_BINARY_DIR}/src/boost_1_65_1.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/src)
+add_custom_command(TARGET boost
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/boost_1_65_1
+        COMMAND ./bootstrap.sh --with-libraries=program_options,timer,system,filesystem --prefix=${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ./bjam install)
+
 add_custom_target(py_git_version
-        COMMAND bash -c
-        "make -C ${PROJECT_SOURCE_DIR}/gramtools/version")
+        COMMAND bash -c "make -C ${PROJECT_SOURCE_DIR}/gramtools/version")
+
+set(CMAKE_CXX_FLAGS "-std=c++14 -Werror -Wfatal-errors -march=native -lpthread -lm -llzma -msse4.2 -g -O3")
+
+set(EXTERNAL_LIBS_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/lib)
+set(EXTERNAL_INCLUDE_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 set(SOURCE
         ${PROJECT_SOURCE_DIR}/libgramtools/src)
 set(INCLUDE
         ${PROJECT_SOURCE_DIR}/libgramtools/include)
-set(LIB_DIRS
-        ${PROJECT_SOURCE_DIR}/libgramtools/lib
-        $ENV{LD_LIBRARY_PATH}
-        /usr/local/lib
-        /apps/well/htslib/1.4.1/lib/
-        $ENV{HOME}/lib)
 
-set(CMAKE_CXX_FLAGS "-std=c++14 -Werror -Wfatal-errors -march=native -msse4.2 -g -O3")
+find_package(BZip2)
 
-set(BOOST_ROOT /apps/well/boost/1.54.0/)
-set(LIBS
+include_directories()
+
+set(EXTERN_LIBS
+        boost_filesystem
+        boost_program_options
+        boost_timer
+        boost_system
+        boost_chrono
         hts
-        sdsl
         divsufsort
         divsufsort64
-        pthread
         z)
-set(LIBS_PATHS "")
-foreach (LIB ${LIBS})
-    find_library(PATH_${LIB} ${LIB} HINTS ${LIB_DIRS})
-    list(APPEND LIBS_PATHS ${PATH_${LIB}})
-endforeach (LIB)
 
-find_package(Boost COMPONENTS
-        program_options
-        timer
-        system
-        filesystem REQUIRED)
+link_directories(${EXTERNAL_LIBS_DIR})
 
 # libgramtools
 add_library(gramtools STATIC
@@ -61,15 +99,23 @@ add_library(gramtools STATIC
         ${INCLUDE}/ranks.hpp)
 target_include_directories(gramtools PUBLIC
         ${INCLUDE}
-        ${Boost_INCLUDE_DIRS})
+        ${EXTERNAL_INCLUDE_DIR}
+        ${BZIP_INCLUDE_DIRS}
+        ${LZMA_INCLUDE_DIR})
 target_link_libraries(gramtools LINK_PUBLIC
-        ${LIBS_PATHS}
-        ${Boost_LIBRARIES})
+        ${EXTERN_LIBS}
+        ${BZIP2_LIBRARIES}
+        ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
 set_target_properties(gramtools
         PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/lib
         LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/lib)
-add_dependencies(gramtools py_git_version)
+add_dependencies(gramtools
+        sdsl
+        zlib
+        htslib
+        boost
+        py_git_version)
 add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/lib
@@ -84,11 +130,14 @@ add_executable(gram
 add_dependencies(gram py_git_version)
 target_include_directories(gram PUBLIC
         ${INCLUDE}
-        ${Boost_INCLUDE_DIRS})
+        ${EXTERNAL_INCLUDE_DIR}
+        ${BZIP_INCLUDE_DIRS}
+        ${LZMA_INCLUDE_DIR})
 target_link_libraries(gram LINK_PUBLIC
         gramtools
-        ${LIBS_PATHS}
-        ${Boost_LIBRARIES})
+        ${EXTERN_LIBS}
+        ${BZIP2_LIBRARIES}
+        ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
 set_target_properties(gram
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/bin)
