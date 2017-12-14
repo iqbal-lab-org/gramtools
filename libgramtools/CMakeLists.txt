@@ -23,9 +23,10 @@ add_custom_command(TARGET zlib
         COMMAND bash -c "make install")
 
 add_custom_target(htslib
-        COMMAND bash -c "cp -r ${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib ${CMAKE_CURRENT_BINARY_DIR}/src")
+        COMMAND wget https://github.com/samtools/htslib/releases/download/1.6/htslib-1.6.tar.bz2 --timestamping --directory-prefix=${CMAKE_CURRENT_BINARY_DIR}/src
+        COMMAND tar -xjf ${CMAKE_CURRENT_BINARY_DIR}/src/htslib-1.6.tar.bz2 -C ${CMAKE_CURRENT_BINARY_DIR}/src)
 add_custom_command(TARGET htslib
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/htslib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/htslib-1.6
         COMMAND bash -c "autoheader"
         COMMAND bash -c "autoconf"
         COMMAND bash -c "env CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}/include LDFLAGS=-L${CMAKE_CURRENT_BINARY_DIR}/lib ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}"
