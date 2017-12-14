@@ -1,49 +1,16 @@
 include(ExternalProject)
 
+execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/download)
 execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/src)
 
-ExternalProject_Add(sdsl
-        GIT_REPOSITORY https://github.com/simongog/sdsl-lite.git
-        GIT_TAG master
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}
-        INSTALL_COMMAND "")
-add_custom_command(TARGET sdsl
-        POST_BUILD
-        COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/src/sdsl/install.sh ${CMAKE_CURRENT_BINARY_DIR}")
-
-ExternalProject_Add(zlib
-        GIT_REPOSITORY https://github.com/madler/zlib.git
-        GIT_TAG master
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}
-        INSTALL_COMMAND "")
-add_custom_command(TARGET zlib
-        POST_BUILD
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/zlib
-        COMMAND bash -c "./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}"
-        COMMAND bash -c "make install")
-
-add_custom_target(htslib
-        COMMAND wget https://github.com/samtools/htslib/releases/download/1.6/htslib-1.6.tar.bz2 --timestamping --directory-prefix=${CMAKE_CURRENT_BINARY_DIR}/src
-        COMMAND tar -xjf ${CMAKE_CURRENT_BINARY_DIR}/src/htslib-1.6.tar.bz2 -C ${CMAKE_CURRENT_BINARY_DIR}/src)
-add_custom_command(TARGET htslib
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/htslib-1.6
-        COMMAND bash -c "autoheader"
-        COMMAND bash -c "autoconf"
-        COMMAND bash -c "env CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}/include LDFLAGS=-L${CMAKE_CURRENT_BINARY_DIR}/lib ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}"
-        COMMAND bash -c "make"
-        COMMAND bash -c "make install")
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
 add_dependencies(htslib zlib)
 
-add_custom_target(boost
-        COMMAND wget https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz --timestamping --directory-prefix=${CMAKE_CURRENT_BINARY_DIR}/src
-        COMMAND tar -xvzf ${CMAKE_CURRENT_BINARY_DIR}/src/boost_1_65_1.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/src)
-add_custom_command(TARGET boost
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/boost_1_65_1
-        COMMAND ./bootstrap.sh --with-libraries=program_options,timer,system,filesystem --prefix=${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ./bjam install)
-
 add_custom_target(py_git_version
-        COMMAND bash -c "make -C ${PROJECT_SOURCE_DIR}/gramtools/version")
+        COMMAND make -C ${PROJECT_SOURCE_DIR}/gramtools/version)
 
 set(CMAKE_CXX_FLAGS "-std=c++14 -Werror -Wfatal-errors -march=native -lpthread -lm -llzma -msse4.2 -g -O3")
 
