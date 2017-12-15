@@ -23,7 +23,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
     QuasimapReadsStats quasimap_stats = {0, 0, 0};
 
     for (const auto *const raw_read: reads) {
-        if (quasimap_stats.all_reads_count % 1 == 0) {
+        if (quasimap_stats.all_reads_count % 100 == 0) {
             progress_file_handle
                     << quasimap_stats.all_reads_count
                     << std::endl;
