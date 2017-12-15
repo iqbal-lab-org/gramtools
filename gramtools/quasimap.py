@@ -40,8 +40,7 @@ def _execute_command(quasimap_paths, args):
         '--gram', quasimap_paths['project'],
         '--reads', quasimap_paths['reads'],
         '--kmer-size', str(args.kmer_size),
-        '--allele-coverages', quasimap_paths['allele_coverage'],
-        '--reads-progress', quasimap_paths['reads_progress'],
+        '--run-directory', quasimap_paths['quasimap_run_dirpath'],
     ]
 
     command_str = ' '.join(command)

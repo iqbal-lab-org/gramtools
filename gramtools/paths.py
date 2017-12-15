@@ -34,8 +34,6 @@ def _generate_project_paths(args):
         'allele_mask': project_path('allele_mask'),
 
         'fm_index': project_path('fm_index'),
-        'sdsl_memory_log': project_path('sdsl_memory_log'),
-
         'kmer_index': os.path.join(project_dir,
                                    'kmers',
                                    kmer_index_file_name),
@@ -96,7 +94,7 @@ def _generate_quasimap_run_dirpath(quasimap_outputs_dirpath,
 def generate_quasimap_paths(args, start_time):
     project_paths = _generate_project_paths(args)
 
-    if hasattr(args, 'output_directory'):
+    if hasattr(args, 'output_directory') and args.output_directory is not None:
         outputs_dirpath = args.output_directory
     else:
         outputs_dirpath = os.path.join(project_paths['project'],
@@ -111,11 +109,7 @@ def generate_quasimap_paths(args, start_time):
     run_output_paths = {
         'quasimap_outputs_dirpath': outputs_dirpath,
         'quasimap_run_dirpath': run_dirpath,
-
         'run_report': run_path('report.json'),
-        'sdsl_memory_log': run_path('sdsl_memory_log'),
-        'allele_coverage': run_path('allele_coverage'),
-        'reads_progress': run_path('reads_progress'),
     }
 
     paths = {

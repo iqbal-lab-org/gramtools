@@ -148,8 +148,8 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
     parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
     parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
     parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
-    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
+    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
 
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.max_read_size = vm["max-read-size"].as<uint32_t>();
@@ -167,10 +167,8 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
                                  "file contining reads (FASTA or FASTQ)")
                                 ("kmer-size", po::value<uint32_t>(),
                                  "kmer size used in constructing the kmer index")
-                                ("allele-coverages", po::value<std::string>(),
-                                 "output file of read coverages over each allele and variant site")
-                                ("reads-progress", po::value<std::string>(),
-                                 "output file containing progress counts of reads processed");
+                                ("run-directory", po::value<std::string>(),
+                                 "a directory which contains all quasimap output files");
 
     std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
                                                              po::include_positional);
@@ -186,13 +184,16 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
     parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
     parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
-    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
     
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.reads_fpath = vm["reads"].as<std::string>();
-    parameters.allele_coverage_fpath = vm["allele-coverages"].as<std::string>();
-    parameters.reads_progress_fpath = vm["reads-progress"].as<std::string>();
+
+    std::string run_dirpath = vm["run-directory"].as<std::string>();
+
+    parameters.allele_coverage_fpath = full_path(run_dirpath, "allele_coverage");
+    parameters.reads_progress_fpath = full_path(run_dirpath, "reads_progress");
+    parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
 
     return parameters;
 }
