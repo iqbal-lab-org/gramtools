@@ -10,17 +10,17 @@
 #include "coverage_analysis.hpp"
 
 
-QuasimapStats quasimap_reads(const Parameters &params,
+QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                              const KmerIndex &kmer_index,
                              const PRG_Info &prg_info) {
     std::cout << "Generating allele coverage data structure" << std::endl;
     auto allele_coverage = generate_allele_coverage_structure(prg_info);
     std::cout << "Done generating allele coverage data structure" << std::endl;
 
-    SeqRead reads(params.reads_fpath.c_str());
-    std::ofstream progress_file_handle(params.reads_progress_fpath);
+    SeqRead reads(parameters.reads_fpath.c_str());
+    std::ofstream progress_file_handle(parameters.reads_progress_fpath);
 
-    QuasimapStats quasimap_stats = {0, 0, 0};
+    QuasimapReadsStats quasimap_stats = {0, 0, 0};
 
     for (const auto *const raw_read: reads) {
         if (quasimap_stats.all_reads_count % 1 == 0) {
@@ -41,31 +41,31 @@ QuasimapStats quasimap_reads(const Parameters &params,
         quasimap_forward_reverse(quasimap_stats,
                                  allele_coverage,
                                  read,
-                                 params,
+                                 parameters,
                                  kmer_index,
                                  prg_info);
     }
-    dump_allele_coverage(allele_coverage, params);
+    dump_allele_coverage(allele_coverage, parameters);
     return quasimap_stats;
 }
 
 
-void quasimap_forward_reverse(QuasimapStats &quasimap_stats,
+void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                               AlleleCoverage &allele_coverage,
                               const Pattern &read,
-                              const Parameters &params,
+                              const Parameters &parameters,
                               const KmerIndex &kmer_index,
                               const PRG_Info &prg_info) {
     bool read_mapped_exactly = quasimap_read(read, allele_coverage,
-                                             kmer_index, prg_info, params);
+                                             kmer_index, prg_info, parameters);
     if (read_mapped_exactly)
-        ++quasimap_stats.mapped_reads_count;
+        ++quasimap_reads_stats.mapped_reads_count;
     
     auto reverse_read = reverse_compliment_read(read);
     read_mapped_exactly = quasimap_read(reverse_read, allele_coverage,
-                                        kmer_index, prg_info, params);
+                                        kmer_index, prg_info, parameters);
     if (read_mapped_exactly)
-        ++quasimap_stats.mapped_reads_count;
+        ++quasimap_reads_stats.mapped_reads_count;
 }
 
 
@@ -73,12 +73,13 @@ bool quasimap_read(const Pattern &read,
                    AlleleCoverage &allele_coverage,
                    const KmerIndex &kmer_index,
                    const PRG_Info &prg_info,
-                   const Parameters &params) {
-    auto kmer = get_kmer_from_read(params.kmers_size, read);
+                   const Parameters &parameters) {
+    auto kmer = get_kmer_from_read(parameters.kmers_size, read);
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     auto read_mapped_exactly = not search_states.empty();
-    if (read_mapped_exactly)
-        record_read_coverage(allele_coverage, search_states);
+    if (not read_mapped_exactly)
+        return read_mapped_exactly;
+    record_read_coverage(allele_coverage, search_states);
     return read_mapped_exactly;
 }
 
@@ -91,18 +92,18 @@ void record_read_coverage(AlleleCoverage &allele_coverage,
             auto allell_id = variant_site.second;
 
             auto min_boundary_marker = 5;
-            auto variant_site_cover_index = (marker - min_boundary_marker) / 2;
-            auto allele_cover_index = allell_id - 1;
+            auto variant_site_coverage_index = (marker - min_boundary_marker) / 2;
+            auto allele_coverage_index = allell_id - 1;
 
-            allele_coverage[variant_site_cover_index][allele_cover_index] += 1;
+            allele_coverage[variant_site_coverage_index][allele_coverage_index] += 1;
         }
     }
 }
 
 
 void dump_allele_coverage(const AlleleCoverage &allele_coverage,
-                          const Parameters &params) {
-    std::ofstream file_handle(params.allele_coverage_fpath);
+                          const Parameters &parameters) {
+    std::ofstream file_handle(parameters.allele_coverage_fpath);
     for (const auto &variant_site_coverage: allele_coverage) {
         auto allele_count = 0;
         for (const auto &coverage: variant_site_coverage) {

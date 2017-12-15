@@ -9,6 +9,6 @@ std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const ch
 
 void build(const Parameters &parameters);
 
-void quasimap(const Parameters &params);
+void quasimap(const Parameters &parameters);
 
 #endif //GRAMTOOLS_MAIN_HPP

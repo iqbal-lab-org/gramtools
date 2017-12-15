@@ -47,9 +47,9 @@ VariantSitePath parse_variant_site_path(const std::string &sites_part_str);
 
 void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
 
-KmerIndex load_kmer_index(const Parameters &params);
+KmerIndex load_kmer_index(const Parameters &parameters);
 
-void generate_kmer_index(const Parameters &params,
+void generate_kmer_index(const Parameters &parameters,
                          const PRG_Info &prg_info);
 
 KmerIndex get_kmer_index(const std::string &kmer_fname, const int kmer_size, const PRG_Info &prg_info);

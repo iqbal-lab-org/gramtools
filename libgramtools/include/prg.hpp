@@ -65,6 +65,6 @@ struct EncodeResult{
 
 EncodeResult encode_char(const char &c);
 
-PRG_Info load_prg_info(const Parameters &params);
+PRG_Info load_prg_info(const Parameters &parameters);
 
 #endif //GRAMTOOLS_PRG_HPP

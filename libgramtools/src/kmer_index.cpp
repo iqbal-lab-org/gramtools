@@ -353,8 +353,8 @@ void parse_kmer_index_entry(KmerIndex &kmer_index, const std::string &line) {
 }
 
 
-KmerIndex load_kmer_index(const Parameters &params) {
-    const std::string &kmer_index_fpath = params.kmer_index_fpath;
+KmerIndex load_kmer_index(const Parameters &parameters) {
+    const std::string &kmer_index_fpath = parameters.kmer_index_fpath;
 
     std::ifstream fhandle;
     fhandle.open(kmer_index_fpath);
