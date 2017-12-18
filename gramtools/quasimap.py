@@ -22,7 +22,7 @@ def parse_args(common_parser, subparsers):
     parser.add_argument('--reads',
                         help='',
                         type=str)
-    parser.add_argument('--output-directory',
+    parser.add_argument('--run-directory',
                         help='',
                         type=str,
                         required=False)

@@ -58,7 +58,7 @@ def _get_log(args):
 
 def run():
     args = _parse_args()
-    log = _get_log(args)
+    _get_log(args)
 
     if args.version:
         report_json, _ = version.report()
