@@ -54,32 +54,38 @@ def _execute_command(quasimap_paths, args):
                                       shell=True)
 
     command_result, entire_stdout = common.handle_process_result(process_handle)
-
     log.info('Output run directory:\n%s', quasimap_paths['quasimap_run_dirpath'])
-    return command_str, command_result, entire_stdout
+
+    execute_report = collections.OrderedDict([
+        ('command', command_str),
+        ('return_value_is_0', command_result),
+        ('stdout', entire_stdout),
+    ])
+    return execute_report
 
 
-def _save_report(command_str,
-                 command_result,
-                 start_time,
-                 entire_stdout,
-                 quasimap_paths):
+def _save_report(start_time,
+                 execute_reports,
+                 command_paths,
+                 report_file_path):
 
     end_time = str(time.time()).split('.')[0]
     _, report_dict = version.report()
+    current_working_directory = os.getcwd()
 
     report = collections.OrderedDict([
         ('start_time', start_time),
         ('end_time', end_time),
         ('total_runtime', int(end_time) - int(start_time)),
-        ('version_report', report_dict),
-        ('command_return_eq_0', command_result),
-        ('entire_stdout', entire_stdout),
-        ('command_str', command_str),
-        ('paths', quasimap_paths),
     ])
+    report.update(execute_reports)
+    report.update(collections.OrderedDict([
+        ('current_working_directory', current_working_directory),
+        ('paths', command_paths),
+        ('version_report', report_dict),
+    ]))
 
-    with open(quasimap_paths['run_report'], 'w') as fhandle:
+    with open(report_file_path, 'w') as fhandle:
         json.dump(report, fhandle, indent=4)
 
 
@@ -90,13 +96,15 @@ def run(args):
     quasimap_paths = paths.generate_quasimap_paths(args, start_time)
     paths.check_project_file_structure(quasimap_paths)
 
-    results = _execute_command(quasimap_paths, args)
-    command_str, command_result, entire_stdout = results
-    log.info('End process: quasimap')
+    gramtools_cpp_report = _execute_command(quasimap_paths, args)
 
     log.debug('Writing run report to run directory')
-    _save_report(command_str,
-                 command_result,
-                 start_time,
-                 entire_stdout,
-                 quasimap_paths)
+    execute_reports = collections.OrderedDict([
+        ('gramtools_cpp_quasimap', gramtools_cpp_report),
+    ])
+    report_file_path = quasimap_paths['run_report']
+    _save_report(start_time,
+                 execute_reports,
+                 quasimap_paths,
+                 report_file_path)
+    log.info('End process: quasimap')

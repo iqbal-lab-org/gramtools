@@ -77,6 +77,7 @@ def perl_script_file_cleanup(build_paths):
 
 def generate_build_paths(args):
     project_paths = _generate_project_paths(args)
+    project_paths['build_report'] = os.path.join(project_paths['project'], 'build_report.json')
     return project_paths
 
 

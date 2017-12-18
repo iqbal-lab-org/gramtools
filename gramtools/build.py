@@ -1,8 +1,11 @@
 import os
 import time
+import json
 import logging
 import subprocess
+import collections
 
+from . import version
 from . import common
 from . import paths
 
@@ -54,8 +57,8 @@ def _execute_command_generate_prg(build_paths, _):
         '--vcf', build_paths['vcf'],
         '--ref', build_paths['reference'],
     ]
-
-    log.debug('Executing command:\n\n%s\n', ' '.join(command))
+    command_str = ' '.join(command)
+    log.debug('Executing command:\n\n%s\n', command_str)
     timer_start = time.time()
 
     current_working_directory = os.getcwd()
@@ -63,10 +66,18 @@ def _execute_command_generate_prg(build_paths, _):
                                       cwd=current_working_directory,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
-    common.handle_process_result(process_handle)
+    process_result = common.handle_process_result(process_handle)
     timer_end = time.time()
     log.debug('Finished executing command: %.3f seconds',
               timer_end - timer_start)
+
+    command_result, entire_stdout = process_result
+    execute_report = collections.OrderedDict([
+        ('command', command_str),
+        ('return_value_is_0', command_result),
+        ('stdout', entire_stdout),
+    ])
+    return execute_report
 
 
 def _execute_gramtools_cpp_build(build_paths, args):
@@ -96,20 +107,63 @@ def _execute_gramtools_cpp_build(build_paths, args):
 
     process_result = common.handle_process_result(process_handle)
     command_result, entire_stdout = process_result
-    return command_str, command_result, entire_stdout
+
+    execute_report = collections.OrderedDict([
+        ('command', command_str),
+        ('return_value_is_0', command_result),
+        ('stdout', entire_stdout),
+    ])
+    return execute_report
+
+
+def _save_report(start_time,
+                 execute_reports,
+                 command_paths,
+                 report_file_path):
+
+    end_time = str(time.time()).split('.')[0]
+    _, report_dict = version.report()
+    current_working_directory = os.getcwd()
+
+    report = collections.OrderedDict([
+        ('start_time', start_time),
+        ('end_time', end_time),
+        ('total_runtime', int(end_time) - int(start_time)),
+    ])
+    report.update(execute_reports)
+    report.update(collections.OrderedDict([
+        ('current_working_directory', current_working_directory),
+        ('paths', command_paths),
+        ('version_report', report_dict),
+    ]))
+
+    with open(report_file_path, 'w') as fhandle:
+        json.dump(report, fhandle, indent=4)
 
 
 def run(args):
     log.info('Start process: build')
+
+    start_time = str(time.time()).split('.')[0]
     if hasattr(args, 'max_read_length'):
         args.kmer_region_size = args.max_read_length
 
     build_paths = paths.generate_build_paths(args)
     paths.check_project_file_structure(build_paths)
 
-    _execute_command_generate_prg(build_paths, args)
+    prg_build_report = _execute_command_generate_prg(build_paths, args)
     paths.perl_script_file_cleanup(build_paths)
 
-    _execute_gramtools_cpp_build(build_paths, args)
+    gramtools_cpp_build_report = _execute_gramtools_cpp_build(build_paths, args)
 
+    log.debug('Writing build report to project directory')
+    execute_reports = collections.OrderedDict([
+        ('prg_build_report', prg_build_report),
+        ('gramtools_cpp_build', gramtools_cpp_build_report),
+    ])
+    report_file_path = build_paths['build_report']
+    _save_report(start_time,
+                 execute_reports,
+                 build_paths,
+                 report_file_path)
     log.info('End process: build')
