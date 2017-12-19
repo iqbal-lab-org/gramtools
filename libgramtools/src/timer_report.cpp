@@ -27,11 +27,18 @@ void TimerReport::report() const {
     std::cout << "\nTimer report:" << std::endl;
     cout_row(" ", "seconds");
 
+    double total_elapsed_time = 0;
+
     for (const auto &entry: TimerReport::logger) {
         auto &note = std::get<0>(entry);
         auto &elapsed_time = std::get<1>(entry);
         cout_row(note, elapsed_time);
+        total_elapsed_time += elapsed_time;
     }
+
+    std::cout << std::endl
+              << "Total elapsed time: " << total_elapsed_time
+              << std::endl;
 }
 
 
