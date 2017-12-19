@@ -20,7 +20,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
     SeqRead reads(parameters.reads_fpath.c_str());
     std::ofstream progress_file_handle(parameters.reads_progress_fpath);
 
-    QuasimapReadsStats quasimap_stats = {0, 0, 0};
+    QuasimapReadsStats quasimap_stats;
 
     for (const auto *const raw_read: reads) {
         if (quasimap_stats.all_reads_count % 100 == 0) {
