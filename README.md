@@ -2,8 +2,8 @@
 
 # gramtools
 Genomes evolve by recombination and mutation. 
-gramtools first models new genomes as recombinants (mosaics) of previous genomes,
-by "quasimapping" reads to the graph, and then genotyping within the graph.
+gramtools uses a reference graph to  model new genomes as recombinants (mosaics) of previous genomes,
+(by "quasimapping" reads to the graph) and then genotyping within the graph.
 
 ## Motivation
 gramtools finds the nearest mosaic from a reference panel of genomes to a sample(a "personalised reference"). The user can then either
