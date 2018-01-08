@@ -1,4 +1,5 @@
 import os
+import hashlib
 import logging
 
 
@@ -15,7 +16,6 @@ prg_build_exec_fpath = os.path.join(base_install_path,
 
 def handle_process_result(process_handle):
     """Report process results to logging."""
-
     if process_handle.stdout is None:
         return True
 
@@ -46,3 +46,24 @@ def handle_process_result(process_handle):
         log.error('Error code != 0')
         return False, entire_stdout
     return True, entire_stdout
+
+
+def hash_command_paths(command_paths):
+    command_hash_paths = {}
+    for command, path in command_paths.items():
+        if not os.path.isfile(path):
+            continue
+        command_hash_paths[command] = _file_hash(path)
+    return command_hash_paths
+
+
+def _file_hash(file_path):
+    sha = hashlib.sha256()
+    bytes_buffer_size = int(1e+7)
+    with open(file_path, 'rb') as f:
+        while True:
+            data = f.read(bytes_buffer_size)
+            if not data:
+                break
+            sha.update(data)
+    return sha.hexdigest()

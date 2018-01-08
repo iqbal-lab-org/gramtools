@@ -67,8 +67,8 @@ def _execute_command(quasimap_paths, args):
 def _save_report(start_time,
                  execute_reports,
                  command_paths,
+                 command_hash_paths,
                  report_file_path):
-
     end_time = str(time.time()).split('.')[0]
     _, report_dict = version.report()
     current_working_directory = os.getcwd()
@@ -82,6 +82,7 @@ def _save_report(start_time,
     report.update(collections.OrderedDict([
         ('current_working_directory', current_working_directory),
         ('paths', command_paths),
+        ('path_hashes', command_hash_paths),
         ('version_report', report_dict),
     ]))
 
@@ -93,18 +94,21 @@ def run(args):
     log.info('Start process: quasimap')
 
     start_time = str(time.time()).split('.')[0]
-    quasimap_paths = paths.generate_quasimap_paths(args, start_time)
-    paths.check_project_file_structure(quasimap_paths)
+    command_paths = paths.generate_quasimap_paths(args, start_time)
+    paths.check_project_file_structure(command_paths)
 
-    gramtools_cpp_report = _execute_command(quasimap_paths, args)
+    gramtools_cpp_report = _execute_command(command_paths, args)
 
-    log.debug('Writing run report to run directory')
+    log.debug('Computing sha256 hash of project paths')
+    command_hash_paths = common.hash_command_paths(command_paths)
+
+    log.debug('Saving command report:\n%s', command_paths['run_report'])
     execute_reports = collections.OrderedDict([
         ('gramtools_cpp_quasimap', gramtools_cpp_report),
     ])
-    report_file_path = quasimap_paths['run_report']
     _save_report(start_time,
                  execute_reports,
-                 quasimap_paths,
-                 report_file_path)
+                 command_paths,
+                 command_hash_paths,
+                 command_paths['run_report'])
     log.info('End process: quasimap')

@@ -119,8 +119,8 @@ def _execute_gramtools_cpp_build(build_paths, args):
 def _save_report(start_time,
                  execute_reports,
                  command_paths,
+                 command_hash_paths,
                  report_file_path):
-
     end_time = str(time.time()).split('.')[0]
     _, report_dict = version.report()
     current_working_directory = os.getcwd()
@@ -134,6 +134,7 @@ def _save_report(start_time,
     report.update(collections.OrderedDict([
         ('current_working_directory', current_working_directory),
         ('paths', command_paths),
+        ('path_hashes', command_hash_paths),
         ('version_report', report_dict),
     ]))
 
@@ -148,22 +149,25 @@ def run(args):
     if hasattr(args, 'max_read_length'):
         args.kmer_region_size = args.max_read_length
 
-    build_paths = paths.generate_build_paths(args)
-    paths.check_project_file_structure(build_paths)
+    command_paths = paths.generate_build_paths(args)
+    paths.check_project_file_structure(command_paths)
 
-    prg_build_report = _execute_command_generate_prg(build_paths, args)
-    paths.perl_script_file_cleanup(build_paths)
+    prg_build_report = _execute_command_generate_prg(command_paths, args)
+    paths.perl_script_file_cleanup(command_paths)
 
-    gramtools_cpp_build_report = _execute_gramtools_cpp_build(build_paths, args)
+    gramtools_cpp_build_report = _execute_gramtools_cpp_build(command_paths, args)
 
-    log.debug('Writing build report to project directory')
+    log.debug('Computing sha256 hash of project paths')
+    command_hash_paths = common.hash_command_paths(command_paths)
+
+    log.debug('Saving command report:\n%s', command_paths['build_report'])
     execute_reports = collections.OrderedDict([
         ('prg_build_report', prg_build_report),
         ('gramtools_cpp_build', gramtools_cpp_build_report),
     ])
-    report_file_path = build_paths['build_report']
     _save_report(start_time,
                  execute_reports,
-                 build_paths,
-                 report_file_path)
+                 command_paths,
+                 command_hash_paths,
+                 command_paths['build_report'])
     log.info('End process: build')
