@@ -191,7 +191,7 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
 
     std::string run_dirpath = vm["run-directory"].as<std::string>();
 
-    parameters.allele_coverage_fpath = full_path(run_dirpath, "allele_coverage");
+    parameters.allele_coverage_fpath = full_path(run_dirpath, "allele_sum_coverage");
     parameters.reads_progress_fpath = full_path(run_dirpath, "reads_progress");
     parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
 

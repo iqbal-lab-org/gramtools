@@ -4,7 +4,23 @@
 #ifndef GRAMTOOLS_COVERAGE_ANALYSIS_HPP
 #define GRAMTOOLS_COVERAGE_ANALYSIS_HPP
 
-using AlleleCoverage = std::vector<std::vector<uint32_t>>;
+
+using AlleleSumCoverage = std::vector<std::vector<uint32_t>>;
+
+template<typename SEQUENCE, typename T>
+using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
+using AlleleIds = std::vector<AlleleId>;
+using GroupedAlleleCounts = sequence_map<AlleleIds, uint64_t>;
+
+using BaseCoverage = std::vector<uint32_t>;
+using AlleleCoverage = std::vector<BaseCoverage>;
+using AlleleBaseCoverage = std::vector<AlleleCoverage>;
+
+struct Coverage {
+    AlleleSumCoverage allele_sum_coverage;
+    GroupedAlleleCounts grouped_allele_counts;
+    AlleleBaseCoverage allele_base_coverage;
+};
 
 struct QuasimapReadsStats {
     uint64_t all_reads_count = 0;
@@ -13,29 +29,31 @@ struct QuasimapReadsStats {
 };
 
 QuasimapReadsStats quasimap_reads(const Parameters &parameters,
-                             const KmerIndex &kmer_index,
-                             const PRG_Info &prg_info);
+                                  const KmerIndex &kmer_index,
+                                  const PRG_Info &prg_info);
 
 void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
-                              AlleleCoverage &allele_coverage,
+                              Coverage &coverage,
                               const Pattern &read,
                               const Parameters &parameters,
                               const KmerIndex &kmer_index,
                               const PRG_Info &prg_info);
 
 bool quasimap_read(const Pattern &read,
-                   AlleleCoverage &allele_coverage,
+                   Coverage &coverage,
                    const KmerIndex &kmer_index,
                    const PRG_Info &prg_info,
                    const Parameters &parameters);
 
-void record_read_coverage(AlleleCoverage &allele_coverage,
+void record_read_coverage(Coverage &coverage,
                           const SearchStates &search_states);
 
-void dump_allele_coverage(const AlleleCoverage &allele_coverage,
-                          const Parameters &parameters);
+void dump_coverage(const Coverage &coverage,
+                   const Parameters &parameters);
 
-AlleleCoverage generate_allele_coverage_structure(const PRG_Info &prg_info);
+Coverage generate_coverage_info_structure(const PRG_Info &prg_info);
+
+AlleleSumCoverage generate_allele_coverage_structure(const PRG_Info &prg_info);
 
 Pattern get_kmer_from_read(const uint32_t kmer_size, const Pattern &read);
 

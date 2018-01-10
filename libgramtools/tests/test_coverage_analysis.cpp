@@ -12,7 +12,7 @@ TEST(CoverageAnalysis, GivenOneVariantSite_CorrectAlleleCoverageStructure) {
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto result = generate_allele_coverage_structure(prg_info);
-    AlleleCoverage expected = {
+    AlleleSumCoverage expected = {
             {0, 0}
     };
     EXPECT_EQ(result, expected);
@@ -24,7 +24,7 @@ TEST(CoverageAnalysis, GivenTwoVariantSite_CorrectAlleleCoverageStructure) {
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto result = generate_allele_coverage_structure(prg_info);
-    AlleleCoverage expected = {
+    AlleleSumCoverage expected = {
             {0, 0},
             {0, 0}
     };
@@ -37,7 +37,7 @@ TEST(CoverageAnalysis, GivenThreeVariantSites_CorrectAlleleCoverageStructure) {
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto result = generate_allele_coverage_structure(prg_info);
-    AlleleCoverage expected = {
+    AlleleSumCoverage expected = {
             {0, 0},
             {0, 0, 0},
             {0, 0}
@@ -58,7 +58,7 @@ TEST(CoverageAnalysis, GivenReadAndKmerSize_CorrectKmerReturned) {
 TEST(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gccta");
     Patterns kmers = {kmer};
@@ -69,13 +69,13 @@ TEST(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCovera
     const auto read = encode_dna_bases("agccta");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 0},
             {0, 1}
     };
@@ -86,7 +86,7 @@ TEST(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCovera
 TEST(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -97,13 +97,13 @@ TEST(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverag
     const auto read = encode_dna_bases("agtcta");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 0},
             {1, 0}
     };
@@ -114,7 +114,7 @@ TEST(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverag
 TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -125,13 +125,13 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     const auto read = encode_dna_bases("ctgagtcta");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 1, 0},
             {1, 0}
     };
@@ -142,7 +142,7 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -153,13 +153,13 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAll
     const auto read = encode_dna_bases("tagtcta");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 1},
             {1, 0}
     };
@@ -170,7 +170,7 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAll
 TEST(CoverageAnalysis, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -181,13 +181,13 @@ TEST(CoverageAnalysis, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
     const auto read = encode_dna_bases("tgtcta");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 0},
             {0, 0}
     };
@@ -198,7 +198,7 @@ TEST(CoverageAnalysis, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, ReadEndsInAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("ctc");
     Patterns kmers = {kmer};
@@ -209,13 +209,13 @@ TEST(CoverageAnalysis, ReadEndsInAllele_CorrectAlleleCoverage) {
     const auto read = encode_dna_bases("gctc");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {1, 0, 0},
             {0, 0}
     };
@@ -226,7 +226,7 @@ TEST(CoverageAnalysis, ReadEndsInAllele_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, ReadStartsInAllele_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -237,13 +237,13 @@ TEST(CoverageAnalysis, ReadStartsInAllele_CorrectAlleleCoverage) {
     const auto read = encode_dna_bases("tagt");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 1},
             {1, 0}
     };
@@ -254,7 +254,7 @@ TEST(CoverageAnalysis, ReadStartsInAllele_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -265,13 +265,13 @@ TEST(CoverageAnalysis, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
     const auto read = encode_dna_bases("tagc");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 0},
             {0, 0}
     };
@@ -282,7 +282,7 @@ TEST(CoverageAnalysis, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, ReadMapsToThreePositions_CorrectAlleleCoverage) {
     const auto prg_raw = "tag5tc6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -293,13 +293,13 @@ TEST(CoverageAnalysis, ReadMapsToThreePositions_CorrectAlleleCoverage) {
     const auto read = encode_dna_bases("tagt");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {1, 0, 2},
             {1, 0}
     };
@@ -310,7 +310,7 @@ TEST(CoverageAnalysis, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, ReadEntierlyWithinAllele_CoverageNotRecorded) {
     const auto prg_raw = "gct5cccc6g6t5ag";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("ccc");
     Patterns kmers = {kmer};
@@ -321,13 +321,13 @@ TEST(CoverageAnalysis, ReadEntierlyWithinAllele_CoverageNotRecorded) {
     const auto read = encode_dna_bases("cccc");
 
     quasimap_read(read,
-                  allele_coverage,
+                  coverage,
                   kmer_index,
                   prg_info,
                   parameters);
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 0}
     };
     EXPECT_EQ(result, expected);
@@ -337,7 +337,7 @@ TEST(CoverageAnalysis, ReadEntierlyWithinAllele_CoverageNotRecorded) {
 TEST(CoverageAnalysis, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -352,14 +352,14 @@ TEST(CoverageAnalysis, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 
     for (const auto &read: reads) {
         quasimap_read(read,
-                      allele_coverage,
+                      coverage,
                       kmer_index,
                       prg_info,
                       parameters);
     }
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 0, 2},
             {2, 0}
     };
@@ -370,7 +370,7 @@ TEST(CoverageAnalysis, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -385,14 +385,14 @@ TEST(CoverageAnalysis, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
 
     for (const auto &read: reads) {
         quasimap_read(read,
-                      allele_coverage,
+                      coverage,
                       kmer_index,
                       prg_info,
                       parameters);
     }
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {0, 1, 1},
             {2, 0}
     };
@@ -403,7 +403,7 @@ TEST(CoverageAnalysis, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -419,14 +419,14 @@ TEST(CoverageAnalysis, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 
     for (const auto &read: reads) {
         quasimap_read(read,
-                      allele_coverage,
+                      coverage,
                       kmer_index,
                       prg_info,
                       parameters);
     }
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {1, 1, 1},
             {3, 0}
     };
@@ -437,7 +437,7 @@ TEST(CoverageAnalysis, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
     const auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Patterns kmers = {
             encode_dna_bases("agt"),
@@ -455,14 +455,14 @@ TEST(CoverageAnalysis, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 
     for (const auto &read: reads) {
         quasimap_read(read,
-                      allele_coverage,
+                      coverage,
                       kmer_index,
                       prg_info,
                       parameters);
     }
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {1, 1, 1},
             {2, 1}
     };
@@ -473,7 +473,7 @@ TEST(CoverageAnalysis, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 TEST(CoverageAnalysis, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
     const auto prg_raw = "gcac5t6g6c5ta7t8c7cta";
     const auto prg_info = generate_prg_info(prg_raw);
-    auto allele_coverage = generate_allele_coverage_structure(prg_info);
+    auto coverage = generate_coverage_info_structure(prg_info);
 
     Patterns kmers = {
             encode_dna_bases("cta"),
@@ -490,14 +490,14 @@ TEST(CoverageAnalysis, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage)
 
     for (const auto &read: reads) {
         quasimap_read(read,
-                      allele_coverage,
+                      coverage,
                       kmer_index,
                       prg_info,
                       parameters);
     }
 
-    const auto &result = allele_coverage;
-    AlleleCoverage expected = {
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
             {1, 0, 1},
             {0, 1}
     };
