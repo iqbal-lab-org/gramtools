@@ -5,21 +5,22 @@
 #define GRAMTOOLS_COVERAGE_ANALYSIS_HPP
 
 
-using AlleleSumCoverage = std::vector<std::vector<uint32_t>>;
+using AlleleSumCoverage = std::vector<std::vector<uint64_t>>;
 
 template<typename SEQUENCE, typename T>
 using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
 using AlleleIds = std::vector<AlleleId>;
 using GroupedAlleleCounts = sequence_map<AlleleIds, uint64_t>;
+using SitesGroupedAlleleCounts = std::vector<GroupedAlleleCounts>;
 
-using BaseCoverage = std::vector<uint32_t>;
+using BaseCoverage = std::vector<uint64_t>;
 using AlleleCoverage = std::vector<BaseCoverage>;
-using AlleleBaseCoverage = std::vector<AlleleCoverage>;
+using SitesAlleleBaseCoverage = std::vector<AlleleCoverage>;
 
 struct Coverage {
     AlleleSumCoverage allele_sum_coverage;
-    GroupedAlleleCounts grouped_allele_counts;
-    AlleleBaseCoverage allele_base_coverage;
+    SitesGroupedAlleleCounts grouped_allele_counts;
+    SitesAlleleBaseCoverage allele_base_coverage;
 };
 
 struct QuasimapReadsStats {
@@ -51,9 +52,11 @@ void record_read_coverage(Coverage &coverage,
 void dump_coverage(const Coverage &coverage,
                    const Parameters &parameters);
 
-Coverage generate_coverage_info_structure(const PRG_Info &prg_info);
+Coverage generate_coverage_structure(const PRG_Info &prg_info);
 
-AlleleSumCoverage generate_allele_coverage_structure(const PRG_Info &prg_info);
+AlleleSumCoverage generate_allele_sum_coverage_structure(const PRG_Info &prg_info);
+
+SitesAlleleBaseCoverage generate_base_coverage_structure(const PRG_Info &prg_info);
 
 Pattern get_kmer_from_read(const uint32_t kmer_size, const Pattern &read);
 
