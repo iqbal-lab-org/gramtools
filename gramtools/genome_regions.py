@@ -1,3 +1,6 @@
+import random
+
+
 class GenomeRegions:
     """Variantblocks container class.
 
@@ -15,13 +18,18 @@ class GenomeRegions:
     def __getitem__(self, idx):
         return self._regions[idx]
 
+    def iter_random(self):
+        regions_indexes = list(range(len(self._regions)))
+        random.shuffle(regions_indexes)
+        for i in regions_indexes:
+            yield self._regions[i]
+
     def range(self, start_region, reverse=False):
         start_region_idx = self._region_idx[start_region]
         if not reverse:
             idx_range = range(start_region_idx + 1, len(self._regions))
         else:
             idx_range = range(start_region_idx - 1, -1, -1)
-
         return (self._regions[idx] for idx in idx_range)
 
     def add_region(self, alleles, variant_site_marker=None):
