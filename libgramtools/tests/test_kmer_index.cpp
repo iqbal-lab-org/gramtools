@@ -498,6 +498,29 @@ TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
 }
 
 
+TEST(IndexKmers, KmerFromAlleleCenter_KmerEntryFoundNoVariantSitePath) {
+    const std::string prg_raw = "gct5cccc6g6t5ag";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    const int kmer_size = 3;
+    auto first_full_kmer = encode_dna_bases("ccc");
+    Patterns kmers = {
+            encode_dna_bases("ccc"),
+    };
+
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto found = kmer_index.find(first_full_kmer) != kmer_index.end();
+    EXPECT_TRUE(found);
+
+    auto search_states = kmer_index[first_full_kmer];
+    auto search_state = search_states.front();
+    auto result = search_state.variant_site_path;
+    VariantSitePath expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     const std::string prg_raw = "aca5g6c6a5tatt";
     const auto prg_info = generate_prg_info(prg_raw);
