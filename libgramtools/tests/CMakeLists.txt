@@ -1,10 +1,7 @@
 include(ExternalProject)
-ExternalProject_Add(
-        gtest
-        GIT_REPOSITORY https://github.com/google/googletest/
-        GIT_TAG master
+ExternalProject_Add(gtest
+        URL https://github.com/google/googletest/archive/release-1.8.0.zip
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
-        # Disable install step
         INSTALL_COMMAND "")
 
 # Get GTest source and binary directories from CMake project
