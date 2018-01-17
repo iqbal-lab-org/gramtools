@@ -12,7 +12,7 @@
 #include "masks.hpp"
 #include "timer_report.hpp"
 #include "kmer_index.hpp"
-#include "coverage_analysis.hpp"
+#include "coverage/analysis.hpp"
 #include "main.hpp"
 
 

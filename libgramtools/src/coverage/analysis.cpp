@@ -7,7 +7,7 @@
 #include "parameters.hpp"
 #include "utils.hpp"
 #include "search.hpp"
-#include "coverage_analysis.hpp"
+#include "coverage/analysis.hpp"
 
 
 QuasimapReadsStats quasimap_reads(const Parameters &parameters,

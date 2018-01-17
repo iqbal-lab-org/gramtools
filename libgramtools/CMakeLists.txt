@@ -43,7 +43,7 @@ link_directories(${EXTERNAL_LIBS_DIR})
 
 # libgramtools
 add_library(gramtools STATIC
-        ${SOURCE}/coverage_analysis.cpp
+        ${SOURCE}/coverage/analysis.cpp
         ${SOURCE}/utils.cpp
         ${SOURCE}/prg.cpp
         ${SOURCE}/kmers.cpp
@@ -54,7 +54,7 @@ add_library(gramtools STATIC
         ${SOURCE}/fm_index.cpp
         ${SOURCE}/ranks.cpp
 
-        ${INCLUDE}/coverage_analysis.hpp
+        ${INCLUDE}/coverage/analysis.hpp
         ${INCLUDE}/utils.hpp
         ${INCLUDE}/prg.hpp
         ${INCLUDE}/kmers.hpp

@@ -31,7 +31,7 @@ set(INCLUDE
 add_executable(test_main
         main.cpp
         test_utils.cpp
-        test_coverage_analysis.cpp
+        coverage/test_analysis.cpp
         test_kmers.cpp
         test_kmer_index.cpp
         test_search.cpp

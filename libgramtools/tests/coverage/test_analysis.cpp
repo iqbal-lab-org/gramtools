@@ -2,9 +2,9 @@
 
 #include "gtest/gtest.h"
 
-#include "test_utils.hpp"
+#include "../test_utils.hpp"
 #include "kmer_index.hpp"
-#include "coverage_analysis.hpp"
+#include "coverage/analysis.hpp"
 
 
 /*
