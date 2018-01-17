@@ -45,7 +45,7 @@ set(SOURCE_FILES
         ${SOURCE}/search.cpp
         ${SOURCE}/utils.cpp
 
-        ${SOURCE}/coverage/analysis.cpp
+        ${SOURCE}/quasimap/quasimap.cpp
 
         ${SOURCE}/kmer_index/kmers.cpp
         ${SOURCE}/kmer_index/kmer_index.cpp
@@ -59,7 +59,7 @@ set(INCLUDE_FILES
         ${INCLUDE}/search.hpp
         ${INCLUDE}/utils.hpp
 
-        ${INCLUDE}/coverage/analysis.hpp
+        ${INCLUDE}/quasimap/quasimap.hpp
 
         ${INCLUDE}/kmer_index/kmers.hpp
         ${INCLUDE}/kmer_index/kmer_index.hpp

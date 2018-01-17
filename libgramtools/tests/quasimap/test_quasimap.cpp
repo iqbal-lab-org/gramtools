@@ -4,7 +4,7 @@
 
 #include "../test_utils.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "coverage/analysis.hpp"
+#include "quasimap/quasimap.hpp"
 
 
 /*
@@ -32,7 +32,7 @@ i	F	BWT	text   SA	suffix
 19	8	4	0	   14	8 2 7 2 4 0
 */
 
-TEST(CoverageAnalysis, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
+TEST(Quasimap, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7ct";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -84,7 +84,7 @@ i	F	BWT	text	SA	suffix
 20	8	4	0	    14	8 2 2 7 2 4 0
 */
 
-TEST(CoverageAnalysis, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBeforeSecondAlleleEnd) {
+TEST(Quasimap, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBeforeSecondAlleleEnd) {
     auto prg_raw = "gct5c6g6t5ag7t8cc7ct";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -110,7 +110,7 @@ TEST(CoverageAnalysis, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBefore
 }
 
 
-TEST(CoverageAnalysis, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_CorrectCoverage) {
+TEST(Quasimap, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_CorrectCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8cc7ct";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -136,7 +136,7 @@ TEST(CoverageAnalysis, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_Correc
 }
 
 
-TEST(CoverageAnalysis, GivenTwoSites_CorrectInterSiteBaseCount) {
+TEST(Quasimap, GivenTwoSites_CorrectInterSiteBaseCount) {
     auto prg_raw = "gct5c6g6t5ag7t8cc7ct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -164,7 +164,7 @@ i	F	BWT	text	SA	suffix
 11	6	3	0	    5	6 1 3 1 5 2 0
 */
 
-TEST(CoverageAnalysis, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage) {
+TEST(Quasimap, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -188,7 +188,7 @@ TEST(CoverageAnalysis, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCoverage) {
+TEST(Quasimap, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCoverage) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -212,7 +212,7 @@ TEST(CoverageAnalysis, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCoverage
 }
 
 
-TEST(CoverageAnalysis, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) {
+TEST(Quasimap, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -236,7 +236,7 @@ TEST(CoverageAnalysis, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) {
 }
 
 
-TEST(CoverageAnalysis, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage) {
+TEST(Quasimap, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -260,7 +260,7 @@ TEST(CoverageAnalysis, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverageOfAllele) {
+TEST(Quasimap, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverageOfAllele) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -284,7 +284,7 @@ TEST(CoverageAnalysis, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverageO
 }
 
 
-TEST(CoverageAnalysis, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageStructure) {
+TEST(Quasimap, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageStructure) {
     auto prg_raw = "5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -299,7 +299,7 @@ TEST(CoverageAnalysis, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageStru
 }
 
 
-TEST(CoverageAnalysis, GivenOneVariantSite_CorrectAlleleBaseCoverageStructure) {
+TEST(Quasimap, GivenOneVariantSite_CorrectAlleleBaseCoverageStructure) {
     auto prg_raw = "ct5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -314,7 +314,7 @@ TEST(CoverageAnalysis, GivenOneVariantSite_CorrectAlleleBaseCoverageStructure) {
 }
 
 
-TEST(CoverageAnalysis, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure) {
+TEST(Quasimap, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure) {
     auto prg_raw = "ct5gg6aga5ccccc7a8ttt7";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -333,7 +333,7 @@ TEST(CoverageAnalysis, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure) 
 }
 
 
-TEST(CoverageAnalysis, GivenOneVariantSite_CorrectAlleleSumCoverageStructure) {
+TEST(Quasimap, GivenOneVariantSite_CorrectAlleleSumCoverageStructure) {
     auto prg_raw = "gcgct5gg6agtg5ctgt";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -345,7 +345,7 @@ TEST(CoverageAnalysis, GivenOneVariantSite_CorrectAlleleSumCoverageStructure) {
 }
 
 
-TEST(CoverageAnalysis, GivenTwoVariantSite_CorrectAlleleSumCoverageStructure) {
+TEST(Quasimap, GivenTwoVariantSite_CorrectAlleleSumCoverageStructure) {
     auto prg_raw = "gcgct5gg6agtg5cccc7t8g7t";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -358,7 +358,7 @@ TEST(CoverageAnalysis, GivenTwoVariantSite_CorrectAlleleSumCoverageStructure) {
 }
 
 
-TEST(CoverageAnalysis, GivenThreeVariantSites_CorrectAlleleSumCoverageStructure) {
+TEST(Quasimap, GivenThreeVariantSites_CorrectAlleleSumCoverageStructure) {
     auto prg_raw = "5gg6agtg5c7t8g8c7t9ccccc10t9";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -372,7 +372,7 @@ TEST(CoverageAnalysis, GivenThreeVariantSites_CorrectAlleleSumCoverageStructure)
 }
 
 
-TEST(CoverageAnalysis, GivenReadAndKmerSize_CorrectKmerReturned) {
+TEST(Quasimap, GivenReadAndKmerSize_CorrectKmerReturned) {
     auto read = encode_dna_bases("accgaatt");
     uint32_t kmer_size = 3;
     auto result = get_kmer_from_read(kmer_size, read);
@@ -381,7 +381,7 @@ TEST(CoverageAnalysis, GivenReadAndKmerSize_CorrectKmerReturned) {
 }
 
 
-TEST(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -409,7 +409,7 @@ TEST(CoverageAnalysis, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCovera
 }
 
 
-TEST(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -437,7 +437,7 @@ TEST(CoverageAnalysis, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverag
 }
 
 
-TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -465,7 +465,7 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -493,7 +493,7 @@ TEST(CoverageAnalysis, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAll
 }
 
 
-TEST(CoverageAnalysis, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
+TEST(Quasimap, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -521,7 +521,7 @@ TEST(CoverageAnalysis, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadEndsInAllele_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -549,7 +549,7 @@ TEST(CoverageAnalysis, ReadEndsInAllele_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadStartsInAllele_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -577,7 +577,7 @@ TEST(CoverageAnalysis, ReadStartsInAllele_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -605,7 +605,7 @@ TEST(CoverageAnalysis, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadMapsToThreePositions_CorrectAlleleCoverage) {
+TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
     auto prg_raw = "tag5tc6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -633,7 +633,7 @@ TEST(CoverageAnalysis, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, ReadEntierlyWithinAllele_CoverageNotRecorded) {
+TEST(Quasimap, ReadEntierlyWithinAllele_CoverageNotRecorded) {
     auto prg_raw = "gct5cccc6g6t5ag";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -659,7 +659,7 @@ TEST(CoverageAnalysis, ReadEntierlyWithinAllele_CoverageNotRecorded) {
 }
 
 
-TEST(CoverageAnalysis, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
+TEST(Quasimap, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -692,7 +692,7 @@ TEST(CoverageAnalysis, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
+TEST(Quasimap, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -725,7 +725,7 @@ TEST(CoverageAnalysis, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
+TEST(Quasimap, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -759,7 +759,7 @@ TEST(CoverageAnalysis, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
+TEST(Quasimap, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);
@@ -795,7 +795,7 @@ TEST(CoverageAnalysis, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 }
 
 
-TEST(CoverageAnalysis, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
+TEST(Quasimap, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
     auto prg_raw = "gcac5t6g6c5ta7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = generate_coverage_structure(prg_info);

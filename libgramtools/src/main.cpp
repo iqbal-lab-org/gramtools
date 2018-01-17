@@ -12,7 +12,7 @@
 #include "prg/masks.hpp"
 #include "timer_report.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "coverage/analysis.hpp"
+#include "quasimap/quasimap.hpp"
 #include "main.hpp"
 
 

@@ -7,15 +7,15 @@
 #include "parameters.hpp"
 #include "utils.hpp"
 #include "search.hpp"
-#include "coverage/analysis.hpp"
+#include "quasimap/quasimap.hpp"
 
 
 QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                                   const KmerIndex &kmer_index,
                                   const PRG_Info &prg_info) {
-    std::cout << "Generating allele coverage data structure" << std::endl;
+    std::cout << "Generating allele quasimap data structure" << std::endl;
     auto coverage = generate_coverage_structure(prg_info);
-    std::cout << "Done generating allele coverage data structure" << std::endl;
+    std::cout << "Done generating allele quasimap data structure" << std::endl;
 
     SeqRead reads(parameters.reads_fpath.c_str());
     std::ofstream progress_file_handle(parameters.reads_progress_fpath);

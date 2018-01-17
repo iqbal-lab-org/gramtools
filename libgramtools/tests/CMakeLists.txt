@@ -34,7 +34,7 @@ add_executable(test_main
         test_search.cpp
         test_utils.cpp
 
-        coverage/test_analysis.cpp
+        quasimap/test_quasimap.cpp
 
         kmer_index/test_kmers.cpp
         kmer_index/test_kmer_index.cpp
