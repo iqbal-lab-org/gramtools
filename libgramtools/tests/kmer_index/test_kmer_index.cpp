@@ -2,8 +2,8 @@
 
 #include "gtest/gtest.h"
 
-#include "kmer_index.hpp"
-#include "test_utils.hpp"
+#include "kmer_index/kmer_index.hpp"
+#include "../test_utils.hpp"
 
 
 TEST(GenerateKmerIndex, GivenDataForSingleKmerIndexEntry_CorrectRowDumpGenerated) {

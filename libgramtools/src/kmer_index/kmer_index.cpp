@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <thread>
 #include <unordered_map>
-#include <kmers.hpp>
+#include <kmer_index/kmers.hpp>
 
-#include "kmer_index.hpp"
+#include "kmer_index/kmer_index.hpp"
 #include "search.hpp"
 
 

@@ -1,4 +1,4 @@
-#include "kmers.hpp"
+#include "kmer_index/kmers.hpp"
 
 
 std::vector<PrgIndexRange> get_boundary_marker_indexes(const PRG_Info &prg_info) {

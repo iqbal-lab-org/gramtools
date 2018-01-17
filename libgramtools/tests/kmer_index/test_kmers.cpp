@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "test_utils.hpp"
-#include "kmers.hpp"
+#include "../test_utils.hpp"
+#include "kmer_index/kmers.hpp"
 
 
 TEST(GetBoundaryMarkerIndexes, TwoVariantSites_CorrectSiteStartEndIndexes) {

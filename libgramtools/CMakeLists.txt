@@ -46,8 +46,8 @@ add_library(gramtools STATIC
         ${SOURCE}/coverage/analysis.cpp
         ${SOURCE}/utils.cpp
         ${SOURCE}/prg.cpp
-        ${SOURCE}/kmers.cpp
-        ${SOURCE}/kmer_index.cpp
+        ${SOURCE}/kmer_index/kmers.cpp
+        ${SOURCE}/kmer_index/kmer_index.cpp
         ${SOURCE}/search.cpp
         ${SOURCE}/masks.cpp
         ${SOURCE}/dna_ranks.cpp
@@ -57,9 +57,9 @@ add_library(gramtools STATIC
         ${INCLUDE}/coverage/analysis.hpp
         ${INCLUDE}/utils.hpp
         ${INCLUDE}/prg.hpp
-        ${INCLUDE}/kmers.hpp
-        ${INCLUDE}/kmer_index.hpp
-        ${INCLUDE}/kmer_index_types.hpp
+        ${INCLUDE}/kmer_index/kmers.hpp
+        ${INCLUDE}/kmer_index/kmer_index.hpp
+        ${INCLUDE}/kmer_index/kmer_index_types.hpp
         ${INCLUDE}/search.hpp
         ${INCLUDE}/masks.hpp
         ${INCLUDE}/dna_ranks.hpp

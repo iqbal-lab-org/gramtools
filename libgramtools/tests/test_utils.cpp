@@ -2,7 +2,7 @@
 
 #include "utils.hpp"
 #include "masks.hpp"
-#include "kmer_index.hpp"
+#include "kmer_index/kmer_index.hpp"
 #include "test_utils.hpp"
 
 

@@ -11,7 +11,7 @@
 #include "prg.hpp"
 #include "masks.hpp"
 #include "timer_report.hpp"
-#include "kmer_index.hpp"
+#include "kmer_index/kmer_index.hpp"
 #include "coverage/analysis.hpp"
 #include "main.hpp"
 
