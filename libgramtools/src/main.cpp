@@ -8,8 +8,8 @@
 
 #include <sdsl/bit_vectors.hpp>
 
-#include "prg.hpp"
-#include "masks.hpp"
+#include "prg/prg.hpp"
+#include "prg/masks.hpp"
 #include "timer_report.hpp"
 #include "kmer_index/kmer_index.hpp"
 #include "coverage/analysis.hpp"

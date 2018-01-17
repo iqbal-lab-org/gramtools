@@ -1,7 +1,7 @@
 #include <boost/filesystem.hpp>
 
 #include "utils.hpp"
-#include "dna_ranks.hpp"
+#include "prg/dna_ranks.hpp"
 
 
 namespace fs = boost::filesystem;

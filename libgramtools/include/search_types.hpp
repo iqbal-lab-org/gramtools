@@ -1,4 +1,4 @@
-#include "prg.hpp"
+#include "prg/prg.hpp"
 
 
 #ifndef GRAMTOOLS_SEARCH_STATES_HPP

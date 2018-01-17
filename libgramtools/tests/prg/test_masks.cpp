@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "test_utils.hpp"
-#include "masks.hpp"
+#include "../test_utils.hpp"
+#include "prg/masks.hpp"
 
 
 TEST(LoadAlleleMask, GivenComplexAlleleMask_SaveAndLoadFromFileCorrectly) {

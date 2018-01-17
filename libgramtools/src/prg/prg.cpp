@@ -1,5 +1,5 @@
-#include "masks.hpp"
-#include "prg.hpp"
+#include "prg/masks.hpp"
+#include "prg/prg.hpp"
 
 
 uint64_t dna_bwt_rank(const uint64_t upper_index,

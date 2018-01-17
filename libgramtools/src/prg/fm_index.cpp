@@ -3,7 +3,7 @@
 #include <sdsl/suffix_arrays.hpp>
 
 #include "parameters.hpp"
-#include "fm_index.hpp"
+#include "prg/fm_index.hpp"
 
 
 FM_Index load_fm_index(const Parameters &parameters) {

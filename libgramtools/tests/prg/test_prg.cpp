@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "test_utils.hpp"
+#include "../test_utils.hpp"
 
 
 TEST(GetMaxAlphabetNum, GivenPrg_CorrectMaxAlphabetNum) {

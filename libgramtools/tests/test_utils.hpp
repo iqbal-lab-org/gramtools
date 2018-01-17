@@ -1,4 +1,4 @@
-#include "prg.hpp"
+#include "prg/prg.hpp"
 
 
 #ifndef GRAMTOOLS_TEST_UTILS_HPP

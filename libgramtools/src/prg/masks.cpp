@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "masks.hpp"
+#include "prg/masks.hpp"
 
 
 sdsl::bit_vector generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg) {
