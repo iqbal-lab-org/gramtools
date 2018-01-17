@@ -334,45 +334,6 @@ TEST(Quasimap, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure) {
 }
 
 
-TEST(Quasimap, GivenOneVariantSite_CorrectAlleleSumCoverageStructure) {
-    auto prg_raw = "gcgct5gg6agtg5ctgt";
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto result = generate_allele_sum_coverage_structure(prg_info);
-    AlleleSumCoverage expected = {
-            {0, 0}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(Quasimap, GivenTwoVariantSite_CorrectAlleleSumCoverageStructure) {
-    auto prg_raw = "gcgct5gg6agtg5cccc7t8g7t";
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto result = generate_allele_sum_coverage_structure(prg_info);
-    AlleleSumCoverage expected = {
-            {0, 0},
-            {0, 0}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(Quasimap, GivenThreeVariantSites_CorrectAlleleSumCoverageStructure) {
-    auto prg_raw = "5gg6agtg5c7t8g8c7t9ccccc10t9";
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto result = generate_allele_sum_coverage_structure(prg_info);
-    AlleleSumCoverage expected = {
-            {0, 0},
-            {0, 0, 0},
-            {0, 0}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
 TEST(Quasimap, GivenReadAndKmerSize_CorrectKmerReturned) {
     auto read = encode_dna_bases("accgaatt");
     uint32_t kmer_size = 3;

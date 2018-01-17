@@ -3,11 +3,22 @@
 #include <cstdint>
 #include <string>
 
+#include <boost/functional/hash.hpp>
+
 #include "sequence_read/seqread.hpp"
 
 
 #ifndef GRAMTOOLS_UTILS_HPP
 #define GRAMTOOLS_UTILS_HPP
+
+template<typename SEQUENCE>
+struct seq_hash {
+    std::size_t operator()(const SEQUENCE &seq) const {
+        std::size_t hash = 0;
+        boost::hash_range(hash, seq.begin(), seq.end());
+        return hash;
+    }
+};
 
 using Base = uint8_t;
 using Pattern = std::vector<Base>;

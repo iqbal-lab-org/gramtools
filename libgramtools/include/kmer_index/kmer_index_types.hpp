@@ -1,8 +1,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <boost/functional/hash.hpp>
-
 #include "utils.hpp"
 #include "search_types.hpp"
 
@@ -15,15 +13,6 @@ struct CacheElement {
     Base base = 0;
 };
 using KmerIndexCache = std::list<CacheElement>;
-
-template<typename SEQUENCE>
-struct seq_hash {
-    std::size_t operator()(const SEQUENCE &seq) const {
-        std::size_t hash = 0;
-        boost::hash_range(hash, seq.begin(), seq.end());
-        return hash;
-    }
-};
 
 template<typename SEQUENCE, typename T>
 using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;

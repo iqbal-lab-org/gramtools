@@ -1,3 +1,6 @@
+#include "../../utils.hpp"
+
+
 #ifndef GRAMTOOLS_COVERAGE_TYPES_HPP
 #define GRAMTOOLS_COVERAGE_TYPES_HPP
 
