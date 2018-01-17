@@ -52,7 +52,6 @@ add_library(gramtools STATIC
         ${SOURCE}/masks.cpp
         ${SOURCE}/dna_ranks.cpp
         ${SOURCE}/fm_index.cpp
-        ${SOURCE}/ranks.cpp
 
         ${INCLUDE}/coverage/analysis.hpp
         ${INCLUDE}/utils.hpp
@@ -63,8 +62,7 @@ add_library(gramtools STATIC
         ${INCLUDE}/search.hpp
         ${INCLUDE}/masks.hpp
         ${INCLUDE}/dna_ranks.hpp
-        ${INCLUDE}/fm_index.hpp
-        ${INCLUDE}/ranks.hpp)
+        ${INCLUDE}/fm_index.hpp)
 target_include_directories(gramtools PUBLIC
         ${INCLUDE}
         ${EXTERNAL_INCLUDE_DIR}

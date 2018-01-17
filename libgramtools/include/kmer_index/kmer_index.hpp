@@ -2,7 +2,6 @@
 #include "parameters.hpp"
 #include "prg.hpp"
 #include "fm_index.hpp"
-#include "ranks.hpp"
 #include "search_types.hpp"
 #include "kmer_index_types.hpp"
 #include "kmers.hpp"
