@@ -4,6 +4,7 @@
 
 #include "../test_utils.hpp"
 #include "kmer_index/kmer_index.hpp"
+#include "quasimap/coverage/allele_sum.hpp"
 #include "quasimap/quasimap.hpp"
 
 

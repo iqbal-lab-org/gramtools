@@ -1,0 +1,22 @@
+#ifndef GRAMTOOLS_COVERAGE_TYPES_HPP
+#define GRAMTOOLS_COVERAGE_TYPES_HPP
+
+using AlleleSumCoverage = std::vector<std::vector<uint64_t>>;
+
+template<typename SEQUENCE, typename T>
+using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
+using AlleleIds = std::vector<AlleleId>;
+using GroupedAlleleCounts = sequence_map<AlleleIds, uint64_t>;
+using SitesGroupedAlleleCounts = std::vector<GroupedAlleleCounts>;
+
+using BaseCoverage = std::vector<uint64_t>;
+using AlleleCoverage = std::vector<BaseCoverage>;
+using SitesAlleleBaseCoverage = std::vector<AlleleCoverage>;
+
+struct Coverage {
+    AlleleSumCoverage allele_sum_coverage;
+    SitesGroupedAlleleCounts grouped_allele_counts;
+    SitesAlleleBaseCoverage allele_base_coverage;
+};
+
+#endif //GRAMTOOLS_COVERAGE_TYPES_HPP

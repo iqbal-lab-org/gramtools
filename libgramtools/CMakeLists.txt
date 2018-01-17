@@ -46,6 +46,8 @@ set(SOURCE_FILES
         ${SOURCE}/utils.cpp
 
         ${SOURCE}/quasimap/quasimap.cpp
+        ${SOURCE}/quasimap/utils.cpp
+        ${SOURCE}/quasimap/coverage/allele_sum.cpp
 
         ${SOURCE}/kmer_index/kmers.cpp
         ${SOURCE}/kmer_index/kmer_index.cpp
@@ -60,6 +62,9 @@ set(INCLUDE_FILES
         ${INCLUDE}/utils.hpp
 
         ${INCLUDE}/quasimap/quasimap.hpp
+        ${INCLUDE}/quasimap/utils.hpp
+        ${INCLUDE}/quasimap/coverage/allele_sum.hpp
+        ${INCLUDE}/quasimap/coverage/types.hpp
 
         ${INCLUDE}/kmer_index/kmers.hpp
         ${INCLUDE}/kmer_index/kmer_index.hpp

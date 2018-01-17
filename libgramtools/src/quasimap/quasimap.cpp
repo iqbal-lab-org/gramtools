@@ -7,6 +7,10 @@
 #include "parameters.hpp"
 #include "utils.hpp"
 #include "search.hpp"
+
+#include "quasimap/coverage/types.hpp"
+#include "quasimap/coverage/allele_sum.hpp"
+#include "quasimap/utils.hpp"
 #include "quasimap/quasimap.hpp"
 
 
@@ -280,42 +284,6 @@ void dump_coverage(const Coverage &coverage,
         }
         file_handle << std::endl;
     }
-}
-
-
-uint64_t get_number_of_variant_sites(const PRG_Info &prg_info) {
-    auto min_boundary_marker = 5;
-    uint64_t numer_of_variant_sites;
-    if (prg_info.max_alphabet_num <= 4) {
-        numer_of_variant_sites = 0;
-    } else {
-        numer_of_variant_sites = (prg_info.max_alphabet_num - min_boundary_marker + 1) / 2;
-    }
-    return numer_of_variant_sites;
-}
-
-
-AlleleSumCoverage generate_allele_sum_coverage_structure(const PRG_Info &prg_info) {
-    uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
-    AlleleSumCoverage allele_sum_coverage(numer_of_variant_sites);
-
-    const auto min_boundary_marker = 5;
-    bool last_char_was_zero = true;
-
-    for (const auto &mask_value: prg_info.sites_mask) {
-        if (mask_value == 0) {
-            last_char_was_zero = true;
-            continue;
-        }
-
-        const auto &current_marker = mask_value;
-        if (last_char_was_zero) {
-            auto variant_site_cover_index = (current_marker - min_boundary_marker) / 2;
-            allele_sum_coverage[variant_site_cover_index].push_back(0);
-            last_char_was_zero = false;
-        }
-    }
-    return allele_sum_coverage;
 }
 
 
