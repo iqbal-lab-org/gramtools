@@ -1,0 +1,25 @@
+#include "search.hpp"
+#include "quasimap/coverage/types.hpp"
+
+
+#ifndef GRAMTOOLS_ALLELE_BASE_HPP
+#define GRAMTOOLS_ALLELE_BASE_HPP
+
+namespace coverage {
+    namespace generate {
+        SitesAlleleBaseCoverage allele_base_structure(const PRG_Info &prg_info);
+    }
+
+    namespace record {
+        void allele_base(Coverage &coverage,
+                         const SearchStates &search_states,
+                         const uint64_t &read_length,
+                         const PRG_Info &prg_info);
+    }
+}
+
+uint64_t inter_site_base_count(const uint64_t &first_site_marker,
+                               const uint64_t &second_site_marker,
+                               const PRG_Info &prg_info);
+
+#endif //GRAMTOOLS_ALLELE_BASE_HPP
