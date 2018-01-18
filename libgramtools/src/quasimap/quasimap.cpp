@@ -10,6 +10,7 @@
 
 #include "quasimap/coverage/types.hpp"
 #include "quasimap/coverage/allele_sum.hpp"
+#include "quasimap/coverage/grouped_allele_counts.hpp"
 #include "quasimap/utils.hpp"
 #include "quasimap/quasimap.hpp"
 
@@ -86,28 +87,6 @@ bool quasimap_read(const Pattern &read,
     auto read_length = read.size();
     record_read_coverage(coverage, search_states, read_length, prg_info);
     return read_mapped_exactly;
-}
-
-
-void record_grouped_allele_counts(Coverage &coverage,
-                                  const SearchStates &search_states) {
-    auto &allele_sum_coverage = coverage.allele_sum_coverage;
-    for (const auto &search_state: search_states) {
-
-        /*
-        for (const auto &variant_site: search_state.variant_site_path) {
-            auto marker = variant_site.first;
-            auto allell_id = variant_site.second;
-
-            auto min_boundary_marker = 5;
-            auto variant_site_coverage_index = (marker - min_boundary_marker) / 2;
-            auto allele_coverage_index = allell_id - 1;
-
-            allele_sum_coverage[variant_site_coverage_index][allele_coverage_index] += 1;
-        }
-        */
-
-    }
 }
 
 
@@ -248,7 +227,7 @@ void record_read_coverage(Coverage &coverage,
                           const uint64_t &read_length,
                           const PRG_Info &prg_info) {
     coverage::record::allele_sum(coverage, search_states);
-    record_grouped_allele_counts(coverage, search_states);
+    coverage::record::grouped_allele_counts(coverage, search_states);
     record_allele_base_coverage(coverage, search_states, read_length, prg_info);
 }
 
@@ -303,9 +282,7 @@ Coverage generate_coverage_structure(const PRG_Info &prg_info) {
     Coverage coverage;
     coverage.allele_sum_coverage = coverage::generate::allele_sum_structure(prg_info);
     coverage.allele_base_coverage = generate_base_coverage_structure(prg_info);
-
-    uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
-    coverage.grouped_allele_counts.reserve(numer_of_variant_sites);
+    coverage.grouped_allele_counts = coverage::generate::grouped_allele_counts(prg_info);
     return coverage;
 }
 
