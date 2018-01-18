@@ -9,9 +9,7 @@
 #include "search.hpp"
 
 #include "quasimap/coverage/types.hpp"
-#include "quasimap/coverage/allele_sum.hpp"
-#include "quasimap/coverage/allele_base.hpp"
-#include "quasimap/coverage/grouped_allele_counts.hpp"
+#include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
 
 
@@ -19,7 +17,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                                   const KmerIndex &kmer_index,
                                   const PRG_Info &prg_info) {
     std::cout << "Generating allele quasimap data structure" << std::endl;
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
     std::cout << "Done generating allele quasimap data structure" << std::endl;
 
     SeqRead reads(parameters.reads_fpath.c_str());
@@ -50,7 +48,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                                  kmer_index,
                                  prg_info);
     }
-    dump_coverage(coverage, parameters);
+    coverage::dump(coverage, parameters);
     return quasimap_stats;
 }
 
@@ -85,43 +83,8 @@ bool quasimap_read(const Pattern &read,
     if (not read_mapped_exactly)
         return read_mapped_exactly;
     auto read_length = read.size();
-    record_read_coverage(coverage, search_states, read_length, prg_info);
+    coverage::record::search_states(coverage, search_states, read_length, prg_info);
     return read_mapped_exactly;
-}
-
-
-void record_read_coverage(Coverage &coverage,
-                          const SearchStates &search_states,
-                          const uint64_t &read_length,
-                          const PRG_Info &prg_info) {
-    coverage::record::allele_sum(coverage, search_states);
-    coverage::record::grouped_allele_counts(coverage, search_states);
-    coverage::record::allele_base(coverage, search_states, read_length, prg_info);
-}
-
-
-void dump_coverage(const Coverage &coverage,
-                   const Parameters &parameters) {
-    std::ofstream file_handle(parameters.allele_coverage_fpath);
-    for (const auto &variant_site_coverage: coverage.allele_sum_coverage) {
-        auto allele_count = 0;
-        for (const auto &sum_coverage: variant_site_coverage) {
-            file_handle << sum_coverage;
-            auto not_last_coverage = allele_count++ < variant_site_coverage.size() - 1;
-            if (not_last_coverage)
-                file_handle << " ";
-        }
-        file_handle << std::endl;
-    }
-}
-
-
-Coverage generate_coverage_structure(const PRG_Info &prg_info) {
-    Coverage coverage;
-    coverage.allele_sum_coverage = coverage::generate::allele_sum_structure(prg_info);
-    coverage.allele_base_coverage = coverage::generate::allele_base_structure(prg_info);
-    coverage.grouped_allele_counts = coverage::generate::grouped_allele_counts(prg_info);
-    return coverage;
 }
 
 

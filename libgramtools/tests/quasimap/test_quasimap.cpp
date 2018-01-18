@@ -4,7 +4,7 @@
 
 #include "../test_utils.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "quasimap/coverage/allele_sum.hpp"
+#include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
 
 
@@ -20,7 +20,7 @@ TEST(Quasimap, GivenReadAndKmerSize_CorrectKmerReturned) {
 TEST(Quasimap, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gccta");
     Patterns kmers = {kmer};
@@ -48,7 +48,7 @@ TEST(Quasimap, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -76,7 +76,7 @@ TEST(Quasimap, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -104,7 +104,7 @@ TEST(Quasimap, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -132,7 +132,7 @@ TEST(Quasimap, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCover
 TEST(Quasimap, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
@@ -160,7 +160,7 @@ TEST(Quasimap, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("ctc");
     Patterns kmers = {kmer};
@@ -188,7 +188,7 @@ TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -216,7 +216,7 @@ TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -244,7 +244,7 @@ TEST(Quasimap, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
     auto prg_raw = "tag5tc6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -272,7 +272,7 @@ TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 TEST(Quasimap, ReadEntierlyWithinAllele_CoverageNotRecorded) {
     auto prg_raw = "gct5cccc6g6t5ag";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("ccc");
     Patterns kmers = {kmer};
@@ -298,7 +298,7 @@ TEST(Quasimap, ReadEntierlyWithinAllele_CoverageNotRecorded) {
 TEST(Quasimap, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -331,7 +331,7 @@ TEST(Quasimap, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 TEST(Quasimap, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -364,7 +364,7 @@ TEST(Quasimap, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
 TEST(Quasimap, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
@@ -398,7 +398,7 @@ TEST(Quasimap, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 TEST(Quasimap, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Patterns kmers = {
             encode_dna_bases("agt"),
@@ -434,7 +434,7 @@ TEST(Quasimap, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 TEST(Quasimap, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
     auto prg_raw = "gcac5t6g6c5ta7t8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     Patterns kmers = {
             encode_dna_bases("cta"),

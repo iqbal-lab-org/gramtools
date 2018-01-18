@@ -4,6 +4,7 @@
 
 #include "../../test_utils.hpp"
 #include "quasimap/coverage/allele_base.hpp"
+#include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
 
 
@@ -35,7 +36,7 @@ i	F	BWT	text   SA	suffix
 TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8c7ct";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 150;
 
@@ -87,7 +88,7 @@ i	F	BWT	text	SA	suffix
 TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBeforeSecondAlleleEnd) {
     auto prg_raw = "gct5c6g6t5ag7t8cc7ct";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 6;
 
@@ -113,7 +114,7 @@ TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBefo
 TEST(AlleleBaseCoverage, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_CorrectCoverage) {
     auto prg_raw = "gct5c6g6t5ag7t8cc7ct";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 4;
 
@@ -167,7 +168,7 @@ i	F	BWT	text	SA	suffix
 TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 4;
 
@@ -191,7 +192,7 @@ TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage)
 TEST(AlleleBaseCoverage, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCoverage) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 150;
 
@@ -215,7 +216,7 @@ TEST(AlleleBaseCoverage, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCovera
 TEST(AlleleBaseCoverage, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 150;
 
@@ -239,7 +240,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) 
 TEST(AlleleBaseCoverage, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 150;
 
@@ -263,7 +264,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage)
 TEST(AlleleBaseCoverage, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverageOfAllele) {
     auto prg_raw = "ac5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = generate_coverage_structure(prg_info);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
     uint64_t read_length = 4;
 

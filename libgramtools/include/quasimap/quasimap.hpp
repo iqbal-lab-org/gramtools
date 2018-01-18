@@ -28,16 +28,6 @@ bool quasimap_read(const Pattern &read,
                    const PRG_Info &prg_info,
                    const Parameters &parameters);
 
-void record_read_coverage(Coverage &coverage,
-                          const SearchStates &search_states,
-                          const uint64_t &read_length,
-                          const PRG_Info &prg_info);
-
-void dump_coverage(const Coverage &coverage,
-                   const Parameters &parameters);
-
-Coverage generate_coverage_structure(const PRG_Info &prg_info);
-
 Pattern get_kmer_from_read(const uint32_t& kmer_size, const Pattern &read);
 
 #endif //GRAMTOOLS_QUASIMAP_HPP
