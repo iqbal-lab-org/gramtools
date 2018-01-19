@@ -183,7 +183,7 @@ TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage)
 
     auto &result = coverage.allele_base_coverage;
     SitesAlleleBaseCoverage expected = {
-            {{1, 2}, {0, 0, 0}}
+            {{1, 1}, {0, 0, 0}}
     };
     EXPECT_EQ(result, expected);
 }
