@@ -34,6 +34,7 @@ add_executable(test_main
         test_search.cpp
         test_utils.cpp
 
+        quasimap/coverage/test_common.cpp
         quasimap/coverage/test_allele_sum.cpp
         quasimap/coverage/test_allele_base.cpp
         quasimap/test_quasimap.cpp

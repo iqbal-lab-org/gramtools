@@ -59,14 +59,12 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                               const Parameters &parameters,
                               const KmerIndex &kmer_index,
                               const PRG_Info &prg_info) {
-    bool read_mapped_exactly = quasimap_read(read, coverage,
-                                             kmer_index, prg_info, parameters);
+    bool read_mapped_exactly = quasimap_read(read, coverage, kmer_index, prg_info, parameters);
     if (read_mapped_exactly)
         ++quasimap_reads_stats.mapped_reads_count;
 
     auto reverse_read = reverse_compliment_read(read);
-    read_mapped_exactly = quasimap_read(reverse_read, coverage,
-                                        kmer_index, prg_info, parameters);
+    read_mapped_exactly = quasimap_read(reverse_read, coverage, kmer_index, prg_info, parameters);
     if (read_mapped_exactly)
         ++quasimap_reads_stats.mapped_reads_count;
 }
@@ -76,14 +74,19 @@ bool quasimap_read(const Pattern &read,
                    Coverage &coverage,
                    const KmerIndex &kmer_index,
                    const PRG_Info &prg_info,
-                   const Parameters &parameters) {
+                   const Parameters &parameters,
+                   const uint32_t &random_seed) {
     auto kmer = get_kmer_from_read(parameters.kmers_size, read);
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     auto read_mapped_exactly = not search_states.empty();
     if (not read_mapped_exactly)
         return read_mapped_exactly;
     auto read_length = read.size();
-    coverage::record::search_states(coverage, search_states, read_length, prg_info);
+    coverage::record::search_states(coverage,
+                                    search_states,
+                                    read_length,
+                                    prg_info,
+                                    random_seed);
     return read_mapped_exactly;
 }
 

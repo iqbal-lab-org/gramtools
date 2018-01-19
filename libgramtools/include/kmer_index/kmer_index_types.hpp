@@ -1,6 +1,3 @@
-#include <unordered_set>
-#include <unordered_map>
-
 #include "utils.hpp"
 #include "search_types.hpp"
 
@@ -14,8 +11,6 @@ struct CacheElement {
 };
 using KmerIndexCache = std::list<CacheElement>;
 
-template<typename SEQUENCE, typename T>
-using sequence_map = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
-using KmerIndex = sequence_map<Pattern, SearchStates>;
+using KmerIndex = SequenceHashMap<Pattern, SearchStates>;
 
 #endif //GRAMTOOLS_KMER_INDEX_TYPES_HPP

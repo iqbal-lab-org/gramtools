@@ -2,6 +2,8 @@
 #include <list>
 #include <cstdint>
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <boost/functional/hash.hpp>
 
@@ -19,6 +21,12 @@ struct seq_hash {
         return hash;
     }
 };
+
+template<typename SEQUENCE, typename T>
+using SequenceHashMap = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
+
+template<typename T>
+using HashSet = std::unordered_set<T, boost::hash<T>>;
 
 using Base = uint8_t;
 using Pattern = std::vector<Base>;

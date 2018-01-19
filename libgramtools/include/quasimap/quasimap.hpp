@@ -22,11 +22,8 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                               const KmerIndex &kmer_index,
                               const PRG_Info &prg_info);
 
-bool quasimap_read(const Pattern &read,
-                   Coverage &coverage,
-                   const KmerIndex &kmer_index,
-                   const PRG_Info &prg_info,
-                   const Parameters &parameters);
+bool quasimap_read(const Pattern &read, Coverage &coverage, const KmerIndex &kmer_index, const PRG_Info &prg_info,
+                   const Parameters &parameters, const uint32_t &random_seed = 0);
 
 Pattern get_kmer_from_read(const uint32_t& kmer_size, const Pattern &read);
 

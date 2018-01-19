@@ -34,6 +34,7 @@ set(EXTERN_LIBS
         boost_timer
         boost_system
         boost_chrono
+        boost_random
         hts
         divsufsort
         divsufsort64
