@@ -35,9 +35,14 @@ AlleleSumCoverage coverage::generate::allele_sum_structure(const PRG_Info &prg_i
 void coverage::record::allele_sum(Coverage &coverage,
                                   const SearchStates &search_states) {
     auto &allele_sum_coverage = coverage.allele_sum_coverage;
+    HashSet<VariantSite> seen_sites;
 
     for (const auto &search_state: search_states) {
         for (const auto &variant_site: search_state.variant_site_path) {
+            bool site_seen_previously = seen_sites.find(variant_site) != seen_sites.end();
+            if (site_seen_previously)
+                continue;
+
             auto marker = variant_site.first;
             auto allell_id = variant_site.second;
 
@@ -46,6 +51,7 @@ void coverage::record::allele_sum(Coverage &coverage,
             auto allele_coverage_index = allell_id - 1;
 
             allele_sum_coverage[site_coverage_index][allele_coverage_index] += 1;
+            seen_sites.insert(variant_site);
         }
     }
 }
