@@ -12,7 +12,7 @@ add_dependencies(htslib zlib)
 add_custom_target(py_git_version
         COMMAND make -C ${PROJECT_SOURCE_DIR}/gramtools/version)
 
-set(CMAKE_CXX_FLAGS "-std=c++14 -march=native -lpthread -lm -llzma -msse4.2 -g -O3")
+set(CMAKE_CXX_FLAGS "-std=c++14 -march=native -lpthread -lrt -lm -llzma -msse4.2 -g -O3")
 
 set(EXTERNAL_LIBS_DIR
         ${CMAKE_CURRENT_BINARY_DIR}/lib)
