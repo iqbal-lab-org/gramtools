@@ -19,7 +19,7 @@ script:
   - mkdir cmake-build-debug
   - cd cmake-build-debug
   - cmake ..
-  - make
+  - make --silent
   - cd ../libgramtools/tests/
   - ./test_main
 notifications:
