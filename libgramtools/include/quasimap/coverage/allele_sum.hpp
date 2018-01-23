@@ -14,6 +14,11 @@ namespace coverage {
         void allele_sum(Coverage &coverage,
                         const SearchStates &search_states);
     }
+
+    namespace dump {
+        void allele_sum(const Coverage &coverage,
+                        const Parameters &parameters);
+    }
 }
 
 #endif //GRAMTOOLS_ALLELE_SUM_HPP

@@ -48,7 +48,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                                  kmer_index,
                                  prg_info);
     }
-    coverage::dump(coverage, parameters);
+    coverage::dump::all(coverage, parameters);
     return quasimap_stats;
 }
 

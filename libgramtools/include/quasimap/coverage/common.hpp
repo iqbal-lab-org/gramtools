@@ -13,13 +13,15 @@ namespace coverage {
                            const PRG_Info &prg_info,
                            const uint32_t &random_seed = 0);
     }
-    
+
     namespace generate {
         Coverage empty_structure(const PRG_Info &prg_info);
     }
 
-    void dump(const Coverage &coverage,
-              const Parameters &parameters);
+    namespace dump {
+        void all(const Coverage &coverage,
+                 const Parameters &parameters);
+    }
 }
 
 SA_Interval random_select_sa_interval(const SearchStates &search_states,

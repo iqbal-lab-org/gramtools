@@ -55,3 +55,19 @@ void coverage::record::allele_sum(Coverage &coverage,
         }
     }
 }
+
+
+void coverage::dump::allele_sum(const Coverage &coverage,
+                                const Parameters &parameters) {
+    std::ofstream file_handle(parameters.allele_coverage_fpath);
+    for (const auto &variant_site_coverage: coverage.allele_sum_coverage) {
+        auto allele_count = 0;
+        for (const auto &sum_coverage: variant_site_coverage) {
+            file_handle << sum_coverage;
+            auto not_last_coverage = allele_count++ < variant_site_coverage.size() - 1;
+            if (not_last_coverage)
+                file_handle << " ";
+        }
+        file_handle << std::endl;
+    }
+}
