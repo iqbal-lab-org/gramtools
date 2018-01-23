@@ -285,7 +285,6 @@ TEST(AlleleBaseCoverage, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverag
 }
 
 
-
 TEST(AlleleBaseCoverage, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageStructure) {
     auto prg_raw = "5gg6aga5c";
     auto prg_info = generate_prg_info(prg_raw);
@@ -331,5 +330,43 @@ TEST(AlleleBaseCoverage, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure
                     BaseCoverage {0, 0, 0},
             },
     };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(AlleleBaseCoverage, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {
+    SitesAlleleBaseCoverage allele_base_coverage = {
+            AlleleCoverage {
+                    BaseCoverage {1, 12},
+                    BaseCoverage {0, 3, 0},
+            },
+            AlleleCoverage {
+                    BaseCoverage {0},
+                    BaseCoverage {0, 19, 0},
+            },
+    };
+    auto result = dump_allele_base_coverage(allele_base_coverage);
+    std::string expected = "{\"allele_base_counts\":[[[1,12],[0,3,0]],[[0],[0,19,0]]]}";
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(AlleleBaseCoverage, GivenSingleSiteAlleleBaseCoverage_CorrectJsonDump) {
+    SitesAlleleBaseCoverage allele_base_coverage = {
+            AlleleCoverage {
+                    BaseCoverage {1, 12},
+                    BaseCoverage {0, 3, 0},
+            }
+    };
+    auto result = dump_allele_base_coverage(allele_base_coverage);
+    std::string expected = "{\"allele_base_counts\":[[[1,12],[0,3,0]]]}";
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(AlleleBaseCoverage, GivenEmptyAlleleBaseCoverage_CorrectJsonDump) {
+    SitesAlleleBaseCoverage allele_base_coverage = {};
+    auto result = dump_allele_base_coverage(allele_base_coverage);
+    std::string expected = "{\"allele_base_counts\":[]}";
     EXPECT_EQ(result, expected);
 }

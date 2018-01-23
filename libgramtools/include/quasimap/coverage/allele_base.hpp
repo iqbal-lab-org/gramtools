@@ -16,7 +16,14 @@ namespace coverage {
                          const uint64_t &read_length,
                          const PRG_Info &prg_info);
     }
+
+    namespace dump {
+        void allele_base(const Coverage &coverage,
+                         const Parameters &parameters);
+    }
 }
+
+std::string dump_allele_base_coverage(const SitesAlleleBaseCoverage &sites);
 
 uint64_t inter_site_base_count(const uint64_t &first_site_marker,
                                const uint64_t &second_site_marker,
