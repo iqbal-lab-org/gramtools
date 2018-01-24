@@ -59,7 +59,7 @@ void coverage::record::allele_sum(Coverage &coverage,
 
 void coverage::dump::allele_sum(const Coverage &coverage,
                                 const Parameters &parameters) {
-    std::ofstream file_handle(parameters.allele_coverage_fpath);
+    std::ofstream file_handle(parameters.allele_sum_coverage_fpath);
     for (const auto &variant_site_coverage: coverage.allele_sum_coverage) {
         auto allele_count = 0;
         for (const auto &sum_coverage: variant_site_coverage) {

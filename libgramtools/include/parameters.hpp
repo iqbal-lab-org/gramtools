@@ -20,8 +20,11 @@ struct Parameters {
 
     // quasimap specific parameters
     std::string reads_fpath;
-    std::string allele_coverage_fpath;
     std::string reads_progress_fpath;
+
+    std::string allele_sum_coverage_fpath;
+    std::string allele_base_coverage_fpath;
+    std::string grouped_allele_counts_coverage_fpath;
 };
 
 #endif //GRAMTOOLS_PARAMETERS_HPP
