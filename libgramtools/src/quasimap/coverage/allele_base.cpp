@@ -233,6 +233,8 @@ std::string dump_allele_base_coverage(const SitesAlleleBaseCoverage &sites) {
 
 void coverage::dump::allele_base(const Coverage &coverage,
                                  const Parameters &parameters) {
-    auto ss = dump_allele_base_coverage(coverage.allele_base_coverage);
-    std::cout << ss << std::endl;
+    std::string json_string = dump_allele_base_coverage(coverage.allele_base_coverage);
+    std::ofstream file;
+    file.open(parameters.allele_base_coverage_fpath);
+    file << json_string << std::endl;
 }
