@@ -62,6 +62,7 @@ void coverage::dump::all(const Coverage &coverage,
                          const Parameters &parameters) {
     coverage::dump::allele_sum(coverage, parameters);
     coverage::dump::allele_base(coverage, parameters);
+    coverage::dump::grouped_allele_counts(coverage, parameters);
 }
 
 

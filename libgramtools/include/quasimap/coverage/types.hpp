@@ -11,6 +11,7 @@ using SequenceHashMap = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
 using AlleleIds = std::vector<AlleleId>;
 using GroupedAlleleCounts = SequenceHashMap<AlleleIds, uint64_t>;
 using SitesGroupedAlleleCounts = std::vector<GroupedAlleleCounts>;
+using AlleleGroupHash = SequenceHashMap<AlleleIds, uint64_t>;
 
 using BaseCoverage = std::vector<uint64_t>;
 using AlleleCoverage = std::vector<BaseCoverage>;

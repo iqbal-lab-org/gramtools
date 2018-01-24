@@ -24,7 +24,7 @@ struct Parameters {
 
     std::string allele_sum_coverage_fpath;
     std::string allele_base_coverage_fpath;
-    std::string grouped_allele_counts_coverage_fpath;
+    std::string grouped_allele_counts_fpath;
 };
 
 #endif //GRAMTOOLS_PARAMETERS_HPP
