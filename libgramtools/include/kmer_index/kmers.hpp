@@ -12,15 +12,6 @@
 #define GRAMTOOLS_KMERS_HPP
 
 template<typename SEQUENCE>
-struct sequence_hash {
-    std::size_t operator()(const SEQUENCE &seq) const {
-        std::size_t hash = 0;
-        boost::hash_range(hash, seq.begin(), seq.end());
-        return hash;
-    }
-};
-
-template<typename SEQUENCE>
 struct sequence_ordering_condition {
     std::size_t operator()(const SEQUENCE &lhs, const SEQUENCE &rhs) const {
         int64_t i = 0;

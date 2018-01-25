@@ -7,7 +7,7 @@
 using AlleleSumCoverage = std::vector<std::vector<uint64_t>>;
 
 template<typename SEQUENCE, typename T>
-using SequenceHashMap = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
+using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash<SEQUENCE>>;
 using AlleleIds = std::vector<AlleleId>;
 using GroupedAlleleCounts = SequenceHashMap<AlleleIds, uint64_t>;
 using SitesGroupedAlleleCounts = std::vector<GroupedAlleleCounts>;

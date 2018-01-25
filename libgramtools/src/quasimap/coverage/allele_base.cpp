@@ -48,7 +48,7 @@ uint64_t allele_start_offset_index(const uint64_t within_allele_prg_index, const
 
 
 uint64_t set_site_base_coverage(Coverage &coverage,
-                                HashSet<VariantSite> &seen_sites,
+                                SitesCoverageBoundaries &sites_coverage_boundaries,
                                 const VariantSite &path_element,
                                 const uint64_t allele_start_index,
                                 const uint64_t max_set_bases) {
@@ -61,17 +61,18 @@ uint64_t set_site_base_coverage(Coverage &coverage,
     auto allele_coverage_index = allell_id - 1;
     auto &allele_coverage = site_coverage.at(allele_coverage_index);
 
-    auto end_index = std::min(max_set_bases, allele_coverage.size());
-    uint64_t count_bases_covered = end_index - allele_start_index;
+    uint64_t index_end_boundary = std::min(max_set_bases, allele_coverage.size());
+    uint64_t count_bases_consumed = index_end_boundary - allele_start_index;
 
-    bool site_seen_previously = seen_sites.find(path_element) != seen_sites.end();
+    uint64_t index_start_boundary = allele_start_index;
+    bool site_seen_previously = sites_coverage_boundaries.find(path_element) != sites_coverage_boundaries.end();
     if (site_seen_previously)
-        return count_bases_covered;
-    seen_sites.insert(path_element);
+        index_start_boundary = std::max(allele_start_index, sites_coverage_boundaries[path_element]);
+    sites_coverage_boundaries[path_element] = index_end_boundary;
 
-    for (uint64_t i = allele_start_index; i < end_index; ++i)
+    for (uint64_t i = index_start_boundary; i < index_end_boundary; ++i)
         ++allele_coverage[i];
-    return count_bases_covered;
+    return count_bases_consumed;
 }
 
 
@@ -104,7 +105,7 @@ uint64_t inter_site_base_count(const uint64_t &first_site_marker,
 
 
 void sa_index_allele_base_coverage(Coverage &coverage,
-                                   HashSet<VariantSite> &seen_sites,
+                                   SitesCoverageBoundaries &sites_coverage_boundaries,
                                    const uint64_t &sa_index,
                                    const uint64_t &read_length,
                                    const SearchState &search_state,
@@ -123,11 +124,10 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         auto allele_coverage_offset = allele_start_offset_index(read_start_index, prg_info);
         auto max_set_bases = read_length - read_bases_consumed;
         read_bases_consumed += set_site_base_coverage(coverage,
-                                                      seen_sites,
+                                                      sites_coverage_boundaries,
                                                       path_element,
                                                       allele_coverage_offset,
                                                       max_set_bases);
-
         ++path_it;
     } else {
         // forward to first path element
@@ -150,7 +150,7 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         uint64_t allele_coverage_offset = 0;
         auto max_set_bases = read_length - read_bases_consumed;
         read_bases_consumed += set_site_base_coverage(coverage,
-                                                      seen_sites,
+                                                      sites_coverage_boundaries,
                                                       path_element,
                                                       allele_coverage_offset,
                                                       max_set_bases);
@@ -163,7 +163,7 @@ void coverage::record::allele_base(Coverage &coverage,
                                    const SearchStates &search_states,
                                    const uint64_t &read_length,
                                    const PRG_Info &prg_info) {
-    HashSet<VariantSite> seen_sites;
+    SitesCoverageBoundaries sites_coverage_boundaries;
 
     for (const auto &search_state: search_states) {
         if (search_state.variant_site_path.empty())
@@ -173,7 +173,7 @@ void coverage::record::allele_base(Coverage &coverage,
         auto last_sa_index = search_state.sa_interval.second;
         for (auto sa_index = first_sa_index; sa_index <= last_sa_index; ++sa_index)
             sa_index_allele_base_coverage(coverage,
-                                          seen_sites,
+                                          sites_coverage_boundaries,
                                           sa_index,
                                           read_length,
                                           search_state,

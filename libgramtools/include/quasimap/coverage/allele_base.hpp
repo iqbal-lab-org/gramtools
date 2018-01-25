@@ -29,4 +29,6 @@ uint64_t inter_site_base_count(const uint64_t &first_site_marker,
                                const uint64_t &second_site_marker,
                                const PRG_Info &prg_info);
 
+using SitesCoverageBoundaries = PairHashMap<VariantSite, uint64_t>;
+
 #endif //GRAMTOOLS_ALLELE_BASE_HPP

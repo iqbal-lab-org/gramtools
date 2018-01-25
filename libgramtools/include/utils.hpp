@@ -14,7 +14,7 @@
 #define GRAMTOOLS_UTILS_HPP
 
 template<typename SEQUENCE>
-struct seq_hash {
+struct sequence_hash {
     std::size_t operator()(const SEQUENCE &seq) const {
         std::size_t hash = 0;
         boost::hash_range(hash, seq.begin(), seq.end());
@@ -23,7 +23,10 @@ struct seq_hash {
 };
 
 template<typename SEQUENCE, typename T>
-using SequenceHashMap = std::unordered_map<SEQUENCE, T, seq_hash<SEQUENCE>>;
+using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash<SEQUENCE>>;
+
+template<typename PAIR, typename T>
+using PairHashMap = std::unordered_map<PAIR, T, boost::hash<PAIR>>;
 
 template<typename T>
 using HashSet = std::unordered_set<T, boost::hash<T>>;
