@@ -72,7 +72,7 @@ class TestCommand(test):
 package_data = {
     'gramtools': [
         'bin/gram',
-        'lib/libgramtools.a',
+        'lib/*',
         'utils/vcf_to_linear_prg.pl'],
 }
 

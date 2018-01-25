@@ -110,6 +110,9 @@ add_custom_command(TARGET gramtools POST_BUILD
         ${PROJECT_SOURCE_DIR}/gramtools/lib
         COMMAND ${CMAKE_COMMAND} -E copy
         ${PROJECT_SOURCE_DIR}/cmake-build-debug/lib/libgramtools.a
+        ${PROJECT_SOURCE_DIR}/gramtools/lib
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/lib/*
         ${PROJECT_SOURCE_DIR}/gramtools/lib)
 
 # gram executable

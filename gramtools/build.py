@@ -103,7 +103,8 @@ def _execute_gramtools_cpp_build(build_paths, args):
                                       cwd=current_working_directory,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
-                                      shell=True)
+                                      shell=True,
+                                      env={'LD_LIBRARY_PATH': common.lib_path})
 
     process_result = common.handle_process_result(process_handle)
     command_result, entire_stdout = process_result

@@ -12,6 +12,7 @@ gramtools_exec_fpath = os.path.join(base_install_path,
 prg_build_exec_fpath = os.path.join(base_install_path,
                                     'utils',
                                     'vcf_to_linear_prg.pl')
+lib_path = os.path.join(base_install_path, 'lib')
 
 
 def handle_process_result(process_handle):
