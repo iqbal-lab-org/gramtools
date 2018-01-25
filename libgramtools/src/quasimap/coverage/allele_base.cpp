@@ -50,7 +50,7 @@ uint64_t allele_start_offset_index(const uint64_t within_allele_prg_index, const
 uint64_t set_site_base_coverage(Coverage &coverage,
                                 SitesCoverageBoundaries &sites_coverage_boundaries,
                                 const VariantSite &path_element,
-                                const uint64_t allele_start_index,
+                                const uint64_t allele_coverage_offset,
                                 const uint64_t max_set_bases) {
     auto marker = path_element.first;
     auto min_boundary_marker = 5;
@@ -62,12 +62,12 @@ uint64_t set_site_base_coverage(Coverage &coverage,
     auto &allele_coverage = site_coverage.at(allele_coverage_index);
 
     uint64_t index_end_boundary = std::min(max_set_bases, allele_coverage.size());
-    uint64_t count_bases_consumed = index_end_boundary - allele_start_index;
+    uint64_t count_bases_consumed = index_end_boundary - allele_coverage_offset;
 
-    uint64_t index_start_boundary = allele_start_index;
+    uint64_t index_start_boundary = allele_coverage_offset;
     bool site_seen_previously = sites_coverage_boundaries.find(path_element) != sites_coverage_boundaries.end();
     if (site_seen_previously)
-        index_start_boundary = std::max(allele_start_index, sites_coverage_boundaries[path_element]);
+        index_start_boundary = std::max(allele_coverage_offset, sites_coverage_boundaries[path_element]);
     sites_coverage_boundaries[path_element] = index_end_boundary;
 
     for (uint64_t i = index_start_boundary; i < index_end_boundary; ++i)
