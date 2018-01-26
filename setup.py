@@ -94,7 +94,4 @@ setuptools.setup(
         'install': InstallCommand,
         'develop': DevelopCommand,
         'test': TestCommand,
-    },
-    install_requires=[
-        'Biopython'
-    ])
+    })

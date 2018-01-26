@@ -1,7 +1,6 @@
 import logging
 import itertools
 import collections
-from Bio import SeqIO
 
 from . import prg
 
