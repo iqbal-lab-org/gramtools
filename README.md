@@ -13,9 +13,15 @@ gramtools finds the nearest mosaic from a reference panel of genomes to a sample
 We recommend the first option for now.
 
 ## Install
-```pip3 install git+https://github.com/iqbal-lab-org/gramtools```
+With root:
 
-## Running
+```sudo pip3 install git+https://github.com/iqbal-lab-org/gramtools```
+
+Without root:
+
+```virtualenv gramtools_virtualenv && source ./gramtools_virtualenv/bin/activate && pip3 install git+https://github.com/iqbal-lab-org/gramtools```
+
+## Run
 Initial step done just once (per species)
 * Generate a graph from known genetic variation and a standard reference genome (gramtools does this automatically from a VCF, but you can generate your own from a multiple sequence alignment or some combination of both).
 
@@ -25,7 +31,7 @@ For each sample
 * Use whatever standard tools you like to call variants (samtools, GATK, etc)
 * Convert variants back to standard coordinates (not supported yet)
 
-### Build graph
+### Build Graph
 ```gramtools build --gram-directory ./gram --vcf ./vcf --reference ./reference --max-read-length 150```
 
 | parameter           | description                                                     |
@@ -35,7 +41,7 @@ For each sample
 | `--reference`       | generic reference genome which compliments the VCF              |
 | `--max-read-length` | maximum read length used during the `quasimap` command          |
 
-### Infer reference genome
+### Infer Reference Genome
 ```gramtools quasimap --gram-directory ./gram --reads ./reads```
 
 | parameter          | description                                                     |
