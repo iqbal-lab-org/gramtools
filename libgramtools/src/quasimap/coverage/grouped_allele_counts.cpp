@@ -22,8 +22,8 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
     for (const auto &search_state: search_states) {
         for (const auto &variant_site: search_state.variant_site_path) {
             auto site_marker = variant_site.first;
-            auto allell_id = variant_site.second;
-            site_allele_group[site_marker].insert(allell_id);
+            auto allele_id = variant_site.second - 1;
+            site_allele_group[site_marker].insert(allele_id);
         }
     }
 

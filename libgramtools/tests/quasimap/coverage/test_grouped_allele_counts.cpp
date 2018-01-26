@@ -41,8 +41,8 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
     coverage::record::grouped_allele_counts(coverage, search_states);
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
-            GroupedAlleleCounts {{AlleleIds {1, 2}, 1}},
-            GroupedAlleleCounts {{AlleleIds {1}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
     };
     EXPECT_EQ(result, expected);
 }
@@ -72,8 +72,8 @@ TEST(GroupedAlleleCount, GivenUnorderedSearchStates_CorrectlyOrderedCoverageAlle
     coverage::record::grouped_allele_counts(coverage, search_states);
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
-            GroupedAlleleCounts {{AlleleIds {1, 3}, 1}},
-            GroupedAlleleCounts {{AlleleIds {1, 2}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0, 2}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
     };
     EXPECT_EQ(result, expected);
 }
@@ -95,7 +95,7 @@ TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
     coverage::record::grouped_allele_counts(coverage, search_states);
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
-            GroupedAlleleCounts {{AlleleIds {3}, 1}},
+            GroupedAlleleCounts {{AlleleIds {2}, 1}},
             GroupedAlleleCounts {},
     };
     EXPECT_EQ(result, expected);
@@ -147,11 +147,11 @@ TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
             GroupedAlleleCounts {
-                    {AlleleIds {1, 3}, 1},
-                    {AlleleIds {1, 4}, 1}
+                    {AlleleIds {0, 2}, 1},
+                    {AlleleIds {0, 3}, 1}
             },
             GroupedAlleleCounts {
-                    {AlleleIds {2}, 2}
+                    {AlleleIds {1}, 2}
             }
     };
     EXPECT_EQ(result, expected);
