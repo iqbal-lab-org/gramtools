@@ -19,7 +19,7 @@ With root:
 
 Without root:
 
-```virtualenv gramtools_virtualenv && source ./gramtools_virtualenv/bin/activate && pip3 install git+https://github.com/iqbal-lab-org/gramtools```
+```python3 -m venv gramtools_virtualenv && source ./gramtools_virtualenv/bin/activate && pip3 install git+https://github.com/iqbal-lab-org/gramtools```
 
 ## Run
 Initial step done just once (per species)
