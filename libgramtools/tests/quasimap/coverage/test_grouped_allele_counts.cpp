@@ -199,6 +199,7 @@ TEST(GroupedAlleleCount, GivenSitesGroupedAlleleCounts_CorrectlyAssignHashValues
 }
 
 
+/*
 TEST(GroupedAlleleCount, GivenSingleSite_CorrectJsonString) {
     GroupedAlleleCounts site = {
             {AlleleIds {1, 3}, 1},
@@ -262,3 +263,4 @@ TEST(GroupedAlleleCount, GivenMultipleSites_CorrectFullJsonString) {
     std::cout << expected << std::endl;
     EXPECT_EQ(result, expected);
 }
+*/
