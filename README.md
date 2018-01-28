@@ -41,7 +41,7 @@ For each sample
 | `--reference`       | generic reference genome which compliments the VCF              |
 | `--max-read-length` | maximum read length used during the `quasimap` command          |
 
-### Infer Reference Genome
+### Quasimap reads to graph
 ```gramtools quasimap --gram-directory ./gram --reads ./reads```
 
 | parameter          | description                                                     |
