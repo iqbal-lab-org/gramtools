@@ -24,7 +24,7 @@ class LibGramtools:
             pass
         subprocess.call(['mkdir', self.cmake_dir])
 
-        subprocess.call(['cmake', '..'], cwd=self.cmake_dir)
+        subprocess.call('CC=gcc CXX=g++ cmake ..', cwd=self.cmake_dir, shell=True)
         subprocess.call(['make'], cwd=self.cmake_dir)
 
     def test(self):
