@@ -44,7 +44,7 @@ For each sample
 ### Quasimap reads to graph
 ```gramtools quasimap --gram-directory ./gram --reads ./reads```
 
-| parameter          | description                                                     |
-|--------------------|-----------------------------------------------------------------|
-| `--gram-directory` | output directory for gramtools build files (created if missing) |
-| `--reads`          | input read samples fastq file                                   |
+| parameter          | description                                                              |
+|--------------------|--------------------------------------------------------------------------|
+| `--gram-directory` | output directory for gramtools build files (created if missing)          |
+| `--reads`          | input read samples fastq file, this parameter can be used multiple times |
