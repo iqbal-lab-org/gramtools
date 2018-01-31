@@ -105,13 +105,10 @@ def generate_quasimap_paths(args, start_time):
                                                      args.kmer_size,
                                                      start_time)
 
-    def run_path(file_name):
-        return os.path.join(run_dirpath, file_name)
-
     run_output_paths = {
         'quasimap_outputs_dirpath': outputs_dirpath,
         'quasimap_run_dirpath': run_dirpath,
-        'run_report': run_path('report.json'),
+        'run_report': os.path.join(run_dirpath, 'report.json'),
     }
 
     paths = {

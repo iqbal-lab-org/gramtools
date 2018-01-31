@@ -20,10 +20,31 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
     auto coverage = coverage::generate::empty_structure(prg_info);
     std::cout << "Done generating allele quasimap data structure" << std::endl;
 
-    SeqRead reads(parameters.reads_fpath.c_str());
     std::ofstream progress_file_handle(parameters.reads_progress_fpath);
+    QuasimapReadsStats quasimap_stats = {};
+    
+    for (const auto &reads_fpath: parameters.reads_fpaths) {
+        handle_read_file(progress_file_handle,
+                         quasimap_stats,
+                         coverage,
+                         reads_fpath,
+                         parameters,
+                         kmer_index,
+                         prg_info);
+    }
+    coverage::dump::all(coverage, parameters);
+    return quasimap_stats;
+}
 
-    QuasimapReadsStats quasimap_stats;
+
+void handle_read_file(std::ofstream &progress_file_handle,
+                      QuasimapReadsStats &quasimap_stats,
+                      Coverage &coverage,
+                      const std::string &reads_fpath,
+                      const Parameters &parameters,
+                      const KmerIndex &kmer_index,
+                      const PRG_Info &prg_info) {
+    SeqRead reads(reads_fpath.c_str());
 
     for (const auto *const raw_read: reads) {
         if (quasimap_stats.all_reads_count % 100 == 0) {
@@ -48,8 +69,6 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                                  kmer_index,
                                  prg_info);
     }
-    coverage::dump::all(coverage, parameters);
-    return quasimap_stats;
 }
 
 
@@ -91,7 +110,7 @@ bool quasimap_read(const Pattern &read,
 }
 
 
-Pattern get_kmer_from_read(const uint32_t& kmer_size, const Pattern &read) {
+Pattern get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read) {
     Pattern kmer;
     auto kmer_start_it = read.begin() + read.size() - kmer_size;
     kmer.assign(kmer_start_it, read.end());

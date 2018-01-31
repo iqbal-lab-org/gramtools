@@ -163,7 +163,7 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     quasimap_description.add_options()
                                 ("gram", po::value<std::string>(),
                                  "gramtools directory")
-                                ("reads", po::value<std::string>(),
+                                ("reads", po::value<std::vector<std::string>>()->multitoken(),
                                  "file contining reads (FASTA or FASTQ)")
                                 ("kmer-size", po::value<uint32_t>(),
                                  "kmer size used in constructing the kmer index")
@@ -187,7 +187,7 @@ Parameters parse_quasimap_parameters(po::variables_map &vm,
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
     
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
-    parameters.reads_fpath = vm["reads"].as<std::string>();
+    parameters.reads_fpaths = vm["reads"].as<std::vector<std::string>>();
 
     std::string run_dirpath = vm["run-directory"].as<std::string>();
 

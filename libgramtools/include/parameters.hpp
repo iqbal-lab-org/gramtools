@@ -19,7 +19,7 @@ struct Parameters {
     uint32_t max_read_size;
 
     // quasimap specific parameters
-    std::string reads_fpath;
+    std::vector<std::string> reads_fpaths;
     std::string reads_progress_fpath;
 
     std::string allele_sum_coverage_fpath;

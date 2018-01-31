@@ -51,7 +51,13 @@ def handle_process_result(process_handle):
 
 def hash_command_paths(command_paths):
     command_hash_paths = {}
-    for command, path in command_paths.items():
+    for command, path_component in command_paths.items():
+        if isinstance(path_component, list):
+            paths = path_component
+            command_hash_paths[command] = {p: _file_hash(p) for p in paths if os.path.isfile(p)}
+            continue
+
+        path = path_component
         if not os.path.isfile(path):
             continue
         command_hash_paths[command] = _file_hash(path)
