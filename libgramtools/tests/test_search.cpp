@@ -4,7 +4,7 @@
 
 #include "prg/prg.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "search.hpp"
+#include "search/search.hpp"
 #include "test_utils.hpp"
 
 

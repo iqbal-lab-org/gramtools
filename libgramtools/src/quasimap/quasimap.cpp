@@ -6,7 +6,7 @@
 #include "sequence_read/seqread.hpp"
 #include "parameters.hpp"
 #include "utils.hpp"
-#include "search.hpp"
+#include "search/search.hpp"
 
 #include "quasimap/coverage/types.hpp"
 #include "quasimap/coverage/common.hpp"

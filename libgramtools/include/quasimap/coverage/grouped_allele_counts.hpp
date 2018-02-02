@@ -1,4 +1,4 @@
-#include "search.hpp"
+#include "search/search_types.hpp"
 #include "quasimap/coverage/types.hpp"
 
 

@@ -4,7 +4,7 @@
 #include <kmer_index/kmers.hpp>
 
 #include "kmer_index/kmer_index.hpp"
-#include "search.hpp"
+#include "search/search.hpp"
 
 
 std::string dump_kmer(const Pattern &kmer) {

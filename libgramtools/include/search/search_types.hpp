@@ -1,8 +1,8 @@
 #include "prg/prg.hpp"
 
 
-#ifndef GRAMTOOLS_SEARCH_STATES_HPP
-#define GRAMTOOLS_SEARCH_STATES_HPP
+#ifndef GRAMTOOLS_SEARCH_TYPES_HPP
+#define GRAMTOOLS_SEARCH_TYPES_HPP
 
 enum class SearchVariantSiteState {
     within_variant_site,
@@ -35,4 +35,4 @@ struct SearchState {
 
 using SearchStates = std::list<SearchState>;
 
-#endif //GRAMTOOLS_SEARCH_STATES_HPP
+#endif //GRAMTOOLS_SEARCH_TYPES_HPP

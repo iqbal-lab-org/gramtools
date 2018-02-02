@@ -1,5 +1,5 @@
 #include "utils.hpp"
-#include "search_types.hpp"
+#include "search/search_types.hpp"
 
 
 #ifndef GRAMTOOLS_KMER_INDEX_TYPES_HPP

@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include "search.hpp"
+#include "search/search.hpp"
 #include "quasimap/utils.hpp"
 
 

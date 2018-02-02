@@ -1,5 +1,5 @@
 #include <sdsl/suffix_arrays.hpp>
-#include "search.hpp"
+#include "search/search.hpp"
 
 
 SearchStates search_read_backwards(const Pattern &read,

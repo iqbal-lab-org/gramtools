@@ -1,4 +1,5 @@
 #include "parameters.hpp"
+#include "kmer_index/kmer_index_types.hpp"
 #include "quasimap/coverage/types.hpp"
 
 

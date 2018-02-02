@@ -43,8 +43,9 @@ set(EXTERN_LIBS
 link_directories(${EXTERNAL_LIBS_DIR})
 
 set(SOURCE_FILES
-        ${SOURCE}/search.cpp
         ${SOURCE}/utils.cpp
+
+        ${SOURCE}/search/search.cpp
 
         ${SOURCE}/quasimap/quasimap.cpp
         ${SOURCE}/quasimap/utils.cpp
@@ -62,8 +63,10 @@ set(SOURCE_FILES
         ${SOURCE}/prg/fm_index.cpp)
 
 set(INCLUDE_FILES
-        ${INCLUDE}/search.hpp
         ${INCLUDE}/utils.hpp
+
+        ${INCLUDE}/search/search.hpp
+        ${INCLUDE}/search/search_types.hpp
 
         ${INCLUDE}/quasimap/quasimap.hpp
         ${INCLUDE}/quasimap/utils.hpp
