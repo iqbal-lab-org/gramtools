@@ -53,7 +53,7 @@ def _execute_command(quasimap_paths, args):
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
                                       shell=True,
-                                      env={'LD_LIBRARY_PATH': common.lib_path})
+                                      env={'LD_LIBRARY_PATH': common.lib_paths})
 
     command_result, entire_stdout = common.handle_process_result(process_handle)
     log.info('Output run directory:\n%s', quasimap_paths['quasimap_run_dirpath'])

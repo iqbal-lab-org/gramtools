@@ -12,7 +12,10 @@ gramtools_exec_fpath = os.path.join(base_install_path,
 prg_build_exec_fpath = os.path.join(base_install_path,
                                     'utils',
                                     'vcf_to_linear_prg.pl')
-lib_path = os.path.join(base_install_path, 'lib')
+
+_old_ld_library_path = os.environ["LD_LIBRARY_PATH"] if "LD_LIBRARY_PATH" in os.environ else ''
+lib_paths = (os.path.join(base_install_path, 'lib')
+             + ":" + _old_ld_library_path)
 
 
 def handle_process_result(process_handle):
