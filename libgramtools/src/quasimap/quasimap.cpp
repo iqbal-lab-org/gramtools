@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "sequence_read/seqread.hpp"
-#include "parameters.hpp"
-#include "utils.hpp"
+#include "common/parameters.hpp"
+#include "common/utils.hpp"
 #include "search/search.hpp"
 
 #include "quasimap/coverage/types.hpp"

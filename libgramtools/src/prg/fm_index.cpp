@@ -2,7 +2,7 @@
 #include <cinttypes>
 #include <sdsl/suffix_arrays.hpp>
 
-#include "parameters.hpp"
+#include "common/parameters.hpp"
 #include "prg/fm_index.hpp"
 
 

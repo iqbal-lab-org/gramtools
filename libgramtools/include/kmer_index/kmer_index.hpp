@@ -1,5 +1,5 @@
-#include "utils.hpp"
-#include "parameters.hpp"
+#include "common/utils.hpp"
+#include "common/parameters.hpp"
 #include "prg/prg.hpp"
 #include "prg/fm_index.hpp"
 #include "search/search_types.hpp"

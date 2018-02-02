@@ -1,4 +1,4 @@
-#include "../../utils.hpp"
+#include "common/utils.hpp"
 
 
 #ifndef GRAMTOOLS_COVERAGE_TYPES_HPP

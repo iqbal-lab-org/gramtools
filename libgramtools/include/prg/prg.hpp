@@ -4,7 +4,7 @@
 #include <string>
 #include <tuple>
 
-#include "utils.hpp"
+#include "common/utils.hpp"
 #include "dna_ranks.hpp"
 #include "fm_index.hpp"
 

@@ -43,7 +43,7 @@ set(EXTERN_LIBS
 link_directories(${EXTERNAL_LIBS_DIR})
 
 set(SOURCE_FILES
-        ${SOURCE}/utils.cpp
+        ${SOURCE}/common/utils.cpp
 
         ${SOURCE}/search/search.cpp
 
@@ -63,7 +63,7 @@ set(SOURCE_FILES
         ${SOURCE}/prg/fm_index.cpp)
 
 set(INCLUDE_FILES
-        ${INCLUDE}/utils.hpp
+        ${INCLUDE}/common/utils.hpp
 
         ${INCLUDE}/search/search.hpp
         ${INCLUDE}/search/search_types.hpp
@@ -121,7 +121,7 @@ add_custom_command(TARGET gramtools POST_BUILD
 # gram executable
 add_executable(gram
         ${SOURCE}/main.cpp
-        ${SOURCE}/timer_report.cpp)
+        ${SOURCE}/common/timer_report.cpp)
 add_dependencies(gram py_git_version)
 target_include_directories(gram PUBLIC
         ${INCLUDE}

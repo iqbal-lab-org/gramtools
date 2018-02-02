@@ -4,8 +4,8 @@
 #include <boost/functional/hash.hpp>
 
 #include "prg/prg.hpp"
-#include "parameters.hpp"
-#include "utils.hpp"
+#include "common/parameters.hpp"
+#include "common/utils.hpp"
 
 
 #ifndef GRAMTOOLS_KMERS_HPP

@@ -1,7 +1,7 @@
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/wavelet_trees.hpp>
 
-#include "parameters.hpp"
+#include "common/parameters.hpp"
 
 
 #ifndef GRAMTOOLS_PROCESS_PRG_HPP

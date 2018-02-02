@@ -10,7 +10,7 @@
 
 #include "prg/prg.hpp"
 #include "prg/masks.hpp"
-#include "timer_report.hpp"
+#include "common/timer_report.hpp"
 #include "kmer_index/kmer_index.hpp"
 #include "quasimap/quasimap.hpp"
 #include "main.hpp"

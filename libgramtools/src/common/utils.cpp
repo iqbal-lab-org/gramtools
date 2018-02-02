@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "sequence_read/seqread.hpp"
-#include "utils.hpp"
+#include "common/utils.hpp"
 
 
 Base encode_dna_base(const char &base_str) {

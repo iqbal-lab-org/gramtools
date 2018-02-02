@@ -1,4 +1,4 @@
-#include "parameters.hpp"
+#include "common/parameters.hpp"
 
 
 #ifndef GRAMTOOLS_MAIN_HPP

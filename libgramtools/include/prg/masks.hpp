@@ -4,9 +4,9 @@
 
 #include <sdsl/vectors.hpp>
 
-#include "parameters.hpp"
+#include "common/parameters.hpp"
 #include "fm_index.hpp"
-#include "utils.hpp"
+#include "common/utils.hpp"
 
 
 #ifndef GRAMTOOLS_MASKS_H

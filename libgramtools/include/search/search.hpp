@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "common/utils.hpp"
 #include "kmer_index/kmer_index_types.hpp"
 #include "search_types.hpp"
 

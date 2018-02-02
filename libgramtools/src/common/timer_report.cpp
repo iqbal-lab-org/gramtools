@@ -3,7 +3,7 @@
 #include <vector>
 #include <boost/timer/timer.hpp>
 
-#include "timer_report.hpp"
+#include "common/timer_report.hpp"
 
 
 void TimerReport::start(std::string note) {

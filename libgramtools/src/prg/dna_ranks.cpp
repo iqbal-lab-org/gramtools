@@ -1,6 +1,6 @@
 #include <boost/filesystem.hpp>
 
-#include "utils.hpp"
+#include "common/utils.hpp"
 #include "prg/dna_ranks.hpp"
 
 
