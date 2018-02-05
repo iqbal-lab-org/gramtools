@@ -3,8 +3,22 @@
 #include <string>
 #include <iostream>
 
+#include <boost/filesystem.hpp>
+
 #include "sequence_read/seqread.hpp"
 #include "common/utils.hpp"
+
+
+namespace fs = boost::filesystem;
+
+
+std::string full_path(const std::string &gram_dirpath,
+                      const std::string &file_name) {
+    fs::path dir(gram_dirpath);
+    fs::path file(file_name);
+    fs::path full_path = dir / file;
+    return full_path.string();
+}
 
 
 Base encode_dna_base(const char &base_str) {

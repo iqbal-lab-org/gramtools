@@ -11,8 +11,10 @@
 #include "prg/prg.hpp"
 #include "prg/masks.hpp"
 #include "common/timer_report.hpp"
+#include "common/utils.hpp"
 #include "kmer_index/kmer_index.hpp"
 #include "quasimap/quasimap.hpp"
+#include "quasimap/parameters.hpp"
 #include "main.hpp"
 
 
@@ -114,15 +116,6 @@ void quasimap(const Parameters &parameters) {
 }
 
 
-std::string full_path(const std::string &gram_dirpath,
-                      const std::string &file_name) {
-    fs::path dir(gram_dirpath);
-    fs::path file(file_name);
-    fs::path full_path = dir / file;
-    return full_path.string();
-}
-
-
 Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
     po::options_description build_description("build options");
     build_description.add_options()
@@ -157,50 +150,6 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
 }
 
 
-Parameters parse_quasimap_parameters(po::variables_map &vm,
-                                     const po::parsed_options &parsed) {
-    po::options_description quasimap_description("quasimap options");
-    quasimap_description.add_options()
-                                ("gram", po::value<std::string>(),
-                                 "gramtools directory")
-                                ("reads", po::value<std::vector<std::string>>()->multitoken(),
-                                 "file contining reads (FASTA or FASTQ)")
-                                ("kmer-size", po::value<uint32_t>(),
-                                 "kmer size used in constructing the kmer index")
-                                ("run-directory", po::value<std::string>(),
-                                 "a directory which contains all quasimap output files");
-
-    std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
-                                                             po::include_positional);
-    opts.erase(opts.begin());
-    po::store(po::command_line_parser(opts).options(quasimap_description).run(), vm);
-
-    std::string gram_dirpath = vm["gram"].as<std::string>();
-
-    Parameters parameters;
-    parameters.gram_dirpath = gram_dirpath;
-    parameters.linear_prg_fpath = full_path(gram_dirpath, "prg");
-    parameters.encoded_prg_fpath = full_path(gram_dirpath, "encoded_prg");
-    parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
-    parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
-    parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
-    parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
-    
-    parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
-    parameters.reads_fpaths = vm["reads"].as<std::vector<std::string>>();
-
-    std::string run_dirpath = vm["run-directory"].as<std::string>();
-
-    parameters.reads_progress_fpath = full_path(run_dirpath, "reads_progress");
-    parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
-
-    parameters.allele_sum_coverage_fpath = full_path(run_dirpath, "allele_sum_coverage");
-    parameters.allele_base_coverage_fpath = full_path(run_dirpath, "allele_base_coverage.json");
-    parameters.grouped_allele_counts_fpath = full_path(run_dirpath, "grouped_allele_counts_coverage.json");
-
-    return parameters;
-}
-
 
 std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description global("Global options");
@@ -229,7 +178,8 @@ std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const ch
         auto parameters = parse_build_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::build);
     } else if (cmd == "quasimap") {
-        auto parameters = parse_quasimap_parameters(vm, parsed);
+        // auto parameters = parse_quasimap_parameters(vm, parsed);
+        auto parameters = commands::quasimap::parse_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::quasimap);
     }
 

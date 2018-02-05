@@ -51,4 +51,7 @@ Pattern encode_dna_bases(const GenomicRead &read_sequence);
 
 Base encode_dna_base(const char &base_str);
 
+std::string full_path(const std::string &gram_dirpath,
+                      const std::string &file_name);
+
 #endif //GRAMTOOLS_UTILS_HPP

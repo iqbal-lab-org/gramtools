@@ -48,6 +48,7 @@ set(SOURCE_FILES
         ${SOURCE}/search/search.cpp
 
         ${SOURCE}/quasimap/quasimap.cpp
+        ${SOURCE}/quasimap/parameters.cpp
         ${SOURCE}/quasimap/utils.cpp
         ${SOURCE}/quasimap/coverage/common.cpp
         ${SOURCE}/quasimap/coverage/allele_sum.cpp
@@ -69,6 +70,7 @@ set(INCLUDE_FILES
         ${INCLUDE}/search/search_types.hpp
 
         ${INCLUDE}/quasimap/quasimap.hpp
+        ${INCLUDE}/quasimap/parameters.hpp
         ${INCLUDE}/quasimap/utils.hpp
         ${INCLUDE}/quasimap/coverage/common.hpp
         ${INCLUDE}/quasimap/coverage/allele_sum.hpp
