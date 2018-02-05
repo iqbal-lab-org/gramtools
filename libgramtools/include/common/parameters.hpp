@@ -1,3 +1,7 @@
+#include <string>
+#include <vector>
+
+
 #ifndef GRAMTOOLS_PARAMETERS_HPP
 #define GRAMTOOLS_PARAMETERS_HPP
 
