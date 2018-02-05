@@ -44,6 +44,7 @@ link_directories(${EXTERNAL_LIBS_DIR})
 
 set(SOURCE_FILES
         ${SOURCE}/common/utils.cpp
+        ${SOURCE}/common/timer_report.cpp
 
         ${SOURCE}/search/search.cpp
 
@@ -65,6 +66,7 @@ set(SOURCE_FILES
 
 set(INCLUDE_FILES
         ${INCLUDE}/common/utils.hpp
+        ${INCLUDE}/common/timer_report.hpp
 
         ${INCLUDE}/search/search.hpp
         ${INCLUDE}/search/search_types.hpp

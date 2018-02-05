@@ -6,6 +6,10 @@
 #ifndef GRAMTOOLS_QUASIMAP_HPP
 #define GRAMTOOLS_QUASIMAP_HPP
 
+namespace commands::quasimap {
+    void run(const Parameters &parameters);
+}
+
 struct QuasimapReadsStats {
     uint64_t all_reads_count = 0;
     uint64_t skipped_reads_count = 0;

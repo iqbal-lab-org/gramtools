@@ -4,13 +4,39 @@
 #include <vector>
 
 #include "sequence_read/seqread.hpp"
+
+#include "common/timer_report.hpp"
 #include "common/parameters.hpp"
 #include "common/utils.hpp"
+
 #include "search/search.hpp"
+#include "kmer_index/kmer_index.hpp"
 
 #include "quasimap/coverage/types.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
+
+
+void commands::quasimap::run(const Parameters &parameters) {
+    std::cout << "Executing quasimap command" << std::endl;
+    auto timer = TimerReport();
+
+    std::cout << "Loading data" << std::endl;
+    timer.start("Load data");
+    const auto prg_info = load_prg_info(parameters);
+    const auto kmer_index = load_kmer_index(parameters);
+    timer.stop();
+
+    std::cout << "Running quasimap" << std::endl;
+    timer.start("Quasimap");
+    auto quasimap_stats = quasimap_reads(parameters, kmer_index, prg_info);
+    std::cout << "Count all reads: " << quasimap_stats.all_reads_count << std::endl;
+    std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count << std::endl;
+    std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count << std::endl;
+    timer.stop();
+
+    timer.report();
+}
 
 
 QuasimapReadsStats quasimap_reads(const Parameters &parameters,

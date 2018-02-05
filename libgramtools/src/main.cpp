@@ -31,7 +31,7 @@ int main(int argc, const char *const *argv) {
             build(parameters);
             break;
         case Commands::quasimap:
-            quasimap(parameters);
+            commands::quasimap::run(parameters);
             break;
     }
     return 0;
@@ -94,28 +94,6 @@ void build(const Parameters &parameters) {
 }
 
 
-void quasimap(const Parameters &parameters) {
-    std::cout << "Executing quasimap command" << std::endl;
-    auto timer = TimerReport();
-
-    std::cout << "Loading data" << std::endl;
-    timer.start("Load data");
-    const auto prg_info = load_prg_info(parameters);
-    const auto kmer_index = load_kmer_index(parameters);
-    timer.stop();
-
-    std::cout << "Running quasimap" << std::endl;
-    timer.start("Quasimap");
-    auto quasimap_stats = quasimap_reads(parameters, kmer_index, prg_info);
-    std::cout << "Count all reads: " << quasimap_stats.all_reads_count << std::endl;
-    std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count << std::endl;
-    std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count << std::endl;
-    timer.stop();
-
-    timer.report();
-}
-
-
 Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
     po::options_description build_description("build options");
     build_description.add_options()
@@ -150,7 +128,6 @@ Parameters parse_build_parameters(po::variables_map &vm, const po::parsed_option
 }
 
 
-
 std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description global("Global options");
     global.add_options()
@@ -178,7 +155,6 @@ std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const ch
         auto parameters = parse_build_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::build);
     } else if (cmd == "quasimap") {
-        // auto parameters = parse_quasimap_parameters(vm, parsed);
         auto parameters = commands::quasimap::parse_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::quasimap);
     }
