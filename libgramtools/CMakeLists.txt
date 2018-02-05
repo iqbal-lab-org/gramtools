@@ -47,7 +47,9 @@ set(SOURCE_FILES
         ${SOURCE}/common/timer_report.cpp
 
         ${SOURCE}/search/search.cpp
+        
         ${SOURCE}/build/build.cpp
+        ${SOURCE}/build/parameters.cpp
 
         ${SOURCE}/quasimap/quasimap.cpp
         ${SOURCE}/quasimap/parameters.cpp
@@ -73,6 +75,7 @@ set(INCLUDE_FILES
         ${INCLUDE}/search/search_types.hpp
 
         ${INCLUDE}/build/build.hpp
+        ${INCLUDE}/build/parameters.hpp
 
         ${INCLUDE}/quasimap/quasimap.hpp
         ${INCLUDE}/quasimap/parameters.hpp
