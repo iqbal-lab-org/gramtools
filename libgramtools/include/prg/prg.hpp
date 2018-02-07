@@ -58,9 +58,9 @@ void flush_marker_digits(std::vector<int> &marker_digits,
 
 uint64_t concat_marker_digits(const std::vector<int> &marker_digits);
 
-struct EncodeResult{
+struct EncodeResult {
     bool is_dna;
-    int charecter;
+    uint32_t charecter;
 };
 
 EncodeResult encode_char(const char &c);

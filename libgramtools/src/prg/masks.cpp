@@ -67,6 +67,7 @@ sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
             continue;
         }
     }
+    sdsl::util::bit_compress(allele_mask);
     return allele_mask;
 }
 

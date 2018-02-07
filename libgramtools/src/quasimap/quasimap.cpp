@@ -21,9 +21,10 @@ void commands::quasimap::run(const Parameters &parameters) {
     std::cout << "Executing quasimap command" << std::endl;
     auto timer = TimerReport();
 
-    std::cout << "Loading data" << std::endl;
     timer.start("Load data");
+    std::cout << "Loading PRG data" << std::endl;
     const auto prg_info = load_prg_info(parameters);
+    std::cout << "Loading kmer index data" << std::endl;
     const auto kmer_index = load_kmer_index(parameters);
     timer.stop();
 

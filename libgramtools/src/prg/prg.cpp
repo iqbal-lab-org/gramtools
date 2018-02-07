@@ -64,7 +64,7 @@ std::string load_raw_prg(const std::string &prg_fpath) {
 
 
 sdsl::int_vector<> encode_prg(const std::string &prg_raw) {
-    sdsl::int_vector<> encoded_prg(prg_raw.length(), 0, 64);
+    sdsl::int_vector<> encoded_prg(prg_raw.length(), 0, 32);
 
     uint64_t count_chars = 0;
     // TODO: this should be possible without storing each individual digit
@@ -80,9 +80,10 @@ sdsl::int_vector<> encode_prg(const std::string &prg_raw) {
 
         marker_digits.push_back(encode_result.charecter);
     }
-
     flush_marker_digits(marker_digits, encoded_prg, count_chars);
+
     encoded_prg.resize(count_chars);
+    sdsl::util::bit_compress(encoded_prg);
     return encoded_prg;
 }
 
@@ -108,7 +109,7 @@ uint64_t concat_marker_digits(const std::vector<int> &marker_digits) {
 
 
 EncodeResult encode_char(const char &c) {
-    EncodeResult encode_result;
+    EncodeResult encode_result = {};
 
     switch (c) {
         case 'A':
@@ -137,7 +138,7 @@ EncodeResult encode_char(const char &c) {
 
         default:
             encode_result.is_dna = false;
-            encode_result.charecter = c - '0';
+            encode_result.charecter = (uint32_t) c - '0';
             return encode_result;
     }
 }

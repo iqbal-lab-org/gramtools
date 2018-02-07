@@ -89,7 +89,7 @@ Pattern reverse_compliment_read(const Pattern &read) {
 Pattern encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
     Pattern pattern;
-    for (uint32_t i = 0; i < sequence_length; i++) {
+    for (uint64_t i = 0; i < sequence_length; i++) {
         Base encoded_base = encode_dna_base(read_sequence.seq[i]);
         if (encoded_base == 0)
             return Pattern {};
