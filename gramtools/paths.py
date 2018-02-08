@@ -44,18 +44,6 @@ def _generate_project_paths(args):
     return paths
 
 
-def _move_perl_sites_mask(build_paths):
-    original_fpath = build_paths['prg'] + '.mask_sites'
-    target_fpath = build_paths['variant_site_mask']
-    os.rename(original_fpath, target_fpath)
-
-
-def _move_perl_allele_mask(build_paths):
-    original_fpath = build_paths['prg'] + '.mask_alleles'
-    target_fpath = build_paths['allele_mask']
-    os.rename(original_fpath, target_fpath)
-
-
 def _move_perl_vcf(build_paths):
     original_fpath = build_paths['prg'] + '.vcf'
     target_fpath = build_paths['perl_generated_vcf']
@@ -69,8 +57,8 @@ def _move_perl_reference(build_paths):
 
 
 def perl_script_file_cleanup(build_paths):
-    _move_perl_sites_mask(build_paths)
-    _move_perl_allele_mask(build_paths)
+    os.remove(build_paths['prg'] + '.mask_sites')
+    os.remove(build_paths['prg'] + '.mask_alleles')
     _move_perl_vcf(build_paths)
     _move_perl_reference(build_paths)
 

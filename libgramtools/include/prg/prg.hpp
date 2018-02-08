@@ -16,8 +16,8 @@
 struct PRG_Info {
     FM_Index fm_index;
     sdsl::int_vector<> encoded_prg;
-    
-    std::vector<Marker> sites_mask;
+
+    sdsl::int_vector<> sites_mask;
     sdsl::int_vector<> allele_mask;
 
     sdsl::bit_vector bwt_markers_mask;

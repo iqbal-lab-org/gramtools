@@ -22,7 +22,7 @@ uint64_t dna_bwt_rank(const uint64_t upper_index,
 
 uint64_t get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg) {
     uint64_t max_alphabet_num = 0;
-    for (const auto &x: encoded_prg) {
+    for (const uint64_t &x: encoded_prg) {
         if (x > max_alphabet_num)
             max_alphabet_num = x;
     }
@@ -148,12 +148,10 @@ PRG_Info load_prg_info(const Parameters &parameters) {
     PRG_Info prg_info;
 
     prg_info.encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
-
-    MasksParser masks(parameters.site_mask_fpath);
-    prg_info.sites_mask = masks.sites;
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
 
     prg_info.fm_index = load_fm_index(parameters);
+    prg_info.sites_mask = load_sites_mask(parameters);
     prg_info.allele_mask = load_allele_mask(parameters);
 
     prg_info.prg_markers_mask = generate_prg_markers_mask(prg_info.encoded_prg);
