@@ -6,20 +6,6 @@
 #include "test_utils.hpp"
 
 
-std::pair<uint64_t, std::string::const_iterator> get_marker(const std::string::const_iterator start_it,
-                                                            const std::string::const_iterator end_it) {
-    std::string::const_iterator it = start_it;
-    std::string digits;
-    while (isdigit(*it) and it != end_it) {
-        digits += *it;
-        it++;
-    }
-    it--;
-    uint64_t marker = (uint64_t) std::atoi(digits.c_str());
-    return std::make_pair(marker, it);
-}
-
-
 PRG_Info generate_prg_info(const std::string &prg_raw) {
     Parameters parameters;
     parameters.encoded_prg_fpath = "@encoded_prg_file_name";
