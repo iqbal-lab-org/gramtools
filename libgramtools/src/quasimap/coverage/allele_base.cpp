@@ -70,8 +70,10 @@ uint64_t set_site_base_coverage(Coverage &coverage,
         index_start_boundary = std::max(allele_coverage_offset, sites_coverage_boundaries[path_element]);
     sites_coverage_boundaries[path_element] = index_end_boundary;
 
-    for (uint64_t i = index_start_boundary; i < index_end_boundary; ++i)
+    for (uint64_t i = index_start_boundary; i < index_end_boundary; ++i) {
+        #pragma omp atomic
         ++allele_coverage[i];
+    }
     return count_bases_consumed;
 }
 

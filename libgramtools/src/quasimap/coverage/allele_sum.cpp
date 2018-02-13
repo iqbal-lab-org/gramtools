@@ -50,6 +50,7 @@ void coverage::record::allele_sum(Coverage &coverage,
             auto site_coverage_index = (marker - min_boundary_marker) / 2;
             auto allele_coverage_index = allell_id - 1;
 
+            #pragma omp atomic
             allele_sum_coverage[site_coverage_index][allele_coverage_index] += 1;
             seen_sites.insert(variant_site);
         }

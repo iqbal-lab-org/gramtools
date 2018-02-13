@@ -49,7 +49,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
 
     std::ofstream progress_file_handle(parameters.reads_progress_fpath);
     QuasimapReadsStats quasimap_stats = {};
-    
+
     for (const auto &reads_fpath: parameters.reads_fpaths) {
         handle_read_file(progress_file_handle,
                          quasimap_stats,
@@ -64,28 +64,40 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
 }
 
 
-void handle_read_file(std::ofstream &progress_file_handle,
-                      QuasimapReadsStats &quasimap_stats,
-                      Coverage &coverage,
-                      const std::string &reads_fpath,
-                      const Parameters &parameters,
-                      const KmerIndex &kmer_index,
-                      const PRG_Info &prg_info) {
-    SeqRead reads(reads_fpath.c_str());
+std::vector<Pattern> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &reads, const uint64_t &max_set_size) {
+    std::vector<Pattern> reads_buffer;
+    while (reads_it != reads.end() and reads_buffer.size() < max_set_size) {
+        const auto *const raw_read = *reads_it;
+        auto read = encode_dna_bases(*raw_read);
+        reads_buffer.emplace_back(read);
+        ++reads_it;
+    }
+    return reads_buffer;
+}
 
-    for (const auto *const raw_read: reads) {
-        if (quasimap_stats.all_reads_count % 100 == 0) {
+
+void handle_reads_buffer(std::ofstream &progress_file_handle,
+                         QuasimapReadsStats &quasimap_stats,
+                         Coverage &coverage,
+                         const std::vector<Pattern> &reads_buffer,
+                         const Parameters &parameters,
+                         const KmerIndex &kmer_index,
+                         const PRG_Info &prg_info) {
+    #pragma omp parallel for
+    for (int i = 0; i < reads_buffer.size(); ++i) {
+
+        if (quasimap_stats.all_reads_count % 10000 == 0) {
             progress_file_handle
                     << quasimap_stats.all_reads_count
                     << std::endl;
-            std::cout << "Reads processed: "
-                      << quasimap_stats.all_reads_count
-                      << std::endl;
         }
+
+        #pragma omp atomic
         quasimap_stats.all_reads_count += 2;
 
-        auto read = encode_dna_bases(*raw_read);
+        auto read = reads_buffer[i];
         if (read.empty()) {
+            #pragma omp atomic
             quasimap_stats.skipped_reads_count += 2;
             continue;
         }
@@ -99,6 +111,29 @@ void handle_read_file(std::ofstream &progress_file_handle,
 }
 
 
+void handle_read_file(std::ofstream &progress_file_handle,
+                      QuasimapReadsStats &quasimap_stats,
+                      Coverage &coverage,
+                      const std::string &reads_fpath,
+                      const Parameters &parameters,
+                      const KmerIndex &kmer_index,
+                      const PRG_Info &prg_info) {
+    uint64_t max_set_size = 5000;
+    SeqRead reads(reads_fpath.c_str());
+    auto reads_it = reads.begin();
+    while (reads_it != reads.end()) {
+        auto reads_buffer = get_reads_buffer(reads_it, reads, max_set_size);
+        handle_reads_buffer(progress_file_handle,
+                            quasimap_stats,
+                            coverage,
+                            reads_buffer,
+                            parameters,
+                            kmer_index,
+                            prg_info);
+    }
+}
+
+
 void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                               Coverage &coverage,
                               const Pattern &read,
@@ -106,13 +141,17 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                               const KmerIndex &kmer_index,
                               const PRG_Info &prg_info) {
     bool read_mapped_exactly = quasimap_read(read, coverage, kmer_index, prg_info, parameters);
-    if (read_mapped_exactly)
+    if (read_mapped_exactly) {
+        #pragma omp atomic
         ++quasimap_reads_stats.mapped_reads_count;
+    }
 
     auto reverse_read = reverse_compliment_read(read);
     read_mapped_exactly = quasimap_read(reverse_read, coverage, kmer_index, prg_info, parameters);
-    if (read_mapped_exactly)
+    if (read_mapped_exactly) {
+        #pragma omp atomic
         ++quasimap_reads_stats.mapped_reads_count;
+    }
 }
 
 

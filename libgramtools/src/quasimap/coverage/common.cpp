@@ -67,7 +67,7 @@ void coverage::dump::all(const Coverage &coverage,
 
 
 Coverage coverage::generate::empty_structure(const PRG_Info &prg_info) {
-    Coverage coverage;
+    Coverage coverage = {};
     coverage.allele_sum_coverage = coverage::generate::allele_sum_structure(prg_info);
     coverage.allele_base_coverage = coverage::generate::allele_base_structure(prg_info);
     coverage.grouped_allele_counts = coverage::generate::grouped_allele_counts(prg_info);

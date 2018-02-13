@@ -38,6 +38,7 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
         auto site_coverage_index = (site_marker - min_boundary_marker) / 2;
 
         auto &site_coverage = coverage.grouped_allele_counts[site_coverage_index];
+        #pragma omp atomic
         site_coverage[allele_ids] += 1;
     }
 }
