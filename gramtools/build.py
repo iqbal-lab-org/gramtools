@@ -118,6 +118,7 @@ def _execute_gramtools_cpp_build(build_paths, args):
 
 
 def _save_report(start_time,
+                 argument_report,
                  execute_reports,
                  command_paths,
                  command_hash_paths,
@@ -131,6 +132,7 @@ def _save_report(start_time,
         ('end_time', end_time),
         ('total_runtime', int(end_time) - int(start_time)),
     ])
+    report.update(argument_report)
     report.update(execute_reports)
     report.update(collections.OrderedDict([
         ('current_working_directory', current_working_directory),
@@ -162,13 +164,19 @@ def run(args):
     command_hash_paths = common.hash_command_paths(command_paths)
 
     log.debug('Saving command report:\n%s', command_paths['build_report'])
+    argument_report = collections.OrderedDict([
+        ('kmer_size', args.kmer_size),
+        ('max_read_length', args.max_read_length),
+    ])
     execute_reports = collections.OrderedDict([
         ('prg_build_report', prg_build_report),
         ('gramtools_cpp_build', gramtools_cpp_build_report),
     ])
+    report_file_path = command_paths['build_report']
     _save_report(start_time,
+                 argument_report,
                  execute_reports,
                  command_paths,
                  command_hash_paths,
-                 command_paths['build_report'])
+                 report_file_path)
     log.info('End process: build')
