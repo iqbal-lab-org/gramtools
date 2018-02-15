@@ -23,7 +23,7 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
 
     std::string gram_dirpath = vm["gram"].as<std::string>();
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.gram_dirpath = gram_dirpath;
     parameters.linear_prg_fpath = full_path(gram_dirpath, "prg");
     parameters.encoded_prg_fpath = full_path(gram_dirpath, "encoded_prg");
@@ -31,6 +31,7 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
     parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
+    parameters.kmers_fpath = full_path(gram_dirpath, "kmers");
 
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.reads_fpaths = vm["reads"].as<std::vector<std::string>>();

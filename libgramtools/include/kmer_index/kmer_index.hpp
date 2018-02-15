@@ -20,9 +20,9 @@ std::string dump_sa_intervals(const SearchStates &search_states);
 
 std::string dump_variant_site_paths(const SearchStates &kmer_sites);
 
-std::string dump_kmer_index_entry(const Pattern &kmer, const SearchStates &search_states);
+std::string dump_kmer_index_entry(const SearchStates &search_states);
 
-void dump_kmer_index(std::ofstream &kmer_index_file, const KmerIndex &kmer_index);
+void dump_kmer_index(const KmerIndex &kmer_index, const Parameters &parameters);
 
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
 
@@ -44,7 +44,11 @@ std::vector<SA_Interval> parse_sa_intervals(const std::string &full_sa_intervals
 
 VariantSitePath parse_variant_site_path(const std::string &sites_part_str);
 
-void parse_kmer_index_entry(KmerIndex &kmers, const std::string &line);
+SearchStates parse_kmer_index_entry(const std::string &line);
+
+Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
+                              const sdsl::int_vector<3> &all_kmers,
+                              const uint32_t &kmers_size);
 
 KmerIndex load_kmer_index(const Parameters &parameters);
 
