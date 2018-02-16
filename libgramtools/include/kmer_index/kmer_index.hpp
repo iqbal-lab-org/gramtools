@@ -10,19 +10,37 @@
 #ifndef GRAMTOOLS_KMER_INDEX_HPP
 #define GRAMTOOLS_KMER_INDEX_HPP
 
-std::ostream &operator<<(std::ostream &os, const KmerIndexCache &cache);
+struct KmerIndexStats {
+    uint64_t count_entries;
+    uint64_t count_sa_intervals;
+    uint64_t count_path_elements;
+};
 
-std::string dump_kmer(const Pattern &kmer);
+KmerIndexStats calculate_stats(const KmerIndex &kmer_index);
 
-std::string dump_sa_intervals(const SearchStates &search_states);
+void dump_kmer_entry_stats(const KmerIndexStats &stats,
+                           const sdsl::int_vector<3> &all_kmers,
+                           const KmerIndex &kmer_index,
+                           const Parameters &parameters);
 
-std::string dump_variant_site_paths(const SearchStates &kmer_sites);
+sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
+                               const Parameters &parameters);
 
-std::string dump_kmer_index_entry(const SearchStates &search_states);
+void dump_sa_intervals(const KmerIndexStats &stats,
+                       const sdsl::int_vector<3> &all_kmers,
+                       const KmerIndex &kmer_index,
+                       const Parameters &parameters);
+
+void dump_paths(const KmerIndexStats &stats,
+                const sdsl::int_vector<3> &all_kmers,
+                const KmerIndex &kmer_index,
+                const Parameters &parameters);
 
 void dump_kmer_index(const KmerIndex &kmer_index, const Parameters &parameters);
 
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
+
+std::ostream &operator<<(std::ostream &os, const KmerIndexCache &cache);
 
 static inline std::string &left_trim(std::string &s);
 

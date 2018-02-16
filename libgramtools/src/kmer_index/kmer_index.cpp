@@ -7,83 +7,130 @@
 #include "search/search.hpp"
 
 
-std::string dump_kmer(const Pattern &kmer) {
-    std::stringstream stream;
-    for (const auto &base: kmer) {
-        stream << (int) base;
-        bool last_base = (&base == &kmer.back());
-        if (!last_base)
-            stream << ' ';
+KmerIndexStats calculate_stats(const KmerIndex &kmer_index) {
+    KmerIndexStats stats = {};
+    stats.count_entries = kmer_index.size();
+
+    for (const auto &entry: kmer_index) {
+        // memory elements for recording path lengths of each search state
+        const auto &search_states = entry.second;
+        stats.count_sa_intervals += search_states.size();
+
+        for (const auto &search_state: search_states)
+            stats.count_path_elements += search_state.variant_site_path.size() * 2;
     }
-    return stream.str();
+    return stats;
 }
 
 
-std::string dump_sa_intervals(const SearchStates &search_states) {
-    std::stringstream stream;
+sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
+                               const Parameters &parameters) {
+    sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
+    uint64_t i = 0;
 
-    for (const auto &search_state: search_states) {
-        const auto &sa_interval = search_state.sa_interval;
-        stream << sa_interval.first
-               << " "
-               << sa_interval.second;
-        bool last_search_state = (&search_state == &search_states.back());
-        if (not last_search_state)
-            stream << " ";
+    for (const auto &entry: kmer_index) {
+        const auto &kmer = entry.first;
+        for (const auto &base: kmer)
+            all_kmers[i++] = base;
     }
-    return stream.str();
+
+    sdsl::store_to_file(all_kmers, parameters.kmers_fpath);
+    return all_kmers;
 }
 
 
-std::string dump_variant_site_paths(const SearchStates &search_states) {
-    std::stringstream stream;
+void dump_kmer_entry_stats(const KmerIndexStats &stats,
+                           const sdsl::int_vector<3> &all_kmers,
+                           const KmerIndex &kmer_index,
+                           const Parameters &parameters) {
+    // each kmer: number of search states, path length, path length...
+    // memory elements for recording the number of search states
+    uint64_t count_elements = stats.count_entries;
+    // memory elements for recording path lengths of each search state
+    count_elements += stats.count_sa_intervals;
 
-    for (const auto &search_state: search_states) {
-        const auto &variant_site_path = search_state.variant_site_path;
+    sdsl::int_vector<> kmer_entry_stats(count_elements, 0, 16);
+    uint64_t i = 0;
 
-        for (const auto &variant_site: variant_site_path) {
-            const auto &site_marker = variant_site.first;
-            const auto &allele_id = variant_site.second;
+    uint64_t kmer_start_index = 0;
+    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+        auto kmer = deserialize_next_kmer(kmer_start_index,
+                                          all_kmers,
+                                          parameters.kmers_size);
+        kmer_start_index += kmer.size();
 
-            stream << site_marker << " " << allele_id;
+        const auto &search_states = kmer_index.at(kmer);
+        kmer_entry_stats[i++] = search_states.size();
+        for (const auto &search_state: search_states)
+            kmer_entry_stats[i++] = search_state.variant_site_path.size();
+    }
 
-            const bool last_variant_site = &variant_site == &variant_site_path.back();
-            if (not last_variant_site)
-                stream << " ";
+    sdsl::util::bit_compress(kmer_entry_stats);
+    sdsl::store_to_file(kmer_entry_stats, parameters.kmer_entry_stats_fpath);
+}
+
+
+void dump_sa_intervals(const KmerIndexStats &stats,
+                       const sdsl::int_vector<3> &all_kmers,
+                       const KmerIndex &kmer_index,
+                       const Parameters &parameters) {
+    sdsl::int_vector<> sa_intervals(stats.count_sa_intervals * 2, 0, 32);
+    uint64_t i = 0;
+
+    uint64_t kmer_start_index = 0;
+    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+        auto kmer = deserialize_next_kmer(kmer_start_index,
+                                          all_kmers,
+                                          parameters.kmers_size);
+        kmer_start_index += kmer.size();
+
+        const auto &search_states = kmer_index.at(kmer);
+        for (const auto &search_state: search_states) {
+            sa_intervals[i++] = search_state.sa_interval.first;
+            sa_intervals[i++] = search_state.sa_interval.second;
         }
-        stream << "|";
     }
-    return stream.str();
+
+    sdsl::util::bit_compress(sa_intervals);
+    sdsl::store_to_file(sa_intervals, parameters.sa_intervals_fpath);
 }
 
 
-std::string dump_kmer_index_entry(const SearchStates &search_states) {
-    std::stringstream stream;
-    stream << dump_sa_intervals(search_states) << "|";
-    stream << dump_variant_site_paths(search_states);
-    return stream.str();
+void dump_paths(const KmerIndexStats &stats,
+                const sdsl::int_vector<3> &all_kmers,
+                const KmerIndex &kmer_index,
+                const Parameters &parameters) {
+    sdsl::int_vector<> paths(stats.count_path_elements, 0, 32);
+    uint64_t i = 0;
+
+    uint64_t kmer_start_index = 0;
+    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+        auto kmer = deserialize_next_kmer(kmer_start_index,
+                                          all_kmers,
+                                          parameters.kmers_size);
+        kmer_start_index += kmer.size();
+
+        const auto &search_states = kmer_index.at(kmer);
+        for (const auto &search_state: search_states) {
+            for (const auto &path_element: search_state.variant_site_path) {
+                paths[i++] = path_element.first;
+                paths[i++] = path_element.second;
+            }
+        }
+    }
+
+    sdsl::util::bit_compress(paths);
+    sdsl::store_to_file(paths, parameters.paths_fpath);
 }
 
 
 void dump_kmer_index(const KmerIndex &kmer_index,
                      const Parameters &parameters) {
-    std::ofstream kmer_index_file;
-    kmer_index_file.open(parameters.kmer_index_fpath);
-
-    uint64_t i = 0;
-    sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
-
-    for (const auto &kmer_search_states: kmer_index) {
-        const auto &kmer = kmer_search_states.first;
-        for (const auto &base: kmer)
-            all_kmers[i++] = base;
-
-        const auto &search_states = kmer_search_states.second;
-        const auto &kmer_entry = dump_kmer_index_entry(search_states);
-        kmer_index_file << kmer_entry << std::endl;
-    }
-
-    sdsl::store_to_file(all_kmers, parameters.kmers_fpath);
+    sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
+    auto stats = calculate_stats(kmer_index);
+    dump_kmer_entry_stats(stats, all_kmers, kmer_index, parameters);
+    dump_sa_intervals(stats, all_kmers, kmer_index, parameters);
+    dump_paths(stats, all_kmers, kmer_index, parameters);
 }
 
 

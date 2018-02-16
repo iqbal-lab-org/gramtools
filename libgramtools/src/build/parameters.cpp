@@ -34,9 +34,13 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
     parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
     parameters.site_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
     parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
+    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
+
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
     parameters.kmers_fpath = full_path(gram_dirpath, "kmers");
-    parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
+    parameters.kmer_entry_stats_fpath = full_path(gram_dirpath, "kmer_entry_stats");
+    parameters.sa_intervals_fpath = full_path(gram_dirpath, "sa_intervals");
+    parameters.paths_fpath = full_path(gram_dirpath, "paths");
 
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.max_read_size = vm["max-read-size"].as<uint32_t>();

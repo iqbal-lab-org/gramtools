@@ -18,8 +18,14 @@ struct Parameters {
     std::string site_mask_fpath;
     std::string allele_mask_fpath;
     std::string sdsl_memory_log_fpath;
+
+    // kmer index file paths
     std::string kmer_index_fpath;
     std::string kmers_fpath;
+    std::string kmer_entry_stats_fpath;
+    std::string sa_intervals_fpath;
+    std::string paths_fpath;
+
     uint32_t kmers_size;
     uint32_t max_read_size;
 
