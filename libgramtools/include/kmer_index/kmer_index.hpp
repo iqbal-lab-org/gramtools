@@ -11,17 +11,17 @@
 #define GRAMTOOLS_KMER_INDEX_HPP
 
 struct KmerIndexStats {
-    uint64_t count_entries;
-    uint64_t count_sa_intervals;
-    uint64_t count_path_elements;
+    uint64_t count_kmers;
+    uint64_t count_search_states;
+    uint64_t count_total_path_elements;
 };
 
 KmerIndexStats calculate_stats(const KmerIndex &kmer_index);
 
-void dump_kmer_entry_stats(const KmerIndexStats &stats,
-                           const sdsl::int_vector<3> &all_kmers,
-                           const KmerIndex &kmer_index,
-                           const Parameters &parameters);
+void dump_kmers_stats(const KmerIndexStats &stats,
+                      const sdsl::int_vector<3> &all_kmers,
+                      const KmerIndex &kmer_index,
+                      const Parameters &parameters);
 
 sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
                                const Parameters &parameters);
@@ -37,6 +37,16 @@ void dump_paths(const KmerIndexStats &stats,
                 const Parameters &parameters);
 
 void dump_kmer_index(const KmerIndex &kmer_index, const Parameters &parameters);
+
+struct IndexedKmerStats {
+    uint64_t count_search_states;
+    std::vector<uint64_t> path_lengths;
+
+    bool operator== (const IndexedKmerStats &other) const {
+        return this->count_search_states == other.count_search_states
+               and this->path_lengths == other.path_lengths;
+    };
+};
 
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
 
@@ -59,6 +69,14 @@ SearchStates parse_kmer_index_entry(const std::string &line);
 Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
                               const sdsl::int_vector<3> &all_kmers,
                               const uint32_t &kmers_size);
+
+IndexedKmerStats deserialize_next_stats(const uint64_t &stats_index,
+                                        const sdsl::int_vector<> &kmers_stats);
+
+void parse_sa_intervals(KmerIndex &kmer_index,
+                        const sdsl::int_vector<3> &all_kmers,
+                        const sdsl::int_vector<> &kmers_stats,
+                        const Parameters &parameters);
 
 KmerIndex load_kmer_index(const Parameters &parameters);
 

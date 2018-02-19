@@ -22,7 +22,7 @@ struct Parameters {
     // kmer index file paths
     std::string kmer_index_fpath;
     std::string kmers_fpath;
-    std::string kmer_entry_stats_fpath;
+    std::string kmers_stats_fpath;
     std::string sa_intervals_fpath;
     std::string paths_fpath;
 

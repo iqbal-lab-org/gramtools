@@ -9,15 +9,15 @@
 
 KmerIndexStats calculate_stats(const KmerIndex &kmer_index) {
     KmerIndexStats stats = {};
-    stats.count_entries = kmer_index.size();
+    stats.count_kmers = kmer_index.size();
 
     for (const auto &entry: kmer_index) {
         // memory elements for recording path lengths of each search state
         const auto &search_states = entry.second;
-        stats.count_sa_intervals += search_states.size();
+        stats.count_search_states += search_states.size();
 
         for (const auto &search_state: search_states)
-            stats.count_path_elements += search_state.variant_site_path.size() * 2;
+            stats.count_total_path_elements += search_state.variant_site_path.size() * 2;
     }
     return stats;
 }
@@ -39,17 +39,14 @@ sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
 }
 
 
-void dump_kmer_entry_stats(const KmerIndexStats &stats,
-                           const sdsl::int_vector<3> &all_kmers,
-                           const KmerIndex &kmer_index,
-                           const Parameters &parameters) {
+void dump_kmers_stats(const KmerIndexStats &stats,
+                      const sdsl::int_vector<3> &all_kmers,
+                      const KmerIndex &kmer_index,
+                      const Parameters &parameters) {
     // each kmer: number of search states, path length, path length...
-    // memory elements for recording the number of search states
-    uint64_t count_elements = stats.count_entries;
-    // memory elements for recording path lengths of each search state
-    count_elements += stats.count_sa_intervals;
-
-    sdsl::int_vector<> kmer_entry_stats(count_elements, 0, 16);
+    const auto &count_distinct_paths = stats.count_search_states;
+    uint64_t count_memory_elements = stats.count_kmers + count_distinct_paths;
+    sdsl::int_vector<> kmers_stats(count_memory_elements, 0, 16);
     uint64_t i = 0;
 
     uint64_t kmer_start_index = 0;
@@ -60,13 +57,13 @@ void dump_kmer_entry_stats(const KmerIndexStats &stats,
         kmer_start_index += kmer.size();
 
         const auto &search_states = kmer_index.at(kmer);
-        kmer_entry_stats[i++] = search_states.size();
+        kmers_stats[i++] = search_states.size();
         for (const auto &search_state: search_states)
-            kmer_entry_stats[i++] = search_state.variant_site_path.size();
+            kmers_stats[i++] = search_state.variant_site_path.size();
     }
 
-    sdsl::util::bit_compress(kmer_entry_stats);
-    sdsl::store_to_file(kmer_entry_stats, parameters.kmer_entry_stats_fpath);
+    sdsl::util::bit_compress(kmers_stats);
+    sdsl::store_to_file(kmers_stats, parameters.kmers_stats_fpath);
 }
 
 
@@ -74,7 +71,7 @@ void dump_sa_intervals(const KmerIndexStats &stats,
                        const sdsl::int_vector<3> &all_kmers,
                        const KmerIndex &kmer_index,
                        const Parameters &parameters) {
-    sdsl::int_vector<> sa_intervals(stats.count_sa_intervals * 2, 0, 32);
+    sdsl::int_vector<> sa_intervals(stats.count_search_states * 2, 0, 32);
     uint64_t i = 0;
 
     uint64_t kmer_start_index = 0;
@@ -100,7 +97,7 @@ void dump_paths(const KmerIndexStats &stats,
                 const sdsl::int_vector<3> &all_kmers,
                 const KmerIndex &kmer_index,
                 const Parameters &parameters) {
-    sdsl::int_vector<> paths(stats.count_path_elements, 0, 32);
+    sdsl::int_vector<> paths(stats.count_total_path_elements, 0, 32);
     uint64_t i = 0;
 
     uint64_t kmer_start_index = 0;
@@ -128,7 +125,7 @@ void dump_kmer_index(const KmerIndex &kmer_index,
                      const Parameters &parameters) {
     sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
     auto stats = calculate_stats(kmer_index);
-    dump_kmer_entry_stats(stats, all_kmers, kmer_index, parameters);
+    dump_kmers_stats(stats, all_kmers, kmer_index, parameters);
     dump_sa_intervals(stats, all_kmers, kmer_index, parameters);
     dump_paths(stats, all_kmers, kmer_index, parameters);
 }
@@ -397,12 +394,90 @@ SearchStates parse_kmer_index_entry(const std::string &line) {
 Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
                               const sdsl::int_vector<3> &all_kmers,
                               const uint32_t &kmers_size) {
+    // TODO: implement as an iterator
     assert(kmer_start_index <= all_kmers.size() - kmers_size);
     Pattern kmer;
     kmer.reserve(kmers_size);
     for (uint64_t i = kmer_start_index; i < kmer_start_index + kmers_size; ++i)
         kmer.emplace_back(all_kmers[i]);
     return kmer;
+}
+
+
+IndexedKmerStats deserialize_next_stats(const uint64_t &stats_index,
+                                        const sdsl::int_vector<> &kmers_stats) {
+    // TODO: implement as an iterator
+    assert(stats_index < kmers_stats.size());
+    IndexedKmerStats stats = {};
+    stats.count_search_states = kmers_stats[stats_index];
+    if (stats.count_search_states == 0)
+        return stats;
+
+    for (uint64_t i = stats_index + 1; i <= stats_index + stats.count_search_states; ++i)
+        stats.path_lengths.push_back(kmers_stats[i]);
+    return stats;
+}
+
+
+void parse_sa_intervals(KmerIndex &kmer_index,
+                        const sdsl::int_vector<3> &all_kmers,
+                        const sdsl::int_vector<> &kmers_stats,
+                        const Parameters &parameters) {
+    uint64_t sa_interval_index = 0;
+    sdsl::int_vector<> sa_intervals;
+    sdsl::load_from_file(sa_intervals, parameters.sa_intervals_fpath);
+
+    uint64_t stats_index = 0;
+
+    uint64_t kmer_start_index = 0;
+    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+        auto kmer = deserialize_next_kmer(kmer_start_index, all_kmers, parameters.kmers_size);
+        kmer_start_index += parameters.kmers_size;
+
+        auto stats = deserialize_next_stats(stats_index, kmers_stats);
+        stats_index += stats.count_search_states + 1;
+
+        for (uint64_t i = 0; i < stats.count_search_states; ++i) {
+            SearchState search_state;
+            search_state.sa_interval.first = sa_intervals[sa_interval_index];
+            search_state.sa_interval.second = sa_intervals[sa_interval_index + 1];
+            sa_interval_index += 2;
+
+            auto &search_states = kmer_index[kmer];
+            search_states.emplace_back(search_state);
+        }
+    }
+}
+
+
+void parse_paths(KmerIndex &kmer_index,
+                 const sdsl::int_vector<3> &all_kmers,
+                 const sdsl::int_vector<> &kmers_stats,
+                 const Parameters &parameters) {
+    uint64_t kmer_start_index = 0;
+    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+        auto kmer = deserialize_next_kmer(kmer_start_index,
+                                          all_kmers,
+                                          parameters.kmers_size);
+        kmer_start_index += parameters.kmers_size;
+
+        //kmer_index[kmer] = search_states;
+    }
+}
+
+
+KmerIndex parse_kmer_index(const Parameters &parameters) {
+    KmerIndex kmer_index;
+
+    sdsl::int_vector<3> all_kmers;
+    sdsl::load_from_file(all_kmers, parameters.kmers_fpath);
+
+    sdsl::int_vector<> kmers_stats;
+    sdsl::load_from_file(kmers_stats, parameters.kmers_stats_fpath);
+
+    parse_sa_intervals(kmer_index, all_kmers, kmers_stats, parameters);
+    parse_paths(kmer_index, all_kmers, kmers_stats, parameters);
+    return kmer_index;
 }
 
 

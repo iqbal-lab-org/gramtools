@@ -854,7 +854,7 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
 TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats) {
     Parameters parameters = {};
     parameters.kmers_size = 4;
-    parameters.kmer_entry_stats_fpath = "@kmer_entry_stats_fpath";
+    parameters.kmers_stats_fpath = "@kmers_stats_fpath";
     parameters.kmers_fpath = "@kmers_fpath";
 
     Pattern kmer = {1, 2, 3, 4};
@@ -876,11 +876,11 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
-                                SA_Interval {8, 8},
-                                        VariantSitePath {
-                                                VariantSite {5, 2}
-                                        },
-                                        SearchVariantSiteState::outside_variant_site
+                                    SA_Interval {8, 8},
+                                    VariantSitePath {
+                                            VariantSite {5, 2}
+                                    },
+                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             },
@@ -905,10 +905,10 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
 
     sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
     auto stats = calculate_stats(kmer_index);
-    dump_kmer_entry_stats(stats, all_kmers, kmer_index, parameters);
+    dump_kmers_stats(stats, all_kmers, kmer_index, parameters);
 
     sdsl::int_vector<> stats_kmer_entry;
-    sdsl::load_from_file(stats_kmer_entry, parameters.kmer_entry_stats_fpath);
+    sdsl::load_from_file(stats_kmer_entry, parameters.kmers_stats_fpath);
 
     sdsl::int_vector<> expected_1 = {2, 0, 2, 3, 1, 1, 1};
     sdsl::util::bit_compress(expected_1);
@@ -918,4 +918,81 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
 
     bool result = stats_kmer_entry == expected_1 or stats_kmer_entry == expected_2;
     EXPECT_TRUE(result);
+}
+
+
+TEST(DeserializeNextStats, GivenOneSearchStateWithThreePaths_CorrectlyIndexedKmerStats) {
+    sdsl::int_vector<> kmers_stats = {3, 1, 42, 7};
+    uint64_t stats_index = 0;
+    auto result = deserialize_next_stats(stats_index, kmers_stats);
+    IndexedKmerStats expected = {
+            3,
+            {1, 42, 7},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(DeserializeNextStats, GivenTwoSearchStateWithMultiplePaths_CorrectlyIndexedKmerStats) {
+    sdsl::int_vector<> kmers_stats = {3, 1, 42, 7, 2, 11, 33};
+    uint64_t stats_index = 0;
+
+    std::vector<IndexedKmerStats> all_stats = {};
+
+    auto stats = deserialize_next_stats(stats_index, kmers_stats);
+    all_stats.push_back(stats);
+    stats_index += stats.count_search_states + 1;
+
+    stats = deserialize_next_stats(stats_index, kmers_stats);
+    all_stats.push_back(stats);
+
+    const auto &result = all_stats;
+    std::vector<IndexedKmerStats> expected = {
+            {
+                    3,
+                    {1,  42, 7},
+            },
+            {
+                    2,
+                    {11, 33}
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ParseSaIntervals, GivenOneKmerThreeSaIntervals_CorrectSearchStates) {
+    KmerIndex kmer_index = {};
+    sdsl::int_vector<3> all_kmers = {1, 2, 3, 4};
+    sdsl::int_vector<> kmers_stats = {3, 0, 0, 0};
+
+    Parameters parameters = {};
+    parameters.sa_intervals_fpath = "@sa_intervals_fpath";
+    parameters.kmers_size = 4;
+
+    sdsl::int_vector<> sa_intervals = {42, 43, 52, 53, 62, 63};
+    sdsl::util::bit_compress(sa_intervals);
+    sdsl::store_to_file(sa_intervals, parameters.sa_intervals_fpath);
+
+    parse_sa_intervals(kmer_index,
+                       all_kmers,
+                       kmers_stats,
+                       parameters);
+    const auto &result = kmer_index;
+    KmerIndex expected = {
+            {{1, 2, 3, 4},
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {42, 43},
+                            },
+                            SearchState {
+                                    SA_Interval {52, 53},
+                            },
+                            SearchState {
+                                    SA_Interval {62, 63},
+                            }
+                    }
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
