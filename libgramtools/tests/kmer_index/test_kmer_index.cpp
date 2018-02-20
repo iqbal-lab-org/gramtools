@@ -996,3 +996,45 @@ TEST(ParseSaIntervals, GivenOneKmerThreeSaIntervals_CorrectSearchStates) {
     };
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(ParsePaths, GivenTwoPathsDifferentLengths_CorrectKmerIndex) {
+    KmerIndex kmer_index = {};
+    sdsl::int_vector<3> all_kmers = {1, 2, 3, 4};
+    sdsl::int_vector<> kmers_stats = {2, 1, 2};
+
+    Parameters parameters = {};
+    parameters.paths_fpath = "@paths_fpath";
+    parameters.kmers_size = 4;
+
+    sdsl::int_vector<> paths = {42, 43, 52, 53, 62, 63};
+    sdsl::util::bit_compress(paths);
+    sdsl::store_to_file(paths, parameters.paths_fpath);
+
+    parse_paths(kmer_index,
+                all_kmers,
+                kmers_stats,
+                parameters);
+    const auto &result = kmer_index;
+
+    KmerIndex expected = {
+            {{1, 2, 3, 4},
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {},
+                                    VariantSitePath {
+                                            VariantSite {42, 43}
+                                    }
+                            },
+                            SearchState {
+                                    SA_Interval {},
+                                    VariantSitePath {
+                                            VariantSite {52, 53},
+                                            VariantSite {62, 63}
+                                    }
+                            }
+                    }
+            }
+    };
+    EXPECT_EQ(result, expected);
+}

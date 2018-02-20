@@ -419,6 +419,17 @@ IndexedKmerStats deserialize_next_stats(const uint64_t &stats_index,
 }
 
 
+void handle_sa_interval(SearchStates &search_states,
+                        uint64_t &sa_interval_index,
+                        const sdsl::int_vector<> &sa_intervals) {
+    for (auto &search_state: search_states) {
+        search_state.sa_interval.first = sa_intervals[sa_interval_index];
+        search_state.sa_interval.second = sa_intervals[sa_interval_index + 1];
+        sa_interval_index += 2;
+    }
+}
+
+
 void parse_sa_intervals(KmerIndex &kmer_index,
                         const sdsl::int_vector<3> &all_kmers,
                         const sdsl::int_vector<> &kmers_stats,
@@ -428,8 +439,8 @@ void parse_sa_intervals(KmerIndex &kmer_index,
     sdsl::load_from_file(sa_intervals, parameters.sa_intervals_fpath);
 
     uint64_t stats_index = 0;
-
     uint64_t kmer_start_index = 0;
+
     while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
         auto kmer = deserialize_next_kmer(kmer_start_index, all_kmers, parameters.kmers_size);
         kmer_start_index += parameters.kmers_size;
@@ -437,14 +448,32 @@ void parse_sa_intervals(KmerIndex &kmer_index,
         auto stats = deserialize_next_stats(stats_index, kmers_stats);
         stats_index += stats.count_search_states + 1;
 
-        for (uint64_t i = 0; i < stats.count_search_states; ++i) {
-            SearchState search_state;
-            search_state.sa_interval.first = sa_intervals[sa_interval_index];
-            search_state.sa_interval.second = sa_intervals[sa_interval_index + 1];
-            sa_interval_index += 2;
+        auto &search_states = kmer_index[kmer];
+        auto expected_count = stats.count_search_states - search_states.size();
+        search_states.resize(expected_count, SearchState {});
 
-            auto &search_states = kmer_index[kmer];
-            search_states.emplace_back(search_state);
+        handle_sa_interval(search_states,
+                           sa_interval_index,
+                           sa_intervals);
+    }
+}
+
+
+void handle_path_element(SearchStates &search_states,
+                         uint64_t &paths_index,
+                         const sdsl::int_vector<> &paths,
+                         const IndexedKmerStats &stats) {
+    uint64_t i = 0;
+    for (auto &search_state: search_states) {
+        const auto &path_length = stats.path_lengths[i++];
+
+        for (uint64_t j = 0; j < path_length; ++j) {
+            Marker marker = paths[paths_index];
+            AlleleId allele_id = paths[paths_index + 1];
+            paths_index += 2;
+
+            VariantSite site = {marker, allele_id};
+            search_state.variant_site_path.emplace_back(site);
         }
     }
 }
@@ -454,14 +483,30 @@ void parse_paths(KmerIndex &kmer_index,
                  const sdsl::int_vector<3> &all_kmers,
                  const sdsl::int_vector<> &kmers_stats,
                  const Parameters &parameters) {
+    uint64_t paths_index = 0;
+    sdsl::int_vector<> paths;
+    sdsl::load_from_file(paths, parameters.paths_fpath);
+
+    uint64_t stats_index = 0;
     uint64_t kmer_start_index = 0;
+
     while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
         auto kmer = deserialize_next_kmer(kmer_start_index,
                                           all_kmers,
                                           parameters.kmers_size);
         kmer_start_index += parameters.kmers_size;
 
-        //kmer_index[kmer] = search_states;
+        auto stats = deserialize_next_stats(stats_index, kmers_stats);
+        stats_index += stats.count_search_states + 1;
+
+        auto &search_states = kmer_index[kmer];
+        auto expected_count = stats.count_search_states - search_states.size();
+        search_states.resize(expected_count, SearchState {});
+
+        handle_path_element(search_states,
+                            paths_index,
+                            paths,
+                            stats);
     }
 }
 
