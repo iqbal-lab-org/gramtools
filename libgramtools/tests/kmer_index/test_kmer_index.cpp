@@ -1038,3 +1038,51 @@ TEST(ParsePaths, GivenTwoPathsDifferentLengths_CorrectKmerIndex) {
     };
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
+    Parameters parameters = {};
+    parameters.kmers_size = 4;
+
+    parameters.kmers_fpath = "@kmers_fpath";
+    sdsl::int_vector<3> all_kmers = {1, 2, 3, 4};
+    sdsl::store_to_file(all_kmers, parameters.kmers_fpath);
+
+    parameters.kmers_stats_fpath = "@kmers_stats_fpath";
+    sdsl::int_vector<> kmers_stats = {2, 1, 2};
+    sdsl::util::bit_compress(kmers_stats);
+    sdsl::store_to_file(kmers_stats, parameters.kmers_stats_fpath);
+
+    parameters.sa_intervals_fpath = "@sa_intervals_fpath";
+    sdsl::int_vector<> sa_intervals = {1, 1, 2, 2};
+    sdsl::util::bit_compress(sa_intervals);
+    sdsl::store_to_file(sa_intervals, parameters.sa_intervals_fpath);
+
+    parameters.paths_fpath = "@paths_fpath";
+    sdsl::int_vector<> paths = {42, 43, 52, 53, 62, 63};
+    sdsl::util::bit_compress(paths);
+    sdsl::store_to_file(paths, parameters.paths_fpath);
+
+    auto result = parse_kmer_index(parameters);
+
+    KmerIndex expected = {
+            {{1, 2, 3, 4},
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {1, 1},
+                                    VariantSitePath {
+                                            VariantSite {42, 43}
+                                    }
+                            },
+                            SearchState {
+                                    SA_Interval {2, 2},
+                                    VariantSitePath {
+                                            VariantSite {52, 53},
+                                            VariantSite {62, 63}
+                                    }
+                            }
+                    }
+            }
+    };
+    EXPECT_EQ(result, expected);
+}

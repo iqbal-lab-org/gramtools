@@ -32,6 +32,9 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
     parameters.kmers_fpath = full_path(gram_dirpath, "kmers");
+    parameters.kmers_stats_fpath = full_path(gram_dirpath, "kmers_stats");
+    parameters.sa_intervals_fpath = full_path(gram_dirpath, "sa_intervals");
+    parameters.paths_fpath = full_path(gram_dirpath, "paths");
 
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.reads_fpaths = vm["reads"].as<std::vector<std::string>>();

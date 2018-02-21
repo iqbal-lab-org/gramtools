@@ -83,6 +83,8 @@ void parse_paths(KmerIndex &kmer_index,
                  const sdsl::int_vector<> &kmers_stats,
                  const Parameters &parameters);
 
+KmerIndex parse_kmer_index(const Parameters &parameters);
+
 KmerIndex load_kmer_index(const Parameters &parameters);
 
 void generate_kmer_index(const Parameters &parameters,

@@ -46,7 +46,7 @@ void dump_kmers_stats(const KmerIndexStats &stats,
     // each kmer: number of search states, path length, path length...
     const auto &count_distinct_paths = stats.count_search_states;
     uint64_t count_memory_elements = stats.count_kmers + count_distinct_paths;
-    sdsl::int_vector<> kmers_stats(count_memory_elements, 0, 16);
+    sdsl::int_vector<> kmers_stats(count_memory_elements, 1, 16);
     uint64_t i = 0;
 
     uint64_t kmer_start_index = 0;
@@ -409,6 +409,7 @@ IndexedKmerStats deserialize_next_stats(const uint64_t &stats_index,
     // TODO: implement as an iterator
     assert(stats_index < kmers_stats.size());
     IndexedKmerStats stats = {};
+
     stats.count_search_states = kmers_stats[stats_index];
     if (stats.count_search_states == 0)
         return stats;
@@ -416,6 +417,14 @@ IndexedKmerStats deserialize_next_stats(const uint64_t &stats_index,
     for (uint64_t i = stats_index + 1; i <= stats_index + stats.count_search_states; ++i)
         stats.path_lengths.push_back(kmers_stats[i]);
     return stats;
+}
+
+
+void pad_search_states(SearchStates &search_states,
+                       const IndexedKmerStats &stats) {
+    auto expected_count = stats.count_search_states - search_states.size();
+    for (uint64_t i = search_states.size(); i < expected_count; ++i)
+        search_states.emplace_back(SearchState {});
 }
 
 
@@ -449,8 +458,7 @@ void parse_sa_intervals(KmerIndex &kmer_index,
         stats_index += stats.count_search_states + 1;
 
         auto &search_states = kmer_index[kmer];
-        auto expected_count = stats.count_search_states - search_states.size();
-        search_states.resize(expected_count, SearchState {});
+        pad_search_states(search_states, stats);
 
         handle_sa_interval(search_states,
                            sa_interval_index,
@@ -500,8 +508,7 @@ void parse_paths(KmerIndex &kmer_index,
         stats_index += stats.count_search_states + 1;
 
         auto &search_states = kmer_index[kmer];
-        auto expected_count = stats.count_search_states - search_states.size();
-        search_states.resize(expected_count, SearchState {});
+        pad_search_states(search_states, stats);
 
         handle_path_element(search_states,
                             paths_index,
