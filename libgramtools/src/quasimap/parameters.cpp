@@ -14,7 +14,9 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
                                 ("kmer-size", po::value<uint32_t>(),
                                  "kmer size used in constructing the kmer index")
                                 ("run-directory", po::value<std::string>(),
-                                 "a directory which contains all quasimap output files");
+                                 "a directory which contains all quasimap output files")
+                                ("max-threads", po::value<uint32_t>()->default_value(1),
+                                 "maximum number of threads used");
 
     std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
                                                              po::include_positional);
@@ -48,5 +50,6 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.allele_base_coverage_fpath = full_path(run_dirpath, "allele_base_coverage.json");
     parameters.grouped_allele_counts_fpath = full_path(run_dirpath, "grouped_allele_counts_coverage.json");
 
+    parameters.maximum_threads = vm["max-threads"].as<uint32_t>();
     return parameters;
 }

@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 
 #include <sdsl/bit_vectors.hpp>
+#include <omp.h>
 
 #include "prg/prg.hpp"
 #include "common/timer_report.hpp"
@@ -25,9 +26,13 @@ namespace fs = boost::filesystem;
 
 
 int main(int argc, const char *const *argv) {
-    Parameters parameters;
+    Parameters parameters = {};
     Commands command;
     std::tie(parameters, command) = parse_command_line_parameters(argc, argv);
+    
+    std::cout << "maximum thread count: " << parameters.maximum_threads << std::endl;
+    omp_set_num_threads(parameters.maximum_threads);
+
     switch (command) {
         case Commands::build:
             commands::build::run(parameters);

@@ -17,7 +17,9 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
                              ("kmer-size", po::value<uint32_t>(),
                               "kmer size used in constructing the kmer index")
                              ("max-read-size", po::value<uint32_t>(),
-                              "read maximum size for the set of reads used when quasimaping");
+                              "read maximum size for the set of reads used when quasimaping")
+                             ("max-threads", po::value<uint32_t>()->default_value(1),
+                              "maximum number of threads used");
 
     std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
                                                              po::include_positional);
@@ -27,7 +29,7 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
 
     std::string gram_dirpath = vm["gram"].as<std::string>();
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.gram_dirpath = gram_dirpath;
     parameters.linear_prg_fpath = full_path(gram_dirpath, "prg");
     parameters.encoded_prg_fpath = full_path(gram_dirpath, "encoded_prg");
@@ -44,5 +46,7 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
 
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.max_read_size = vm["max-read-size"].as<uint32_t>();
+    
+    parameters.maximum_threads = vm["max-threads"].as<uint32_t>();
     return parameters;
 }

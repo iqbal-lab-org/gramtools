@@ -25,7 +25,7 @@ struct Parameters {
     std::string kmers_stats_fpath;
     std::string sa_intervals_fpath;
     std::string paths_fpath;
-
+    
     uint32_t kmers_size;
     uint32_t max_read_size;
 
@@ -36,6 +36,8 @@ struct Parameters {
     std::string allele_sum_coverage_fpath;
     std::string allele_base_coverage_fpath;
     std::string grouped_allele_counts_fpath;
+
+    uint32_t maximum_threads;
 };
 
 #endif //GRAMTOOLS_PARAMETERS_HPP
