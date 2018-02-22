@@ -49,6 +49,12 @@ def parse_args(common_parser, subparsers):
                         action='store_true',
                         required=False)
 
+    parser.add_argument('--max-threads',
+                        help='',
+                        type=int,
+                        default=1,
+                        required=False)
+
 
 def _execute_command_generate_prg(build_paths, _):
     command = [
@@ -87,6 +93,7 @@ def _execute_gramtools_cpp_build(build_paths, args):
         '--gram', build_paths['project'],
         '--kmer-size', str(args.kmer_size),
         '--max-read-size', str(args.max_read_length),
+        '--max-threads', str(args.max_threads),
     ]
 
     if args.debug:

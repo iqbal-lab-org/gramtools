@@ -33,6 +33,12 @@ def parse_args(common_parser, subparsers):
                         default=15,
                         required=False)
 
+    parser.add_argument('--max-threads',
+                        help='',
+                        type=int,
+                        default=1,
+                        required=False)
+
 
 def _execute_command(quasimap_paths, args):
     command = [
@@ -42,6 +48,7 @@ def _execute_command(quasimap_paths, args):
         '--reads', ' '.join(quasimap_paths['reads']),
         '--kmer-size', str(args.kmer_size),
         '--run-directory', quasimap_paths['quasimap_run_dirpath'],
+        '--max-threads', str(args.max_threads),
     ]
 
     command_str = ' '.join(command)
