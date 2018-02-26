@@ -30,8 +30,10 @@ sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
 
     for (const auto &entry: kmer_index) {
         const auto &kmer = entry.first;
-        for (const auto &base: kmer)
+        for (const auto &base: kmer) {
+            assert(base >= 1 and base <= 4);
             all_kmers[i++] = base;
+        }
     }
 
     sdsl::store_to_file(all_kmers, parameters.kmers_fpath);
