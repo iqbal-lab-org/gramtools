@@ -2,6 +2,89 @@
 #include "search/search.hpp"
 
 
+SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
+                                              const PRG_Info &prg_info) {
+    SearchStates new_search_states = {};
+
+    bool state_cached = false;
+    SearchState new_search_state = {};
+
+    for (uint64_t sa_index = search_state.sa_interval.first;
+         sa_index <= search_state.sa_interval.second;
+         ++sa_index) {
+
+        auto prg_index = prg_info.fm_index[sa_index];
+        auto site_marker = prg_info.sites_mask[prg_index];
+        auto allele_id = prg_info.allele_mask[prg_index];
+
+        bool within_site = site_marker != 0;
+        if (not within_site) {
+            if (state_cached) {
+                new_search_states.push_back(new_search_state);
+                new_search_state = {};
+                state_cached = false;
+            }
+            continue;
+        }
+
+        if (not state_cached) {
+            new_search_state = SearchState {
+                    SA_Interval {sa_index, sa_index},
+                    VariantSitePath {
+                            VariantSite {site_marker, allele_id}
+                    }
+            };
+            state_cached = true;
+            continue;
+        }
+
+        // state cached and within site
+        const auto &current_path = new_search_state.variant_site_path;
+        VariantSitePath expected_path = {
+                VariantSite {site_marker, allele_id}
+        };
+        bool path_changed = current_path != expected_path;
+        if (path_changed) {
+            // flush then update cache
+            new_search_states.push_back(new_search_state);
+            new_search_state = SearchState {
+                    SA_Interval {sa_index, sa_index},
+                    VariantSitePath {
+                            VariantSite {site_marker, allele_id}
+                    }
+            };
+            continue;
+        }
+
+        // state cached, still within site, and path unchanged
+        ++new_search_state.sa_interval.second;
+    }
+
+    if (state_cached)
+        new_search_states.push_back(new_search_state);
+    return new_search_states;
+}
+
+
+SearchStates handle_allele_encapsulated_states(const SearchStates &search_states,
+                                               const PRG_Info &prg_info) {
+    SearchStates new_search_states = {};
+
+    for (const auto &search_state: search_states) {
+        bool has_path = not search_state.variant_site_path.empty();
+        if (has_path) {
+            new_search_states.emplace_back(search_state);
+            continue;
+        }
+
+        SearchStates split_seach_states = handle_allele_encapsulated_state(search_state, prg_info);
+        for (const auto &split_search_state: split_seach_states)
+            new_search_states.emplace_back(split_search_state);
+    }
+    return new_search_states;
+}
+
+
 SearchStates search_read_backwards(const Pattern &read,
                                    const Pattern &kmer,
                                    const KmerIndex &kmer_index,
@@ -33,6 +116,7 @@ SearchStates search_read_backwards(const Pattern &read,
             break;
     }
 
+    new_search_states = handle_allele_encapsulated_states(new_search_states, prg_info);
     return new_search_states;
 }
 

@@ -233,14 +233,14 @@ TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 }
 
 
-TEST(Quasimap, ReadEntierlyWithinAllele_CoverageNotRecorded) {
+TEST(Quasimap, ReadEntierlyWithinAllele_CoverageRecorded) {
     auto prg_raw = "gct5cccc6g6t5ag";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
     Pattern kmer = encode_dna_bases("ccc");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -249,7 +249,58 @@ TEST(Quasimap, ReadEntierlyWithinAllele_CoverageNotRecorded) {
 
     const auto &result = coverage.allele_sum_coverage;
     AlleleSumCoverage expected = {
-            {0, 0, 0}
+            {1, 0, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+/*
+PRG: ac5t6cagtagtc5ta
+i	F	BWT	text	SA	suffix
+0	0	1	1	    16	0
+1	1	4	2	    15	1 0
+2	1	0	5	    0	1 2 5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
+3	1	2	4	    6	1 3 4 1 3 4 2 5 4 1 0
+4	1	4	6	    9	1 3 4 2 5 4 1 0
+5	2	6	2	    5	2 1 3 4 1 3 4 2 5 4 1 0
+6	2	4	1	    12	2 5 4 1 0
+7	2	1	3	    1	2 5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
+8	3	1	4	    7	3 4 1 3 4 2 5 4 1 0
+9	3	1	1	    10	3 4 2 5 4 1 0
+10	4	5	3	    14	4 1 0
+11	4	3	4	    8	4 1 3 4 2 5 4 1 0
+12	4	3	2	    11	4 2 5 4 1 0
+13	4	5	5	    3	4 6 2 1 3 4 1 3 4 2 5 4 1 0
+14	5	2	4	    13	5 4 1 0
+15	5	2	1	    2	5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
+16	6	4	0	    4	6 2 1 3 4 1 3 4 2 5 4 1 0
+*/
+TEST(Quasimap, x) {
+    auto prg_raw = "ac5t6cagtagtc5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto coverage = coverage::generate::empty_structure(prg_info);
+
+    Patterns kmers = {
+            encode_dna_bases("agt"),
+    };
+    Parameters parameters = {};
+    parameters.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
+
+    Pattern read = encode_dna_bases("gtagt");
+    uint32_t random_seed = 42;
+    quasimap_read(read,
+                  coverage,
+                  kmer_index,
+                  prg_info,
+                  parameters,
+                  random_seed);
+
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
+            {0, 1}
     };
     EXPECT_EQ(result, expected);
 }

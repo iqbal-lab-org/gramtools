@@ -943,6 +943,9 @@ TEST(Search, NoMarkersToLeft_DistanceToNextMarkerGreaterThanOne) {
 }
 
 
+/*
+// TODO: remove these unit tests, they relate to SKIP_OPTIMIZATION which will
+// also probably be removed
 TEST(Search, MarkerToLeft_DistanceToNextMarkerIsKmerStartTextIndex) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
@@ -956,9 +959,8 @@ TEST(Search, MarkerToLeft_DistanceToNextMarkerIsKmerStartTextIndex) {
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
-    auto search_state = search_states.front();
-
     if (USE_SKIP_OPTIMIZATION) {
+        auto search_state = search_states.front();
         auto result = search_state.distance_to_next_marker;
         auto expected = 2;
         EXPECT_EQ(result, expected);
@@ -984,6 +986,7 @@ TEST(Search, MarkerToImmediateLeft_SkippingToMarkerFlagFalse) {
     auto result = search_state.skipping_to_marker;
     EXPECT_FALSE(result);
 }
+*/
 
 
 TEST(Search, ReadLeadsToPrgEdge_NoSearchStatesFound) {
