@@ -8,6 +8,11 @@
 
 #define USE_SKIP_OPTIMIZATION false
 
+SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
+                                              const PRG_Info &prg_info);
+
+SearchStates handle_allele_encapsulated_states(const SearchStates &search_states,
+                                               const PRG_Info &prg_info);
 
 SearchStates search_read_backwards(const Pattern &read,
                                    const Pattern &kmer,

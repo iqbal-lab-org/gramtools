@@ -899,6 +899,236 @@ TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
 }
 
 
+TEST(Search, OneMappingEncapsulatedByAllele_StateIsWithinVariantSite) {
+    auto prg_raw = "t5c6gcttagt5aa";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Pattern kmer = encode_dna_bases("tagt");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto read = encode_dna_bases("cttagt");
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    const auto &search_state = search_states.front();
+    auto result = search_state.variant_site_state;
+    SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(Search, TwoMappingsEncapsulatedByAllele_StateIsWithinVariantSite) {
+    auto prg_raw = "t5c6gcttagtacgcttagt5aa";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Pattern kmer = encode_dna_bases("tagt");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto read = encode_dna_bases("cttagt");
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    const auto &search_state = search_states.front();
+    auto result = search_state.variant_site_state;
+    SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
+    EXPECT_EQ(result, expected);
+}
+
+
+/*
+PRG: ac5t6cagtagtc5ta
+i	F	BWT	text	SA	suffix
+0	0	1	1	    16	0
+1	1	4	2	    15	1 0
+2	1	0	5	    0	1 2 5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
+3	1	2	4	    6	1 3 4 1 3 4 2 5 4 1 0
+4	1	4	6	    9	1 3 4 2 5 4 1 0
+5	2	6	2	    5	2 1 3 4 1 3 4 2 5 4 1 0
+6	2	4	1	    12	2 5 4 1 0
+7	2	1	3	    1	2 5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
+8	3	1	4	    7	3 4 1 3 4 2 5 4 1 0
+9	3	1	1	    10	3 4 2 5 4 1 0
+10	4	5	3	    14	4 1 0
+11	4	3	4	    8	4 1 3 4 2 5 4 1 0
+12	4	3	2	    11	4 2 5 4 1 0
+13	4	5	5	    3	4 6 2 1 3 4 1 3 4 2 5 4 1 0
+14	5	2	4	    13	5 4 1 0
+15	5	2	1	    2	5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
+16	6	4	0	    4	6 2 1 3 4 1 3 4 2 5 4 1 0
+*/
+TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectPathSet) {
+    auto prg_raw = "ac5t6cagtagtc5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {8, 8}
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {8, 8},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
+    auto prg_raw = "ac5t6cagtagtc5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {8, 8},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {8, 8},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_CorrectPathSet) {
+    auto prg_raw = "ac5t6cagtagtc5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {3, 4}
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {3, 4},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+/*
+PRG: gcgct5c6g6t5agtcct
+i	F	BWT	text	SA	suffix
+0	0	4	 3	    18	  0
+1	1	5	 2	    12	  1 3 4 2 2 4 0
+2	2	4	 3	    15	  2 2 4 0
+3	2	3	 2	    1	  2 3 2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+4	2	2	 4	    16	  2 4 0
+5	2	3	 5	    3	  2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+6	2	5	 2	    6	  2 6 3 6 4 5 1 3 4 2 2 4 0
+7	3	0	 6	    0	  3 2 3 2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+8	3	2	 3	    2	  3 2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+9	3	1	 6	    13	  3 4 2 2 4 0
+10	3	6	 4	    8	  3 6 4 5 1 3 4 2 2 4 0
+11	4	2	 5	    17	  4 0
+12	4	3	 1	    14	  4 2 2 4 0
+13	4	6	 3	    10	  4 5 1 3 4 2 2 4 0
+14	4	2	 4	    4	  4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+15	5	4	 2	    11	  5 1 3 4 2 2 4 0
+16	5	4	 2	    5	  5 2 6 3 6 4 5 1 3 4 2 2 4 0
+17	6	2	 4	    7	  6 3 6 4 5 1 3 4 2 2 4 0
+18	6	3	 0	    9	  6 4 5 1 3 4 2 2 4 0
+ */
+
+
+TEST(HandleAlleleEncapsulatedStates, OutsideSite_NoPathSet) {
+    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {7, 7}
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {7, 7},
+                    VariantSitePath {},
+                    SearchVariantSiteState::outside_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+/*
+PRG: cagtaa5t6cagtaggc5ta
+i	F	BTW	text	SA	suffix
+0	0	1	2	    20	0
+1	1	4	1	    19	1 0
+2	1	4	3	    4	1 1 5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+3	1	4	4	    13	1 3 3 2 5 4 1 0
+4	1	2	1	    1	1 3 4 1 1 5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+5	1	2	1	    10	1 3 4 1 3 3 2 5 4 1 0
+6	1	1	5	    5	1 5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+7	2	0	4	    0	2 1 3 4 1 1 5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+8	2	6	6	    9	2 1 3 4 1 3 3 2 5 4 1 0
+9	2	3	2	    16	2 5 4 1 0
+10	3	3	1	    15	3 2 5 4 1 0
+11	3	1	3	    14	3 3 2 5 4 1 0
+12	3	1	4	    2	3 4 1 1 5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+13	3	1	1	    11	3 4 1 3 3 2 5 4 1 0
+14	4	5	3	    18	4 1 0
+15	4	3	3	    3	4 1 1 5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+16	4	3	2	    12	4 1 3 3 2 5 4 1 0
+17	4	5	5	    7	4 6 2 1 3 4 1 3 3 2 5 4 1 0
+18	5	2	4	    17	5 4 1 0
+19	5	1	1	    6	5 4 6 2 1 3 4 1 3 3 2 5 4 1 0
+20	6	4	0	    8	6 2 1 3 4 1 3 3 2 5 4 1 0
+*/
+
+TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIntoTwoSearchStates) {
+    auto prg_raw = "cagtaa5t6cagtaggc5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    SearchState search_state = {
+            SA_Interval {7, 8}
+
+    };
+    auto result = handle_allele_encapsulated_state(search_state, prg_info);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {7, 7},
+                    VariantSitePath {},
+                    SearchVariantSiteState::outside_variant_site
+            },
+            SearchState {
+                    SA_Interval {8, 8},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(Search, NoMarkersToLeft_SkippingToMarkerTrue) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);

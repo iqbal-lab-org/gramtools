@@ -216,7 +216,7 @@ TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -226,7 +226,7 @@ TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 
     const auto &result = coverage.allele_sum_coverage;
     AlleleSumCoverage expected = {
-            {1, 0, 1},
+            {0, 0, 1},
             {0, 0}
     };
     EXPECT_EQ(result, expected);
@@ -276,7 +276,7 @@ i	F	BWT	text	SA	suffix
 15	5	2	1	    2	5 4 6 2 1 3 4 1 3 4 2 5 4 1 0
 16	6	4	0	    4	6 2 1 3 4 1 3 4 2 5 4 1 0
 */
-TEST(Quasimap, x) {
+TEST(Quasimap, ReadMapsWithinAllele_SumCoverageIsOne) {
     auto prg_raw = "ac5t6cagtagtc5ta";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -301,6 +301,96 @@ TEST(Quasimap, x) {
     const auto &result = coverage.allele_sum_coverage;
     AlleleSumCoverage expected = {
             {0, 1}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(Quasimap, ReadMapsTwiceWithinAllele_SumCoverageIsOne) {
+    auto prg_raw = "ac5t6cagtagttttgtagtc5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto coverage = coverage::generate::empty_structure(prg_info);
+
+    Patterns kmers = {
+            encode_dna_bases("agt"),
+    };
+    Parameters parameters = {};
+    parameters.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
+
+    Pattern read = encode_dna_bases("gtagt");
+    uint32_t random_seed = 42;
+    quasimap_read(read,
+                  coverage,
+                  kmer_index,
+                  prg_info,
+                  parameters,
+                  random_seed);
+
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
+            {0, 1}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(Quasimap, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
+    auto prg_raw = "gtagtac5gtagtact6t5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto coverage = coverage::generate::empty_structure(prg_info);
+
+    Patterns kmers = {
+            encode_dna_bases("agt"),
+    };
+    Parameters parameters = {};
+    parameters.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
+
+    Pattern read = encode_dna_bases("gtagt");
+    uint32_t random_seed = 42;
+    quasimap_read(read,
+                  coverage,
+                  kmer_index,
+                  prg_info,
+                  parameters,
+                  random_seed);
+
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
+            {1, 0}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(Quasimap, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
+    auto prg_raw = "ac5gtagtact6t6gggtagt5ta";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto coverage = coverage::generate::empty_structure(prg_info);
+
+    Patterns kmers = {
+            encode_dna_bases("agt"),
+    };
+    Parameters parameters = {};
+    parameters.kmers_size = 3;
+    auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
+
+    Pattern read = encode_dna_bases("gtagt");
+    uint32_t random_seed = 42;
+    quasimap_read(read,
+                  coverage,
+                  kmer_index,
+                  prg_info,
+                  parameters,
+                  random_seed);
+
+    const auto &result = coverage.allele_sum_coverage;
+    AlleleSumCoverage expected = {
+            {1, 0, 0}
     };
     EXPECT_EQ(result, expected);
 }
