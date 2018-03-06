@@ -24,10 +24,12 @@ namespace coverage {
     }
 }
 
-SA_Interval random_select_sa_interval(const SearchStates &search_states,
-                                      const uint32_t &random_seed = 0);
+bool check_allele_encapsulated(const SearchState &search_state,
+                               const uint64_t &read_length,
+                               const PRG_Info &prg_info);
 
-SearchStates filter_for_sa_interval(const SA_Interval &target_sa_interval,
-                                    const SearchStates &search_states);
+bool multiple_allele_encapsulated(const SearchState &search_state,
+                                  const uint64_t &read_length,
+                                  const PRG_Info &prg_info);
 
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP
