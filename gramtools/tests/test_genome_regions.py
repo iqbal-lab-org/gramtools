@@ -71,7 +71,6 @@ class TestDirectionalRegionRange(unittest.TestCase):
 
         self.assertEqual(results, expected)
 
-
     def test_reverseRange_startRegionNotInRange(self):
         prg_structure = [
             ['C'],

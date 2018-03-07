@@ -30,8 +30,10 @@ void TimerReport::report() const {
     double total_elapsed_time = 0;
 
     for (const auto &entry: TimerReport::logger) {
-        auto &note = std::get<0>(entry);
-        auto &elapsed_time = std::get<1>(entry);
+        Note note;
+        double elapsed_time;
+        std::tie(note, elapsed_time) = entry;
+        
         cout_row(note, elapsed_time);
         total_elapsed_time += elapsed_time;
     }

@@ -237,7 +237,7 @@ void set_state_skip_marker(SearchStates &search_states,
 }
 
 
-SA_Interval base_next_sa_interval(const Marker next_char,
+SA_Interval base_next_sa_interval(const Marker &next_char,
                                   const SA_Index &next_char_first_sa_index,
                                   const SA_Interval &current_sa_interval,
                                   const PRG_Info &prg_info) {

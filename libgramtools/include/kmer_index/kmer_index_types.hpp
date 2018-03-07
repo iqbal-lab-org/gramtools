@@ -6,7 +6,7 @@
 #define GRAMTOOLS_KMER_INDEX_TYPES_HPP
 
 struct CacheElement {
-    SearchStates search_states;
+    SearchStates search_states = {};
     Base base = 0;
 };
 using KmerIndexCache = std::list<CacheElement>;

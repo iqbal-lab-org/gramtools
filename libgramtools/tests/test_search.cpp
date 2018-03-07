@@ -342,7 +342,7 @@ TEST(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
 TEST(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
-    auto boundary_marker = 5;
+    Marker boundary_marker = 5;
 
     auto result = get_allele_marker_sa_interval(boundary_marker, prg_info);
     SA_Interval expected = {17, 18};

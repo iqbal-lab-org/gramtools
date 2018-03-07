@@ -12,11 +12,11 @@ enum class SearchVariantSiteState {
 
 
 struct SearchState {
-    SA_Interval sa_interval;
-    VariantSitePath variant_site_path;
+    SA_Interval sa_interval = {};
+    VariantSitePath variant_site_path = {};
     SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
     bool cache_populated = false;
-    VariantSite cached_variant_site;
+    VariantSite cached_variant_site = {};
 
     bool invalid = false;
 

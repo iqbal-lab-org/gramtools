@@ -145,7 +145,7 @@ EncodeResult encode_char(const char &c) {
 
 
 PRG_Info load_prg_info(const Parameters &parameters) {
-    PRG_Info prg_info;
+    PRG_Info prg_info = {};
 
     prg_info.encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);

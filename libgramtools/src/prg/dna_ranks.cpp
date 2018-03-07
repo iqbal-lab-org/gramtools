@@ -64,7 +64,7 @@ sdsl::bit_vector load_base_bwt_mask(const std::string &base_char,
 
 DNA_BWT_Masks load_dna_bwt_masks(const FM_Index &fm_index,
                                  const Parameters &parameters) {
-    DNA_BWT_Masks dna_bwt_masks;
+    DNA_BWT_Masks dna_bwt_masks = {};
     dna_bwt_masks.mask_a = load_base_bwt_mask("a", parameters);
     dna_bwt_masks.mask_c = load_base_bwt_mask("c", parameters);
     dna_bwt_masks.mask_g = load_base_bwt_mask("g", parameters);

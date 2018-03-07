@@ -33,7 +33,7 @@ std::vector<PrgIndexRange> get_boundary_marker_indexes(const PRG_Info &prg_info)
 }
 
 
-uint64_t find_site_end_boundary(const uint64_t within_site_index,
+uint64_t find_site_end_boundary(const uint64_t &within_site_index,
                                 const PRG_Info &prg_info) {
     auto last_prg_index = prg_info.encoded_prg.size() - 1;
     auto number_markers_before = prg_info.prg_markers_rank(within_site_index);
@@ -79,7 +79,7 @@ uint64_t get_kmer_region_end_index(const uint64_t end_marker_index,
 
 
 std::vector<PrgIndexRange> get_kmer_region_ranges(std::vector<PrgIndexRange> &boundary_marker_indexes,
-                                                  const uint64_t max_read_size,
+                                                  const uint64_t &max_read_size,
                                                   const PRG_Info &prg_info) {
     std::vector<PrgIndexRange> kmer_region_ranges;
     for (const auto &marker_indexes_range: boundary_marker_indexes) {
@@ -97,15 +97,15 @@ std::vector<PrgIndexRange> get_kmer_region_ranges(std::vector<PrgIndexRange> &bo
 }
 
 
-SequencesList get_site_ordered_alleles(const uint64_t within_site_index,
-                                       const PRG_Info &prg_info) {
+Patterns get_site_ordered_alleles(const uint64_t &within_site_index,
+                                  const PRG_Info &prg_info) {
     auto site_end_index = find_site_end_boundary(within_site_index, prg_info);
     auto boundary_marker = prg_info.encoded_prg[site_end_index];
 
     int64_t current_index = (int64_t) site_end_index - 1;
     uint64_t current_char = 0;
 
-    SequencesList site_alleles;
+    Patterns site_alleles;
     std::vector<Base> allele;
 
     while (current_char != boundary_marker and current_index >= 0) {
@@ -221,7 +221,6 @@ MarkerHandlerStatus handle_end_boundary_marker(std::list<uint64_t> &inrange_site
 MarkerHandlerStatus handle_start_boundary_marker(std::list<uint64_t> &inrange_sites,
                                                  KmerTraversalState &traversal_state,
                                                  const uint64_t marker_index,
-                                                 const uint64_t kmer_size,
                                                  const PRG_Info &prg_info) {
     auto marker_char = prg_info.encoded_prg[marker_index];
     auto at_boundary_marker = marker_char % 2 != 0;
@@ -270,11 +269,7 @@ MarkerHandlerStatus find_site_end_indexes(std::list<uint64_t> &inrange_sites,
     if (result_handled(result))
         return result;
 
-    result = handle_start_boundary_marker(inrange_sites,
-                                          traversal_state,
-                                          marker_index,
-                                          kmer_size,
-                                          prg_info);
+    result = handle_start_boundary_marker(inrange_sites, traversal_state, marker_index, prg_info);
     return result;
 }
 
@@ -324,7 +319,7 @@ std::list<uint64_t> sites_inrange_left(const uint64_t outside_site_start_index,
 }
 
 
-std::pair<uint64_t, uint64_t> get_nonvariant_region(const uint64_t site_end_boundary_index,
+std::pair<uint64_t, uint64_t> get_nonvariant_region(const uint64_t &site_end_boundary_index,
                                                     const PRG_Info &prg_info) {
     const auto &start_marker_index = site_end_boundary_index;
     auto last_prg_index = prg_info.encoded_prg.size() - 1;
@@ -347,7 +342,7 @@ std::pair<uint64_t, uint64_t> get_nonvariant_region(const uint64_t site_end_boun
 }
 
 
-std::vector<Base> right_intersite_nonvariant_region(const uint64_t site_end_boundary_index,
+std::vector<Base> right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
                                                     const PRG_Info &prg_info) {
     auto nonvariant_range = get_nonvariant_region(site_end_boundary_index,
                                                   prg_info);
@@ -409,12 +404,12 @@ uint64_t find_site_start_boundary(const uint64_t &end_boundary_index,
 }
 
 
-Sequence get_pre_site_part(const uint64_t site_end_boundary,
+Pattern get_pre_site_part(const uint64_t site_end_boundary,
                            const uint64_t kmer_size,
                            const PRG_Info &prg_info) {
     auto first_site_start_boundary = find_site_start_boundary(site_end_boundary,
                                                               prg_info);
-    Sequence pre_site_part = {};
+    Pattern pre_site_part = {};
     if (first_site_start_boundary != 0) {
         int64_t end_index = first_site_start_boundary - kmer_size - 1;
         if (end_index < 0)
@@ -433,20 +428,20 @@ Sequence get_pre_site_part(const uint64_t site_end_boundary,
 }
 
 
-void add_pre_site_region(std::list<SequencesList> &region_parts,
+void add_pre_site_region(std::list<Patterns> &region_parts,
                          const std::list<uint64_t> &inrange_sites,
                          const uint64_t kmer_size,
                          const PRG_Info &prg_info) {
     auto first_site_end_boundary = inrange_sites.front();
-    Sequence pre_site_part = get_pre_site_part(first_site_end_boundary,
+    Pattern pre_site_part = get_pre_site_part(first_site_end_boundary,
                                                kmer_size,
                                                prg_info);
     if (not pre_site_part.empty())
-        region_parts.emplace_back(SequencesList {pre_site_part});
+        region_parts.emplace_back(Patterns {pre_site_part});
 }
 
 
-void add_site_regions(std::list<SequencesList> &region_parts,
+void add_site_regions(std::list<Patterns> &region_parts,
                       const std::list<uint64_t> &inrange_sites,
                       const PRG_Info &prg_info) {
     auto site_count = 0;
@@ -461,12 +456,12 @@ void add_site_regions(std::list<SequencesList> &region_parts,
 
         auto nonvariant_region = right_intersite_nonvariant_region(end_boundary_index,
                                                                    prg_info);
-        region_parts.emplace_back(SequencesList {nonvariant_region});
+        region_parts.emplace_back(Patterns {nonvariant_region});
     }
 }
 
 
-void add_post_site_regions(std::list<SequencesList> &region_parts,
+void add_post_site_regions(std::list<Patterns> &region_parts,
                            const std::list<uint64_t> &inrange_sites,
                            const uint64_t kmer_size,
                            const PRG_Info &prg_info) {
@@ -477,7 +472,7 @@ void add_post_site_regions(std::list<SequencesList> &region_parts,
     auto index = end_boundary_index + 1;
     uint64_t number_consumed_kmer_bases = 0;
 
-    Sequence nonvariant_region = {};
+    Pattern nonvariant_region = {};
 
     while (number_consumed_kmer_bases < kmer_size + 1
            and index <= prg_info.encoded_prg.size() - 1) {
@@ -494,7 +489,7 @@ void add_post_site_regions(std::list<SequencesList> &region_parts,
         }
 
         if (not nonvariant_region.empty()) {
-            region_parts.emplace_back(SequencesList {nonvariant_region});
+            region_parts.emplace_back(Patterns {nonvariant_region});
             nonvariant_region = {};
         }
 
@@ -511,15 +506,15 @@ void add_post_site_regions(std::list<SequencesList> &region_parts,
     }
 
     if (not nonvariant_region.empty())
-        region_parts.emplace_back(SequencesList {nonvariant_region});
+        region_parts.emplace_back(Patterns {nonvariant_region});
 }
 
 
-std::list<SequencesList> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
+std::list<Patterns> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
                                                     const std::list<uint64_t> &inrange_sites,
                                                     const uint64_t kmer_size,
                                                     const PRG_Info &prg_info) {
-    std::list<SequencesList> region_parts = {};
+    std::list<Patterns> region_parts = {};
     add_pre_site_region(region_parts,
                         inrange_sites,
                         kmer_size,
@@ -561,7 +556,7 @@ bool update_allele_index_path(std::vector<uint64_t> &allele_current_index,
 }
 
 
-SequencesList get_paths_from_parts(const std::list<SequencesList> &region_parts) {
+Patterns get_paths_from_parts(const std::list<Patterns> &region_parts) {
     uint64_t number_of_paths_expected = 1;
     for (const auto &ordered_alleles: region_parts) {
         uint64_t number_of_alleles = ordered_alleles.size();
@@ -574,9 +569,9 @@ SequencesList get_paths_from_parts(const std::list<SequencesList> &region_parts)
     for (const auto &ordered_alleles: region_parts)
         allele_counts.push_back(ordered_alleles.size());
 
-    SequencesList paths;
+    Patterns paths;
     while (paths.size() < number_of_paths_expected) {
-        Sequence path;
+        Pattern path;
 
         uint64_t i = 0;
         for (const auto &ordered_alleles: region_parts) {
@@ -596,11 +591,11 @@ SequencesList get_paths_from_parts(const std::list<SequencesList> &region_parts)
 }
 
 
-unordered_vector_set<Sequence> get_reverse_kmers_from_path(const Sequence &path,
-                                                           const uint64_t kmer_size) {
-    unordered_vector_set<Sequence> reverse_kmers;
+unordered_vector_set<Pattern> get_reverse_kmers_from_path(const Pattern &path,
+                                                          const uint64_t &kmer_size) {
+    unordered_vector_set<Pattern> reverse_kmers;
     for (int64_t i = path.size() - 1; i >= kmer_size - 1; --i) {
-        Sequence reverse_kmer;
+        Pattern reverse_kmer;
         reverse_kmer.reserve(kmer_size);
         for (int64_t j = i; j >= i - (int64_t) kmer_size + 1; --j)
             reverse_kmer.push_back(path[j]);
@@ -610,7 +605,7 @@ unordered_vector_set<Sequence> get_reverse_kmers_from_path(const Sequence &path,
 }
 
 
-unordered_vector_set<Sequence> extract_variant_reverse_kmers(uint64_t &current_range_end_index,
+unordered_vector_set<Pattern> extract_variant_reverse_kmers(uint64_t &current_range_end_index,
                                                              const std::list<uint64_t> &inrange_sites,
                                                              const uint64_t kmer_size,
                                                              const PRG_Info &prg_info) {
@@ -619,7 +614,7 @@ unordered_vector_set<Sequence> extract_variant_reverse_kmers(uint64_t &current_r
                                                    kmer_size,
                                                    prg_info);
     auto paths = get_paths_from_parts(region_parts);
-    unordered_vector_set<Sequence> all_reverse_kmers;
+    unordered_vector_set<Pattern> all_reverse_kmers;
 
     for (const auto &path: paths) {
         auto reverse_kmers = get_reverse_kmers_from_path(path, kmer_size);
@@ -637,13 +632,13 @@ unordered_vector_set<Sequence> extract_variant_reverse_kmers(uint64_t &current_r
 }
 
 
-unordered_vector_set<Sequence> get_reverse_kmers_from_region(const PrgIndexRange &kmer_region_range,
-                                                             const uint64_t kmer_size,
-                                                             const PRG_Info &prg_info) {
+unordered_vector_set<Pattern> get_reverse_kmers_from_region(const PrgIndexRange &kmer_region_range,
+                                                            const uint64_t &kmer_size,
+                                                            const PRG_Info &prg_info) {
     const auto &region_start = kmer_region_range.first;
     const auto &region_end = kmer_region_range.second;
 
-    unordered_vector_set<Sequence> all_reverse_kmers = {};
+    unordered_vector_set<Pattern> all_reverse_kmers = {};
 
     for (auto current_index = region_end;
          current_index >= region_start;
@@ -744,14 +739,14 @@ std::vector<PrgIndexRange> combine_overlapping_regions(const std::vector<PrgInde
 }
 
 
-ordered_vector_set<Sequence> get_all_reverse_kmers(const Parameters &parameters,
+ordered_vector_set<Pattern> get_all_reverse_kmers(const Parameters &parameters,
                                                    const PRG_Info &prg_info) {
     auto boundary_marker_indexes = get_boundary_marker_indexes(prg_info);
     auto kmer_region_ranges = get_kmer_region_ranges(boundary_marker_indexes,
                                                      parameters.max_read_size,
                                                      prg_info);
     kmer_region_ranges = combine_overlapping_regions(kmer_region_ranges);
-    ordered_vector_set<Sequence> all_reverse_kmers;
+    ordered_vector_set<Pattern> all_reverse_kmers;
     for (const auto &kmer_region_range: kmer_region_ranges) {
         auto reverse_kmers = get_reverse_kmers_from_region(kmer_region_range,
                                                            parameters.kmers_size,
@@ -762,9 +757,9 @@ ordered_vector_set<Sequence> get_all_reverse_kmers(const Parameters &parameters,
 }
 
 
-std::vector<Sequence> get_prefix_diffs(const std::vector<Sequence> &kmers) {
-    std::vector<Sequence> prefix_diffs = {};
-    Sequence last_full_kmer = {};
+std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers) {
+    std::vector<Pattern> prefix_diffs = {};
+    Pattern last_full_kmer = {};
     for (const auto &kmer: kmers) {
         if (last_full_kmer.empty()) {
             last_full_kmer = kmer;
@@ -794,8 +789,8 @@ std::vector<Sequence> get_prefix_diffs(const std::vector<Sequence> &kmers) {
 }
 
 
-std::vector<Sequence> reverse_kmers_inplace(const ordered_vector_set<Sequence> &reverse_kmers) {
-    std::vector<Sequence> kmers;
+std::vector<Pattern> reverse_kmers_inplace(const ordered_vector_set<Pattern> &reverse_kmers) {
+    std::vector<Pattern> kmers;
     for (auto reverse_kmer: reverse_kmers) {
         std::reverse(reverse_kmer.begin(), reverse_kmer.end());
         auto &kmer = reverse_kmer;
@@ -805,7 +800,7 @@ std::vector<Sequence> reverse_kmers_inplace(const ordered_vector_set<Sequence> &
 }
 
 
-std::vector<Sequence> get_all_ordered_kmers(const Parameters &parameters,
+std::vector<Pattern> get_all_ordered_kmers(const Parameters &parameters,
                                             const PRG_Info &prg_info) {
     auto reverse_kmers = get_all_reverse_kmers(parameters,
                                                prg_info);
@@ -814,7 +809,7 @@ std::vector<Sequence> get_all_ordered_kmers(const Parameters &parameters,
 }
 
 
-std::vector<Sequence> get_kmer_prefix_diffs(const Parameters &parameters,
+std::vector<Pattern> get_kmer_prefix_diffs(const Parameters &parameters,
                                             const PRG_Info &prg_info) {
     auto kmers = get_all_ordered_kmers(parameters,
                                        prg_info);

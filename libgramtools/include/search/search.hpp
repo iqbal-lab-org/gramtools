@@ -30,7 +30,7 @@ using MarkersSearchResults = std::vector<MarkersSearchResult>;
 MarkersSearchResults left_markers_search(const SearchState &search_state,
                                          const PRG_Info &prg_info);
 
-SA_Interval base_next_sa_interval(const Marker current_char,
+SA_Interval base_next_sa_interval(const Marker &current_char,
                                   const SA_Index &current_char_first_sa_index,
                                   const SA_Interval &current_sa_interval,
                                   const PRG_Info &prg_info);

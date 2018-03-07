@@ -1,6 +1,5 @@
 bin
 cmake-build-debug
-*.sublime-*
 .idea
 .cache
 __pycache__
@@ -8,5 +7,4 @@ gramtools/version/version.py
 *.egg-info
 *.pyc
 gramtools/lib
-gramtools/bin
 libgramtools/tests/test_main
