@@ -24,7 +24,7 @@ TEST(Quasimap, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("gccta");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -48,7 +48,7 @@ TEST(Quasimap, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -72,7 +72,7 @@ TEST(Quasimap, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -96,7 +96,7 @@ TEST(Quasimap, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCover
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -120,7 +120,7 @@ TEST(Quasimap, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("gtcta");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -144,7 +144,7 @@ TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("ctc");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -168,7 +168,7 @@ TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -192,7 +192,7 @@ TEST(Quasimap, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -403,7 +403,7 @@ TEST(Quasimap, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -432,7 +432,7 @@ TEST(Quasimap, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -461,7 +461,7 @@ TEST(Quasimap, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 
     Pattern kmer = encode_dna_bases("agt");
     Patterns kmers = {kmer};
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -493,7 +493,7 @@ TEST(Quasimap, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
             encode_dna_bases("agt"),
             encode_dna_bases("agc"),
     };
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 
@@ -525,7 +525,7 @@ TEST(Quasimap, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
             encode_dna_bases("cta"),
             encode_dna_bases("act"),
     };
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 3;
     auto kmer_index = index_kmers(kmers, parameters.kmers_size, prg_info);
 

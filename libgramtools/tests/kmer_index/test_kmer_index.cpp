@@ -472,7 +472,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
     auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
@@ -492,7 +492,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleChar
     auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
@@ -512,7 +512,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracte
     auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
@@ -533,7 +533,7 @@ TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
     //                                                                    ^region end
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
@@ -554,7 +554,7 @@ TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
     //                                                                     ^region end
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 21;
 
@@ -574,7 +574,7 @@ TEST(IndexKmers, KmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
     auto prg_raw = "t25cg26cc26tg26tc25ctcacagacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 18;
     parameters.max_read_size = 22;
 
@@ -594,7 +594,7 @@ TEST(IndexKmers, KmerEndJustOutsideMaxReadSize_KmerNotFoundInIndex) {
     auto prg_raw = "t25cg26cc26tg26tc25ctcacagacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 18;
     parameters.max_read_size = 21;
 
@@ -614,7 +614,7 @@ TEST(IndexKmers, TwoSitesAndKmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) 
     auto prg_raw = "t25cg26cc26tg26tc25ct27ca28ca27gacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     parameters.max_read_size = 8;
 
@@ -634,7 +634,7 @@ TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFou
     auto prg_raw = "t25cg26cc26tg26tc25ct27ca28ca27gacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.kmers_size = 5;
     parameters.max_read_size = 7;
 

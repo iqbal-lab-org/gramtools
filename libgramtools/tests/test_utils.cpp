@@ -7,7 +7,7 @@
 
 
 PRG_Info generate_prg_info(const std::string &prg_raw) {
-    Parameters parameters;
+    Parameters parameters = {};
     parameters.encoded_prg_fpath = "@encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";
     parameters.gram_dirpath = "@gram_dir";
