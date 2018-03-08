@@ -124,8 +124,8 @@ void dump_paths(const KmerIndexStats &stats,
 }
 
 
-void dump_kmer_index(const KmerIndex &kmer_index,
-                     const Parameters &parameters) {
+void kmer_index::dump(const KmerIndex &kmer_index,
+                      const Parameters &parameters) {
     sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
     auto stats = calculate_stats(kmer_index);
     dump_kmers_stats(stats, all_kmers, kmer_index, parameters);
@@ -282,12 +282,10 @@ KmerIndex index_kmers(const Patterns &kmer_prefix_diffs,
 }
 
 
-void generate_kmer_index(const Parameters &parameters,
-                         const PRG_Info &prg_info) {
+KmerIndex kmer_index::build(const Parameters &parameters,
+                            const PRG_Info &prg_info) {
     Patterns kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
                                                        prg_info);
     KmerIndex kmer_index = index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);
-    dump_kmer_index(kmer_index, parameters);
+    return kmer_index;
 }
-
-

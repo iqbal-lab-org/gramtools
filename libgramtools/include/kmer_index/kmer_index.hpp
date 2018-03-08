@@ -36,13 +36,11 @@ void dump_paths(const KmerIndexStats &stats,
                 const KmerIndex &kmer_index,
                 const Parameters &parameters);
 
-void dump_kmer_index(const KmerIndex &kmer_index, const Parameters &parameters);
-
 struct IndexedKmerStats {
     uint64_t count_search_states;
     std::vector<uint64_t> path_lengths;
 
-    bool operator== (const IndexedKmerStats &other) const {
+    bool operator==(const IndexedKmerStats &other) const {
         return this->count_search_states == other.count_search_states
                and this->path_lengths == other.path_lengths;
     };
@@ -50,7 +48,11 @@ struct IndexedKmerStats {
 
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
 
-void generate_kmer_index(const Parameters &parameters,
-                         const PRG_Info &prg_info);
+namespace kmer_index {
+    void dump(const KmerIndex &kmer_index, const Parameters &parameters);
+
+    KmerIndex build(const Parameters &parameters,
+                    const PRG_Info &prg_info);
+}
 
 #endif //GRAMTOOLS_KMER_INDEX_HPP

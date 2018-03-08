@@ -56,9 +56,10 @@ void commands::build::run(const Parameters &parameters) {
     prg_info.rank_bwt_t = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_t);
     timer.stop();
 
-    std::cout << "Generating kmer index" << std::endl;
-    timer.start("Generate kmer index");
-    generate_kmer_index(parameters, prg_info);
+    std::cout << "Building kmer index" << std::endl;
+    timer.start("Building kmer index");
+    auto kmer_index = kmer_index::build(parameters, prg_info);
+    kmer_index::dump(kmer_index, parameters);
     timer.stop();
 
     timer.report();
