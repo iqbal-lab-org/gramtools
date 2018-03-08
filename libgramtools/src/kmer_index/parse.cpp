@@ -134,7 +134,7 @@ void parse_paths(KmerIndex &kmer_index,
 }
 
 
-KmerIndex parse_kmer_index(const Parameters &parameters) {
+KmerIndex kmer_index::parse(const Parameters &parameters) {
     KmerIndex kmer_index;
 
     sdsl::int_vector<3> all_kmers;

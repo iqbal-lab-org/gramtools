@@ -149,7 +149,7 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
     sdsl::util::bit_compress(paths);
     sdsl::store_to_file(paths, parameters.paths_fpath);
 
-    auto result = parse_kmer_index(parameters);
+    auto result = kmer_index::parse(parameters);
 
     KmerIndex expected = {
             {{1, 2, 3, 4},

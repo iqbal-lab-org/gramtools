@@ -25,7 +25,9 @@ void parse_paths(KmerIndex &kmer_index,
                  const sdsl::int_vector<> &kmers_stats,
                  const Parameters &parameters);
 
-KmerIndex parse_kmer_index(const Parameters &parameters);
+namespace kmer_index {
+    KmerIndex parse(const Parameters &parameters);
+}
 
 
 #endif //GRAMTOOLS_KMER_INDEX_PARSE_HPP
