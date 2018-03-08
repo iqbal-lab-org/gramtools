@@ -5,8 +5,8 @@
 #include "kmer_index_types.hpp"
 
 
-#ifndef GRAMTOOLS_KMER_INDEX_PARSE_HPP
-#define GRAMTOOLS_KMER_INDEX_PARSE_HPP
+#ifndef GRAMTOOLS_KMER_INDEX_LOAD_HPP
+#define GRAMTOOLS_KMER_INDEX_LOAD_HPP
 
 Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
                               const sdsl::int_vector<3> &all_kmers,
@@ -30,4 +30,4 @@ namespace kmer_index {
 }
 
 
-#endif //GRAMTOOLS_KMER_INDEX_PARSE_HPP
+#endif //GRAMTOOLS_KMER_INDEX_LOAD_HPP
