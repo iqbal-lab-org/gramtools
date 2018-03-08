@@ -61,7 +61,7 @@ set(SOURCE_FILES
 
         ${SOURCE}/kmer_index/kmers.cpp
         ${SOURCE}/kmer_index/kmer_index.cpp
-        ${SOURCE}/kmer_index/parse.cpp
+        ${SOURCE}/kmer_index/load.cpp
 
         ${SOURCE}/prg/prg.cpp
         ${SOURCE}/prg/masks.cpp
@@ -90,7 +90,7 @@ set(INCLUDE_FILES
         ${INCLUDE}/kmer_index/kmers.hpp
         ${INCLUDE}/kmer_index/kmer_index.hpp
         ${INCLUDE}/kmer_index/kmer_index_types.hpp
-        ${INCLUDE}/kmer_index/parse.hpp
+        ${INCLUDE}/kmer_index/load.hpp
 
         ${INCLUDE}/prg/prg.hpp
         ${INCLUDE}/prg/masks.hpp

@@ -4,7 +4,7 @@
 
 #include "kmer_index/kmers.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "kmer_index/parse.hpp"
+#include "kmer_index/load.hpp"
 
 
 Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
@@ -134,7 +134,7 @@ void parse_paths(KmerIndex &kmer_index,
 }
 
 
-KmerIndex kmer_index::parse(const Parameters &parameters) {
+KmerIndex kmer_index::load(const Parameters &parameters) {
     KmerIndex kmer_index;
 
     sdsl::int_vector<3> all_kmers;

@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 #include "search/search.hpp"
-#include "kmer_index/parse.hpp"
+#include "kmer_index/load.hpp"
 #include "kmer_index/kmers.hpp"
 #include "kmer_index/kmer_index.hpp"
 

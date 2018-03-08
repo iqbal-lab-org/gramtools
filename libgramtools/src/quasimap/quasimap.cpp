@@ -14,7 +14,7 @@
 #include "quasimap/coverage/types.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
-#include "kmer_index/parse.hpp"
+#include "kmer_index/load.hpp"
 
 
 void commands::quasimap::run(const Parameters &parameters) {
@@ -25,7 +25,7 @@ void commands::quasimap::run(const Parameters &parameters) {
     std::cout << "Loading PRG data" << std::endl;
     const auto prg_info = load_prg_info(parameters);
     std::cout << "Loading kmer index data" << std::endl;
-    const auto kmer_index = kmer_index::parse(parameters);
+    const auto kmer_index = kmer_index::load(parameters);
     timer.stop();
 
     std::cout << "Running quasimap" << std::endl;

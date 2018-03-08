@@ -26,7 +26,7 @@ void parse_paths(KmerIndex &kmer_index,
                  const Parameters &parameters);
 
 namespace kmer_index {
-    KmerIndex parse(const Parameters &parameters);
+    KmerIndex load(const Parameters &parameters);
 }
 
 

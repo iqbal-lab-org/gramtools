@@ -4,7 +4,7 @@
 
 #include "../test_utils.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "kmer_index/parse.hpp"
+#include "kmer_index/load.hpp"
 
 
 TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {

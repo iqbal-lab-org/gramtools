@@ -4,7 +4,7 @@
 
 #include "../test_utils.hpp"
 #include "kmer_index/kmer_index.hpp"
-#include "kmer_index/parse.hpp"
+#include "kmer_index/load.hpp"
 
 
 TEST(DeserializeNextStats, GivenOneSearchStateWithThreePaths_CorrectlyIndexedKmerStats) {
@@ -149,7 +149,7 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
     sdsl::util::bit_compress(paths);
     sdsl::store_to_file(paths, parameters.paths_fpath);
 
-    auto result = kmer_index::parse(parameters);
+    auto result = kmer_index::load(parameters);
 
     KmerIndex expected = {
             {{1, 2, 3, 4},
