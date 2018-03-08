@@ -6,13 +6,14 @@
 
 #include "kmer_index/kmer_index.hpp"
 #include "build/build.hpp"
+#include "kmer_index/dump.hpp"
 
 
 void commands::build::run(const Parameters &parameters) {
     std::cout << "Executing build command" << std::endl;
     auto timer = TimerReport();
 
-    PRG_Info prg_info = {};
+    PRG_Info prg_info;
 
     std::cout << "Generating integer encoded PRG" << std::endl;
     timer.start("Encoded PRG");

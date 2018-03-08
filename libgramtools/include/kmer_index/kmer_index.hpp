@@ -16,26 +16,6 @@ struct KmerIndexStats {
     uint64_t count_total_path_elements;
 };
 
-KmerIndexStats calculate_stats(const KmerIndex &kmer_index);
-
-void dump_kmers_stats(const KmerIndexStats &stats,
-                      const sdsl::int_vector<3> &all_kmers,
-                      const KmerIndex &kmer_index,
-                      const Parameters &parameters);
-
-sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
-                               const Parameters &parameters);
-
-void dump_sa_intervals(const KmerIndexStats &stats,
-                       const sdsl::int_vector<3> &all_kmers,
-                       const KmerIndex &kmer_index,
-                       const Parameters &parameters);
-
-void dump_paths(const KmerIndexStats &stats,
-                const sdsl::int_vector<3> &all_kmers,
-                const KmerIndex &kmer_index,
-                const Parameters &parameters);
-
 struct IndexedKmerStats {
     uint64_t count_search_states;
     std::vector<uint64_t> path_lengths;
@@ -49,8 +29,6 @@ struct IndexedKmerStats {
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
 
 namespace kmer_index {
-    void dump(const KmerIndex &kmer_index, const Parameters &parameters);
-
     KmerIndex build(const Parameters &parameters,
                     const PRG_Info &prg_info);
 }
