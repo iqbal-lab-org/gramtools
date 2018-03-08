@@ -4,9 +4,10 @@
 #include "prg/prg.hpp"
 #include "prg/masks.hpp"
 
-#include "kmer_index/kmer_index.hpp"
-#include "build/build.hpp"
+#include "kmer_index/build.hpp"
 #include "kmer_index/dump.hpp"
+
+#include "build/build.hpp"
 
 
 void commands::build::run(const Parameters &parameters) {

@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "../test_utils.hpp"
-#include "kmer_index/kmer_index.hpp"
+#include "kmer_index/build.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
 

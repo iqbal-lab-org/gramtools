@@ -1,7 +1,7 @@
 #include "../common/utils.hpp"
 #include "../common/parameters.hpp"
 
-#include "kmer_index.hpp"
+#include "build.hpp"
 #include "kmer_index_types.hpp"
 
 

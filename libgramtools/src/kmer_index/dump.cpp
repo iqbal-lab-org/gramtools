@@ -22,6 +22,7 @@ KmerIndexStats calculate_stats(const KmerIndex &kmer_index) {
     return stats;
 }
 
+
 sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
                                const Parameters &parameters) {
     sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
@@ -38,6 +39,7 @@ sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
     store_to_file(all_kmers, parameters.kmers_fpath);
     return all_kmers;
 }
+
 
 void dump_kmers_stats(const KmerIndexStats &stats,
                       const sdsl::int_vector<3> &all_kmers,
@@ -66,6 +68,7 @@ void dump_kmers_stats(const KmerIndexStats &stats,
     store_to_file(kmers_stats, parameters.kmers_stats_fpath);
 }
 
+
 void dump_sa_intervals(const KmerIndexStats &stats,
                        const sdsl::int_vector<3> &all_kmers,
                        const KmerIndex &kmer_index,
@@ -90,6 +93,7 @@ void dump_sa_intervals(const KmerIndexStats &stats,
     sdsl::util::bit_compress(sa_intervals);
     store_to_file(sa_intervals, parameters.sa_intervals_fpath);
 }
+
 
 void dump_paths(const KmerIndexStats &stats,
                 const sdsl::int_vector<3> &all_kmers,
@@ -117,6 +121,7 @@ void dump_paths(const KmerIndexStats &stats,
     sdsl::util::bit_compress(paths);
     store_to_file(paths, parameters.paths_fpath);
 }
+
 
 void kmer_index::dump(const KmerIndex &kmer_index,
                       const Parameters &parameters) {

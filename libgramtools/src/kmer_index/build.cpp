@@ -5,7 +5,10 @@
 #include "search/search.hpp"
 #include "kmer_index/load.hpp"
 #include "kmer_index/kmers.hpp"
-#include "kmer_index/kmer_index.hpp"
+#include "kmer_index/build.hpp"
+
+
+// TODO: rename this file to: build
 
 
 CacheElement get_next_cache_element(const Base &base,

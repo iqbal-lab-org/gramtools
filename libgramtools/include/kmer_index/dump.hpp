@@ -1,4 +1,5 @@
-#include "kmer_index.hpp"
+#include "kmer_index/build.hpp"
+
 
 #ifndef GRAMTOOLS_KMER_INDEX_DUMP_HPP
 #define GRAMTOOLS_KMER_INDEX_DUMP_HPP

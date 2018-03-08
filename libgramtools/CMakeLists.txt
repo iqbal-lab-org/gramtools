@@ -60,7 +60,7 @@ set(SOURCE_FILES
         ${SOURCE}/quasimap/coverage/grouped_allele_counts.cpp
 
         ${SOURCE}/kmer_index/kmers.cpp
-        ${SOURCE}/kmer_index/kmer_index.cpp
+        ${SOURCE}/kmer_index/build.cpp
         ${SOURCE}/kmer_index/load.cpp
         ${SOURCE}/kmer_index/dump.cpp
 
@@ -89,8 +89,8 @@ set(INCLUDE_FILES
         ${INCLUDE}/quasimap/coverage/types.hpp
 
         ${INCLUDE}/kmer_index/kmers.hpp
-        ${INCLUDE}/kmer_index/kmer_index.hpp
         ${INCLUDE}/kmer_index/kmer_index_types.hpp
+        ${INCLUDE}/kmer_index/build.hpp
         ${INCLUDE}/kmer_index/load.hpp
         ${INCLUDE}/kmer_index/dump.hpp
 

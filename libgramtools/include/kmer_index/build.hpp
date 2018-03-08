@@ -7,8 +7,8 @@
 #include "kmers.hpp"
 
 
-#ifndef GRAMTOOLS_KMER_INDEX_HPP
-#define GRAMTOOLS_KMER_INDEX_HPP
+#ifndef GRAMTOOLS_KMER_INDEX_BUILD_HPP
+#define GRAMTOOLS_KMER_INDEX_BUILD_HPP
 
 struct KmerIndexStats {
     uint64_t count_kmers;
@@ -33,4 +33,4 @@ namespace kmer_index {
                     const PRG_Info &prg_info);
 }
 
-#endif //GRAMTOOLS_KMER_INDEX_HPP
+#endif //GRAMTOOLS_KMER_INDEX_BUILD_HPP

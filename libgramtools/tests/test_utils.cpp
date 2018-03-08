@@ -2,7 +2,7 @@
 
 #include "common/utils.hpp"
 #include "prg/masks.hpp"
-#include "kmer_index/kmer_index.hpp"
+#include "kmer_index/build.hpp"
 #include "test_utils.hpp"
 
 
