@@ -50,25 +50,6 @@ struct IndexedKmerStats {
 
 KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
 
-Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
-                              const sdsl::int_vector<3> &all_kmers,
-                              const uint32_t &kmers_size);
-
-IndexedKmerStats deserialize_next_stats(const uint64_t &stats_index,
-                                        const sdsl::int_vector<> &kmers_stats);
-
-void parse_sa_intervals(KmerIndex &kmer_index,
-                        const sdsl::int_vector<3> &all_kmers,
-                        const sdsl::int_vector<> &kmers_stats,
-                        const Parameters &parameters);
-
-void parse_paths(KmerIndex &kmer_index,
-                 const sdsl::int_vector<3> &all_kmers,
-                 const sdsl::int_vector<> &kmers_stats,
-                 const Parameters &parameters);
-
-KmerIndex parse_kmer_index(const Parameters &parameters);
-
 void generate_kmer_index(const Parameters &parameters,
                          const PRG_Info &prg_info);
 

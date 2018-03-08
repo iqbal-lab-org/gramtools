@@ -10,11 +10,11 @@
 #include "common/utils.hpp"
 
 #include "search/search.hpp"
-#include "kmer_index/kmer_index.hpp"
 
 #include "quasimap/coverage/types.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
+#include "kmer_index/parse.hpp"
 
 
 void commands::quasimap::run(const Parameters &parameters) {

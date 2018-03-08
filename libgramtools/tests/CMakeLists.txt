@@ -42,6 +42,7 @@ add_executable(test_main
 
         kmer_index/test_kmers.cpp
         kmer_index/test_kmer_index.cpp
+        kmer_index/test_parse.cpp
 
         prg/test_prg.cpp
         prg/test_masks.cpp)
