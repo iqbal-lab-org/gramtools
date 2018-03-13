@@ -32,4 +32,16 @@ bool multiple_allele_encapsulated(const SearchState &search_state,
                                   const uint64_t &read_length,
                                   const PRG_Info &prg_info);
 
+uint64_t random_int_inclusive(const uint64_t &min,
+                              const uint64_t &max,
+                              const uint64_t &random_seed);
+
+uint32_t count_nonvariant_search_states(const SearchStates &search_states);
+
+using PathSites = std::vector<Marker>;
+std::set<PathSites> get_unique_path_sites(const SearchStates &search_states);
+
+SearchStates filter_for_path_sites(const PathSites &target_path_sites,
+                                   const SearchStates &search_states);
+
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP

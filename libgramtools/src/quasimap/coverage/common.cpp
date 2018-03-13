@@ -11,34 +11,12 @@
 #include "quasimap/coverage/common.hpp"
 
 
-SearchState random_select_search_state(const SearchStates &search_states,
-                                       const uint32_t &random_seed) {
-    uint32_t actual_seed = 0;
-    if (random_seed == 0) {
-        boost::random_device seed_generator;
-        actual_seed = seed_generator();
-    } else {
-        actual_seed = random_seed;
-    }
-    boost::mt19937 random_number_generator(actual_seed);
-    boost::uniform_int<> range(0, (int) search_states.size() - 1);
-
-    using Generator = boost::variate_generator<boost::mt19937, boost::uniform_int<>>;
-    Generator generate_random_number(random_number_generator, range);
-
-    auto it_advance_steps = generate_random_number();
-    auto it = search_states.begin();
-    std::advance(it, it_advance_steps);
-    const auto &choice = *it;
-    return choice;
-}
-
-
 bool check_allele_encapsulated(const SearchState &search_state,
                                const uint64_t &read_length,
                                const PRG_Info &prg_info) {
     bool single_allele_path = search_state.variant_site_path.size() == 1;
-    bool start_within_allele = search_state.variant_site_state == SearchVariantSiteState::within_variant_site;
+    bool start_within_allele = search_state.variant_site_state
+                               == SearchVariantSiteState::within_variant_site;
 
     bool end_within_allele = true;
     for (SA_Index sa_index = search_state.sa_interval.first;
@@ -97,25 +75,120 @@ SearchState random_select_single_mapping(const SearchState &search_state,
 }
 
 
+uint64_t random_int_inclusive(const uint64_t &min,
+                              const uint64_t &max,
+                              const uint64_t &random_seed) {
+    uint64_t actual_seed = 0;
+    if (random_seed == 0) {
+        boost::random_device seed_generator;
+        actual_seed = seed_generator();
+    } else {
+        actual_seed = random_seed;
+    }
+    boost::mt19937 random_number_generator((uint32_t) actual_seed);
+
+    boost::uniform_int<> range((uint32_t) min, (uint32_t) max);
+    using Generator = boost::variate_generator<boost::mt19937, boost::uniform_int<>>;
+    Generator generate_random_number(random_number_generator, range);
+    return (uint64_t) generate_random_number();
+}
+
+
+uint32_t count_nonvariant_search_states(const SearchStates &search_states) {
+    uint32_t count = 0;
+    for (const auto &search_state: search_states) {
+        bool has_path = not search_state.variant_site_path.empty();
+        if (not has_path)
+            ++count;
+    }
+    return count;
+}
+
+
+PathSites get_path_sites(const SearchState &search_state) {
+    PathSites path_sites = {};
+    for (const auto &entry: search_state.variant_site_path) {
+        Marker site = entry.first;
+        path_sites.push_back(site);
+    }
+    return path_sites;
+}
+
+
+std::set<PathSites> get_unique_path_sites(const SearchStates &search_states) {
+    std::set<PathSites> all_path_sites = {};
+    for (const auto &search_state: search_states) {
+        bool has_path = not search_state.variant_site_path.empty();
+        if (not has_path)
+            continue;
+
+        auto path_sites = get_path_sites(search_state);
+        all_path_sites.insert(path_sites);
+    }
+    return all_path_sites;
+}
+
+
+SearchStates filter_for_path_sites(const PathSites &target_path_sites,
+                                   const SearchStates &search_states) {
+    SearchStates new_search_states = {};
+    for (const auto &search_state: search_states) {
+        auto path_sites = get_path_sites(search_state);
+        bool has_taget_path = path_sites == target_path_sites;
+        if (has_taget_path)
+            new_search_states.emplace_back(search_state);
+    }
+    return new_search_states;
+}
+
+
+SearchStates selection(const SearchStates &search_states,
+                       const uint64_t &read_length,
+                       const PRG_Info &prg_info,
+                       const uint32_t &random_seed) {
+    uint64_t nonvariant_count = count_nonvariant_search_states(search_states);
+    auto path_sites = get_unique_path_sites(search_states);
+
+    uint64_t count_total_options = nonvariant_count + path_sites.size();
+    if (count_total_options == 0)
+        return SearchStates {};
+    uint64_t selected_option = random_int_inclusive(1, count_total_options, random_seed);
+
+    bool selected_no_path = selected_option <= nonvariant_count;
+    if (selected_no_path)
+        return SearchStates {};
+
+    uint64_t paths_sites_offset = selected_option - nonvariant_count - 1;
+    auto it = path_sites.begin();
+    std::advance(it, paths_sites_offset);
+    auto selected_path_sites = *it;
+
+    auto selected_search_states = filter_for_path_sites(selected_path_sites, search_states);
+    if (selected_search_states.size() > 1)
+        return selected_search_states;
+
+    auto search_state = selected_search_states.front();
+    if (multiple_allele_encapsulated(search_state, read_length, prg_info)) {
+        search_state = random_select_single_mapping(search_state,
+                                                    random_seed);
+    }
+    return SearchStates {search_state};
+}
+
+
 void coverage::record::search_states(Coverage &coverage,
                                      const SearchStates &search_states,
                                      const uint64_t &read_length,
                                      const PRG_Info &prg_info,
                                      const uint32_t &random_seed) {
-    auto search_state = random_select_search_state(search_states, random_seed);
-    bool has_path = not search_state.variant_site_path.empty();
-    if (not has_path)
-        return;
-
-    if (multiple_allele_encapsulated(search_state, read_length, prg_info)) {
-        search_state = random_select_single_mapping(search_state,
+    SearchStates selected_search_states = selection(search_states,
+                                                    read_length,
+                                                    prg_info,
                                                     random_seed);
-    }
-    SearchStates chosen_search_states = {search_state};
 
-    coverage::record::allele_sum(coverage, chosen_search_states);
-    coverage::record::grouped_allele_counts(coverage, chosen_search_states);
-    coverage::record::allele_base(coverage, chosen_search_states, read_length, prg_info);
+    coverage::record::allele_sum(coverage, selected_search_states);
+    coverage::record::grouped_allele_counts(coverage, selected_search_states);
+    coverage::record::allele_base(coverage, selected_search_states, read_length, prg_info);
 }
 
 

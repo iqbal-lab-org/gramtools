@@ -125,3 +125,182 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
     auto result = check_allele_encapsulated(search_state, read_length, prg_info);
     EXPECT_FALSE(result);
 }
+
+
+TEST(RrandomIntInclusive, RandomCall_MinBoundaryReturned) {
+    uint64_t random_seed = 48;
+    uint64_t result = random_int_inclusive(1, 10, random_seed);
+    uint64_t expected = 1;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(RrandomIntInclusive, RandomCall_MaxBoundaryReturned) {
+    uint64_t random_seed = 56;
+    uint64_t result = random_int_inclusive(1, 10, random_seed);
+    uint64_t expected = 10;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {5, 1},
+                            VariantSite {7, 2},
+                    }
+            },
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {}
+            }
+
+    };
+    uint64_t result = count_nonvariant_search_states(search_states);
+    uint64_t expected = 1;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {5, 1},
+                            VariantSite {7, 2},
+                    }
+            },
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            }
+
+    };
+    auto result = get_unique_path_sites(search_states);
+    std::set<PathSites> expected = {
+            PathSites {5, 7},
+            PathSites {9, 11}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetUniquePathSites, TwoIdenticalPaths_SinglePathInSet) {
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            },
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            }
+
+    };
+    auto result = get_unique_path_sites(search_states);
+    std::set<PathSites> expected = {
+            PathSites {9, 11}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) {
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            },
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            },
+            SearchState {
+                    SA_Interval {},
+                    VariantSitePath {}
+            }
+
+    };
+    auto result = get_unique_path_sites(search_states);
+    std::set<PathSites> expected = {
+            PathSites {9, 11}
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectSingleSearchState) {
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {1, 2},
+                    VariantSitePath {
+                            VariantSite {5, 1},
+                            VariantSite {7, 2},
+                    }
+            },
+            SearchState {
+                    SA_Interval {3, 4},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            }
+
+    };
+    PathSites target_path = {9, 11};
+    auto result = filter_for_path_sites(target_path, search_states);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {3, 4},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            }
+
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectEmptySearchStates) {
+    SearchStates search_states = {
+            SearchState {
+                    SA_Interval {1, 2},
+                    VariantSitePath {
+                            VariantSite {5, 1},
+                            VariantSite {7, 2},
+                    }
+            },
+            SearchState {
+                    SA_Interval {3, 4},
+                    VariantSitePath {
+                            VariantSite {9, 3},
+                            VariantSite {11, 5},
+                    }
+            }
+
+    };
+    PathSites target_path = {13, 15};
+    auto result = filter_for_path_sites(target_path, search_states);
+    SearchStates expected = {};
+    EXPECT_EQ(result, expected);
+}
