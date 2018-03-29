@@ -3,8 +3,8 @@
 #include <vector>
 #include <stdlib.h>
 #include <regex>
-#include <algorithm> 
-#include <functional> 
+#include <algorithm>
+#include <functional>
 #include <cctype>
 #include <locale>
 #include "seq_file.h"
@@ -16,158 +16,129 @@
 #ifndef GRAMTOOLS_SEQREAD_HPP
 #define GRAMTOOLS_SEQREAD_HPP
 
-struct GenomicRead
-{
-	char *name;
-	char *seq;
-	char *qual;
+struct GenomicRead {
+    char *name;
+    char *seq;
+    char *qual;
 
-	friend std::ostream& operator<< ( std::ostream & output, GenomicRead const & that )
-	{ 
-		return output << "[" << that.name << "](" << that.seq << ")";  
-	}
+    friend std::ostream &operator<<(std::ostream &output, GenomicRead const &that) {
+        return output << "[" << that.name << "](" << that.seq << ")";
+    }
 
-	public:
-	GenomicRead(){}
+public:
+    GenomicRead() {}
 
-	std::vector<std::string> kmers (int k)
-	{
-		std::string tmp=std::string(seq);
-		int sz=tmp.length()-(k-1);
+    std::vector<std::string> kmers(int k) {
+        std::string tmp = std::string(seq);
+        int sz = tmp.length() - (k - 1);
 
-		std::vector<std::string> v=std::vector<std::string>();
-		for (int i=0;i<sz;i++)
-		{
-			v.push_back(tmp.substr(i,k));
-		}
-		return v;
-	}
+        std::vector<std::string> v = std::vector<std::string>();
+        for (int i = 0; i < sz; i++) {
+            v.push_back(tmp.substr(i, k));
+        }
+        return v;
+    }
 
 };
 
 
-class SeqRead
-{
+class SeqRead {
 
-	public:
+public:
 
-		class EndOfFile : public std::runtime_error {
-			public:
-				EndOfFile( void ) : std::runtime_error("EndOfFile")
-			{ }
-		};
+    class EndOfFile : public std::runtime_error {
+    public:
+        EndOfFile(void) : std::runtime_error("EndOfFile") {}
+    };
 
-		class WrongInput : public std::runtime_error {
-			public:
-				WrongInput( void ) : std::runtime_error("WrongInput")
-			{ }
-		};
+    class WrongInput : public std::runtime_error {
+    public:
+        WrongInput(void) : std::runtime_error("WrongInput") {}
+    };
 
-		class WrongFormat : public std::runtime_error {
-			public:
-				WrongFormat( void ) : std::runtime_error("WrongFormat")
-			{ }
-		};
+    class WrongFormat : public std::runtime_error {
+    public:
+        WrongFormat(void) : std::runtime_error("WrongFormat") {}
+    };
 
-		SeqRead (const char *fileinput)
-		{
-			read = seq_read_new();
-			file = seq_open(fileinput);
-			if (file==NULL)
-			  {
-			    seq_read_free(read);
-			    printf("Unable to open %s\n", fileinput);
-			    exit(1);
-			  }
-			else
-			  {
-			    gr=new GenomicRead();
-			  }
-		}
+    SeqRead(const char *fileinput) {
+        read = seq_read_new();
+        file = seq_open(fileinput);
+        if (file == NULL) {
+            seq_read_free(read);
+            printf("Unable to open %s\n", fileinput);
+            exit(1);
+        } else {
+            gr = new GenomicRead();
+        }
+    }
 
-		~SeqRead()
-		{
-			seq_close(file);
-			seq_read_free(read);
-			delete gr;
-		}
+    ~SeqRead() {
+        seq_close(file);
+        seq_read_free(read);
+        delete gr;
+    }
 
 
-		class SeqIterator
-		{
+    class SeqIterator {
 
-			public:
-			SeqIterator (SeqRead* rd,long position=0) 
-			{
-				reader=rd;
-				pos=position;
-				if (position>=0)
-				{
-					try{ gr=reader->next();}
-					catch (SeqRead::EndOfFile &e  )
-					{pos=-1;}
-				}
-			}
+    public:
+        SeqIterator(SeqRead *rd, long position = 0) {
+            reader = rd;
+            pos = position;
+            if (position >= 0) {
+                try { gr = reader->next(); }
+                catch (SeqRead::EndOfFile &e) { pos = -1; }
+            }
+        }
 
-			SeqIterator& operator++()
-			{
-				if (pos!=-1)
-				{
-					try{ gr=reader->next();}
-					catch (SeqRead::EndOfFile &e  )
-					{pos=-1;}
-				}
-				return *this;
-			}
+        SeqIterator &operator++() {
+            if (pos != -1) {
+                try { gr = reader->next(); }
+                catch (SeqRead::EndOfFile &e) { pos = -1; }
+            }
+            return *this;
+        }
 
-			bool operator==(const SeqIterator& rhs)
-			{
-				return rhs.pos==pos;
-			}
+        bool operator==(const SeqIterator &rhs) {
+            return rhs.pos == pos;
+        }
 
-			bool operator!=(const SeqIterator& rhs)
-			{
-				return rhs.pos!=pos;
-			}
+        bool operator!=(const SeqIterator &rhs) {
+            return rhs.pos != pos;
+        }
 
-			GenomicRead* operator*()
-			{
-				return gr;
-			}
+        GenomicRead *operator*() {
+            return gr;
+        }
 
-			GenomicRead *gr;
-			long pos;
-			SeqRead *reader;
-		};
+        GenomicRead *gr;
+        long pos;
+        SeqRead *reader;
+    };
 
-		SeqIterator begin()
-		{
-			return SeqIterator(this,0);
-		}
+    SeqIterator begin() {
+        return SeqIterator(this, 0);
+    }
 
-		SeqIterator end()
-		{
-			return SeqIterator(this,-1);
-		}
+    SeqIterator end() {
+        return SeqIterator(this, -1);
+    }
 
-		GenomicRead* next()
-		{
-			if (seq_read(file, read) > 0)
-			{
-				gr->name=read->name.b;
-				gr->seq=read->seq.b;
-				gr->qual=read->qual.b;
-			}
-			else
-			{throw EndOfFile(); }
-			return gr;
-		}
+    GenomicRead *next() {
+        if (seq_read(file, read) > 0) {
+            gr->name = read->name.b;
+            gr->seq = read->seq.b;
+            gr->qual = read->qual.b;
+        } else { throw EndOfFile(); }
+        return gr;
+    }
 
 
-		private:
-		read_t *read;
-		seq_file_t *file;
-		GenomicRead *gr;
+private:
+    read_t *read;
+    seq_file_t *file;
+    GenomicRead *gr;
 };
 
 #endif //GRAMTOOLS_SEQREAD_HPP

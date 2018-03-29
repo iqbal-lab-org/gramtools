@@ -21,57 +21,52 @@
 */
 
 #ifndef ROUNDUP2POW
-  #define ROUNDUP2POW(x) (0x1UL << (64 - __builtin_clzl(x)))
+#define ROUNDUP2POW(x) (0x1UL << (64 - __builtin_clzl(x)))
 #endif
 
-static inline void cbuf_capacity(char **buf, size_t *sizeptr, size_t len)
-{
-  len++; // for nul byte
-  if(*sizeptr < len) {
-    *sizeptr = ROUNDUP2POW(len);
-    if((*buf = (char *)realloc(*buf, *sizeptr)) == NULL) {
-      fprintf(stderr, "Out of memory\n");
-      exit(EXIT_FAILURE);
+static inline void cbuf_capacity(char **buf, size_t *sizeptr, size_t len) {
+    len++; // for nul byte
+    if (*sizeptr < len) {
+        *sizeptr = ROUNDUP2POW(len);
+        if ((*buf = (char *) realloc(*buf, *sizeptr)) == NULL) {
+            fprintf(stderr, "Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
     }
-  }
 }
 
 static inline void cbuf_append_char(char **buf, size_t *lenptr, size_t *sizeptr,
-                                    char c)
-{
-  cbuf_capacity(buf, sizeptr, *lenptr+1);
-  (*buf)[(*lenptr)++] = c;
-  (*buf)[*lenptr] = '\0';
+                                    char c) {
+    cbuf_capacity(buf, sizeptr, *lenptr + 1);
+    (*buf)[(*lenptr)++] = c;
+    (*buf)[*lenptr] = '\0';
 }
 
 static inline void cbuf_append_str(char **buf, size_t *lenptr, size_t *sizeptr,
-                                   char *str, size_t len)
-{
-  cbuf_capacity(buf, sizeptr, *lenptr+len);
-  memcpy(*buf + *lenptr, str, len);
-  *lenptr += len;
-  (*buf)[*lenptr] = '\0';
+                                   char *str, size_t len) {
+    cbuf_capacity(buf, sizeptr, *lenptr + len);
+    memcpy(*buf + *lenptr, str, len);
+    *lenptr += len;
+    (*buf)[*lenptr] = '\0';
 }
 
-static inline void cbuf_chomp(char *buf, size_t *lenptr)
-{
-  while(*lenptr && (buf[(*lenptr)-1] == '\n' || buf[(*lenptr)-1] == '\r'))
-    (*lenptr)--;
-  buf[*lenptr] = '\0';
+static inline void cbuf_chomp(char *buf, size_t *lenptr) {
+    while (*lenptr && (buf[(*lenptr) - 1] == '\n' || buf[(*lenptr) - 1] == '\r'))
+        (*lenptr)--;
+    buf[*lenptr] = '\0';
 }
 
 /*
    Stream buffer
 */
 
-typedef struct
-{
-  char *b;
-  // begin is index of first char (unless begin >= end)
-  // end is index of \0
-  // size should be >= end+1 to allow for \0
-  // (end-begin) is the number of bytes in buffer
-  size_t begin, end, size;
+typedef struct {
+    char *b;
+    // begin is index of first char (unless begin >= end)
+    // end is index of \0
+    // size should be >= end+1 to allow for \0
+    // (end-begin) is the number of bytes in buffer
+    size_t begin, end, size;
 } StreamBuffer;
 
 
@@ -80,40 +75,38 @@ typedef struct
 #define strm_buf_reset(sb) do { (b)->begin = (b)->end = 1; } while(0)
 
 // Returns NULL if out of memory, @b otherwise
-static inline StreamBuffer* strm_buf_alloc(StreamBuffer *b, size_t s)
-{
-  b->size = (s < 16 ? 16 : s) + 1;
-  if((b->b =(char *) malloc(b->size)) == NULL) return NULL;
-  b->begin = b->end = 1;
-  b->b[b->end] = b->b[b->size-1] = 0;
-  return b;
+static inline StreamBuffer *strm_buf_alloc(StreamBuffer *b, size_t s) {
+    b->size = (s < 16 ? 16 : s) + 1;
+    if ((b->b = (char *) malloc(b->size)) == NULL) return NULL;
+    b->begin = b->end = 1;
+    b->b[b->end] = b->b[b->size - 1] = 0;
+    return b;
 }
 
-static inline void strm_buf_dealloc(StreamBuffer *b)
-{
-  free(b->b);
-  memset(b, 0, sizeof(StreamBuffer));
+static inline void strm_buf_dealloc(StreamBuffer *b) {
+    free(b->b);
+    memset(b, 0, sizeof(StreamBuffer));
 }
 
-static inline StreamBuffer* strm_buf_new(size_t s)
-{
-  StreamBuffer *b = (StreamBuffer*)malloc(sizeof(StreamBuffer));
-  if(b == NULL) return NULL;
-  else if(strm_buf_alloc(b,s)) return b;
-  else { free(b); return NULL; } /* couldn't malloc */
+static inline StreamBuffer *strm_buf_new(size_t s) {
+    StreamBuffer *b = (StreamBuffer *) malloc(sizeof(StreamBuffer));
+    if (b == NULL) return NULL;
+    else if (strm_buf_alloc(b, s)) return b;
+    else {
+        free(b);
+        return NULL;
+    } /* couldn't malloc */
 }
 
-static inline void strm_buf_free(StreamBuffer *cbuf)
-{
-  free(cbuf->b);
-  free(cbuf);
+static inline void strm_buf_free(StreamBuffer *cbuf) {
+    free(cbuf->b);
+    free(cbuf);
 }
 
 // len is the number of bytes you want to be able to store
 // Adds one to len for NULL terminating byte
-static inline void strm_buf_ensure_capacity(StreamBuffer *cbuf, size_t len)
-{
-  cbuf_capacity(&cbuf->b, &cbuf->size, len);
+static inline void strm_buf_ensure_capacity(StreamBuffer *cbuf, size_t len) {
+    cbuf_capacity(&cbuf->b, &cbuf->size, len);
 }
 
 
@@ -133,41 +126,45 @@ freadline(f,out)
 */
 
 #define ferror2(fh) ferror(fh)
-static inline int gzerror2(gzFile gz) { int e; gzerror(gz, &e); return (e < 0); }
+
+static inline int gzerror2(gzFile gz) {
+    int e;
+    gzerror(gz, &e);
+    return (e < 0);
+}
 
 // Define read for gzFile and FILE (unbuffered)
 // Check ferror/gzerror on return for error
-#define fread2(fh,buf,len) fread(buf,1,len,fh)
+#define fread2(fh, buf, len) fread(buf,1,len,fh)
 
 // gzread returns -1 on error, otherwise number of bytes read
 // gzread can only read 2^32 bytes at a time, and returns -1 on error
 // Check ferror/gzerror on return for error
-static inline size_t gzread2(gzFile gz, void *ptr, size_t len)
-{
-  size_t nread = 0, n;
-  int s;
-  while(nread < len) {
-    n = len - nread;
-    if(n > UINT_MAX) n = UINT_MAX;
-    s = gzread(gz, (char*)ptr+nread, n);
-    if(s <= 0) break;
-    nread += s;
-  }
-  return nread;
+static inline size_t gzread2(gzFile gz, void *ptr, size_t len) {
+    size_t nread = 0, n;
+    int s;
+    while (nread < len) {
+        n = len - nread;
+        if (n > UINT_MAX) n = UINT_MAX;
+        s = gzread(gz, (char *) ptr + nread, n);
+        if (s <= 0) break;
+        nread += s;
+    }
+    return nread;
 }
 
 // TODO: these should support len > 2^32 by looping fgets/gzgets
-#define gzgets2(gz,buf,len) gzgets(gz,buf,(int)(len))
-#define fgets2(fh,buf,len) fgets(buf,(int)(len),fh)
+#define gzgets2(gz, buf, len) gzgets(gz,buf,(int)(len))
+#define fgets2(fh, buf, len) fgets(buf,(int)(len),fh)
 
 // fgetc(f), gzgetc(gz) are already good to go
 // fungetc(c,f), gzungetc(c,gz) are already good to go
 
-#define fungetc(c,f) ungetc(c,f)
+#define fungetc(c, f) ungetc(c,f)
 
 // Define readline for gzFile and FILE (unbuffered)
 // Check ferror/gzerror on return for error
-#define _func_readline(name,type_t,__gets) \
+#define _func_readline(name, type_t, __gets) \
   static inline size_t name(type_t file, char **buf, size_t *len, size_t *size)\
   {                                                                            \
     if(*len+1 >= *size) cbuf_capacity(buf, size, *len+1);                      \
@@ -183,11 +180,12 @@ static inline size_t gzread2(gzFile gz, void *ptr, size_t len)
     return *len-origlen;                                                       \
   }
 
-_func_readline(gzreadline,gzFile,gzgets2)
-_func_readline(freadline,FILE*,fgets2)
+_func_readline(gzreadline, gzFile, gzgets2)
+
+_func_readline(freadline, FILE*, fgets2)
 
 // Define skipline
-#define _func_skipline(fname,ftype,readc) \
+#define _func_skipline(fname, ftype, readc) \
   static inline size_t fname(ftype file)                                       \
   {                                                                            \
     int c;                                                                     \
@@ -199,8 +197,9 @@ _func_readline(freadline,FILE*,fgets2)
     return skipped_bytes;                                                      \
   }
 
-_func_skipline(gzskipline,gzFile,gzgetc)
-_func_skipline(fskipline,FILE*,fgetc)
+_func_skipline(gzskipline, gzFile, gzgetc)
+
+_func_skipline(fskipline, FILE*, fgetc)
 
 /* Buffered */
 
@@ -218,7 +217,7 @@ freadline_buf(f,in,out)
 // offset of 1 so we can unget at least one char
 // Beware: read-in buffer is not null-terminated
 // Returns fail on error
-#define _READ_BUFFER(file,in,__read) do                                        \
+#define _READ_BUFFER(file, in, __read) do                                        \
 {                                                                              \
   (in)->end = 1+__read(file,(in)->b+1,(in)->size-1);                           \
   (in)->begin = 1;                                                             \
@@ -227,7 +226,7 @@ freadline_buf(f,in,out)
 // Define getc for gzFile and FILE (buffered)
 // Returns character or -1 at EOF / error
 // Check ferror/gzerror on return for error
-#define _func_getc_buf(fname,type_t,__read)                                    \
+#define _func_getc_buf(fname, type_t, __read)                                    \
   static inline int fname(type_t file, StreamBuffer *in)                       \
   {                                                                            \
     if(in->begin >= in->end) {                                                 \
@@ -237,31 +236,30 @@ freadline_buf(f,in,out)
     return in->b[in->begin++];                                                 \
   }
 
-_func_getc_buf(fgetc_buf,FILE*,fread2)
-_func_getc_buf(gzgetc_buf,gzFile,gzread2)
+_func_getc_buf(fgetc_buf, FILE*, fread2)
+
+_func_getc_buf(gzgetc_buf, gzFile, gzread2)
 
 // Define ungetc for buffers
 // returns c if successful, otherwise -1
-static inline int ungetc_buf(int c, StreamBuffer *in)
-{
-  if(in->begin == 0) {
-    if(in->end == 0) {
-      in->b[0] = (char)c;
-      in->end = 1;
-      return c;
+static inline int ungetc_buf(int c, StreamBuffer *in) {
+    if (in->begin == 0) {
+        if (in->end == 0) {
+            in->b[0] = (char) c;
+            in->end = 1;
+            return c;
+        } else return -1;
     }
-    else return -1;
-  }
-  in->b[--(in->begin)] = (char)c;
-  return c;
+    in->b[--(in->begin)] = (char) c;
+    return c;
 }
 
-#define fungetc_buf(c,in) ungetc_buf(c,in)
-#define gzungetc_buf(c,in) ungetc_buf(c,in)
+#define fungetc_buf(c, in) ungetc_buf(c,in)
+#define gzungetc_buf(c, in) ungetc_buf(c,in)
 
 // Returns number of bytes read
 // Check ferror/gzerror on return for error
-#define _func_read_buf(fname,type_t,__read)                                    \
+#define _func_read_buf(fname, type_t, __read)                                    \
   static inline size_t fname(type_t file, void *ptr, size_t len, StreamBuffer *in)\
   {                                                                            \
     size_t remaining = len, next;                                              \
@@ -287,12 +285,13 @@ static inline int ungetc_buf(int c, StreamBuffer *in)
     return len - remaining;                                                    \
   }
 
-_func_read_buf(gzread_buf,gzFile,gzread2)
-_func_read_buf(fread_buf,FILE*,fread2)
+_func_read_buf(gzread_buf, gzFile, gzread2)
+
+_func_read_buf(fread_buf, FILE*, fread2)
 
 // Define readline for gzFile and FILE (buffered)
 // Check ferror/gzerror on return for error
-#define _func_readline_buf(fname,type_t,__read)                                \
+#define _func_readline_buf(fname, type_t, __read)                                \
   static inline size_t fname(type_t file, StreamBuffer *in,                    \
                              char **buf, size_t *len, size_t *size)            \
   {                                                                            \
@@ -314,12 +313,13 @@ _func_read_buf(fread_buf,FILE*,fread2)
     return total_read;                                                         \
   }
 
-_func_readline_buf(gzreadline_buf,gzFile,gzread2)
-_func_readline_buf(freadline_buf,FILE*,fread2)
+_func_readline_buf(gzreadline_buf, gzFile, gzread2)
+
+_func_readline_buf(freadline_buf, FILE*, fread2)
 
 // Define buffered skipline
 // Check ferror/gzerror on return for error
-#define _func_skipline_buf(fname,ftype,__read)                                 \
+#define _func_skipline_buf(fname, ftype, __read)                                 \
   static inline size_t fname(ftype file, StreamBuffer *in)                     \
   {                                                                            \
     if(in->begin >= in->end) { _READ_BUFFER(file,in,__read); }                 \
@@ -335,8 +335,9 @@ _func_readline_buf(freadline_buf,FILE*,fread2)
     return skipped_bytes;                                                      \
   }
 
-_func_skipline_buf(gzskipline_buf,gzFile,gzread2)
-_func_skipline_buf(fskipline_buf,FILE*,fread2)
+_func_skipline_buf(gzskipline_buf, gzFile, gzread2)
+
+_func_skipline_buf(fskipline_buf, FILE*, fread2)
 
 // Define buffered gzgets_buf, fgets_buf
 
@@ -344,7 +345,7 @@ _func_skipline_buf(fskipline_buf,FILE*,fread2)
 // Adds null-terminating byte
 // returns pointer to `str` or NULL if EOF
 // Check ferror/gzerror on return for error
-#define _func_gets_buf(fname,type_t,__read)                                    \
+#define _func_gets_buf(fname, type_t, __read)                                    \
   static inline char* fname(type_t file, StreamBuffer *in, char *str, size_t len)\
   {                                                                            \
     if(len == 0) return NULL;                                                  \
@@ -367,36 +368,35 @@ _func_skipline_buf(fskipline_buf,FILE*,fread2)
     return total_read == 0 ? NULL : str;                                       \
   }
 
-_func_gets_buf(gzgets_buf,gzFile,gzread2)
-_func_gets_buf(fgets_buf,FILE*,fread2)
+_func_gets_buf(gzgets_buf, gzFile, gzread2)
+
+_func_gets_buf(fgets_buf, FILE*, fread2)
 
 
 // Buffered ftell/gztell, fseek/gzseek
 
 // ftell
 static inline off_t ftell_buf(FILE *fh, StreamBuffer *strm) {
-  return ftell(fh) - (strm->end - strm->begin);
+    return ftell(fh) - (strm->end - strm->begin);
 }
 
 static inline off_t gztell_buf(gzFile gz, StreamBuffer *strm) {
-  return gztell(gz) - (strm->end - strm->begin);
+    return gztell(gz) - (strm->end - strm->begin);
 }
 
 // fseek
 static inline long fseek_buf(FILE *fh, off_t offset, int whence,
-                             StreamBuffer *strm)
-{
-  int x = fseek(fh, offset, whence);
-  if(x == 0) { strm->begin = strm->end = 1; }
-  return x;
+                             StreamBuffer *strm) {
+    int x = fseek(fh, offset, whence);
+    if (x == 0) { strm->begin = strm->end = 1; }
+    return x;
 }
 
 static inline long gzseek_buf(gzFile gz, off_t offset, int whence,
-                              StreamBuffer *strm)
-{
-  int x = gzseek(gz, offset, whence);
-  if(x == 0) { strm->begin = strm->end = 1; }
-  return x;
+                              StreamBuffer *strm) {
+    int x = gzseek(gz, offset, whence);
+    if (x == 0) { strm->begin = strm->end = 1; }
+    return x;
 }
 
 /*
@@ -411,14 +411,14 @@ fwrite2(fh,ptr,len)
 gzwrite2(gz,ptr,len)
 */
 
-#define fputc2(fh,c) fputc(c,fh)
-#define gzputc2(gz,c) gzputc(gz,c)
+#define fputc2(fh, c) fputc(c,fh)
+#define gzputc2(gz, c) gzputc(gz,c)
 
-#define fputs2(fh,str) fputs(str,fh)
-#define gzputs2(gz,str) gzputs(gz,str)
+#define fputs2(fh, str) fputs(str,fh)
+#define gzputs2(gz, str) gzputs(gz,str)
 
-#define fwrite2(fh,ptr,len) fwrite(ptr,len,1,fh)
-#define gzwrite2(gz,ptr,len) gzwrite(gz,ptr,len)
+#define fwrite2(fh, ptr, len) fwrite(ptr,len,1,fh)
+#define gzwrite2(gz, ptr, len) gzwrite(gz,ptr,len)
 
 /*
  Output (buffered)
