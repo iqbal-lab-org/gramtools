@@ -13,13 +13,7 @@ gramtools finds the nearest mosaic from a reference panel of genomes to a sample
 We recommend the first option for now.
 
 ## Install
-With root:
-
-```sudo pip3 install git+https://github.com/iqbal-lab-org/gramtools```
-
-Without root:
-
-```python3 -m venv gramtools_virtualenv && source ./gramtools_virtualenv/bin/activate && pip3 install git+https://github.com/iqbal-lab-org/gramtools```
+```pip3 install git+https://github.com/iqbal-lab-org/gramtools```
 
 ## Run
 Initial step done just once (per species)
