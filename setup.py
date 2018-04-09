@@ -89,6 +89,9 @@ setuptools.setup(
     packages=setuptools.find_packages("."),
     package_data=package_data,
     include_package_data=True,
+    install_requires=[
+        'scipy >= 1.0.1',
+    ],
     test_suite='gramtools.tests',
     cmdclass={
         'install': InstallCommand,
