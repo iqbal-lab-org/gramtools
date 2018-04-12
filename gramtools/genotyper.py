@@ -5,10 +5,6 @@ import operator
 from scipy.stats import poisson
 
 
-class Error(Exception):
-    pass
-
-
 class Genotyper:
     def __init__(self, mean_depth, error_rate, allele_combination_cov, allele_per_base_cov, allele_groups_dict):
         self.mean_depth = mean_depth

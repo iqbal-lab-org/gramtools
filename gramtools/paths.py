@@ -6,8 +6,6 @@ log = logging.getLogger('gramtools')
 
 def _generate_project_paths(args):
     project_dir = args.gram_directory
-    kmer_index_file_name = \
-        'kmer_index_' + str(args.kmer_size)
 
     if hasattr(args, 'vcf'):
         vcf_file_path = os.path.abspath(args.vcf)
@@ -34,9 +32,6 @@ def _generate_project_paths(args):
         'allele_mask': project_path('allele_mask'),
 
         'fm_index': project_path('fm_index'),
-        'kmer_index': os.path.join(project_dir,
-                                   'kmers',
-                                   kmer_index_file_name),
 
         'perl_generated_vcf': project_path('perl_generated_vcf'),
         'perl_generated_fa': project_path('perl_generated_fa'),
@@ -67,6 +62,24 @@ def generate_build_paths(args):
     project_paths = _generate_project_paths(args)
     project_paths['build_report'] = os.path.join(project_paths['project'], 'build_report.json')
     return project_paths
+
+
+def generate_quasimap_run_paths(args):
+    def path(fname):
+        return os.path.join(args.quasimap_directory, fname)
+    return {
+        'allele_base_coverage': path('allele_base_coverage.json'),
+        'grouped_allele_counts_coverage': path('grouped_allele_counts_coverage.json'),
+        'allele_sum_coverage': path('allele_sum_coverage'),
+        'report': path('report.json'),
+    }
+
+
+def generate_infer_paths(args):
+    project_paths = _generate_project_paths(args)
+    quasimap_paths = generate_quasimap_run_paths(args)
+    paths = {**project_paths, **quasimap_paths}
+    return paths
 
 
 def _generate_quasimap_run_dirpath(quasimap_outputs_dirpath,

@@ -42,3 +42,14 @@ For each sample
 |--------------------|--------------------------------------------------------------------------|
 | `--gram-directory` | output directory for gramtools build files (created if missing)          |
 | `--reads`          | input read samples fastq file, this parameter can be used multiple times |
+
+### Infer personal reference
+```gramtools infer --gram-directory ./gram --mean-depth 20 --error-rate 0.01 --quasimap-directory ./1519293469_ksize15 --output ./out.fasta```
+
+| parameter              | description                                                     |
+|------------------------|-----------------------------------------------------------------|
+| `--gram-directory`     | output directory for gramtools build files (created if missing) |
+| `--quasimap-directory` | quasimap run directory which contains coverage data             |
+| `--output`             | output fasta file path                                          |
+| `--mean-depth`         | mean coverage depth                                             |
+| `--error-rate`         | DNA base error rate                                             |

@@ -2,10 +2,11 @@ import logging
 import argparse
 import collections
 
+from . import version
 from . import build
 from . import simulate
 from . import quasimap
-from . import version
+from . import infer
 
 
 def _setup_logging(level):
@@ -24,6 +25,7 @@ commands = collections.OrderedDict([
     ('build', build),
     ('simulate', simulate),
     ('quasimap', quasimap),
+    ('infer', infer),
 ])
 
 
