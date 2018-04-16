@@ -31,4 +31,10 @@ uint64_t inter_site_base_count(const uint64_t &first_site_marker,
 
 using SitesCoverageBoundaries = PairHashMap<VariantSite, uint64_t>;
 
+uint64_t set_site_base_coverage(Coverage &coverage,
+                                SitesCoverageBoundaries &sites_coverage_boundaries,
+                                const VariantSite &path_element,
+                                const uint64_t allele_coverage_offset,
+                                const uint64_t max_bases_to_set);
+
 #endif //GRAMTOOLS_ALLELE_BASE_HPP

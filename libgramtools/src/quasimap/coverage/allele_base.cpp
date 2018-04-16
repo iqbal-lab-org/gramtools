@@ -51,7 +51,7 @@ uint64_t set_site_base_coverage(Coverage &coverage,
                                 SitesCoverageBoundaries &sites_coverage_boundaries,
                                 const VariantSite &path_element,
                                 const uint64_t allele_coverage_offset,
-                                const uint64_t max_set_bases) {
+                                const uint64_t max_bases_to_set) {
     auto marker = path_element.first;
     auto min_boundary_marker = 5;
     auto variant_site_coverage_index = (marker - min_boundary_marker) / 2;
@@ -61,7 +61,8 @@ uint64_t set_site_base_coverage(Coverage &coverage,
     auto allele_coverage_index = allell_id - 1;
     auto &allele_coverage = site_coverage.at(allele_coverage_index);
 
-    uint64_t index_end_boundary = std::min(max_set_bases, allele_coverage.size());
+    uint64_t index_end_boundary = std::min(allele_coverage_offset + max_bases_to_set, allele_coverage.size());
+    assert(index_end_boundary >= allele_coverage_offset);
     uint64_t count_bases_consumed = index_end_boundary - allele_coverage_offset;
 
     uint64_t index_start_boundary = allele_coverage_offset;
@@ -124,12 +125,12 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         last_site_marker = path_element.first;
 
         auto allele_coverage_offset = allele_start_offset_index(read_start_index, prg_info);
-        auto max_set_bases = read_length - read_bases_consumed;
+        auto max_bases_to_set = read_length - read_bases_consumed;
         read_bases_consumed += set_site_base_coverage(coverage,
                                                       sites_coverage_boundaries,
                                                       path_element,
                                                       allele_coverage_offset,
-                                                      max_set_bases);
+                                                      max_bases_to_set);
         ++path_it;
     } else {
         // forward to first path element
@@ -150,12 +151,12 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         last_site_marker = site_marker;
 
         uint64_t allele_coverage_offset = 0;
-        auto max_set_bases = read_length - read_bases_consumed;
+        auto max_bases_to_set = read_length - read_bases_consumed;
         read_bases_consumed += set_site_base_coverage(coverage,
                                                       sites_coverage_boundaries,
                                                       path_element,
                                                       allele_coverage_offset,
-                                                      max_set_bases);
+                                                      max_bases_to_set);
         ++path_it;
     }
 }

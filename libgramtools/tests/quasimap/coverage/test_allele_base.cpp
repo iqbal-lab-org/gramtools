@@ -41,10 +41,10 @@ TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
     uint64_t read_length = 150;
 
     SearchState search_state = {
-            SA_Interval {3, 3},
-            VariantSitePath {
-                    VariantSite {5, 2},
-                    VariantSite {7, 2},
+            SA_Interval{3, 3},
+            VariantSitePath{
+                    VariantSite{5, 2},
+                    VariantSite{7, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -93,10 +93,10 @@ TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBefo
     uint64_t read_length = 6;
 
     SearchState search_state = {
-            SA_Interval {4, 4},
-            VariantSitePath {
-                    VariantSite {5, 2},
-                    VariantSite {7, 2},
+            SA_Interval{4, 4},
+            VariantSitePath{
+                    VariantSite{5, 2},
+                    VariantSite{7, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -119,10 +119,10 @@ TEST(AlleleBaseCoverage, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_Corr
     uint64_t read_length = 4;
 
     SearchState search_state = {
-            SA_Interval {11, 11},
-            VariantSitePath {
-                    VariantSite {5, 3},
-                    VariantSite {7, 2},
+            SA_Interval{11, 11},
+            VariantSitePath{
+                    VariantSite{5, 3},
+                    VariantSite{7, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -147,6 +147,33 @@ TEST(AlleleBaseCoverage, GivenTwoSites_CorrectInterSiteBaseCount) {
     uint64_t expected = 2;
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(SetSiteBaseCoverage, AlleleOffsetGreaterThanBasesToSet_CorrectBasesSet) {
+    auto prg_raw = "gct5c6agtaaatgcg5agt";
+    auto prg_info = generate_prg_info(prg_raw);
+    auto coverage = coverage::generate::empty_structure(prg_info);
+
+    SitesCoverageBoundaries sites_coverage_boundaries = {};
+    VariantSite path_element = {5, 2};
+    uint64_t allele_coverage_offset = 6;
+    uint64_t max_bases_to_set = 3;
+
+    set_site_base_coverage(coverage,
+                           sites_coverage_boundaries,
+                           path_element,
+                           allele_coverage_offset,
+                           max_bases_to_set);
+
+    const auto &result = coverage.allele_base_coverage;
+    SitesAlleleBaseCoverage expected = {
+            {
+                    {0}, {0, 0, 0, 0, 0, 0, 1, 1, 1, 0}
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
 
 /*
 PRG: ac5gg6aga5c
@@ -173,9 +200,9 @@ TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage)
     uint64_t read_length = 4;
 
     SearchState search_state = {
-            SA_Interval {7, 8},
-            VariantSitePath {
-                    VariantSite {5, 1},
+            SA_Interval{7, 8},
+            VariantSitePath{
+                    VariantSite{5, 1},
             },
     };
     SearchStates search_states = {search_state};
@@ -197,9 +224,9 @@ TEST(AlleleBaseCoverage, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCovera
     uint64_t read_length = 150;
 
     SearchState search_state = {
-            SA_Interval {1, 1},
-            VariantSitePath {
-                    VariantSite {5, 1}
+            SA_Interval{1, 1},
+            VariantSitePath{
+                    VariantSite{5, 1}
             },
     };
     SearchStates search_states = {search_state};
@@ -221,9 +248,9 @@ TEST(AlleleBaseCoverage, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) 
     uint64_t read_length = 150;
 
     SearchState search_state = {
-            SA_Interval {8, 8},
-            VariantSitePath {
-                    VariantSite {5, 1}
+            SA_Interval{8, 8},
+            VariantSitePath{
+                    VariantSite{5, 1}
             },
     };
     SearchStates search_states = {search_state};
@@ -245,9 +272,9 @@ TEST(AlleleBaseCoverage, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage)
     uint64_t read_length = 150;
 
     SearchState search_state = {
-            SA_Interval {6, 6},
-            VariantSitePath {
-                    VariantSite {5, 2}
+            SA_Interval{6, 6},
+            VariantSitePath{
+                    VariantSite{5, 2}
             },
     };
     SearchStates search_states = {search_state};
@@ -269,9 +296,9 @@ TEST(AlleleBaseCoverage, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverag
     uint64_t read_length = 4;
 
     SearchState search_state = {
-            SA_Interval {1, 1},
-            VariantSitePath {
-                    VariantSite {5, 2}
+            SA_Interval{1, 1},
+            VariantSitePath{
+                    VariantSite{5, 2}
             },
     };
     SearchStates search_states = {search_state};
@@ -291,9 +318,9 @@ TEST(AlleleBaseCoverage, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageSt
 
     auto result = coverage::generate::allele_base_structure(prg_info);
     SitesAlleleBaseCoverage expected = {
-            AlleleCoverage {
-                    BaseCoverage {0, 0},
-                    BaseCoverage {0, 0, 0},
+            AlleleCoverage{
+                    BaseCoverage{0, 0},
+                    BaseCoverage{0, 0, 0},
             }
     };
     EXPECT_EQ(result, expected);
@@ -306,9 +333,9 @@ TEST(AlleleBaseCoverage, GivenOneVariantSite_CorrectAlleleBaseCoverageStructure)
 
     auto result = coverage::generate::allele_base_structure(prg_info);
     SitesAlleleBaseCoverage expected = {
-            AlleleCoverage {
-                    BaseCoverage {0, 0},
-                    BaseCoverage {0, 0, 0},
+            AlleleCoverage{
+                    BaseCoverage{0, 0},
+                    BaseCoverage{0, 0, 0},
             }
     };
     EXPECT_EQ(result, expected);
@@ -321,13 +348,13 @@ TEST(AlleleBaseCoverage, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure
 
     auto result = coverage::generate::allele_base_structure(prg_info);
     SitesAlleleBaseCoverage expected = {
-            AlleleCoverage {
-                    BaseCoverage {0, 0},
-                    BaseCoverage {0, 0, 0},
+            AlleleCoverage{
+                    BaseCoverage{0, 0},
+                    BaseCoverage{0, 0, 0},
             },
-            AlleleCoverage {
-                    BaseCoverage {0},
-                    BaseCoverage {0, 0, 0},
+            AlleleCoverage{
+                    BaseCoverage{0},
+                    BaseCoverage{0, 0, 0},
             },
     };
     EXPECT_EQ(result, expected);
@@ -336,13 +363,13 @@ TEST(AlleleBaseCoverage, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure
 
 TEST(AlleleBaseCoverage, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {
     SitesAlleleBaseCoverage allele_base_coverage = {
-            AlleleCoverage {
-                    BaseCoverage {1, 12},
-                    BaseCoverage {0, 3, 0},
+            AlleleCoverage{
+                    BaseCoverage{1, 12},
+                    BaseCoverage{0, 3, 0},
             },
-            AlleleCoverage {
-                    BaseCoverage {0},
-                    BaseCoverage {0, 19, 0},
+            AlleleCoverage{
+                    BaseCoverage{0},
+                    BaseCoverage{0, 19, 0},
             },
     };
     auto result = dump_allele_base_coverage(allele_base_coverage);
@@ -353,9 +380,9 @@ TEST(AlleleBaseCoverage, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {
 
 TEST(AlleleBaseCoverage, GivenSingleSiteAlleleBaseCoverage_CorrectJsonDump) {
     SitesAlleleBaseCoverage allele_base_coverage = {
-            AlleleCoverage {
-                    BaseCoverage {1, 12},
-                    BaseCoverage {0, 3, 0},
+            AlleleCoverage{
+                    BaseCoverage{1, 12},
+                    BaseCoverage{0, 3, 0},
             }
     };
     auto result = dump_allele_base_coverage(allele_base_coverage);
