@@ -149,7 +149,9 @@ target_link_libraries(gram LINK_PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
 set_target_properties(gram
         PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/bin)
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/bin
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON)
 add_custom_command(TARGET gram POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/bin

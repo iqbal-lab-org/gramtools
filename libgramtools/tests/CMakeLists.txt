@@ -56,6 +56,10 @@ target_include_directories(test_main PUBLIC
         ${INCLUDE}
         ${source_dir}/googletest/include
         ${source_dir}/googlemock/include)
+set_target_properties(test_main
+        PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON)
 add_custom_command(TARGET test_main POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/tests/test_main
