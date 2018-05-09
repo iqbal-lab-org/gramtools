@@ -1505,3 +1505,28 @@ TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound
     Pattern expected = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3};
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(GenerateKmers, GenerateAllKmersOfSizeThree_CorrectSpotCheck) {
+    auto kmers = generate_all_kmers(3);
+    std::vector<Pattern> expected_kmers = {
+            {1, 1, 1},
+            {1, 1, 2},
+            {1, 1, 3},
+            {1, 1, 4},
+            {1, 2, 1},
+            {1, 2, 2},
+            {1, 2, 3},
+            {1, 2, 4},
+            {1, 3, 1},
+            {3, 3, 3},
+            {4, 4, 2},
+            {1, 4, 2},
+            {4, 4, 4},
+    };
+
+    for (const auto &expected_kmer: expected_kmers) {
+        auto result = std::find(kmers.begin(), kmers.end(), expected_kmer) != kmers.end();
+        EXPECT_TRUE(result);
+    }
+}

@@ -783,8 +783,48 @@ std::vector<Pattern> reverse(const ordered_vector_set<Pattern> &reverse_kmers) {
 }
 
 
+void next_kmer(Pattern &current_kmer, const uint64_t &kmer_size) {
+    int64_t max_update_index = kmer_size - 1;
+    while (current_kmer[max_update_index] == 4)
+        max_update_index--;
+
+    if (max_update_index < 0) {
+        current_kmer = {};
+        return;
+    }
+
+    current_kmer[max_update_index] = current_kmer[max_update_index] + (uint8_t) 1;
+    for (uint64_t i = (uint64_t) max_update_index + 1; i < kmer_size; i++)
+        current_kmer[i] = 1;
+}
+
+
+Patterns generate_all_kmers(const uint64_t &kmer_size) {
+    ordered_vector_set<Pattern> all_kmers = {};
+    Pattern current_kmer(kmer_size, 1);
+
+    while (true) {
+        all_kmers.insert(current_kmer);
+        next_kmer(current_kmer, kmer_size);
+        if (current_kmer.empty())
+            break;
+    }
+
+    Patterns kmers;
+    for (auto kmer: all_kmers) {
+        kmers.emplace_back(kmer);
+    }
+    return kmers;
+}
+
+
 std::vector<Pattern> get_all_kmers(const Parameters &parameters,
                                    const PRG_Info &prg_info) {
+    if (parameters.kmers_size <= 8) {
+        auto ordered_kmers = generate_all_kmers(parameters.kmers_size);
+        return ordered_kmers;
+    }
+
     auto ordered_reverse_kmers = get_prg_reverse_kmers(parameters,
                                                        prg_info);
     auto ordered_kmers = reverse(ordered_reverse_kmers);
