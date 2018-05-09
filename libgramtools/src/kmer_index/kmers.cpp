@@ -25,7 +25,7 @@ std::vector<PrgIndexRange> get_boundary_marker_indexes(const PRG_Info &prg_info)
 
         auto start_index = start_indexes[marker_char];
         auto &end_index = marker_index;
-        boundary_marker_indexes.emplace_back(PrgIndexRange {start_index, end_index});
+        boundary_marker_indexes.emplace_back(PrgIndexRange{start_index, end_index});
 
         start_indexes.erase(marker_char);
     }
@@ -91,7 +91,7 @@ std::vector<PrgIndexRange> get_kmer_region_ranges(std::vector<PrgIndexRange> &bo
                                                                max_read_size,
                                                                prg_info);
         kmer_region_ranges.emplace_back(
-                PrgIndexRange {kmer_region_start_index, kmer_region_end_index});
+                PrgIndexRange{kmer_region_start_index, kmer_region_end_index});
     }
     return kmer_region_ranges;
 }
@@ -405,8 +405,8 @@ uint64_t find_site_start_boundary(const uint64_t &end_boundary_index,
 
 
 Pattern get_pre_site_part(const uint64_t site_end_boundary,
-                           const uint64_t kmer_size,
-                           const PRG_Info &prg_info) {
+                          const uint64_t kmer_size,
+                          const PRG_Info &prg_info) {
     auto first_site_start_boundary = find_site_start_boundary(site_end_boundary,
                                                               prg_info);
     Pattern pre_site_part = {};
@@ -434,10 +434,10 @@ void add_pre_site_region(std::list<Patterns> &region_parts,
                          const PRG_Info &prg_info) {
     auto first_site_end_boundary = inrange_sites.front();
     Pattern pre_site_part = get_pre_site_part(first_site_end_boundary,
-                                               kmer_size,
-                                               prg_info);
+                                              kmer_size,
+                                              prg_info);
     if (not pre_site_part.empty())
-        region_parts.emplace_back(Patterns {pre_site_part});
+        region_parts.emplace_back(Patterns{pre_site_part});
 }
 
 
@@ -456,7 +456,7 @@ void add_site_regions(std::list<Patterns> &region_parts,
 
         auto nonvariant_region = right_intersite_nonvariant_region(end_boundary_index,
                                                                    prg_info);
-        region_parts.emplace_back(Patterns {nonvariant_region});
+        region_parts.emplace_back(Patterns{nonvariant_region});
     }
 }
 
@@ -489,7 +489,7 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
         }
 
         if (not nonvariant_region.empty()) {
-            region_parts.emplace_back(Patterns {nonvariant_region});
+            region_parts.emplace_back(Patterns{nonvariant_region});
             nonvariant_region = {};
         }
 
@@ -506,14 +506,14 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
     }
 
     if (not nonvariant_region.empty())
-        region_parts.emplace_back(Patterns {nonvariant_region});
+        region_parts.emplace_back(Patterns{nonvariant_region});
 }
 
 
 std::list<Patterns> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
-                                                    const std::list<uint64_t> &inrange_sites,
-                                                    const uint64_t kmer_size,
-                                                    const PRG_Info &prg_info) {
+                                               const std::list<uint64_t> &inrange_sites,
+                                               const uint64_t kmer_size,
+                                               const PRG_Info &prg_info) {
     std::list<Patterns> region_parts = {};
     add_pre_site_region(region_parts,
                         inrange_sites,
@@ -530,69 +530,45 @@ std::list<Patterns> get_kmer_size_region_parts(const uint64_t &current_range_end
 }
 
 
-bool update_allele_index_path(std::vector<uint64_t> &allele_current_index,
-                              const std::vector<uint64_t> &allele_counts) {
-    bool update_possible_flag = false;
+bool update_allele_index_path(std::vector<uint64_t> &current_allele_index_path,
+                              const std::vector<uint64_t> &parts_allele_counts) {
+    bool more_paths_possible = false;
 
     // find rightmost index to increase
-    int64_t i = (int64_t) allele_current_index.size() - 1;
+    int64_t i = (int64_t) current_allele_index_path.size() - 1;
     for (; i >= 0; --i) {
-        auto at_last_valid_index = allele_current_index[i] + 1 == allele_counts[i];
+        auto at_last_valid_index = current_allele_index_path[i] + 1 == parts_allele_counts[i];
         if (not at_last_valid_index) {
-            update_possible_flag = true;
+            more_paths_possible = true;
             break;
         }
     }
 
-    if (not update_possible_flag)
-        return update_possible_flag;
+    if (not more_paths_possible)
+        return more_paths_possible;
 
-    allele_current_index[i]++;
+    // update allele index path for next path
+    current_allele_index_path[i]++;
     i++;
 
-    for (; i < allele_current_index.size(); ++i)
-        allele_current_index[i] = 0;
-    return update_possible_flag;
+    for (; i < current_allele_index_path.size(); ++i)
+        current_allele_index_path[i] = 0;
+    return more_paths_possible;
 }
 
 
-Patterns get_paths_from_parts(const std::list<Patterns> &region_parts) {
+uint64_t total_number_paths(const std::list<Patterns> &region_parts) {
     uint64_t number_of_paths_expected = 1;
     for (const auto &ordered_alleles: region_parts) {
         uint64_t number_of_alleles = ordered_alleles.size();
         number_of_paths_expected *= number_of_alleles;
     }
-
-    std::vector<uint64_t> allele_current_index(region_parts.size(), 0);
-    std::vector<uint64_t> allele_counts;
-    allele_counts.reserve(region_parts.size());
-    for (const auto &ordered_alleles: region_parts)
-        allele_counts.push_back(ordered_alleles.size());
-
-    Patterns paths;
-    while (paths.size() < number_of_paths_expected) {
-        Pattern path;
-
-        uint64_t i = 0;
-        for (const auto &ordered_alleles: region_parts) {
-            auto allele_index = allele_current_index[i];
-            const auto &allele = ordered_alleles[allele_index];
-            path.insert(path.end(), allele.begin(), allele.end());
-            i++;
-        }
-
-        paths.emplace_back(path);
-        bool update_possible_flag = update_allele_index_path(allele_current_index,
-                                                             allele_counts);
-        if (not update_possible_flag)
-            break;
-    }
-    return paths;
+    return number_of_paths_expected;
 }
 
 
-unordered_vector_set<Pattern> get_reverse_kmers_from_path(const Pattern &path,
-                                                          const uint64_t &kmer_size) {
+unordered_vector_set<Pattern> get_path_reverse_kmers(const Pattern &path,
+                                                     const uint64_t &kmer_size) {
     unordered_vector_set<Pattern> reverse_kmers;
     for (int64_t i = path.size() - 1; i >= kmer_size - 1; --i) {
         Pattern reverse_kmer;
@@ -605,21 +581,58 @@ unordered_vector_set<Pattern> get_reverse_kmers_from_path(const Pattern &path,
 }
 
 
-unordered_vector_set<Pattern> extract_variant_reverse_kmers(uint64_t &current_range_end_index,
-                                                             const std::list<uint64_t> &inrange_sites,
-                                                             const uint64_t kmer_size,
-                                                             const PRG_Info &prg_info) {
+unordered_vector_set<Pattern> get_region_parts_reverse_kmers(const std::list<Patterns> &region_parts,
+                                                             const uint64_t &kmer_size) {
+    uint64_t number_of_paths_expected = total_number_paths(region_parts);
+    std::vector<uint64_t> current_allele_index_path(region_parts.size(), 0);
+    std::vector<uint64_t> parts_allele_counts;
+    parts_allele_counts.reserve(region_parts.size());
+    for (const auto &ordered_alleles: region_parts)
+        parts_allele_counts.push_back(ordered_alleles.size());
+
+    unordered_vector_set<Pattern> all_reverse_kmers;
+    uint64_t count_paths = 0;
+
+    while (count_paths < number_of_paths_expected) {
+        if (count_paths > 0 and count_paths % 1000000 == 0) {
+            std::cout << "Processed paths: " << count_paths
+                      << ", total expected: " << number_of_paths_expected
+                      << std::endl;
+        }
+
+        Pattern path;
+        uint64_t i = 0;
+        for (const auto &ordered_alleles: region_parts) {
+            auto allele_index = current_allele_index_path[i];
+            const auto &allele = ordered_alleles[allele_index];
+            path.insert(path.end(), allele.begin(), allele.end());
+            i++;
+        }
+
+        auto reverse_kmers = get_path_reverse_kmers(path, kmer_size);
+        all_reverse_kmers.insert(reverse_kmers.begin(), reverse_kmers.end());
+        ++count_paths;
+
+        bool more_paths_possible = update_allele_index_path(current_allele_index_path,
+                                                            parts_allele_counts);
+        if (not more_paths_possible)
+            break;
+    }
+    return all_reverse_kmers;
+}
+
+
+unordered_vector_set<Pattern> get_sites_reverse_kmers(uint64_t &current_range_end_index,
+                                                      const std::list<uint64_t> &inrange_sites,
+                                                      const uint64_t kmer_size,
+                                                      const PRG_Info &prg_info) {
     auto region_parts = get_kmer_size_region_parts(current_range_end_index,
                                                    inrange_sites,
                                                    kmer_size,
                                                    prg_info);
-    auto paths = get_paths_from_parts(region_parts);
-    unordered_vector_set<Pattern> all_reverse_kmers;
 
-    for (const auto &path: paths) {
-        auto reverse_kmers = get_reverse_kmers_from_path(path, kmer_size);
-        all_reverse_kmers.insert(reverse_kmers.begin(), reverse_kmers.end());
-    }
+    auto all_reverse_kmers = get_region_parts_reverse_kmers(region_parts,
+                                                            kmer_size);
 
     auto first_site_end_boundary = inrange_sites.front();
     auto first_site_start_boundary = find_site_start_boundary(first_site_end_boundary,
@@ -632,9 +645,9 @@ unordered_vector_set<Pattern> extract_variant_reverse_kmers(uint64_t &current_ra
 }
 
 
-unordered_vector_set<Pattern> get_reverse_kmers_from_region(const PrgIndexRange &kmer_region_range,
-                                                            const uint64_t &kmer_size,
-                                                            const PRG_Info &prg_info) {
+unordered_vector_set<Pattern> get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
+                                                             const uint64_t &kmer_size,
+                                                             const PRG_Info &prg_info) {
     const auto &region_start = kmer_region_range.first;
     const auto &region_end = kmer_region_range.second;
 
@@ -654,10 +667,10 @@ unordered_vector_set<Pattern> get_reverse_kmers_from_region(const PrgIndexRange 
 
         auto sites_in_range = not inrange_sites.empty();
         if (sites_in_range) {
-            auto reverse_kmers = extract_variant_reverse_kmers(current_index,
-                                                               inrange_sites,
-                                                               kmer_size,
-                                                               prg_info);
+            auto reverse_kmers = get_sites_reverse_kmers(current_index,
+                                                         inrange_sites,
+                                                         kmer_size,
+                                                         prg_info);
             all_reverse_kmers.insert(reverse_kmers.begin(), reverse_kmers.end());
             if (current_index == 0)
                 break;
@@ -739,21 +752,43 @@ std::vector<PrgIndexRange> combine_overlapping_regions(const std::vector<PrgInde
 }
 
 
-ordered_vector_set<Pattern> get_all_reverse_kmers(const Parameters &parameters,
-                                                   const PRG_Info &prg_info) {
+ordered_vector_set<Pattern> get_prg_reverse_kmers(const Parameters &parameters,
+                                                  const PRG_Info &prg_info) {
     auto boundary_marker_indexes = get_boundary_marker_indexes(prg_info);
     auto kmer_region_ranges = get_kmer_region_ranges(boundary_marker_indexes,
                                                      parameters.max_read_size,
                                                      prg_info);
     kmer_region_ranges = combine_overlapping_regions(kmer_region_ranges);
-    ordered_vector_set<Pattern> all_reverse_kmers;
+
+    // this data structure orders the kmers
+    ordered_vector_set<Pattern> all_kmers = {};
     for (const auto &kmer_region_range: kmer_region_ranges) {
-        auto reverse_kmers = get_reverse_kmers_from_region(kmer_region_range,
-                                                           parameters.kmers_size,
-                                                           prg_info);
-        all_reverse_kmers.insert(reverse_kmers.begin(), reverse_kmers.end());
+        auto reverse_kmers = get_region_range_reverse_kmers(kmer_region_range,
+                                                            parameters.kmers_size,
+                                                            prg_info);
+        all_kmers.insert(reverse_kmers.begin(), reverse_kmers.end());
     }
-    return all_reverse_kmers;
+    return all_kmers;
+}
+
+
+std::vector<Pattern> reverse(const ordered_vector_set<Pattern> &reverse_kmers) {
+    std::vector<Pattern> kmers;
+    for (auto reverse_kmer: reverse_kmers) {
+        std::reverse(reverse_kmer.begin(), reverse_kmer.end());
+        auto &kmer = reverse_kmer;
+        kmers.emplace_back(kmer);
+    }
+    return kmers;
+}
+
+
+std::vector<Pattern> get_all_kmers(const Parameters &parameters,
+                                   const PRG_Info &prg_info) {
+    auto ordered_reverse_kmers = get_prg_reverse_kmers(parameters,
+                                                       prg_info);
+    auto ordered_kmers = reverse(ordered_reverse_kmers);
+    return ordered_kmers;
 }
 
 
@@ -789,30 +824,12 @@ std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers) {
 }
 
 
-std::vector<Pattern> reverse_kmers_inplace(const ordered_vector_set<Pattern> &reverse_kmers) {
-    std::vector<Pattern> kmers;
-    for (auto reverse_kmer: reverse_kmers) {
-        std::reverse(reverse_kmer.begin(), reverse_kmer.end());
-        auto &kmer = reverse_kmer;
-        kmers.emplace_back(kmer);
-    }
-    return kmers;
-}
-
-
-std::vector<Pattern> get_all_ordered_kmers(const Parameters &parameters,
-                                            const PRG_Info &prg_info) {
-    auto reverse_kmers = get_all_reverse_kmers(parameters,
-                                               prg_info);
-    auto kmers = reverse_kmers_inplace(reverse_kmers);
-    return kmers;
-}
-
-
 std::vector<Pattern> get_kmer_prefix_diffs(const Parameters &parameters,
-                                            const PRG_Info &prg_info) {
-    auto kmers = get_all_ordered_kmers(parameters,
-                                       prg_info);
+                                           const PRG_Info &prg_info) {
+    std::cout << "Getting all kmers" << std::endl;
+    auto kmers = get_all_kmers(parameters,
+                               prg_info);
+    std::cout << "Getting kmer prefix diffs" << std::endl;
     auto prefix_diffs = get_prefix_diffs(kmers);
     return prefix_diffs;
 }

@@ -8,9 +8,6 @@
 #include "kmer_index/build.hpp"
 
 
-// TODO: rename this file to: build
-
-
 CacheElement get_next_cache_element(const Base &base,
                                     const bool kmer_base_is_last,
                                     const CacheElement &last_cache_element,
@@ -163,6 +160,7 @@ KmerIndex kmer_index::build(const Parameters &parameters,
                             const PRG_Info &prg_info) {
     Patterns kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
                                                        prg_info);
+    std::cout << "Indexing kmers" << std::endl;
     KmerIndex kmer_index = index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);
     return kmer_index;
 }

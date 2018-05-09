@@ -485,9 +485,9 @@ TEST(GetReverseKmersFromRegion, NoVariantSite_CorrectReverseKmers) {
 
     PrgIndexRange kmer_region_range = {5, 7};
     uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_region(kmer_region_range,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_region_range_reverse_kmers(kmer_region_range,
+                                                 kmer_size,
+                                                 prg_info);
     unordered_vector_set<std::vector<Base>> expected = {
             {3, 3, 2},
             {3, 2, 3},
@@ -503,9 +503,9 @@ TEST(GetReverseKmersFromRegion, KmerSizeKmerRangeStartsAtIndexZero_CorrectRevers
 
     PrgIndexRange kmer_region_range = {0, 2};
     uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_region(kmer_region_range,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_region_range_reverse_kmers(kmer_region_range,
+                                                 kmer_size,
+                                                 prg_info);
     unordered_vector_set<std::vector<Base>> expected = {
             {3, 1, 4},
     };
@@ -519,9 +519,9 @@ TEST(GetReverseKmersFromRegion, NoVariantSite_FourCorrectReverseKmersFromPrgEnd)
 
     PrgIndexRange kmer_region_range = {6, 9};
     uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_region(kmer_region_range,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_region_range_reverse_kmers(kmer_region_range,
+                                                 kmer_size,
+                                                 prg_info);
     unordered_vector_set<std::vector<Base>> expected = {
             {1, 1, 3},
             {1, 3, 3},
@@ -539,9 +539,9 @@ TEST(GetReverseKmersFromRegion, GivenKmerRegionRange_CorrectReverseKmers) {
 
     PrgIndexRange kmer_region_range = {0, 10};
     uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_region(kmer_region_range,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_region_range_reverse_kmers(kmer_region_range,
+                                                 kmer_size,
+                                                 prg_info);
     unordered_vector_set<Pattern> expected = {
             {3, 1, 4},
             {1, 1, 4},
@@ -565,9 +565,9 @@ TEST(GetReverseKmersFromRegion, GivenKmerRegion_CorrectReverseKmerFound) {
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
     PrgIndexRange kmer_region_range = {11, 41};
-    auto reverse_kmers = get_reverse_kmers_from_region(kmer_region_range,
-                                                       parameters.kmers_size,
-                                                       prg_info);
+    auto reverse_kmers = get_region_range_reverse_kmers(kmer_region_range,
+                                                        parameters.kmers_size,
+                                                        prg_info);
     Pattern expected_reverse_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
     auto result = reverse_kmers.find(expected_reverse_kmer) != reverse_kmers.end();
     EXPECT_TRUE(result);
@@ -748,111 +748,98 @@ TEST(UpdateAlleleIndePath, CantUpdateFurther_ReturnFalse) {
 }
 
 
-TEST(GetPathsFromParts, GivenKmerSizeRegionParts_CorrectPaths) {
+TEST(GetRegionPartsReverseKmers, GivenKmerSizeRegionParts_CorrectReverseKmers) {
     std::list<Patterns> region_parts = {
             {{3}, {1}},
             {{3, 1}},
             {{2}, {4}},
     };
-    auto result = get_paths_from_parts(region_parts);
-    Patterns expected = {
-            {3, 3, 1, 2},
-            {3, 3, 1, 4},
-            {1, 3, 1, 2},
-            {1, 3, 1, 4},
+    uint64_t kmer_size = 4;
+
+    auto result = get_region_parts_reverse_kmers(region_parts, kmer_size);
+    unordered_vector_set<Pattern> expected = {
+            {4, 1, 3, 1},
+            {2, 1, 3, 1},
+            {4, 1, 3, 3},
+            {2, 1, 3, 3},
     };
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GetPathsFromParts, GivenThreeCharAlleleInLastRegion_CorrectPaths) {
+TEST(GetRegionPartsReverseKmers, GivenThreeCharAlleleInLastRegion_CorrectReverseKmers) {
     std::list<Patterns> region_parts = {
             {{3}, {1}},
             {{3, 1}},
             {{2}, {4, 4, 2}},
     };
-    auto result = get_paths_from_parts(region_parts);
-    Patterns expected = {
-            {3, 3, 1, 2},
-            {3, 3, 1, 4, 4, 2},
-            {1, 3, 1, 2},
-            {1, 3, 1, 4, 4, 2},
+    uint64_t kmer_size = 4;
+
+    auto result = get_region_parts_reverse_kmers(region_parts, kmer_size);
+    unordered_vector_set<Pattern> expected = {
+            {4, 1, 3, 1},
+            {4, 1, 3, 3},
+            {2, 1, 3, 3},
+            {2, 1, 3, 1},
+            {4, 4, 1, 3},
+            {2, 4, 4, 1},
     };
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GetPathsFromParts, MidRegionContainsTwoAlleles_CorrectPaths) {
+TEST(GetRegionPartsReverseKmers, MidRegionContainsTwoAlleles_CorrectReverseKmers) {
     std::list<Patterns> region_parts = {
             {{3},    {1}},
             {{3, 1}, {2}},
             {{2}},
     };
-    auto result = get_paths_from_parts(region_parts);
-    Patterns expected = {
-            {3, 3, 1, 2},
-            {3, 2, 2},
-            {1, 3, 1, 2},
-            {1, 2, 2},
+    uint64_t kmer_size = 4;
+
+    auto result = get_region_parts_reverse_kmers(region_parts, kmer_size);
+    unordered_vector_set<Pattern> expected = {
+            {2, 1, 3, 3},
+            {2, 1, 3, 1},
     };
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GetPathsFromParts, MidRegionContainsThreeAlleles_CorrectPaths) {
+TEST(GetRegionPartsReverseKmers, MidRegionContainsThreeAlleles_CorrectReverseKmers) {
     std::list<Patterns> region_parts = {
             {{3},    {1}},
-            {{3, 1}, {2}, {1}},
+            {{3, 1}, {2, 3}, {1}},
             {{2}},
     };
-    auto result = get_paths_from_parts(region_parts);
-    Patterns expected = {
-            {3, 3, 1, 2},
-            {3, 2, 2},
-            {3, 1, 2},
-            {1, 3, 1, 2},
-            {1, 2, 2},
-            {1, 1, 2},
+    uint64_t kmer_size = 4;
+
+    auto result = get_region_parts_reverse_kmers(region_parts, kmer_size);
+    unordered_vector_set<Pattern> expected = {
+            {2, 1, 3, 3},
+            {2, 1, 3, 1},
+            {2, 3, 2, 3},
+            {2, 3, 2, 1},
     };
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GetPathsFromParts, SingleRegionWithSingleCharAllele_CorrectPath) {
+TEST(GetRegionPartsReverseKmers, SingleRegionWithSingleCharAllele_NoReverseKmer) {
     std::list<Patterns> region_parts = {
             {{3}},
     };
-    auto result = get_paths_from_parts(region_parts);
-    Patterns expected = {
-            {3},
-    };
+    uint64_t kmer_size = 4;
+
+    auto result = get_region_parts_reverse_kmers(region_parts, kmer_size);
+    unordered_vector_set<Pattern> expected = {};
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GetPathsFromParts, GivenPrgAndSinglePath_CorrectPathExtractedFromPrg) {
-    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
-    auto prg_info = generate_prg_info(prg_raw);
-
-    uint64_t current_range_end_index = 41;
-    std::list<uint64_t> inrange_sites = {23, 30};
-    uint64_t kmer_size = 15;
-
-    auto region_parts = get_kmer_size_region_parts(current_range_end_index,
-                                                   inrange_sites,
-                                                   kmer_size,
-                                                   prg_info);
-    auto paths = get_paths_from_parts(region_parts);
-    Pattern expected_path = {1, 4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4};
-    auto result = std::find(paths.begin(), paths.end(), expected_path) != paths.end();
-    EXPECT_TRUE(result);
-}
-
-
-TEST(GetReverseKmersFromPath, GivenPath_CorrectReverseKmers) {
+TEST(GetPathReverseKmers, GivenPath_CorrectReverseKmers) {
     Pattern path = {3, 3, 1, 2};
     uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_path(path, kmer_size);
+    auto result = get_path_reverse_kmers(path, kmer_size);
     unordered_vector_set<Pattern> expected = {
             {2, 1, 3},
             {1, 3, 3},
@@ -861,19 +848,19 @@ TEST(GetReverseKmersFromPath, GivenPath_CorrectReverseKmers) {
 }
 
 
-TEST(GetReverseKmersFromPath, GivenTooShortPath_NoKmers) {
+TEST(GetPathReverseKmers, GivenTooShortPath_NoKmers) {
     Pattern path = {3, 3, 1};
     uint64_t kmer_size = 4;
-    auto result = get_reverse_kmers_from_path(path, kmer_size);
+    auto result = get_path_reverse_kmers(path, kmer_size);
     unordered_vector_set<Pattern> expected = {};
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GetReverseKmersFromPath, GivenKmerSizePath_CorrectReverseKmer) {
+TEST(GetPathReverseKmers, GivenKmerSizePath_CorrectReverseKmer) {
     Pattern path = {3, 3, 1};
     uint64_t kmer_size = 3;
-    auto result = get_reverse_kmers_from_path(path, kmer_size);
+    auto result = get_path_reverse_kmers(path, kmer_size);
     unordered_vector_set<Pattern> expected = {
             {1, 3, 3},
     };
@@ -881,10 +868,10 @@ TEST(GetReverseKmersFromPath, GivenKmerSizePath_CorrectReverseKmer) {
 }
 
 
-TEST(GetReverseKmersFromPath, GivenPath_CorrectReverseKmerExtracted) {
+TEST(GetPathReverseKmers, GivenPath_CorrectReverseKmerExtracted) {
     Pattern path = {1, 4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4};
     uint64_t kmer_size = 15;
-    auto reverse_kmers = get_reverse_kmers_from_path(path, kmer_size);
+    auto reverse_kmers = get_path_reverse_kmers(path, kmer_size);
     Pattern expected_reverse_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
     auto result = reverse_kmers.find(expected_reverse_kmer) != reverse_kmers.end();
     EXPECT_TRUE(result);
@@ -899,10 +886,10 @@ TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectReverseKmers) {
     uint64_t current_index = 10;
     std::list<uint64_t> inrange_sites = {6};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {3, 1, 4},
             {1, 1, 4},
@@ -917,7 +904,7 @@ TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectReverseKmers) {
 }
 
 
-TEST(ExtractVariantReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
+TEST(GetSitesReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
     //                2   6   10
     auto prg_raw = "ta5g6a5acgt";
     auto prg_info = generate_prg_info(prg_raw);
@@ -925,10 +912,10 @@ TEST(ExtractVariantReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
     uint64_t current_index = 10;
     std::list<uint64_t> inrange_sites = {6};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {3, 1, 4},
             {1, 1, 4},
@@ -943,17 +930,17 @@ TEST(ExtractVariantReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
 }
 
 
-TEST(ExtractVariantReverseKmers, SiteStartsAtPrgStart_CorrectReverseKmers) {
+TEST(GetSitesReverseKmers, SiteStartsAtPrgStart_CorrectReverseKmers) {
     auto prg_raw = "5g6a5acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 8;
     std::list<uint64_t> inrange_sites = {4};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {4, 3, 2},
             {3, 2, 1},
@@ -964,17 +951,17 @@ TEST(ExtractVariantReverseKmers, SiteStartsAtPrgStart_CorrectReverseKmers) {
 }
 
 
-TEST(ExtractVariantReverseKmers, SiteEndsAtPrgEnd_CorrectReverseKmers) {
+TEST(GetSitesReverseKmers, SiteEndsAtPrgEnd_CorrectReverseKmers) {
     auto prg_raw = "acgt5c6a5";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 8;
     std::list<uint64_t> inrange_sites = {8};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {1, 4, 3},
             {2, 4, 3},
@@ -985,17 +972,17 @@ TEST(ExtractVariantReverseKmers, SiteEndsAtPrgEnd_CorrectReverseKmers) {
 }
 
 
-TEST(ExtractVariantReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) {
+TEST(GetSitesReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) {
     auto prg_raw = "acgt5cc6a5";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 9;
     std::list<uint64_t> inrange_sites = {9};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {1, 4, 3},
             {2, 4, 3},
@@ -1007,17 +994,17 @@ TEST(ExtractVariantReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) 
 }
 
 
-TEST(ExtractVariantReverseKmers, TwoSitesNoCrossingKmers_CorrectReverseKmers) {
+TEST(GetSitesReverseKmers, TwoSitesNoCrossingKmers_CorrectReverseKmers) {
     auto prg_raw = "gt5c6a5tt7g8a7";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 13;
     std::list<uint64_t> inrange_sites = {6, 13};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {1, 4, 4},
             {3, 4, 4},
@@ -1032,17 +1019,17 @@ TEST(ExtractVariantReverseKmers, TwoSitesNoCrossingKmers_CorrectReverseKmers) {
 }
 
 
-TEST(ExtractVariantReverseKmers, TwoSitesWithCrossingKmers_CorrectReverseKmers) {
+TEST(GetSitesReverseKmers, TwoSitesWithCrossingKmers_CorrectReverseKmers) {
     auto prg_raw = "5c6a5t7g8a7";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 10;
     std::list<uint64_t> inrange_sites = {4, 10};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {1, 4, 1},
             {3, 4, 1},
@@ -1053,17 +1040,17 @@ TEST(ExtractVariantReverseKmers, TwoSitesWithCrossingKmers_CorrectReverseKmers) 
 }
 
 
-TEST(ExtractVariantReverseKmers, SingleSiteSingleKmerFromAllele_CorrectReverseKmer) {
+TEST(GetSitesReverseKmers, SingleSiteSingleKmerFromAllele_CorrectReverseKmer) {
     auto prg_raw = "5c6atg5";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 6;
     std::list<uint64_t> inrange_sites = {6};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {3, 4, 1},
     };
@@ -1071,17 +1058,17 @@ TEST(ExtractVariantReverseKmers, SingleSiteSingleKmerFromAllele_CorrectReverseKm
 }
 
 
-TEST(ExtractVariantReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer) {
+TEST(GetSitesReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer) {
     auto prg_raw = "5c6atgc5";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 6;
     std::list<uint64_t> inrange_sites = {7};
     uint64_t kmer_size = 3;
-    auto result = extract_variant_reverse_kmers(current_index,
-                                                inrange_sites,
-                                                kmer_size,
-                                                prg_info);
+    auto result = get_sites_reverse_kmers(current_index,
+                                          inrange_sites,
+                                          kmer_size,
+                                          prg_info);
     unordered_vector_set<Pattern> expected = {
             {2, 3, 4},
             {3, 4, 1},
@@ -1090,7 +1077,7 @@ TEST(ExtractVariantReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer
 }
 
 
-TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectNewCurrentIndex) {
+TEST(GetSitesReverseKmers, GivenInrangeSite_CorrectNewCurrentIndex) {
     //                2   6   10
     auto prg_raw = "ta5g6a5acgt";
     auto prg_info = generate_prg_info(prg_raw);
@@ -1098,10 +1085,10 @@ TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectNewCurrentIndex) {
     uint64_t current_index = 10;
     std::list<uint64_t> inrange_sites = {6};
     uint64_t kmer_size = 3;
-    extract_variant_reverse_kmers(current_index,
-                                  inrange_sites,
-                                  kmer_size,
-                                  prg_info);
+    get_sites_reverse_kmers(current_index,
+                            inrange_sites,
+                            kmer_size,
+                            prg_info);
     uint64_t result = current_index;
     uint64_t expected = 1;
     EXPECT_EQ(result, expected);
@@ -1200,7 +1187,7 @@ TEST(GetReversedKmers, GivenRandomlyArrangedReverseKmers_KmersReversedAndSortedB
             {3, 4, 5},
     };
 
-    std::vector<Pattern> result = reverse_kmers_inplace(kmers);
+    std::vector<Pattern> result = reverse(kmers);
     Patterns expected = {
             {4, 3, 1},
             {5, 3, 1},
@@ -1216,7 +1203,7 @@ TEST(GetReversedKmers, GivenSingleReverseKmer_CorrectReversedKmer) {
             {2, 4, 1},
     };
 
-    std::vector<Pattern> result = reverse_kmers_inplace(kmers);
+    std::vector<Pattern> result = reverse(kmers);
     Patterns expected = {
             {1, 4, 2},
     };
@@ -1230,7 +1217,7 @@ TEST(GetReversedKmers, SortingReverseKmerFromRightToLeft_CorrectReversedKmers) {
             {2, 4, 1},
     };
 
-    std::vector<Pattern> result = reverse_kmers_inplace(kmers);
+    std::vector<Pattern> result = reverse(kmers);
     Patterns expected = {
             {5, 3, 1},
             {1, 4, 2},
@@ -1304,7 +1291,7 @@ TEST(GetAllReverseKmers, GivenOverkillMaxReadSize_AllPossibleKmersReturned) {
     parameters.kmers_size = 3;
     parameters.max_read_size = 10;
 
-    auto result = get_all_reverse_kmers(parameters,
+    auto result = get_prg_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Pattern> expected = {
             {3, 1, 4},
@@ -1328,7 +1315,7 @@ TEST(GetAllReverseKmers, KmerPossibleAfterVariantSite_ReverseKmerIncludedInResul
     parameters.kmers_size = 3;
     parameters.max_read_size = 10;
 
-    auto result = get_all_reverse_kmers(parameters,
+    auto result = get_prg_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Pattern> expected = {
             {3, 1, 4},
@@ -1353,7 +1340,7 @@ TEST(GetAllReverseKmers, SecondVariantSiteEndsAtPrgEnd_CorrectReverseKmers) {
     parameters.kmers_size = 3;
     parameters.max_read_size = 10;
 
-    auto result = get_all_reverse_kmers(parameters,
+    auto result = get_prg_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Pattern> expected = {
             {3, 1, 4},
@@ -1381,7 +1368,7 @@ TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
     parameters.kmers_size = 5;
     parameters.max_read_size = 10;
 
-    auto result = get_all_reverse_kmers(parameters,
+    auto result = get_prg_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Pattern> expected = {
             {4, 4, 3, 2, 1},
@@ -1408,7 +1395,7 @@ TEST(GetAllReverseKmers, TwoLeftMostKmersWithinRange_TwoLeftMostKmersIncluded) {
     parameters.kmers_size = 3;
     parameters.max_read_size = 3;
 
-    auto result = get_all_reverse_kmers(parameters,
+    auto result = get_prg_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Pattern> expected_absent = {
             {4, 3, 2},
@@ -1429,7 +1416,7 @@ TEST(GetAllReverseKmers, MaxReadSizeLessThanKmerSize_AlleleKmersReturned) {
     parameters.kmers_size = 3;
     parameters.max_read_size = 1;
 
-    auto result = get_all_reverse_kmers(parameters,
+    auto result = get_prg_reverse_kmers(parameters,
                                         prg_info);
     ordered_vector_set<Pattern> expected = {
             {1, 1, 1},
@@ -1455,7 +1442,7 @@ TEST(GetAllReverseKmers, GivenPrg_CorrectReverseKmerFound) {
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
 
-    auto reverse_kmers = get_all_reverse_kmers(parameters,
+    auto reverse_kmers = get_prg_reverse_kmers(parameters,
                                                prg_info);
     Pattern expected_reverse_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
     auto result = reverse_kmers.find(expected_reverse_kmer) != reverse_kmers.end();
@@ -1472,7 +1459,7 @@ TEST(GetAllReverseKmers, GivenPrgWithLongNonVariantTail_PreviouslyAbsentKmerFoun
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
-    auto kmers = get_all_reverse_kmers(parameters,
+    auto kmers = get_prg_reverse_kmers(parameters,
                                        prg_info);
     Pattern expected_kmer = {3, 3, 2, 3, 2, 4, 2, 3, 3, 2, 1, 1, 3, 3, 4};
     auto result = kmers.find(expected_kmer) != kmers.end();
@@ -1489,8 +1476,8 @@ TEST(GetAllOrderedKmers, GivenPrg_CorrectForwardKmerFound) {
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
 
-    auto kmers = get_all_ordered_kmers(parameters,
-                                       prg_info);
+    auto kmers = get_all_kmers(parameters,
+                               prg_info);
     Pattern expected_kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
     auto result = std::find(kmers.begin(), kmers.end(), expected_kmer) != kmers.end();
     EXPECT_TRUE(result);
@@ -1506,8 +1493,8 @@ TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
 
-    auto kmers = get_all_ordered_kmers(parameters,
-                                       prg_info);
+    auto kmers = get_all_kmers(parameters,
+                               prg_info);
     Pattern kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
     auto kmer_it = std::find(kmers.begin(), kmers.end(), kmer);
     auto index = std::distance(kmers.begin(), kmer_it);
