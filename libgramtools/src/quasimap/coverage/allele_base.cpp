@@ -72,6 +72,9 @@ uint64_t set_site_base_coverage(Coverage &coverage,
     sites_coverage_boundaries[path_element] = index_end_boundary;
 
     for (uint64_t i = index_start_boundary; i < index_end_boundary; ++i) {
+        if (allele_coverage[i] == UINT16_MAX)
+            continue;
+
         #pragma omp atomic
         ++allele_coverage[i];
     }
