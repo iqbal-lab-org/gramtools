@@ -56,7 +56,13 @@ def parse_args(common_parser, subparsers):
                         required=False)
 
 
-def _execute_command_generate_prg(build_paths, _):
+def _execute_command_generate_prg(build_paths, report, _):
+    if report.get('return_value_is_0') is False:
+        report['prg_build_report'] = {
+            'return_value_is_0': False
+        }
+        return report
+
     command = [
         'perl', common.prg_build_exec_fpath,
         '--outfile', build_paths['prg'],
@@ -78,15 +84,23 @@ def _execute_command_generate_prg(build_paths, _):
               timer_end - timer_start)
 
     command_result, entire_stdout = process_result
-    execute_report = collections.OrderedDict([
+
+    report['return_value_is_0'] = command_result
+    report['prg_build_report'] = collections.OrderedDict([
         ('command', command_str),
         ('return_value_is_0', command_result),
         ('stdout', entire_stdout),
     ])
-    return execute_report
+    return report
 
 
-def _execute_gramtools_cpp_build(build_paths, args):
+def _execute_gramtools_cpp_build(build_paths, report, args):
+    if report.get('return_value_is_0') is False:
+        report['gramtools_cpp_build'] = {
+            'return_value_is_0': False
+        }
+        return report
+
     command = [
         common.gramtools_exec_fpath,
         'build',
@@ -116,17 +130,17 @@ def _execute_gramtools_cpp_build(build_paths, args):
     process_result = common.handle_process_result(process_handle)
     command_result, entire_stdout = process_result
 
-    execute_report = collections.OrderedDict([
+    report['return_value_is_0'] = command_result
+    report['gramtools_cpp_build'] = collections.OrderedDict([
         ('command', command_str),
         ('return_value_is_0', command_result),
         ('stdout', entire_stdout),
     ])
-    return execute_report
+    return report
 
 
 def _save_report(start_time,
-                 argument_report,
-                 execute_reports,
+                 report,
                  command_paths,
                  command_hash_paths,
                  report_file_path):
@@ -134,14 +148,13 @@ def _save_report(start_time,
     _, report_dict = version.report()
     current_working_directory = os.getcwd()
 
-    report = collections.OrderedDict([
+    _report = collections.OrderedDict([
         ('start_time', start_time),
         ('end_time', end_time),
         ('total_runtime', int(end_time) - int(start_time)),
     ])
-    report.update(argument_report)
-    report.update(execute_reports)
-    report.update(collections.OrderedDict([
+    _report.update(report)
+    _report.update(collections.OrderedDict([
         ('current_working_directory', current_working_directory),
         ('paths', command_paths),
         ('path_hashes', command_hash_paths),
@@ -149,7 +162,7 @@ def _save_report(start_time,
     ]))
 
     with open(report_file_path, 'w') as fhandle:
-        json.dump(report, fhandle, indent=4)
+        json.dump(_report, fhandle, indent=4)
 
 
 def run(args):
@@ -162,28 +175,31 @@ def run(args):
     command_paths = paths.generate_build_paths(args)
     paths.check_project_file_structure(command_paths)
 
-    prg_build_report = _execute_command_generate_prg(command_paths, args)
+    report = collections.OrderedDict()
+
+    report = _execute_command_generate_prg(command_paths, report, args)
     paths.perl_script_file_cleanup(command_paths)
 
-    gramtools_cpp_build_report = _execute_gramtools_cpp_build(command_paths, args)
+    report = _execute_gramtools_cpp_build(command_paths, report, args)
 
     log.debug('Computing sha256 hash of project paths')
     command_hash_paths = common.hash_command_paths(command_paths)
 
     log.debug('Saving command report:\n%s', command_paths['build_report'])
-    argument_report = collections.OrderedDict([
+    _report = collections.OrderedDict([
         ('kmer_size', args.kmer_size),
-        ('max_read_length', args.max_read_length),
+        ('max_read_length', args.max_read_length)
     ])
-    execute_reports = collections.OrderedDict([
-        ('prg_build_report', prg_build_report),
-        ('gramtools_cpp_build', gramtools_cpp_build_report),
-    ])
+    report.update(_report)
+
     report_file_path = command_paths['build_report']
     _save_report(start_time,
-                 argument_report,
-                 execute_reports,
+                 report,
                  command_paths,
                  command_hash_paths,
                  report_file_path)
+
     log.info('End process: build')
+
+    if report.get('return_value_is_0') is False:
+        exit(1)
