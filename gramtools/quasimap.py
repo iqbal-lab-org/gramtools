@@ -27,11 +27,6 @@ def parse_args(common_parser, subparsers):
                         help='',
                         type=str,
                         required=False)
-    parser.add_argument('--kmer-size',
-                        help='',
-                        type=int,
-                        default=5,
-                        required=False)
 
     parser.add_argument('--max-threads',
                         help='',
@@ -106,8 +101,18 @@ def _save_report(start_time,
         json.dump(_report, fhandle, indent=4)
 
 
+def _load_build_report(args):
+    build_paths = paths.generate_build_paths(args)
+    with open(build_paths['build_report']) as fhandle:
+        return json.load(fhandle)
+
+
 def run(args):
     log.info('Start process: quasimap')
+
+    build_report = _load_build_report(args)
+    kmer_size = build_report['kmer_size']
+    setattr(args, 'kmer_size', kmer_size)
 
     start_time = str(time.time()).split('.')[0]
     command_paths = paths.generate_quasimap_paths(args, start_time)

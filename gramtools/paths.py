@@ -100,8 +100,7 @@ def generate_quasimap_paths(args, start_time):
         outputs_dirpath = os.path.abspath(os.path.join(args.run_directory, os.pardir))
         run_dirpath = args.run_directory
     else:
-        outputs_dirpath = os.path.join(project_paths['project'],
-                                       'quasimap_outputs')
+        outputs_dirpath = os.path.join(project_paths['project'], 'quasimap_outputs')
         run_dirpath = _generate_quasimap_run_dirpath(outputs_dirpath,
                                                      args.kmer_size,
                                                      start_time)
