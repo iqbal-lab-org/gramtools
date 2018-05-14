@@ -15,7 +15,7 @@ struct Parameters {
     std::string linear_prg_fpath;
     std::string encoded_prg_fpath;
     std::string fm_index_fpath;
-    std::string site_mask_fpath;
+    std::string sites_mask_fpath;
     std::string allele_mask_fpath;
     std::string sdsl_memory_log_fpath;
 

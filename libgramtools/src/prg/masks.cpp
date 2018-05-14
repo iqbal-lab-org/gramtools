@@ -71,7 +71,7 @@ sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
 
 sdsl::int_vector<> load_sites_mask(const Parameters &parameters) {
     sdsl::int_vector<> sites_mask;
-    sdsl::load_from_file(sites_mask, parameters.site_mask_fpath);
+    sdsl::load_from_file(sites_mask, parameters.sites_mask_fpath);
     return sites_mask;
 }
 

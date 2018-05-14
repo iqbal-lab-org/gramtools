@@ -36,7 +36,7 @@ void commands::build::run(const Parameters &parameters) {
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
 
     prg_info.sites_mask = generate_sites_mask(prg_info.encoded_prg);
-    sdsl::store_to_file(prg_info.sites_mask, parameters.site_mask_fpath);
+    sdsl::store_to_file(prg_info.sites_mask, parameters.sites_mask_fpath);
 
     prg_info.allele_mask = generate_allele_mask(prg_info.encoded_prg);
     sdsl::store_to_file(prg_info.allele_mask, parameters.allele_mask_fpath);
