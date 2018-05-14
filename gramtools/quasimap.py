@@ -40,7 +40,13 @@ def parse_args(common_parser, subparsers):
                         required=False)
 
 
-def _execute_command(quasimap_paths, args):
+def _execute_command(quasimap_paths, report, args):
+    if report.get('return_value_is_0') is False:
+        report['gramtools_cpp_quasimap'] = {
+            'return_value_is_0': False
+        }
+        return report
+
     command = [
         common.gramtools_exec_fpath,
         'quasimap',
@@ -65,16 +71,17 @@ def _execute_command(quasimap_paths, args):
     command_result, entire_stdout = common.handle_process_result(process_handle)
     log.info('Output run directory:\n%s', quasimap_paths['quasimap_run_dirpath'])
 
-    execute_report = collections.OrderedDict([
+    report['return_value_is_0'] = command_result
+    report['gramtools_cpp_quasimap'] = collections.OrderedDict([
         ('command', command_str),
         ('return_value_is_0', command_result),
         ('stdout', entire_stdout),
     ])
-    return execute_report
+    return report
 
 
 def _save_report(start_time,
-                 execute_reports,
+                 reports,
                  command_paths,
                  command_hash_paths,
                  report_file_path):
@@ -82,13 +89,13 @@ def _save_report(start_time,
     _, report_dict = version.report()
     current_working_directory = os.getcwd()
 
-    report = collections.OrderedDict([
+    _report = collections.OrderedDict([
         ('start_time', start_time),
         ('end_time', end_time),
         ('total_runtime', int(end_time) - int(start_time)),
     ])
-    report.update(execute_reports)
-    report.update(collections.OrderedDict([
+    _report.update(reports)
+    _report.update(collections.OrderedDict([
         ('current_working_directory', current_working_directory),
         ('paths', command_paths),
         ('path_hashes', command_hash_paths),
@@ -96,7 +103,7 @@ def _save_report(start_time,
     ]))
 
     with open(report_file_path, 'w') as fhandle:
-        json.dump(report, fhandle, indent=4)
+        json.dump(_report, fhandle, indent=4)
 
 
 def run(args):
@@ -106,18 +113,19 @@ def run(args):
     command_paths = paths.generate_quasimap_paths(args, start_time)
     paths.check_project_file_structure(command_paths)
 
-    gramtools_cpp_report = _execute_command(command_paths, args)
+    report = collections.OrderedDict()
+    report = _execute_command(command_paths, report, args)
 
     log.debug('Computing sha256 hash of project paths')
     command_hash_paths = common.hash_command_paths(command_paths)
 
     log.debug('Saving command report:\n%s', command_paths['run_report'])
-    execute_reports = collections.OrderedDict([
-        ('gramtools_cpp_quasimap', gramtools_cpp_report),
-    ])
     _save_report(start_time,
-                 execute_reports,
+                 report,
                  command_paths,
                  command_hash_paths,
                  command_paths['run_report'])
     log.info('End process: quasimap')
+
+    if report.get('return_value_is_0') is False:
+        exit(1)
