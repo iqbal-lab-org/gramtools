@@ -31,7 +31,7 @@ def parse_args(common_parser, subparsers):
     parser.add_argument('--kmer-size',
                         help='',
                         type=int,
-                        default=15,
+                        default=5,
                         required=False)
     parser.add_argument('--kmer-region-size',
                         help='',
