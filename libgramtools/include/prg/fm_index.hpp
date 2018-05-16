@@ -8,7 +8,7 @@
 #define GRAMTOOLS_PROCESS_PRG_HPP
 
 using WavletTree = sdsl::wt_int<sdsl::bit_vector, sdsl::rank_support_v5<>>;
-using FM_Index = sdsl::csa_wt<WavletTree, 2, 16777216>;
+using FM_Index = sdsl::csa_wt<WavletTree, 1, 16777216>;
 
 // skip optimisation (need to rebuild fm-index):
 // using FM_Index = sdsl::csa_wt<WavletTree, 2, 2>;
