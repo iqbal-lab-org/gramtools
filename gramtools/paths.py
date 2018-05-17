@@ -95,9 +95,9 @@ def _quasimap_output_dirpath(outputs_base_path,
 def generate_quasimap_paths(args, start_time):
     project_paths = _generate_project_paths(args)
 
-    if hasattr(args, 'run_directory') and args.run_directory is not None:
-        outputs_base_path = os.path.abspath(os.path.join(args.run_directory, os.pardir))
-        run_dirpath = args.run_directory
+    if hasattr(args, 'output_directory') and args.output_directory is not None:
+        outputs_base_path = os.path.abspath(os.path.join(args.output_directory, os.pardir))
+        run_dirpath = args.output_directory
     else:
         outputs_base_path = os.path.join(project_paths['project'], 'quasimap_outputs')
         run_dirpath = _quasimap_output_dirpath(outputs_base_path,

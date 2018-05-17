@@ -23,7 +23,13 @@ def parse_args(common_parser, subparsers):
                         help='',
                         action="append",
                         type=str)
+
+    # depreciated, use --output-directory
     parser.add_argument('--run-directory',
+                        help='',
+                        type=str,
+                        required=False)
+    parser.add_argument('--output-directory',
                         help='',
                         type=str,
                         required=False)
@@ -113,6 +119,10 @@ def run(args):
     build_report = _load_build_report(args)
     kmer_size = build_report['kmer_size']
     setattr(args, 'kmer_size', kmer_size)
+
+    if args.run_directory is not None:
+        log.warning("Depreciated argument: --run-directory; instead use: --output-directory")
+        args.output_directory = args.run_directory
 
     start_time = str(time.time()).split('.')[0]
     command_paths = paths.generate_quasimap_paths(args, start_time)
