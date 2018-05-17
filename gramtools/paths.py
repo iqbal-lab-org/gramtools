@@ -67,6 +67,7 @@ def generate_build_paths(args):
 def generate_quasimap_run_paths(args):
     def path(fname):
         return os.path.join(args.quasimap_directory, fname)
+
     return {
         'allele_base_coverage': path('allele_base_coverage.json'),
         'grouped_allele_counts_coverage': path('grouped_allele_counts_coverage.json'),
@@ -82,40 +83,35 @@ def generate_infer_paths(args):
     return paths
 
 
-def _generate_quasimap_run_dirpath(quasimap_outputs_dirpath,
-                                   kmer_size,
-                                   start_time):
+def _quasimap_output_dirpath(outputs_base_path,
+                             kmer_size,
+                             start_time):
     template = '{start_time}_ksize{kmer_size}'
-    run_dirname = template.format(start_time=start_time,
-                                  kmer_size=kmer_size)
-    run_dirpath = os.path.join(quasimap_outputs_dirpath,
-                               run_dirname)
-    return run_dirpath
+    directory_name = template.format(start_time=start_time, kmer_size=kmer_size)
+    path = os.path.join(outputs_base_path, directory_name)
+    return path
 
 
 def generate_quasimap_paths(args, start_time):
     project_paths = _generate_project_paths(args)
 
     if hasattr(args, 'run_directory') and args.run_directory is not None:
-        outputs_dirpath = os.path.abspath(os.path.join(args.run_directory, os.pardir))
+        outputs_base_path = os.path.abspath(os.path.join(args.run_directory, os.pardir))
         run_dirpath = args.run_directory
     else:
-        outputs_dirpath = os.path.join(project_paths['project'], 'quasimap_outputs')
-        run_dirpath = _generate_quasimap_run_dirpath(outputs_dirpath,
-                                                     args.kmer_size,
-                                                     start_time)
+        outputs_base_path = os.path.join(project_paths['project'], 'quasimap_outputs')
+        run_dirpath = _quasimap_output_dirpath(outputs_base_path,
+                                               args.kmer_size,
+                                               start_time)
 
-    run_output_paths = {
-        'quasimap_outputs_dirpath': outputs_dirpath,
+    paths = {
+        'reads': args.reads,
+
+        'quasimap_outputs_dirpath': outputs_base_path,
         'quasimap_run_dirpath': run_dirpath,
         'run_report': os.path.join(run_dirpath, 'report.json'),
     }
-
-    paths = {
-        'reads': args.reads
-    }
     paths.update(project_paths)
-    paths.update(run_output_paths)
     return paths
 
 
