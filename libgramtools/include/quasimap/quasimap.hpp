@@ -20,13 +20,8 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
                                   const KmerIndex &kmer_index,
                                   const PRG_Info &prg_info);
 
-void handle_read_file(std::ofstream &progress_file_handle,
-                      QuasimapReadsStats &quasimap_stats,
-                      Coverage &coverage,
-                      const std::string &reads_fpath,
-                      const Parameters &parameters,
-                      const KmerIndex &kmer_index,
-                      const PRG_Info &prg_info);
+void handle_read_file(QuasimapReadsStats &quasimap_stats, Coverage &coverage, const std::string &reads_fpath,
+                      const Parameters &parameters, const KmerIndex &kmer_index, const PRG_Info &prg_info);
 
 void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                               Coverage &coverage,

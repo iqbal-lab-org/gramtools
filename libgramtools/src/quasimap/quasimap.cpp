@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <omp.h>
 
 #include "sequence_read/seqread.hpp"
 
@@ -46,13 +47,12 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
     std::cout << "Generating allele quasimap data structure" << std::endl;
     auto coverage = coverage::generate::empty_structure(prg_info);
     std::cout << "Done generating allele quasimap data structure" << std::endl;
-
-    std::ofstream progress_file_handle(parameters.reads_progress_fpath);
+    
+    std::cout << "Processing reads:" << std::endl;
     QuasimapReadsStats quasimap_stats = {};
 
     for (const auto &reads_fpath: parameters.reads_fpaths) {
-        handle_read_file(progress_file_handle,
-                         quasimap_stats,
+        handle_read_file(quasimap_stats,
                          coverage,
                          reads_fpath,
                          parameters,
@@ -76,22 +76,26 @@ std::vector<Pattern> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &r
 }
 
 
-void handle_reads_buffer(std::ofstream &progress_file_handle,
-                         QuasimapReadsStats &quasimap_stats,
+void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                          Coverage &coverage,
                          const std::vector<Pattern> &reads_buffer,
                          const Parameters &parameters,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info) {
+    uint64_t last_count_reported = 0;
+    
     #pragma omp parallel for
     for (int i = 0; i < reads_buffer.size(); ++i) {
-
-        if (quasimap_stats.all_reads_count % 10000 == 0) {
-            progress_file_handle
-                    << quasimap_stats.all_reads_count
-                    << std::endl;
+        
+        auto thread_id = omp_get_thread_num();
+        if (thread_id == 0) {
+            uint64_t diff = quasimap_stats.all_reads_count - last_count_reported;
+            if (diff >= 10000) {
+                std::cout << quasimap_stats.all_reads_count << std::endl;
+                last_count_reported = quasimap_stats.all_reads_count;
+            }
         }
-
+        
         #pragma omp atomic
         quasimap_stats.all_reads_count += 2;
 
@@ -111,8 +115,7 @@ void handle_reads_buffer(std::ofstream &progress_file_handle,
 }
 
 
-void handle_read_file(std::ofstream &progress_file_handle,
-                      QuasimapReadsStats &quasimap_stats,
+void handle_read_file(QuasimapReadsStats &quasimap_stats,
                       Coverage &coverage,
                       const std::string &reads_fpath,
                       const Parameters &parameters,
@@ -123,8 +126,7 @@ void handle_read_file(std::ofstream &progress_file_handle,
     auto reads_it = reads.begin();
     while (reads_it != reads.end()) {
         auto reads_buffer = get_reads_buffer(reads_it, reads, max_set_size);
-        handle_reads_buffer(progress_file_handle,
-                            quasimap_stats,
+        handle_reads_buffer(quasimap_stats,
                             coverage,
                             reads_buffer,
                             parameters,

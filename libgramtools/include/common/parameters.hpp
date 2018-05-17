@@ -31,7 +31,6 @@ struct Parameters {
 
     // quasimap specific parameters
     std::vector<std::string> reads_fpaths;
-    std::string reads_progress_fpath;
 
     std::string allele_sum_coverage_fpath;
     std::string allele_base_coverage_fpath;

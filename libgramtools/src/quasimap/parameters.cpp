@@ -42,8 +42,6 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.reads_fpaths = vm["reads"].as<std::vector<std::string>>();
 
     std::string run_dirpath = vm["run-directory"].as<std::string>();
-
-    parameters.reads_progress_fpath = full_path(run_dirpath, "reads_progress");
     parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
 
     parameters.allele_sum_coverage_fpath = full_path(run_dirpath, "allele_sum_coverage");
