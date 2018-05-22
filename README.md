@@ -16,6 +16,8 @@ Gramtools currently consists of three commands. These commands are documented in
 
 3) [infer](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-infer) - given coverage information and a grpah, infer a maximum likelihood genome
 
+Examples and documentation can be found in the GitHub [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
+
 ```
 Gramtools
 
@@ -42,9 +44,6 @@ Subcommands:
   quasimap      Generate mapping coverage information given reads
   infer         Infer a maximum likelihood genome
 ```
-
-Examples and documentation can be found in the GitHub [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
-
 
 ## License
 
