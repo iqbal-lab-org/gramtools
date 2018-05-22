@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/iqbal-lab-org/gramtools.svg?branch=master)](https://travis-ci.org/iqbal-lab-org/gramtools)
 
 # gramtools
-**TL;DR** Genome inference using prior information encoded as a refernce graph.
+**TL;DR** Genome inference using prior information encoded as a reference graph.
 
-Gramtools builds a directed acyclical graph (DAG) of genetic variance from a population of genomes. Given a sample of reads, the graph is then annotated with quasimap coverage information. A personal reference genome for the population can then be infered from the annotated graph.
+Gramtools builds a directed acyclical graph (DAG) of genetic variation from a population of genomes. Given sequence data from a haploid individual, alleles on the graph are annotated with coverage information. A personalised reference genome for the sample being studied can then be inferred from the annotated graph.
 
 ## Install
 ```pip3 install git+https://github.com/iqbal-lab-org/gramtools```
@@ -16,7 +16,7 @@ Gramtools currently consists of three commands. These commands are documented in
 
 3) [infer](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-infer) - given coverage information and a grpah, infer a maximum likelihood genome
 
-Examples and documentation can be found in the GitHub [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
+Examples, documentation, and planned future enhancments can be found in the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
 
 ```
 Gramtools
