@@ -1,55 +1,51 @@
 [![Build Status](https://travis-ci.org/iqbal-lab-org/gramtools.svg?branch=master)](https://travis-ci.org/iqbal-lab-org/gramtools)
 
 # gramtools
-Genomes evolve by recombination and mutation. 
-gramtools uses a reference graph to  model new genomes as recombinants (mosaics) of previous genomes,
-(by "quasimapping" reads to the graph) and then genotyping within the graph.
+**TL;DR** Genome inference using prior information encoded as a refernce graph.
 
-## Motivation
-gramtools finds the nearest mosaic from a reference panel of genomes to a sample(a "personalised reference"). The user can then either
-* use traditional mapping-based variant calling, 
-* or, wait until we finish implementing variant discovery on top of the graph.
-
-We recommend the first option for now.
+Gramtools builds a directed acyclical graph (DAG) of genetic variance from a population of genomes. Given a sample of reads, the graph is then annotated with quasimap coverage information. A personal reference genome for the population can then be infered from the annotated graph.
 
 ## Install
 ```pip3 install git+https://github.com/iqbal-lab-org/gramtools```
 
-## Run
-Initial step done just once (per species)
-* Generate a graph from known genetic variation and a standard reference genome (gramtools does this automatically from a VCF, but you can generate your own from a multiple sequence alignment or some combination of both).
+## Usage
+Gramtools currently consists of three commands. These commands are documented in the wiki (see links below). In dependancy order, they are:
+1) [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - given a VCF and reference, construct the graph
 
-For each sample
-* Quality trim the reads 
-* Quasimap reads to the graph, and infer mosaic reference
-* Use whatever standard tools you like to call variants (samtools, GATK, etc)
-* Convert variants back to standard coordinates (not supported yet)
+2) [quasimap](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-quasimap) - given a set of reads and a graph, generate mapping coverage information
 
-### Build Graph
-```gramtools build --gram-directory ./gram --vcf ./vcf --reference ./reference --max-read-length 150```
+3) [infer](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-infer) - given coverage information and a grpah, infer a maximum likelihood genome
 
-| parameter           | description                                                     |
-|---------------------|-----------------------------------------------------------------|
-| `--gram-directory`  | output directory for gramtools build files (created if missing) |
-| `--vcf`             | input variant call file detailing genetic variants              |
-| `--reference`       | generic reference genome which compliments the VCF              |
-| `--max-read-length` | maximum read length used during the `quasimap` command          |
+```
+Gramtools
 
-### Quasimap reads to graph
-```gramtools quasimap --gram-directory ./gram --reads ./reads```
+Usage:
+  gramtools build --gram-directory --vcf --reference
+  gramtools quasimap --gram-directory --reads --output-directory
+  gramtools infer --gram-directory --mean-depth --error-rate --quasimap-directory --output
+  gramtools (-h | --help)
+  gramtools --version
 
-| parameter          | description                                                              |
-|--------------------|--------------------------------------------------------------------------|
-| `--gram-directory` | output directory for gramtools build files (created if missing)          |
-| `--reads`          | input read samples fastq file, this parameter can be used multiple times |
+Options:
+  --gram-directory      Gramtools supporting data structures
+  --quasimap-directory  Quasimap coverage information output directory
+  --output-directory    Command output directory
+  --output              Command output file path
+  --mean-depth          Mean read coverage depth
+  --error-rate          Per base error rate
 
-### Infer personal reference
-```gramtools infer --gram-directory ./gram --mean-depth 20 --error-rate 0.01 --quasimap-directory ./1519293469_ksize15 --output ./out.fasta```
+  -h --help             Show this screen
+  --version             Show version
 
-| parameter              | description                                                     |
-|------------------------|-----------------------------------------------------------------|
-| `--gram-directory`     | output directory for gramtools build files (created if missing) |
-| `--quasimap-directory` | quasimap run directory which contains coverage data             |
-| `--output`             | output fasta file path                                          |
-| `--mean-depth`         | mean coverage depth                                             |
-| `--error-rate`         | DNA base error rate                                             |
+Subcommands:
+  build         Construct the graph and supporting data structures
+  quasimap      Generate mapping coverage information given reads
+  infer         Infer a maximum likelihood genome
+```
+
+Examples and documentation can be found in the GitHub [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
+
+
+## License
+
+MIT
