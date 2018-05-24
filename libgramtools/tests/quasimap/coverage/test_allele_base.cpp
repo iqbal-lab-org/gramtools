@@ -397,3 +397,27 @@ TEST(AlleleBaseCoverage, GivenEmptyAlleleBaseCoverage_CorrectJsonDump) {
     std::string expected = "{\"allele_base_counts\":[]}";
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(AlleleStartOffsetIndex, GivenSecondAlleleBase_CorrectAlleleIndexOffset) {
+    auto prg_raw = "ct5gg6aaga5cc";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_allele_prg_index = 7;
+    uint64_t result = allele_start_offset_index(within_allele_prg_index, prg_info);
+    uint64_t expected = 1;
+
+    EXPECT_EQ(expected, result);
+}
+
+
+TEST(AlleleStartOffsetIndex, GivenFirstAlleleBase_CorrectAlleleIndexOffset) {
+    auto prg_raw = "ct5gg6aaga5cc";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    uint64_t within_allele_prg_index = 6;
+    uint64_t result = allele_start_offset_index(within_allele_prg_index, prg_info);
+    uint64_t expected = 0;
+
+    EXPECT_EQ(expected, result);
+}

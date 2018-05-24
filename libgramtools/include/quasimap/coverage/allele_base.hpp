@@ -37,4 +37,6 @@ uint64_t set_site_base_coverage(Coverage &coverage,
                                 const uint64_t allele_coverage_offset,
                                 const uint64_t max_bases_to_set);
 
+uint64_t allele_start_offset_index(const uint64_t within_allele_prg_index, const PRG_Info &prg_info);
+
 #endif //GRAMTOOLS_ALLELE_BASE_HPP
