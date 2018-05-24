@@ -9,7 +9,7 @@
 
 
 /*
-raw PRG: gcgctggagtgctgt
+PRG: gcgctggagtgctgt
 F -> first char of SA
 
 i	F	BTW	text	SA

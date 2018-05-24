@@ -9,8 +9,8 @@
 
 
 SitesAlleleBaseCoverage coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
-    uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
-    SitesAlleleBaseCoverage allele_base_coverage(numer_of_variant_sites);
+    uint64_t number_of_variant_sites = get_number_of_variant_sites(prg_info);
+    SitesAlleleBaseCoverage allele_base_coverage(number_of_variant_sites);
 
     const auto min_boundary_marker = 5;
 
@@ -40,9 +40,10 @@ SitesAlleleBaseCoverage coverage::generate::allele_base_structure(const PRG_Info
 
 uint64_t allele_start_offset_index(const uint64_t within_allele_prg_index, const PRG_Info &prg_info) {
     // find the nearest left marker with rank and select
-    auto number_markers_before = prg_info.prg_markers_rank(within_allele_prg_index);
-    auto marker_index = prg_info.prg_markers_select(number_markers_before);
-    auto offset = within_allele_prg_index - marker_index - 1;
+    uint64_t number_markers_before = prg_info.prg_markers_rank(within_allele_prg_index);
+    uint64_t marker_index = prg_info.prg_markers_select(number_markers_before);
+    uint64_t offset = within_allele_prg_index - marker_index - 1;
+
     return offset;
 }
 
@@ -57,8 +58,8 @@ uint64_t set_site_base_coverage(Coverage &coverage,
     auto variant_site_coverage_index = (marker - min_boundary_marker) / 2;
     auto &site_coverage = coverage.allele_base_coverage.at(variant_site_coverage_index);
 
-    auto allell_id = path_element.second;
-    auto allele_coverage_index = allell_id - 1;
+    auto allele_id = path_element.second;
+    auto allele_coverage_index = allele_id - 1;
     auto &allele_coverage = site_coverage.at(allele_coverage_index);
 
     uint64_t index_end_boundary = std::min(allele_coverage_offset + max_bases_to_set, allele_coverage.size());
