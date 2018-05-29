@@ -109,14 +109,26 @@ def _save_report(start_time,
 
 def _load_build_report(args):
     build_paths = paths.generate_build_paths(args)
-    with open(build_paths['build_report']) as fhandle:
-        return json.load(fhandle)
+    try:
+        with open(build_paths['build_report']) as fhandle:
+            return json.load(fhandle)
+    except FileNotFoundError:
+        log.error("Build report not found: %s", build_paths['build_report'])
+        exit(1)
+
+
+def _check_build_success(build_report):
+    if not build_report['return_value_is_0']:
+        log.error("Build was not completed successfully (see: build report)")
+        exit(1)
 
 
 def run(args):
     log.info('Start process: quasimap')
 
     build_report = _load_build_report(args)
+    _check_build_success(build_report)
+
     kmer_size = build_report['kmer_size']
     setattr(args, 'kmer_size', kmer_size)
 
