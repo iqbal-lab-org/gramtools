@@ -7,16 +7,16 @@ public:
     SearchState search_state = {};
     bool empty = true;
 
+    void set(const SearchState &search_state) {
+        this->search_state = search_state;
+        this->empty = false;
+    }
+
     void flush(SearchStates &search_states) {
         if (this->empty)
             return;
         search_states.emplace_back(this->search_state);
         this->empty = true;
-    }
-
-    void set(const SearchState &search_state) {
-        this->search_state = search_state;
-        this->empty = false;
     }
 
     void update_sa_interval_max(const SA_Index &new_sa_interval_max) {
@@ -44,7 +44,6 @@ SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
         auto allele_id = prg_info.allele_mask[prg_index];
 
         bool within_site = site_marker != 0;
-
         if (not within_site) {
             cache.flush(new_search_states);
             cache.set(SearchState {
@@ -66,8 +65,20 @@ SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
                     SearchVariantSiteState::within_variant_site
             });
             continue;
-        } else {
+        }
+
+        VariantSitePath current_path = {VariantSite {site_marker, allele_id}};
+        bool cache_has_same_path = current_path == cache.search_state.variant_site_path;
+        if (cache_has_same_path) {
             cache.update_sa_interval_max(sa_index);
+            continue;
+        } else {
+            cache.flush(new_search_states);
+            cache.set(SearchState {
+                    SA_Interval {sa_index, sa_index},
+                    current_path,
+                    SearchVariantSiteState::within_variant_site
+            });
         }
     }
     cache.flush(new_search_states);
@@ -86,9 +97,10 @@ SearchStates handle_allele_encapsulated_states(const SearchStates &search_states
             continue;
         }
 
-        SearchStates split_seach_states = handle_allele_encapsulated_state(search_state, prg_info);
-        for (const auto &split_seach_state: split_seach_states)
-            new_search_states.emplace_back(split_seach_state);
+        SearchStates split_search_states = handle_allele_encapsulated_state(search_state,
+                                                                           prg_info);
+        for (const auto &split_search_state: split_search_states)
+            new_search_states.emplace_back(split_search_state);
     }
     return new_search_states;
 }

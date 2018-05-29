@@ -1129,6 +1129,109 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
 }
 
 
+/*
+PRG: tcagtt5tcagtcag6atcagtttcag5ta7atcagt8gtg7g
+i	F	BWT	text	SA	suffix
+0	0	3	4	    43	  0
+1	1	2	2	    9	  1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+2	1	2	1	    19	  1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+3	1	2	3	    2	  1 3 4 4 5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+4	1	2	4	    34	  1 3 4 8 3 4 3 7 3 0
+5	1	2	4	    25	  1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+6	1	2	5	    13	  1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+7	1	6	4	    16	  1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+8	1	7	2	    31	  1 4 2 1 3 4 8 3 4 3 7 3 0
+9	1	4	1	    29	  1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+10	2	4	3	    8	  2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+11	2	4	4	    18	  2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+12	2	4	2	    1	  2 1 3 4 4 5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+13	2	4	1	    33	  2 1 3 4 8 3 4 3 7 3 0
+14	2	4	3	    24	  2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+15	2	4	6	    12	  2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+16	3	7	1	    42	  3 0
+17	3	1	4	    10	  3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+18	3	8	2	    38	  3 4 3 7 3 0
+19	3	1	1	    20	  3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+20	3	1	3	    3	  3 4 4 5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+21	3	1	4	    35	  3 4 8 3 4 3 7 3 0
+22	3	1	4	    26	  3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+23	3	1	4	    14	  3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+24	3	4	2	    40	  3 7 3 0
+25	4	5	1	    28	  4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+26	4	5	3	    7	  4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+27	4	1	5	    17	  4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+28	4	0	4	    0	  4 2 1 3 4 4 5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+29	4	1	1	    32	  4 2 1 3 4 8 3 4 3 7 3 0
+30	4	4	7	    23	  4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+31	4	3	1	    11	  4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+32	4	3	4	    39	  4 3 7 3 0
+33	4	4	2	    22	  4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+34	4	3	1	    21	  4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+35	4	3	3	    4	  4 4 5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+36	4	4	4	    5	  4 5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+37	4	3	8	    36	  4 8 3 4 3 7 3 0
+38	5	3	3	    27	  5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+39	5	4	4	    6	  5 4 2 1 3 4 2 1 3 6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+40	6	3	3	    15	  6 1 4 2 1 3 4 4 4 2 1 3 5 4 1 7 1 4 2 1 3 4 8 3 4 3 7 3 0
+41	7	1	7	    30	  7 1 4 2 1 3 4 8 3 4 3 7 3 0
+42	7	3	3	    41	  7 3 0
+43	8	4	0	    37	  8 3 4 3 7 3 0
+*/
+TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSearchStates) {
+    auto prg_raw = "tcagtt5tcagtcag6atcagtttcag5ta7atcagt8gtg7g";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    SearchState search_state = {
+            SA_Interval {10, 15}
+
+    };
+    auto result = handle_allele_encapsulated_state(search_state, prg_info);
+    SearchStates expected = {
+            SearchState {
+                    SA_Interval {10, 10},
+                    VariantSitePath {
+                            VariantSite {5, 1}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState {
+                    SA_Interval {11, 11},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState {
+                    SA_Interval {12, 12},
+                    VariantSitePath {},
+                    SearchVariantSiteState::outside_variant_site
+            },
+            SearchState {
+                    SA_Interval {13, 13},
+                    VariantSitePath {
+                            VariantSite {7, 1}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState {
+                    SA_Interval {14, 14},
+                    VariantSitePath {
+                            VariantSite {5, 2}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState {
+                    SA_Interval {15, 15},
+                    VariantSitePath {
+                            VariantSite {5, 1}
+                    },
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(Search, NoMarkersToLeft_SkippingToMarkerTrue) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);

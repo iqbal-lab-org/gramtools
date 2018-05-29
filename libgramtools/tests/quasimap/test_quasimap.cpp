@@ -450,7 +450,7 @@ TEST(Quasimap, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
 
     const auto &result = coverage.allele_sum_coverage;
     AlleleSumCoverage expected = {
-            {1, 0, 0}
+            {1, 0, 1}
     };
     EXPECT_EQ(result, expected);
 }
