@@ -24,6 +24,13 @@ void commands::build::run(const Parameters &parameters) {
               << prg_info.encoded_prg.size()
               << std::endl;
 
+    prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
+    std::cout << "Maximum alphabet character: " << prg_info.max_alphabet_num << std::endl;
+    if (prg_info.max_alphabet_num <= 4) {
+        std::cout << "No variant sites found.\nExiting 1" << std::endl;
+        std::exit(1);
+    }
+
     std::cout << "Generating FM-Index" << std::endl;
     timer.start("Generate FM-Index");
     prg_info.fm_index = generate_fm_index(parameters);
@@ -32,8 +39,6 @@ void commands::build::run(const Parameters &parameters) {
     std::cout << "Generating PRG masks" << std::endl;
     timer.start("Generating PRG masks");
     generate_dna_bwt_masks(prg_info.fm_index, parameters);
-
-    prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
 
     prg_info.sites_mask = generate_sites_mask(prg_info.encoded_prg);
     sdsl::store_to_file(prg_info.sites_mask, parameters.sites_mask_fpath);
