@@ -6,8 +6,6 @@
 #ifndef GRAMTOOLS_SEARCH_HPP
 #define GRAMTOOLS_SEARCH_HPP
 
-#define USE_SKIP_OPTIMIZATION false
-
 SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
                                               const PRG_Info &prg_info);
 
@@ -40,13 +38,6 @@ void process_search_state_path_cache(SearchState &search_state);
 SearchStates process_read_char_search_states(const Base &pattern_char,
                                              const SearchStates &old_search_states,
                                              const PRG_Info &prg_info);
-
-SearchState search_skipping_marker(const SearchState &search_state,
-                                   const Base &pattern_char,
-                                   const PRG_Info &prg_info);
-
-void set_state_skip_marker(SearchStates &search_states,
-                           const PRG_Info &prg_info);
 
 AlleleId get_allele_id(const SA_Index &allele_marker_sa_index,
                        const PRG_Info &prg_info);

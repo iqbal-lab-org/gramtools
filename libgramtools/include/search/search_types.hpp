@@ -20,10 +20,6 @@ struct SearchState {
 
     bool invalid = false;
 
-    bool skipping_to_marker = false;
-    uint64_t distance_to_next_marker = 0;
-    uint64_t current_text_index = 0;
-
     bool operator== (const SearchState &other) const {
         return this->sa_interval == other.sa_interval
                and this->variant_site_path == other.variant_site_path
