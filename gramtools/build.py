@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import shutil
 import logging
 import subprocess
 import collections
@@ -19,14 +20,19 @@ def parse_args(common_parser, subparsers):
                         help='',
                         type=str,
                         required=True)
+
     parser.add_argument('--vcf',
                         help='',
                         type=str,
-                        required=True)
+                        required=False)
     parser.add_argument('--reference',
                         help='',
                         type=str,
-                        required=True)
+                        required=False)
+    parser.add_argument('--prg',
+                        help='',
+                        type=str,
+                        required=False)
 
     parser.add_argument('--kmer-size',
                         help='',
@@ -54,6 +60,29 @@ def parse_args(common_parser, subparsers):
                         type=int,
                         default=1,
                         required=False)
+
+
+def _skip_prg_construction(build_paths, report, args):
+    if report.get('return_value_is_0') is False:
+        report['prg_build_report'] = {
+            'return_value_is_0': False
+        }
+        return report
+
+    if not os.path.isfile(args.prg):
+        log.error("PRG argument provided and file not found:\n%s", args.prg)
+        success = False
+    else:
+        log.debug("PRG file provided, skipping construction")
+        log.debug("Copying PRG file into gram directory")
+        shutil.copyfile(args.prg, build_paths['prg'])
+        success = True
+
+    report['return_value_is_0'] = success
+    report['prg_build_report'] = {
+        'return_value_is_0': success
+    }
+    return report
 
 
 def _execute_command_generate_prg(build_paths, report, _):
@@ -177,8 +206,11 @@ def run(args):
 
     report = collections.OrderedDict()
 
-    report = _execute_command_generate_prg(command_paths, report, args)
-    paths.perl_script_file_cleanup(command_paths)
+    if hasattr(args, 'prg') and args.prg is not None:
+        report = _skip_prg_construction(command_paths, report, args)
+    else:
+        report = _execute_command_generate_prg(command_paths, report, args)
+        paths.perl_script_file_cleanup(command_paths)
 
     report = _execute_gramtools_cpp_build(command_paths, report, args)
 
