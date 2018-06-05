@@ -32,6 +32,10 @@ void commands::quasimap::run(const Parameters &parameters) {
     std::cout << "Running quasimap" << std::endl;
     timer.start("Quasimap");
     auto quasimap_stats = quasimap_reads(parameters, kmer_index, prg_info);
+
+    std::cout << std::endl;
+    std::cout << "The following counts include generated reverse complement reads."
+              << std::endl;
     std::cout << "Count all reads: " << quasimap_stats.all_reads_count << std::endl;
     std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count << std::endl;
     std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count << std::endl;
@@ -47,7 +51,7 @@ QuasimapReadsStats quasimap_reads(const Parameters &parameters,
     std::cout << "Generating allele quasimap data structure" << std::endl;
     auto coverage = coverage::generate::empty_structure(prg_info);
     std::cout << "Done generating allele quasimap data structure" << std::endl;
-    
+
     std::cout << "Processing reads:" << std::endl;
     QuasimapReadsStats quasimap_stats = {};
 
@@ -83,10 +87,10 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info) {
     uint64_t last_count_reported = 0;
-    
+
     #pragma omp parallel for
     for (int i = 0; i < reads_buffer.size(); ++i) {
-        
+
         auto thread_id = omp_get_thread_num();
         if (thread_id == 0) {
             uint64_t diff = quasimap_stats.all_reads_count - last_count_reported;
@@ -95,7 +99,7 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                 last_count_reported = quasimap_stats.all_reads_count;
             }
         }
-        
+
         #pragma omp atomic
         quasimap_stats.all_reads_count += 2;
 
