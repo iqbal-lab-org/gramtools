@@ -91,6 +91,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         'scipy >= 1.0.1',
+        'pyvcf >= 0.6.8',
     ],
     test_suite='gramtools.tests',
     cmdclass={

@@ -1,6 +1,8 @@
 import json
 import logging
 
+import vcf
+
 from . import genotyper
 from . import paths
 
@@ -36,10 +38,14 @@ def parse_args(common_parser, subparsers):
                         help='',
                         action='store_true',
                         required=False)
-    parser.add_argument('--output',
+    parser.add_argument('--output-fasta',
                         help='',
                         type=str,
-                        required=True)
+                        required=False)
+    parser.add_argument('--output-vcf',
+                        help='',
+                        type=str,
+                        required=False)
 
 
 def run(args):
@@ -56,15 +62,56 @@ def run(args):
                                              all_groups_site_counts,
                                              allele_groups)
 
-    cache_writer = _CacheWriter(args.output)
     prg_parser = _parse_prg(_paths['prg'])
-    _assemble_reference(prg_parser, allele_indexes, cache_writer)
 
-    cache_writer.close()
+    if args.output_fasta is not None:
+        _dump_fasta(prg_parser, allele_indexes, args)
+    elif args.output_vcf is not None:
+        _dump_vcf(allele_indexes, _paths, args)
+    else:
+        log.error("Either --output-fasta or --output-vcf must be specified")
+        exit(1)
+
     log.info('End process: infer')
 
 
-def _assemble_reference(prg_parser, allele_indexes, cache_writer):
+def _dump_vcf(allele_indexes, _paths, args):
+    if _paths['perl_generated_vcf'] is '' or _paths['perl_generated_vcf'] is None:
+        log.error('VCF file must be used as part of gramtools build command. Exiting.')
+    
+    file_handle = open(_paths['perl_generated_vcf'], 'r')
+    vcf_reader = vcf.Reader(file_handle)
+
+    record_attributes = [
+        'CHROM',
+        'POS',
+        'ID',
+        'REF',
+        'ALT',
+        'QUAL',
+        'FILTER',
+        'INFO',
+        'FORMAT',
+        '_sample_indexes'
+    ]
+
+    with open(args.output_vcf, 'w') as file_handle:
+        vcf_writer = vcf.Writer(file_handle, vcf_reader)
+
+        for record, allele_index in zip(vcf_reader, allele_indexes):
+            if allele_index is None or allele_index == 0:
+                continue
+
+            attributes = {name: getattr(record, name) for name in record_attributes}
+            attributes['ALT'] = [attributes['ALT'][allele_index - 1]]
+            attributes = [attributes[name] for name in record_attributes]
+            new_record = vcf.model._Record(*attributes)
+
+            vcf_writer.write_record(new_record)
+
+
+def _dump_fasta(prg_parser, allele_indexes, args):
+    writer = _FastaWriter(args.output_fasta)
     allele_index = next(allele_indexes)
 
     for cursor in prg_parser:
@@ -82,14 +129,15 @@ def _assemble_reference(prg_parser, allele_indexes, cache_writer):
             continue
 
         if not cursor.within_allele:
-            cache_writer.append(cursor.char)
+            writer.append(cursor.char)
             continue
 
         if cursor.allele_id == allele_index:
-            cache_writer.append(cursor.char)
+            writer.append(cursor.char)
+    writer.close()
 
 
-class _CacheWriter:
+class _FastaWriter:
     def __init__(self, fpath):
         self._fpath = fpath
         self._fhandle = open(self._fpath, 'w')

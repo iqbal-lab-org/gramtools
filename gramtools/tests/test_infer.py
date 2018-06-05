@@ -166,7 +166,7 @@ class TestAssembleReference(unittest.TestCase):
                       for cursor in infer._parse_prg_structure(chars, cursor)]
         allele_indexes = iter([1, 0])
         cache_writer = []
-        infer._assemble_reference(prg_parser, allele_indexes, cache_writer)
+        infer._dump_fasta(prg_parser, allele_indexes, cache_writer)
 
         result = ''.join(cache_writer)
         expected = 'ACAACCCAC'
@@ -179,7 +179,7 @@ class TestAssembleReference(unittest.TestCase):
                       for cursor in infer._parse_prg_structure(chars, cursor)]
         allele_indexes = iter([1, 0])
         cache_writer = []
-        infer._assemble_reference(prg_parser, allele_indexes, cache_writer)
+        infer._dump_fasta(prg_parser, allele_indexes, cache_writer)
 
         result = ''.join(cache_writer)
         expected = 'ACAACCCACTT'
