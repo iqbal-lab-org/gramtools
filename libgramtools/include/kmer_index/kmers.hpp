@@ -102,6 +102,6 @@ std::vector<Pattern> get_kmer_prefix_diffs(const Parameters &parameters,
 std::vector<Pattern> get_all_kmers(const Parameters &parameters,
                                    const PRG_Info &prg_info);
 
-Patterns generate_all_kmers(const uint64_t &kmer_size);
+ordered_vector_set<Pattern> generate_all_kmers(const uint64_t &kmer_size);
 
 #endif //GRAMTOOLS_KMERS_HPP

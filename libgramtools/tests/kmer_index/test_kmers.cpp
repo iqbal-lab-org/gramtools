@@ -1507,6 +1507,90 @@ TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound
 }
 
 
+TEST(GetAllKmers, GenerateAllKmersLengthThree_CorrectOrder) {
+    auto prg_raw = "acgt";
+    auto prg_info = generate_prg_info(prg_raw);
+    Parameters parameters = {};
+    parameters.kmers_size = 3;
+
+    auto result = get_all_kmers(parameters,
+                               prg_info);
+
+    std::vector<Pattern> expected = {
+            {1, 1, 1},
+            {2, 1, 1},
+            {3, 1, 1},
+            {4, 1, 1},
+            {1, 2, 1},
+            {2, 2, 1},
+            {3, 2, 1},
+            {4, 2, 1},
+            {1, 3, 1},
+            {2, 3, 1},
+            {3, 3, 1},
+            {4, 3, 1},
+            {1, 4, 1},
+            {2, 4, 1},
+            {3, 4, 1},
+            {4, 4, 1},
+            {1, 1, 2},
+            {2, 1, 2},
+            {3, 1, 2},
+            {4, 1, 2},
+            {1, 2, 2},
+            {2, 2, 2},
+            {3, 2, 2},
+            {4, 2, 2},
+            {1, 3, 2},
+            {2, 3, 2},
+            {3, 3, 2},
+            {4, 3, 2},
+            {1, 4, 2},
+            {2, 4, 2},
+            {3, 4, 2},
+            {4, 4, 2},
+            {1, 1, 3},
+            {2, 1, 3},
+            {3, 1, 3},
+            {4, 1, 3},
+            {1, 2, 3},
+            {2, 2, 3},
+            {3, 2, 3},
+            {4, 2, 3},
+            {1, 3, 3},
+            {2, 3, 3},
+            {3, 3, 3},
+            {4, 3, 3},
+            {1, 4, 3},
+            {2, 4, 3},
+            {3, 4, 3},
+            {4, 4, 3},
+            {1, 1, 4},
+            {2, 1, 4},
+            {3, 1, 4},
+            {4, 1, 4},
+            {1, 2, 4},
+            {2, 2, 4},
+            {3, 2, 4},
+            {4, 2, 4},
+            {1, 3, 4},
+            {2, 3, 4},
+            {3, 3, 4},
+            {4, 3, 4},
+            {1, 4, 4},
+            {2, 4, 4},
+            {3, 4, 4},
+            {4, 4, 4},
+    };
+
+    for (uint64_t i = 0; i < result.size(); ++i) {
+        auto result_kmer = result[i];
+        auto expected_kmer = expected[i];
+        EXPECT_EQ(result_kmer, expected_kmer);
+    }
+}
+
+
 TEST(GenerateKmers, GenerateAllKmersOfSizeThree_CorrectSpotCheck) {
     auto kmers = generate_all_kmers(3);
     std::vector<Pattern> expected_kmers = {

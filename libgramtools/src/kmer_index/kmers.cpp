@@ -799,7 +799,7 @@ void next_kmer(Pattern &current_kmer, const uint64_t &kmer_size) {
 }
 
 
-Patterns generate_all_kmers(const uint64_t &kmer_size) {
+ordered_vector_set<Pattern> generate_all_kmers(const uint64_t &kmer_size) {
     ordered_vector_set<Pattern> all_kmers = {};
     Pattern current_kmer(kmer_size, 1);
 
@@ -809,24 +809,18 @@ Patterns generate_all_kmers(const uint64_t &kmer_size) {
         if (current_kmer.empty())
             break;
     }
-
-    Patterns kmers;
-    for (auto kmer: all_kmers) {
-        kmers.emplace_back(kmer);
-    }
-    return kmers;
+    return all_kmers;
 }
 
 
 std::vector<Pattern> get_all_kmers(const Parameters &parameters,
                                    const PRG_Info &prg_info) {
-    if (parameters.kmers_size <= 8) {
-        auto ordered_kmers = generate_all_kmers(parameters.kmers_size);
-        return ordered_kmers;
+    ordered_vector_set<Pattern> ordered_reverse_kmers = {};
+    if (parameters.kmers_size <= 10) {
+        ordered_reverse_kmers = generate_all_kmers(parameters.kmers_size);
+    } else {
+        ordered_reverse_kmers = get_prg_reverse_kmers(parameters, prg_info);
     }
-
-    auto ordered_reverse_kmers = get_prg_reverse_kmers(parameters,
-                                                       prg_info);
     auto ordered_kmers = reverse(ordered_reverse_kmers);
     return ordered_kmers;
 }
@@ -835,6 +829,7 @@ std::vector<Pattern> get_all_kmers(const Parameters &parameters,
 std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers) {
     std::vector<Pattern> prefix_diffs = {};
     Pattern last_full_kmer = {};
+
     for (const auto &kmer: kmers) {
         if (last_full_kmer.empty()) {
             last_full_kmer = kmer;

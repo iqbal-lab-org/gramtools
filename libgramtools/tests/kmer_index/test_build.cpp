@@ -635,7 +635,7 @@ TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFou
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
-    parameters.kmers_size = 9;
+    parameters.kmers_size = 12;
     parameters.max_read_size = 7;
 
     auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
@@ -643,7 +643,7 @@ TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFou
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {2, 3, 1, 4, 4, 2, 4, 2, 2};
+    Pattern target_kmer = {2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_FALSE(found);
 }
