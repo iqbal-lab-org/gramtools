@@ -10,9 +10,10 @@
 
 
 namespace fs = boost::filesystem;
+using namespace gram;
 
 
-std::string full_path(const std::string &gram_dirpath,
+std::string gram::full_path(const std::string &gram_dirpath,
                       const std::string &file_name) {
     fs::path dir(gram_dirpath);
     fs::path file(file_name);
@@ -21,7 +22,7 @@ std::string full_path(const std::string &gram_dirpath,
 }
 
 
-Base encode_dna_base(const char &base_str) {
+Base gram::encode_dna_base(const char &base_str) {
     switch (base_str) {
         case 'A':
         case 'a':
@@ -45,7 +46,7 @@ Base encode_dna_base(const char &base_str) {
 }
 
 
-Pattern encode_dna_bases(const std::string &dna_str) {
+Pattern gram::encode_dna_bases(const std::string &dna_str) {
     Pattern pattern;
     for (const auto &base_str: dna_str) {
         Base encoded_base = encode_dna_base(base_str);
@@ -73,7 +74,7 @@ Base compliment_encoded_base(const Base &encoded_base) {
 }
 
 
-Pattern reverse_compliment_read(const Pattern &read) {
+Pattern gram::reverse_compliment_read(const Pattern &read) {
     Pattern reverse_read;
     reverse_read.reserve(read.size());
 
@@ -86,7 +87,7 @@ Pattern reverse_compliment_read(const Pattern &read) {
 }
 
 
-Pattern encode_dna_bases(const GenomicRead &read_sequence) {
+Pattern gram::encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
     Pattern pattern;
     for (uint64_t i = 0; i < sequence_length; i++) {

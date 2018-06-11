@@ -4,22 +4,26 @@
 #ifndef GRAMTOOLS_TIMER_REPORT_HPP
 #define GRAMTOOLS_TIMER_REPORT_HPP
 
-class TimerReport{
-public:
-    void start(std::string note);
-    void stop();
-    void report() const;
+namespace gram {
+    class TimerReport {
+    public:
+        void start(std::string note);
 
-    template <typename TypeCol1, typename TypeCol2>
-    void cout_row(TypeCol1 col1, TypeCol2 col2) const;
+        void stop();
 
-private:
-    using Note = std::string;
-    using Entry = std::pair<Note, double>;
+        void report() const;
 
-    Note note;
-    std::vector<Entry> logger;
-    boost::timer::cpu_timer timer;
-};
+        template<typename TypeCol1, typename TypeCol2>
+        void cout_row(TypeCol1 col1, TypeCol2 col2) const;
+
+    private:
+        using Note = std::string;
+        using Entry = std::pair<Note, double>;
+
+        Note note;
+        std::vector<Entry> logger;
+        boost::timer::cpu_timer timer;
+    };
+}
 
 #endif //GRAMTOOLS_TIMER_REPORT_HPP

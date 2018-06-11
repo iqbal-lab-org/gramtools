@@ -8,7 +8,10 @@
 #include "quasimap/coverage/allele_base.hpp"
 
 
-SitesAlleleBaseCoverage coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
+using namespace gram;
+
+
+SitesAlleleBaseCoverage gram::coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
     uint64_t number_of_variant_sites = get_number_of_variant_sites(prg_info);
     SitesAlleleBaseCoverage allele_base_coverage(number_of_variant_sites);
 
@@ -38,7 +41,7 @@ SitesAlleleBaseCoverage coverage::generate::allele_base_structure(const PRG_Info
 }
 
 
-uint64_t allele_start_offset_index(const uint64_t within_allele_prg_index, const PRG_Info &prg_info) {
+uint64_t gram::allele_start_offset_index(const uint64_t within_allele_prg_index, const PRG_Info &prg_info) {
     // find the nearest left marker with rank and select
     uint64_t number_markers_before = prg_info.prg_markers_rank(within_allele_prg_index);
     uint64_t marker_index = prg_info.prg_markers_select(number_markers_before);
@@ -48,11 +51,11 @@ uint64_t allele_start_offset_index(const uint64_t within_allele_prg_index, const
 }
 
 
-uint64_t set_site_base_coverage(Coverage &coverage,
-                                SitesCoverageBoundaries &sites_coverage_boundaries,
-                                const VariantSite &path_element,
-                                const uint64_t allele_coverage_offset,
-                                const uint64_t max_bases_to_set) {
+uint64_t gram::set_site_base_coverage(Coverage &coverage,
+                                      SitesCoverageBoundaries &sites_coverage_boundaries,
+                                      const VariantSite &path_element,
+                                      const uint64_t allele_coverage_offset,
+                                      const uint64_t max_bases_to_set) {
     auto marker = path_element.first;
     auto min_boundary_marker = 5;
     auto variant_site_coverage_index = (marker - min_boundary_marker) / 2;
@@ -98,7 +101,7 @@ std::pair<uint64_t, uint64_t> site_marker_prg_indexes(const uint64_t &site_marke
 }
 
 
-uint64_t inter_site_base_count(const uint64_t &first_site_marker,
+uint64_t gram::inter_site_base_count(const uint64_t &first_site_marker,
                                const uint64_t &second_site_marker,
                                const PRG_Info &prg_info) {
     auto first_site_prg_start_end = site_marker_prg_indexes(first_site_marker, prg_info);
@@ -229,7 +232,7 @@ std::string dump_sites(const SitesAlleleBaseCoverage &sites) {
 }
 
 
-std::string dump_allele_base_coverage(const SitesAlleleBaseCoverage &sites) {
+std::string gram::dump_allele_base_coverage(const SitesAlleleBaseCoverage &sites) {
     std::stringstream stream;
     stream << "{\"allele_base_counts\":[";
     stream << dump_sites(sites);

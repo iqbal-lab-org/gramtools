@@ -5,7 +5,7 @@
 #ifndef GRAMTOOLS_ALLELE_SUM_HPP
 #define GRAMTOOLS_ALLELE_SUM_HPP
 
-namespace coverage {
+namespace gram::coverage {
     namespace generate {
         AlleleSumCoverage allele_sum_structure(const PRG_Info &prg_info);
     }

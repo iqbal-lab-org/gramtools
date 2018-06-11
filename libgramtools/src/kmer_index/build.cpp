@@ -8,6 +8,9 @@
 #include "kmer_index/build.hpp"
 
 
+using namespace gram;
+
+
 CacheElement get_next_cache_element(const Base &base,
                                     const bool kmer_base_is_last,
                                     const CacheElement &last_cache_element,
@@ -23,7 +26,7 @@ CacheElement get_next_cache_element(const Base &base,
     new_search_states = search_base_backwards(base,
                                               new_search_states,
                                               prg_info);
-    return CacheElement {
+    return CacheElement{
             new_search_states,
             base
     };
@@ -33,7 +36,7 @@ CacheElement get_next_cache_element(const Base &base,
 CacheElement get_initial_cache_element(const Base &base,
                                        const PRG_Info &prg_info) {
     SearchState search_state = {
-            SA_Interval {0, prg_info.fm_index.size() - 1}
+            SA_Interval{0, prg_info.fm_index.size() - 1}
     };
     SearchStates search_states = {search_state};
     CacheElement initial_cache_element = {search_states};
@@ -63,7 +66,7 @@ KmerIndexCache initial_kmer_index_cache(const Pattern &full_kmer,
 
         const auto &last_cache_element = cache.back();
         if (last_cache_element.search_states.empty()) {
-            cache.emplace_back(CacheElement {});
+            cache.emplace_back(CacheElement{});
             continue;
         }
 
@@ -119,9 +122,9 @@ void update_full_kmer(Pattern &full_kmer,
 }
 
 
-KmerIndex index_kmers(const Patterns &kmer_prefix_diffs,
-                      const int kmer_size,
-                      const PRG_Info &prg_info) {
+KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
+                            const int kmer_size,
+                            const PRG_Info &prg_info) {
     KmerIndex kmer_index;
     KmerIndexCache cache;
     Pattern full_kmer;
@@ -156,8 +159,8 @@ KmerIndex index_kmers(const Patterns &kmer_prefix_diffs,
 }
 
 
-KmerIndex kmer_index::build(const Parameters &parameters,
-                            const PRG_Info &prg_info) {
+KmerIndex gram::kmer_index::build(const Parameters &parameters,
+                                  const PRG_Info &prg_info) {
     Patterns kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
                                                        prg_info);
     std::cout << "Indexing kmers" << std::endl;

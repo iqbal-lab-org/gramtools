@@ -18,6 +18,9 @@
 #include "kmer_index/load.hpp"
 
 
+using namespace gram;
+
+
 void commands::quasimap::run(const Parameters &parameters) {
     std::cout << "Executing quasimap command" << std::endl;
     auto timer = TimerReport();
@@ -45,9 +48,9 @@ void commands::quasimap::run(const Parameters &parameters) {
 }
 
 
-QuasimapReadsStats quasimap_reads(const Parameters &parameters,
-                                  const KmerIndex &kmer_index,
-                                  const PRG_Info &prg_info) {
+QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
+                                        const KmerIndex &kmer_index,
+                                        const PRG_Info &prg_info) {
     std::cout << "Generating allele quasimap data structure" << std::endl;
     auto coverage = coverage::generate::empty_structure(prg_info);
     std::cout << "Done generating allele quasimap data structure" << std::endl;
@@ -119,12 +122,12 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
 }
 
 
-void handle_read_file(QuasimapReadsStats &quasimap_stats,
-                      Coverage &coverage,
-                      const std::string &reads_fpath,
-                      const Parameters &parameters,
-                      const KmerIndex &kmer_index,
-                      const PRG_Info &prg_info) {
+void gram::handle_read_file(QuasimapReadsStats &quasimap_stats,
+                            Coverage &coverage,
+                            const std::string &reads_fpath,
+                            const Parameters &parameters,
+                            const KmerIndex &kmer_index,
+                            const PRG_Info &prg_info) {
     uint64_t max_set_size = 5000;
     SeqRead reads(reads_fpath.c_str());
     auto reads_it = reads.begin();
@@ -140,12 +143,12 @@ void handle_read_file(QuasimapReadsStats &quasimap_stats,
 }
 
 
-void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
-                              Coverage &coverage,
-                              const Pattern &read,
-                              const Parameters &parameters,
-                              const KmerIndex &kmer_index,
-                              const PRG_Info &prg_info) {
+void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
+                                    Coverage &coverage,
+                                    const Pattern &read,
+                                    const Parameters &parameters,
+                                    const KmerIndex &kmer_index,
+                                    const PRG_Info &prg_info) {
     bool read_mapped_exactly = quasimap_read(read, coverage, kmer_index, prg_info, parameters);
     if (read_mapped_exactly) {
         #pragma omp atomic
@@ -161,12 +164,12 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
 }
 
 
-bool quasimap_read(const Pattern &read,
-                   Coverage &coverage,
-                   const KmerIndex &kmer_index,
-                   const PRG_Info &prg_info,
-                   const Parameters &parameters,
-                   const uint32_t &random_seed) {
+bool gram::quasimap_read(const Pattern &read,
+                         Coverage &coverage,
+                         const KmerIndex &kmer_index,
+                         const PRG_Info &prg_info,
+                         const Parameters &parameters,
+                         const uint32_t &random_seed) {
     auto kmer = get_kmer_from_read(parameters.kmers_size, read);
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     auto read_mapped_exactly = not search_states.empty();
@@ -182,7 +185,7 @@ bool quasimap_read(const Pattern &read,
 }
 
 
-Pattern get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read) {
+Pattern gram::get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read) {
     Pattern kmer;
     auto kmer_start_it = read.begin() + read.size() - kmer_size;
     kmer.assign(kmer_start_it, read.end());

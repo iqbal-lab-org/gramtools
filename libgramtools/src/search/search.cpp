@@ -2,6 +2,9 @@
 #include "search/search.hpp"
 
 
+using namespace gram;
+
+
 class SearchStateCache {
 public:
     SearchState search_state = {};
@@ -27,8 +30,8 @@ public:
 };
 
 
-SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
-                                              const PRG_Info &prg_info) {
+SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_state,
+                                                    const PRG_Info &prg_info) {
     bool has_path = not search_state.variant_site_path.empty();
     assert(not has_path);
 
@@ -46,9 +49,9 @@ SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
         bool within_site = site_marker != 0;
         if (not within_site) {
             cache.flush(new_search_states);
-            cache.set(SearchState {
-                    SA_Interval {sa_index, sa_index},
-                    VariantSitePath {},
+            cache.set(SearchState{
+                    SA_Interval{sa_index, sa_index},
+                    VariantSitePath{},
                     SearchVariantSiteState::outside_variant_site
             });
             cache.flush(new_search_states);
@@ -57,25 +60,25 @@ SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
 
         // completely encapsulated within allele
         if (cache.empty) {
-            cache.set(SearchState {
-                    SA_Interval {sa_index, sa_index},
-                    VariantSitePath {
-                            VariantSite {site_marker, allele_id}
+            cache.set(SearchState{
+                    SA_Interval{sa_index, sa_index},
+                    VariantSitePath{
+                            VariantSite{site_marker, allele_id}
                     },
                     SearchVariantSiteState::within_variant_site
             });
             continue;
         }
 
-        VariantSitePath current_path = {VariantSite {site_marker, allele_id}};
+        VariantSitePath current_path = {VariantSite{site_marker, allele_id}};
         bool cache_has_same_path = current_path == cache.search_state.variant_site_path;
         if (cache_has_same_path) {
             cache.update_sa_interval_max(sa_index);
             continue;
         } else {
             cache.flush(new_search_states);
-            cache.set(SearchState {
-                    SA_Interval {sa_index, sa_index},
+            cache.set(SearchState{
+                    SA_Interval{sa_index, sa_index},
                     current_path,
                     SearchVariantSiteState::within_variant_site
             });
@@ -86,8 +89,8 @@ SearchStates handle_allele_encapsulated_state(const SearchState &search_state,
 }
 
 
-SearchStates handle_allele_encapsulated_states(const SearchStates &search_states,
-                                               const PRG_Info &prg_info) {
+SearchStates gram::handle_allele_encapsulated_states(const SearchStates &search_states,
+                                                     const PRG_Info &prg_info) {
     SearchStates new_search_states = {};
 
     for (const auto &search_state: search_states) {
@@ -98,7 +101,7 @@ SearchStates handle_allele_encapsulated_states(const SearchStates &search_states
         }
 
         SearchStates split_search_states = handle_allele_encapsulated_state(search_state,
-                                                                           prg_info);
+                                                                            prg_info);
         for (const auto &split_search_state: split_search_states)
             new_search_states.emplace_back(split_search_state);
     }
@@ -106,13 +109,13 @@ SearchStates handle_allele_encapsulated_states(const SearchStates &search_states
 }
 
 
-SearchStates search_read_backwards(const Pattern &read,
-                                   const Pattern &kmer,
-                                   const KmerIndex &kmer_index,
-                                   const PRG_Info &prg_info) {
+SearchStates gram::search_read_backwards(const Pattern &read,
+                                         const Pattern &kmer,
+                                         const KmerIndex &kmer_index,
+                                         const PRG_Info &prg_info) {
     bool kmer_in_index = kmer_index.find(kmer) != kmer_index.end();
     if (not kmer_in_index)
-        return SearchStates {};
+        return SearchStates{};
 
     auto kmer_index_search_states = kmer_index.at(kmer);
     if (kmer_index_search_states.empty())
@@ -160,9 +163,9 @@ SearchState search_fm_index_base_backwards(const Base &pattern_char,
 }
 
 
-SearchStates process_read_char_search_states(const Base &pattern_char,
-                                             const SearchStates &old_search_states,
-                                             const PRG_Info &prg_info) {
+SearchStates gram::process_read_char_search_states(const Base &pattern_char,
+                                                   const SearchStates &old_search_states,
+                                                   const PRG_Info &prg_info) {
     auto post_markers_search_states = process_markers_search_states(old_search_states,
                                                                     prg_info);
     auto new_search_states = search_base_backwards(pattern_char,
@@ -172,10 +175,10 @@ SearchStates process_read_char_search_states(const Base &pattern_char,
 }
 
 
-SA_Interval base_next_sa_interval(const Marker &next_char,
-                                  const SA_Index &next_char_first_sa_index,
-                                  const SA_Interval &current_sa_interval,
-                                  const PRG_Info &prg_info) {
+SA_Interval gram::base_next_sa_interval(const Marker &next_char,
+                                        const SA_Index &next_char_first_sa_index,
+                                        const SA_Interval &current_sa_interval,
+                                        const PRG_Info &prg_info) {
     const auto &current_sa_start = current_sa_interval.first;
     const auto &current_sa_end = current_sa_interval.second;
 
@@ -203,11 +206,11 @@ SA_Interval base_next_sa_interval(const Marker &next_char,
 
     auto new_start = next_char_first_sa_index + sa_start_offset;
     auto new_end = next_char_first_sa_index + sa_end_offset - 1;
-    return SA_Interval {new_start, new_end};
+    return SA_Interval{new_start, new_end};
 }
 
 
-void process_search_state_path_cache(SearchState &search_state) {
+void gram::process_search_state_path_cache(SearchState &search_state) {
     if (not search_state.cache_populated)
         return;
 
@@ -223,9 +226,9 @@ void process_search_state_path_cache(SearchState &search_state) {
 }
 
 
-SearchStates search_base_backwards(const Base &pattern_char,
-                                   const SearchStates &search_states,
-                                   const PRG_Info &prg_info) {
+SearchStates gram::search_base_backwards(const Base &pattern_char,
+                                         const SearchStates &search_states,
+                                         const PRG_Info &prg_info) {
     auto char_alphabet_rank = prg_info.fm_index.char2comp[pattern_char];
     auto char_first_sa_index = prg_info.fm_index.C[char_alphabet_rank];
 
@@ -246,8 +249,8 @@ SearchStates search_base_backwards(const Base &pattern_char,
 }
 
 
-SearchStates process_markers_search_states(const SearchStates &old_search_states,
-                                           const PRG_Info &prg_info) {
+SearchStates gram::process_markers_search_states(const SearchStates &old_search_states,
+                                                 const PRG_Info &prg_info) {
     SearchStates new_search_states = old_search_states;
     SearchStates all_markers_new_search_states;
     for (const auto &search_state: old_search_states) {
@@ -290,16 +293,16 @@ SiteBoundaryMarkerInfo site_boundary_marker_info(const Marker &marker_char,
         other_marker_text_idx = prg_info.fm_index[first_sa_index];
 
     const bool marker_is_boundary_start = marker_text_idx <= other_marker_text_idx;
-    return SiteBoundaryMarkerInfo {
+    return SiteBoundaryMarkerInfo{
             marker_is_boundary_start,
-            SA_Interval {marker_sa_index, marker_sa_index},
+            SA_Interval{marker_sa_index, marker_sa_index},
             marker_char
     };
 }
 
 
-SA_Interval get_allele_marker_sa_interval(const Marker &site_marker_char,
-                                          const PRG_Info &prg_info) {
+SA_Interval gram::get_allele_marker_sa_interval(const Marker &site_marker_char,
+                                                const PRG_Info &prg_info) {
     const auto allele_marker_char = site_marker_char + 1;
     const auto alphabet_rank = prg_info.fm_index.char2comp[allele_marker_char];
     const auto start_sa_index = prg_info.fm_index.C[alphabet_rank];
@@ -318,12 +321,12 @@ SA_Interval get_allele_marker_sa_interval(const Marker &site_marker_char,
     } else {
         end_sa_index = prg_info.fm_index.size() - 1;
     }
-    return SA_Interval {start_sa_index, end_sa_index};
+    return SA_Interval{start_sa_index, end_sa_index};
 }
 
 
-AlleleId get_allele_id(const SA_Index &allele_marker_sa_index,
-                       const PRG_Info &prg_info) {
+AlleleId gram::get_allele_id(const SA_Index &allele_marker_sa_index,
+                             const PRG_Info &prg_info) {
     auto internal_allele_text_index = prg_info.fm_index[allele_marker_sa_index] - 1;
     auto allele_id = (AlleleId) prg_info.allele_mask[internal_allele_text_index];
     return allele_id;
@@ -432,8 +435,8 @@ SearchState exiting_site_search_state(const SiteBoundaryMarkerInfo &boundary_mar
 }
 
 
-MarkersSearchResults left_markers_search(const SearchState &search_state,
-                                         const PRG_Info &prg_info) {
+MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
+                                               const PRG_Info &prg_info) {
     MarkersSearchResults markers_search_results;
 
     const auto &sa_interval = search_state.sa_interval;
@@ -483,7 +486,7 @@ SearchStates process_boundary_marker(const Marker &marker_char,
         auto new_search_state = exiting_site_search_state(boundary_marker_info,
                                                           current_search_state,
                                                           prg_info);
-        return SearchStates {new_search_state};
+        return SearchStates{new_search_state};
     }
 }
 
@@ -528,12 +531,12 @@ SearchState process_allele_marker(const Marker &allele_marker_char,
 }
 
 
-SearchStates process_markers_search_state(const SearchState &current_search_state,
-                                          const PRG_Info &prg_info) {
+SearchStates gram::process_markers_search_state(const SearchState &current_search_state,
+                                                const PRG_Info &prg_info) {
     const auto markers = left_markers_search(current_search_state,
                                              prg_info);
     if (markers.empty())
-        return SearchStates {};
+        return SearchStates{};
 
     SearchStates markers_search_states = {};
 
@@ -561,7 +564,7 @@ SearchStates process_markers_search_state(const SearchState &current_search_stat
 }
 
 
-std::string serialize_search_state(const SearchState &search_state) {
+std::string gram::serialize_search_state(const SearchState &search_state) {
     std::stringstream ss;
     ss << "****** Search State ******" << std::endl;
 
@@ -619,7 +622,7 @@ std::string serialize_search_state(const SearchState &search_state) {
 }
 
 
-std::ostream &operator<<(std::ostream &os, const SearchState &search_state) {
+std::ostream &gram::operator<<(std::ostream &os, const SearchState &search_state) {
     os << serialize_search_state(search_state);
     return os;
 }

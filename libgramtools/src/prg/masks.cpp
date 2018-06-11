@@ -5,7 +5,10 @@
 #include "prg/masks.hpp"
 
 
-sdsl::bit_vector generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg) {
+using namespace gram;
+
+
+sdsl::bit_vector gram::generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::bit_vector variants_markers_mask(encoded_prg.size(), 0);
     for (uint64_t i = 0; i < encoded_prg.size(); i++)
         variants_markers_mask[i] = encoded_prg[i] > 4;
@@ -13,7 +16,7 @@ sdsl::bit_vector generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg
 }
 
 
-sdsl::bit_vector generate_bwt_markers_mask(const FM_Index &fm_index) {
+sdsl::bit_vector gram::generate_bwt_markers_mask(const FM_Index &fm_index) {
     sdsl::bit_vector bwt_markers_mask(fm_index.bwt.size(), 0);
     for (uint64_t i = 0; i < fm_index.bwt.size(); i++)
         bwt_markers_mask[i] = fm_index.bwt[i] > 4;
@@ -21,14 +24,14 @@ sdsl::bit_vector generate_bwt_markers_mask(const FM_Index &fm_index) {
 }
 
 
-sdsl::int_vector<> load_allele_mask(const Parameters &parameters) {
+sdsl::int_vector<> gram::load_allele_mask(const Parameters &parameters) {
     sdsl::int_vector<> allele_mask;
     sdsl::load_from_file(allele_mask, parameters.allele_mask_fpath);
     return allele_mask;
 }
 
 
-sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
+sdsl::int_vector<> gram::generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::int_vector<> allele_mask(encoded_prg.size(), 0, 32);
     uint32_t current_allele_id = 1;
     bool within_variant_site = false;
@@ -69,14 +72,14 @@ sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
 }
 
 
-sdsl::int_vector<> load_sites_mask(const Parameters &parameters) {
+sdsl::int_vector<> gram::load_sites_mask(const Parameters &parameters) {
     sdsl::int_vector<> sites_mask;
     sdsl::load_from_file(sites_mask, parameters.sites_mask_fpath);
     return sites_mask;
 }
 
 
-sdsl::int_vector<> generate_sites_mask(const sdsl::int_vector<> &encoded_prg) {
+sdsl::int_vector<> gram::generate_sites_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::int_vector<> sites_mask(encoded_prg.size(), 0, 32);
     Marker current_site_marker = 0;
     bool within_variant_site = false;

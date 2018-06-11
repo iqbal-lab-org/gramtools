@@ -8,7 +8,10 @@
 #include "quasimap/coverage/allele_sum.hpp"
 
 
-AlleleSumCoverage coverage::generate::allele_sum_structure(const PRG_Info &prg_info) {
+using namespace gram;
+
+
+AlleleSumCoverage gram::coverage::generate::allele_sum_structure(const PRG_Info &prg_info) {
     uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
     AlleleSumCoverage allele_sum_coverage(numer_of_variant_sites);
 
@@ -32,8 +35,8 @@ AlleleSumCoverage coverage::generate::allele_sum_structure(const PRG_Info &prg_i
 }
 
 
-void coverage::record::allele_sum(Coverage &coverage,
-                                  const SearchStates &search_states) {
+void gram::coverage::record::allele_sum(Coverage &coverage,
+                                        const SearchStates &search_states) {
     auto &allele_sum_coverage = coverage.allele_sum_coverage;
     HashSet<VariantSite> seen_sites;
 
@@ -58,8 +61,8 @@ void coverage::record::allele_sum(Coverage &coverage,
 }
 
 
-void coverage::dump::allele_sum(const Coverage &coverage,
-                                const Parameters &parameters) {
+void gram::coverage::dump::allele_sum(const Coverage &coverage,
+                                      const Parameters &parameters) {
     std::ofstream file_handle(parameters.allele_sum_coverage_fpath);
     for (const auto &variant_site_coverage: coverage.allele_sum_coverage) {
         auto allele_count = 0;

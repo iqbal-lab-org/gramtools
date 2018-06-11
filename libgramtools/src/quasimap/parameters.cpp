@@ -3,6 +3,9 @@
 #include "quasimap/parameters.hpp"
 
 
+using namespace gram;
+
+
 Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
     po::options_description quasimap_description("quasimap options");

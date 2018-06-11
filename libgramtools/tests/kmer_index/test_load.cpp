@@ -7,6 +7,9 @@
 #include "kmer_index/load.hpp"
 
 
+using namespace gram;
+
+
 TEST(DeserializeNextStats, GivenOneSearchStateWithThreePaths_CorrectlyIndexedKmerStats) {
     sdsl::int_vector<> kmers_stats = {3, 1, 42, 7};
     uint64_t stats_index = 0;

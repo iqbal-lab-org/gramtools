@@ -8,6 +8,9 @@
 #include "quasimap/quasimap.hpp"
 
 
+using namespace gram;
+
+
 TEST(Quasimap, GivenReadAndKmerSize_CorrectKmerReturned) {
     auto read = encode_dna_bases("accgaatt");
     uint32_t kmer_size = 3;

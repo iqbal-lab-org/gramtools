@@ -5,6 +5,7 @@
 
 
 namespace fs = boost::filesystem;
+using namespace gram;
 
 
 sdsl::bit_vector generate_base_bwt_mask(const Base &base,
@@ -32,8 +33,8 @@ std::string bwt_mask_fname(const std::string &base_char,
 }
 
 
-void generate_dna_bwt_masks(const FM_Index &fm_index,
-                            const Parameters &parameters) {
+void gram::generate_dna_bwt_masks(const FM_Index &fm_index,
+                                  const Parameters &parameters) {
     auto a_mask = generate_base_bwt_mask(1, fm_index);
     auto c_mask = generate_base_bwt_mask(2, fm_index);
     auto g_mask = generate_base_bwt_mask(3, fm_index);
@@ -62,8 +63,8 @@ sdsl::bit_vector load_base_bwt_mask(const std::string &base_char,
 }
 
 
-DNA_BWT_Masks load_dna_bwt_masks(const FM_Index &fm_index,
-                                 const Parameters &parameters) {
+DNA_BWT_Masks gram::load_dna_bwt_masks(const FM_Index &fm_index,
+                                       const Parameters &parameters) {
     DNA_BWT_Masks dna_bwt_masks = {};
     dna_bwt_masks.mask_a = load_base_bwt_mask("a", parameters);
     dna_bwt_masks.mask_c = load_base_bwt_mask("c", parameters);

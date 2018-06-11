@@ -6,6 +6,9 @@
 #include "test_utils.hpp"
 
 
+using namespace gram;
+
+
 PRG_Info generate_prg_info(const std::string &prg_raw) {
     Parameters parameters = {};
     parameters.encoded_prg_fpath = "@encoded_prg_file_name";

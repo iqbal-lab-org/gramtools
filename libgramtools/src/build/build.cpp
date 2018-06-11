@@ -10,6 +10,9 @@
 #include "build/build.hpp"
 
 
+using namespace gram;
+
+
 void commands::build::run(const Parameters &parameters) {
     std::cout << "Executing build command" << std::endl;
     auto timer = TimerReport();

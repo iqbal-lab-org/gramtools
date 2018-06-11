@@ -6,14 +6,17 @@
 #include "prg/fm_index.hpp"
 
 
-FM_Index load_fm_index(const Parameters &parameters) {
+using namespace gram;
+
+
+FM_Index gram::load_fm_index(const Parameters &parameters) {
     FM_Index fm_index;
     sdsl::load_from_file(fm_index, parameters.fm_index_fpath);
     return fm_index;
 }
 
 
-FM_Index generate_fm_index(const Parameters &parameters) {
+FM_Index gram::generate_fm_index(const Parameters &parameters) {
     FM_Index fm_index;
 
     sdsl::memory_monitor::start();

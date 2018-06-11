@@ -4,6 +4,9 @@
 #include "kmer_index/kmers.hpp"
 
 
+using namespace gram;
+
+
 TEST(GetBoundaryMarkerIndexes, TwoVariantSites_CorrectSiteStartEndIndexes) {
     auto prg_raw = "aca5g6c5tt7a8c7gg";
     auto prg_info = generate_prg_info(prg_raw);

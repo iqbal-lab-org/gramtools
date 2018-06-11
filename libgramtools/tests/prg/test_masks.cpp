@@ -4,6 +4,9 @@
 #include "prg/masks.hpp"
 
 
+using namespace gram;
+
+
 TEST(LoadAlleleMask, GivenComplexAlleleMask_SaveAndLoadFromFileCorrectly) {
     auto prg_raw = "a5g6ttt5cc7aa8t7a";
     auto prg_info = generate_prg_info(prg_raw);

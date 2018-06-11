@@ -14,7 +14,7 @@ namespace fs = boost::filesystem;
 #ifndef GRAMTOOLS_QUASIMAP_PARAMETERS_HPP
 #define GRAMTOOLS_QUASIMAP_PARAMETERS_HPP
 
-namespace commands::quasimap {
+namespace gram::commands::quasimap {
     Parameters parse_parameters(po::variables_map &vm,
                                 const po::parsed_options &parsed);
 }

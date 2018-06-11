@@ -6,6 +6,9 @@
 #include "quasimap/coverage/allele_sum.hpp"
 
 
+using namespace gram;
+
+
 TEST(AlleleSumCoverage, GivenOneVariantSite_CorrectAlleleSumCoverageStructure) {
     auto prg_raw = "gcgct5gg6agtg5ctgt";
     auto prg_info = generate_prg_info(prg_raw);

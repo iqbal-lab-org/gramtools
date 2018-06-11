@@ -5,6 +5,9 @@
 #include "quasimap/coverage/common.hpp"
 
 
+using namespace gram;
+
+
 /*
 PRG: aa5t6cagtagcagt5ta
 i	F	BTW	text	SA	suffix

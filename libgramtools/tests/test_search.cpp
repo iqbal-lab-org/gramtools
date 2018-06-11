@@ -8,6 +8,9 @@
 #include "test_utils.hpp"
 
 
+using namespace gram;
+
+
 /*
 PRG: gcgctggagtgctgt
 F -> first char of SA

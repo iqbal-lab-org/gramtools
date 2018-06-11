@@ -9,6 +9,9 @@
 #include "build/parameters.hpp"
 
 
+using namespace gram;
+
+
 Parameters commands::build::parse_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
     po::options_description build_description("build options");
     build_description.add_options()

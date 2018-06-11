@@ -7,6 +7,9 @@
 #include "quasimap/coverage/grouped_allele_counts.hpp"
 
 
+using namespace gram;
+
+
 SitesGroupedAlleleCounts coverage::generate::grouped_allele_counts(const PRG_Info &prg_info) {
     uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
     SitesGroupedAlleleCounts grouped_allele_counts(numer_of_variant_sites);
@@ -44,7 +47,7 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
 }
 
 
-AlleleGroupHash hash_allele_groups(const SitesGroupedAlleleCounts &sites) {
+AlleleGroupHash gram::hash_allele_groups(const SitesGroupedAlleleCounts &sites) {
     AlleleGroupHash allele_ids_groups_hash;
     uint64_t group_hash = 0;
     for (const auto &site: sites) {
@@ -61,8 +64,8 @@ AlleleGroupHash hash_allele_groups(const SitesGroupedAlleleCounts &sites) {
 }
 
 
-std::string dump_site(const AlleleGroupHash &allele_ids_groups_hash,
-                      const GroupedAlleleCounts &site) {
+std::string gram::dump_site(const AlleleGroupHash &allele_ids_groups_hash,
+                            const GroupedAlleleCounts &site) {
     std::stringstream stream;
     stream << "{";
     auto i = 0;
@@ -80,8 +83,8 @@ std::string dump_site(const AlleleGroupHash &allele_ids_groups_hash,
 }
 
 
-std::string dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
-                             const SitesGroupedAlleleCounts &sites) {
+std::string gram::dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
+                                   const SitesGroupedAlleleCounts &sites) {
     std::stringstream stream;
     stream << "\"site_counts\":[";
     auto i = 0;
@@ -95,7 +98,7 @@ std::string dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
 }
 
 
-std::string dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash) {
+std::string gram::dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash) {
     std::stringstream stream;
     stream << "\"allele_groups\":{";
     auto i = 0;
@@ -118,7 +121,7 @@ std::string dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash) {
 }
 
 
-std::string dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sites) {
+std::string gram::dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sites) {
     auto allele_ids_groups_hash = hash_allele_groups(sites);
     std::stringstream stream;
     stream << "{\"grouped_allele_counts\":{";

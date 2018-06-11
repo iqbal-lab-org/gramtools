@@ -23,6 +23,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
+using namespace gram;
 
 
 int main(int argc, const char *const *argv) {
@@ -45,7 +46,7 @@ int main(int argc, const char *const *argv) {
 }
 
 
-std::pair<Parameters, Commands> parse_command_line_parameters(int argc, const char *const *argv) {
+std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description global("Global options");
     global.add_options()
                   ("debug", "Turn on debug output")

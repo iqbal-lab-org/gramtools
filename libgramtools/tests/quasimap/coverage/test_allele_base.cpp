@@ -8,6 +8,9 @@
 #include "quasimap/quasimap.hpp"
 
 
+using namespace gram;
+
+
 /*
 PRG: gct5c6g6t5ag7t8c7ct
 i	F	BWT	text   SA	suffix

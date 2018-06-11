@@ -11,9 +11,12 @@
 #include "quasimap/coverage/common.hpp"
 
 
-bool check_allele_encapsulated(const SearchState &search_state,
-                               const uint64_t &read_length,
-                               const PRG_Info &prg_info) {
+using namespace gram;
+
+
+bool gram::check_allele_encapsulated(const SearchState &search_state,
+                                     const uint64_t &read_length,
+                                     const PRG_Info &prg_info) {
     bool single_allele_path = search_state.variant_site_path.size() == 1;
     bool start_within_allele = search_state.variant_site_state
                                == SearchVariantSiteState::within_variant_site;
@@ -41,9 +44,9 @@ bool check_allele_encapsulated(const SearchState &search_state,
 }
 
 
-bool multiple_allele_encapsulated(const SearchState &search_state,
-                                  const uint64_t &read_length,
-                                  const PRG_Info &prg_info) {
+bool gram::multiple_allele_encapsulated(const SearchState &search_state,
+                                        const uint64_t &read_length,
+                                        const PRG_Info &prg_info) {
     bool allele_encapsulated = check_allele_encapsulated(search_state,
                                                          read_length,
                                                          prg_info);
@@ -75,9 +78,9 @@ SearchState random_select_single_mapping(const SearchState &search_state,
 }
 
 
-uint64_t random_int_inclusive(const uint64_t &min,
-                              const uint64_t &max,
-                              const uint64_t &random_seed) {
+uint64_t gram::random_int_inclusive(const uint64_t &min,
+                                    const uint64_t &max,
+                                    const uint64_t &random_seed) {
     uint64_t actual_seed = 0;
     if (random_seed == 0) {
         boost::random_device seed_generator;
@@ -94,7 +97,7 @@ uint64_t random_int_inclusive(const uint64_t &min,
 }
 
 
-uint32_t count_nonvariant_search_states(const SearchStates &search_states) {
+uint32_t gram::count_nonvariant_search_states(const SearchStates &search_states) {
     uint32_t count = 0;
     for (const auto &search_state: search_states) {
         bool has_path = not search_state.variant_site_path.empty();
@@ -115,7 +118,7 @@ PathSites get_path_sites(const SearchState &search_state) {
 }
 
 
-std::set<PathSites> get_unique_path_sites(const SearchStates &search_states) {
+std::set<PathSites> gram::get_unique_path_sites(const SearchStates &search_states) {
     std::set<PathSites> all_path_sites = {};
     for (const auto &search_state: search_states) {
         bool has_path = not search_state.variant_site_path.empty();
@@ -129,8 +132,8 @@ std::set<PathSites> get_unique_path_sites(const SearchStates &search_states) {
 }
 
 
-SearchStates filter_for_path_sites(const PathSites &target_path_sites,
-                                   const SearchStates &search_states) {
+SearchStates gram::filter_for_path_sites(const PathSites &target_path_sites,
+                                         const SearchStates &search_states) {
     SearchStates new_search_states = {};
     for (const auto &search_state: search_states) {
         auto path_sites = get_path_sites(search_state);
@@ -151,12 +154,12 @@ SearchStates selection(const SearchStates &search_states,
 
     uint64_t count_total_options = nonvariant_count + path_sites.size();
     if (count_total_options == 0)
-        return SearchStates {};
+        return SearchStates{};
     uint64_t selected_option = random_int_inclusive(1, count_total_options, random_seed);
 
     bool selected_no_path = selected_option <= nonvariant_count;
     if (selected_no_path)
-        return SearchStates {};
+        return SearchStates{};
 
     uint64_t paths_sites_offset = selected_option - nonvariant_count - 1;
     auto it = path_sites.begin();
@@ -172,7 +175,7 @@ SearchStates selection(const SearchStates &search_states,
         search_state = random_select_single_mapping(search_state,
                                                     random_seed);
     }
-    return SearchStates {search_state};
+    return SearchStates{search_state};
 }
 
 

@@ -13,45 +13,49 @@
 #ifndef GRAMTOOLS_UTILS_HPP
 #define GRAMTOOLS_UTILS_HPP
 
-template<typename SEQUENCE>
-struct sequence_hash {
-    std::size_t operator()(const SEQUENCE &seq) const {
-        std::size_t hash = 0;
-        boost::hash_range(hash, seq.begin(), seq.end());
-        return hash;
-    }
-};
+namespace gram {
+    template<typename SEQUENCE>
+    struct sequence_hash {
+        std::size_t operator()(const SEQUENCE &seq) const {
+            std::size_t hash = 0;
+            boost::hash_range(hash, seq.begin(), seq.end());
+            return hash;
+        }
+    };
 
-template<typename SEQUENCE, typename T>
-using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash<SEQUENCE>>;
+    template<typename SEQUENCE, typename T>
+    using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash<SEQUENCE>>;
 
-template<typename PAIR, typename T>
-using PairHashMap = std::unordered_map<PAIR, T, boost::hash<PAIR>>;
+    template<typename PAIR, typename T>
+    using PairHashMap = std::unordered_map<PAIR, T, boost::hash<PAIR>>;
 
-template<typename T>
-using HashSet = std::unordered_set<T, boost::hash<T>>;
+    template<typename T>
+    using HashSet = std::unordered_set<T, boost::hash<T>>;
 
-using Base = uint8_t;
-using Pattern = std::vector<Base>;
-using Patterns = std::vector<Pattern>;
+    using Base = uint8_t;
+    using Pattern = std::vector<Base>;
+    using Patterns = std::vector<Pattern>;
 
-using Marker = uint64_t;
-using AlleleId = uint64_t;
+    using Marker = uint64_t;
+    using AlleleId = uint64_t;
 
-using VariantSite = std::pair<Marker, AlleleId>;
-using VariantSitePath = std::list<VariantSite>;
-using VariantSitePaths = std::list<VariantSitePath>;
+    using VariantSite = std::pair<Marker, AlleleId>;
+    using VariantSitePath = std::list<VariantSite>;
+    using VariantSitePaths = std::list<VariantSitePath>;
 
-using SA_Index = uint64_t;
-using SA_Interval = std::pair<SA_Index, SA_Index>;
+    using SA_Index = uint64_t;
+    using SA_Interval = std::pair<SA_Index, SA_Index>;
 
-Pattern reverse_compliment_read(const Pattern &read);
-Pattern encode_dna_bases(const std::string &dna_str);
-Pattern encode_dna_bases(const GenomicRead &read_sequence);
+    Pattern reverse_compliment_read(const Pattern &read);
 
-Base encode_dna_base(const char &base_str);
+    Pattern encode_dna_bases(const std::string &dna_str);
 
-std::string full_path(const std::string &gram_dirpath,
-                      const std::string &file_name);
+    Pattern encode_dna_bases(const GenomicRead &read_sequence);
+
+    Base encode_dna_base(const char &base_str);
+
+    std::string full_path(const std::string &gram_dirpath,
+                          const std::string &file_name);
+}
 
 #endif //GRAMTOOLS_UTILS_HPP

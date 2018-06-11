@@ -1,7 +1,10 @@
 #include "kmer_index/kmers.hpp"
 
 
-std::vector<PrgIndexRange> get_boundary_marker_indexes(const PRG_Info &prg_info) {
+using namespace gram;
+
+
+std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg_info) {
     std::vector<PrgIndexRange> boundary_marker_indexes;
 
     using MarkerIndex = uint64_t;
@@ -33,8 +36,8 @@ std::vector<PrgIndexRange> get_boundary_marker_indexes(const PRG_Info &prg_info)
 }
 
 
-uint64_t find_site_end_boundary(const uint64_t &within_site_index,
-                                const PRG_Info &prg_info) {
+uint64_t gram::find_site_end_boundary(const uint64_t &within_site_index,
+                                      const PRG_Info &prg_info) {
     auto last_prg_index = prg_info.encoded_prg.size() - 1;
     auto number_markers_before = prg_info.prg_markers_rank(within_site_index);
 
@@ -57,6 +60,7 @@ uint64_t find_site_end_boundary(const uint64_t &within_site_index,
             continue;
         return marker_index;
     }
+    return 0;
 }
 
 
@@ -78,9 +82,9 @@ uint64_t get_kmer_region_end_index(const uint64_t end_marker_index,
 }
 
 
-std::vector<PrgIndexRange> get_kmer_region_ranges(std::vector<PrgIndexRange> &boundary_marker_indexes,
-                                                  const uint64_t &max_read_size,
-                                                  const PRG_Info &prg_info) {
+std::vector<PrgIndexRange> gram::get_kmer_region_ranges(std::vector<PrgIndexRange> &boundary_marker_indexes,
+                                                        const uint64_t &max_read_size,
+                                                        const PRG_Info &prg_info) {
     std::vector<PrgIndexRange> kmer_region_ranges;
     for (const auto &marker_indexes_range: boundary_marker_indexes) {
         auto &start_marker_index = marker_indexes_range.first;
@@ -97,8 +101,8 @@ std::vector<PrgIndexRange> get_kmer_region_ranges(std::vector<PrgIndexRange> &bo
 }
 
 
-Patterns get_site_ordered_alleles(const uint64_t &within_site_index,
-                                  const PRG_Info &prg_info) {
+Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
+                                        const PRG_Info &prg_info) {
     auto site_end_index = find_site_end_boundary(within_site_index, prg_info);
     auto boundary_marker = prg_info.encoded_prg[site_end_index];
 
@@ -289,9 +293,9 @@ bool index_is_site_end_boundary(const uint64_t index,
 }
 
 
-std::list<uint64_t> sites_inrange_left(const uint64_t outside_site_start_index,
-                                       const uint64_t kmer_size,
-                                       const PRG_Info &prg_info) {
+std::list<uint64_t> gram::sites_inrange_left(const uint64_t outside_site_start_index,
+                                             const uint64_t kmer_size,
+                                             const PRG_Info &prg_info) {
     const auto &start_index = outside_site_start_index;
     auto number_markers_before = prg_info.prg_markers_rank(start_index);
     auto at_site_end_boundary = index_is_site_end_boundary(start_index,
@@ -319,8 +323,8 @@ std::list<uint64_t> sites_inrange_left(const uint64_t outside_site_start_index,
 }
 
 
-std::pair<uint64_t, uint64_t> get_nonvariant_region(const uint64_t &site_end_boundary_index,
-                                                    const PRG_Info &prg_info) {
+std::pair<uint64_t, uint64_t> gram::get_nonvariant_region(const uint64_t &site_end_boundary_index,
+                                                          const PRG_Info &prg_info) {
     const auto &start_marker_index = site_end_boundary_index;
     auto last_prg_index = prg_info.encoded_prg.size() - 1;
 
@@ -342,8 +346,8 @@ std::pair<uint64_t, uint64_t> get_nonvariant_region(const uint64_t &site_end_bou
 }
 
 
-std::vector<Base> right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
-                                                    const PRG_Info &prg_info) {
+std::vector<Base> gram::right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
+                                                          const PRG_Info &prg_info) {
     auto nonvariant_range = get_nonvariant_region(site_end_boundary_index,
                                                   prg_info);
     auto start = nonvariant_range.first;
@@ -385,8 +389,8 @@ std::vector<Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
 }
 
 
-uint64_t find_site_start_boundary(const uint64_t &end_boundary_index,
-                                  const PRG_Info &prg_info) {
+uint64_t gram::find_site_start_boundary(const uint64_t &end_boundary_index,
+                                        const PRG_Info &prg_info) {
     auto target_marker = prg_info.encoded_prg[end_boundary_index];
 
     uint64_t current_index = end_boundary_index;
@@ -510,10 +514,10 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
 }
 
 
-std::list<Patterns> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
-                                               const std::list<uint64_t> &inrange_sites,
-                                               const uint64_t kmer_size,
-                                               const PRG_Info &prg_info) {
+std::list<Patterns> gram::get_kmer_size_region_parts(const uint64_t &current_range_end_index,
+                                                     const std::list<uint64_t> &inrange_sites,
+                                                     const uint64_t kmer_size,
+                                                     const PRG_Info &prg_info) {
     std::list<Patterns> region_parts = {};
     add_pre_site_region(region_parts,
                         inrange_sites,
@@ -530,8 +534,8 @@ std::list<Patterns> get_kmer_size_region_parts(const uint64_t &current_range_end
 }
 
 
-bool update_allele_index_path(std::vector<uint64_t> &current_allele_index_path,
-                              const std::vector<uint64_t> &parts_allele_counts) {
+bool gram::update_allele_index_path(std::vector<uint64_t> &current_allele_index_path,
+                                    const std::vector<uint64_t> &parts_allele_counts) {
     bool more_paths_possible = false;
 
     // find rightmost index to increase
@@ -567,8 +571,8 @@ uint64_t total_number_paths(const std::list<Patterns> &region_parts) {
 }
 
 
-unordered_vector_set<Pattern> get_path_reverse_kmers(const Pattern &path,
-                                                     const uint64_t &kmer_size) {
+unordered_vector_set<Pattern> gram::get_path_reverse_kmers(const Pattern &path,
+                                                           const uint64_t &kmer_size) {
     unordered_vector_set<Pattern> reverse_kmers;
     for (int64_t i = path.size() - 1; i >= kmer_size - 1; --i) {
         Pattern reverse_kmer;
@@ -581,8 +585,8 @@ unordered_vector_set<Pattern> get_path_reverse_kmers(const Pattern &path,
 }
 
 
-unordered_vector_set<Pattern> get_region_parts_reverse_kmers(const std::list<Patterns> &region_parts,
-                                                             const uint64_t &kmer_size) {
+unordered_vector_set<Pattern> gram::get_region_parts_reverse_kmers(const std::list<Patterns> &region_parts,
+                                                                   const uint64_t &kmer_size) {
     uint64_t number_of_paths_expected = total_number_paths(region_parts);
     std::vector<uint64_t> current_allele_index_path(region_parts.size(), 0);
     std::vector<uint64_t> parts_allele_counts;
@@ -622,10 +626,10 @@ unordered_vector_set<Pattern> get_region_parts_reverse_kmers(const std::list<Pat
 }
 
 
-unordered_vector_set<Pattern> get_sites_reverse_kmers(uint64_t &current_range_end_index,
-                                                      const std::list<uint64_t> &inrange_sites,
-                                                      const uint64_t kmer_size,
-                                                      const PRG_Info &prg_info) {
+unordered_vector_set<Pattern> gram::get_sites_reverse_kmers(uint64_t &current_range_end_index,
+                                                            const std::list<uint64_t> &inrange_sites,
+                                                            const uint64_t kmer_size,
+                                                            const PRG_Info &prg_info) {
     auto region_parts = get_kmer_size_region_parts(current_range_end_index,
                                                    inrange_sites,
                                                    kmer_size,
@@ -645,9 +649,9 @@ unordered_vector_set<Pattern> get_sites_reverse_kmers(uint64_t &current_range_en
 }
 
 
-unordered_vector_set<Pattern> get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
-                                                             const uint64_t &kmer_size,
-                                                             const PRG_Info &prg_info) {
+unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
+                                                                   const uint64_t &kmer_size,
+                                                                   const PRG_Info &prg_info) {
     const auto &region_start = kmer_region_range.first;
     const auto &region_end = kmer_region_range.second;
 
@@ -693,7 +697,7 @@ unordered_vector_set<Pattern> get_region_range_reverse_kmers(const PrgIndexRange
 }
 
 
-std::vector<PrgIndexRange> combine_overlapping_regions(const std::vector<PrgIndexRange> &kmer_region_ranges) {
+std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<PrgIndexRange> &kmer_region_ranges) {
     auto sorted_ranges = kmer_region_ranges;
 
     auto ordering_condition = [](const auto &lhs, const auto &rhs) {
@@ -752,8 +756,8 @@ std::vector<PrgIndexRange> combine_overlapping_regions(const std::vector<PrgInde
 }
 
 
-ordered_vector_set<Pattern> get_prg_reverse_kmers(const Parameters &parameters,
-                                                  const PRG_Info &prg_info) {
+ordered_vector_set<Pattern> gram::get_prg_reverse_kmers(const Parameters &parameters,
+                                                        const PRG_Info &prg_info) {
     auto boundary_marker_indexes = get_boundary_marker_indexes(prg_info);
     auto kmer_region_ranges = get_kmer_region_ranges(boundary_marker_indexes,
                                                      parameters.max_read_size,
@@ -772,7 +776,7 @@ ordered_vector_set<Pattern> get_prg_reverse_kmers(const Parameters &parameters,
 }
 
 
-std::vector<Pattern> reverse(const ordered_vector_set<Pattern> &reverse_kmers) {
+std::vector<Pattern> gram::reverse(const ordered_vector_set<Pattern> &reverse_kmers) {
     std::vector<Pattern> kmers;
     for (auto reverse_kmer: reverse_kmers) {
         std::reverse(reverse_kmer.begin(), reverse_kmer.end());
@@ -799,7 +803,7 @@ void next_kmer(Pattern &current_kmer, const uint64_t &kmer_size) {
 }
 
 
-ordered_vector_set<Pattern> generate_all_kmers(const uint64_t &kmer_size) {
+ordered_vector_set<Pattern> gram::generate_all_kmers(const uint64_t &kmer_size) {
     ordered_vector_set<Pattern> all_kmers = {};
     Pattern current_kmer(kmer_size, 1);
 
@@ -813,8 +817,8 @@ ordered_vector_set<Pattern> generate_all_kmers(const uint64_t &kmer_size) {
 }
 
 
-std::vector<Pattern> get_all_kmers(const Parameters &parameters,
-                                   const PRG_Info &prg_info) {
+std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
+                                         const PRG_Info &prg_info) {
     ordered_vector_set<Pattern> ordered_reverse_kmers = {};
     if (parameters.kmers_size <= 10) {
         ordered_reverse_kmers = generate_all_kmers(parameters.kmers_size);
@@ -826,7 +830,7 @@ std::vector<Pattern> get_all_kmers(const Parameters &parameters,
 }
 
 
-std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers) {
+std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
     std::vector<Pattern> prefix_diffs = {};
     Pattern last_full_kmer = {};
 
@@ -859,8 +863,8 @@ std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers) {
 }
 
 
-std::vector<Pattern> get_kmer_prefix_diffs(const Parameters &parameters,
-                                           const PRG_Info &prg_info) {
+std::vector<Pattern> gram::get_kmer_prefix_diffs(const Parameters &parameters,
+                                                 const PRG_Info &prg_info) {
     std::cout << "Getting all kmers" << std::endl;
     auto kmers = get_all_kmers(parameters,
                                prg_info);

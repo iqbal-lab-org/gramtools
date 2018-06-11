@@ -7,7 +7,10 @@
 #include "kmer_index/dump.hpp"
 
 
-KmerIndexStats calculate_stats(const KmerIndex &kmer_index) {
+using namespace gram;
+
+
+KmerIndexStats gram::calculate_stats(const KmerIndex &kmer_index) {
     KmerIndexStats stats = {};
     stats.count_kmers = kmer_index.size();
 
@@ -23,8 +26,8 @@ KmerIndexStats calculate_stats(const KmerIndex &kmer_index) {
 }
 
 
-sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
-                               const Parameters &parameters) {
+sdsl::int_vector<3> gram::dump_kmers(const KmerIndex &kmer_index,
+                                     const Parameters &parameters) {
     sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
     uint64_t i = 0;
 
@@ -41,10 +44,10 @@ sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
 }
 
 
-void dump_kmers_stats(const KmerIndexStats &stats,
-                      const sdsl::int_vector<3> &all_kmers,
-                      const KmerIndex &kmer_index,
-                      const Parameters &parameters) {
+void gram::dump_kmers_stats(const KmerIndexStats &stats,
+                            const sdsl::int_vector<3> &all_kmers,
+                            const KmerIndex &kmer_index,
+                            const Parameters &parameters) {
     // each kmer: number of search states, path length, path length...
     const auto &count_distinct_paths = stats.count_search_states;
     uint64_t count_memory_elements = stats.count_kmers + count_distinct_paths;
@@ -69,10 +72,10 @@ void dump_kmers_stats(const KmerIndexStats &stats,
 }
 
 
-void dump_sa_intervals(const KmerIndexStats &stats,
-                       const sdsl::int_vector<3> &all_kmers,
-                       const KmerIndex &kmer_index,
-                       const Parameters &parameters) {
+void gram::dump_sa_intervals(const KmerIndexStats &stats,
+                             const sdsl::int_vector<3> &all_kmers,
+                             const KmerIndex &kmer_index,
+                             const Parameters &parameters) {
     sdsl::int_vector<> sa_intervals(stats.count_search_states * 2, 0, 32);
     uint64_t i = 0;
 
@@ -95,10 +98,10 @@ void dump_sa_intervals(const KmerIndexStats &stats,
 }
 
 
-void dump_paths(const KmerIndexStats &stats,
-                const sdsl::int_vector<3> &all_kmers,
-                const KmerIndex &kmer_index,
-                const Parameters &parameters) {
+void gram::dump_paths(const KmerIndexStats &stats,
+                      const sdsl::int_vector<3> &all_kmers,
+                      const KmerIndex &kmer_index,
+                      const Parameters &parameters) {
     sdsl::int_vector<> paths(stats.count_total_path_elements, 0, 32);
     uint64_t i = 0;
 
@@ -123,8 +126,8 @@ void dump_paths(const KmerIndexStats &stats,
 }
 
 
-void kmer_index::dump(const KmerIndex &kmer_index,
-                      const Parameters &parameters) {
+void gram::kmer_index::dump(const KmerIndex &kmer_index,
+                            const Parameters &parameters) {
     sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
     auto stats = calculate_stats(kmer_index);
     dump_kmers_stats(stats, all_kmers, kmer_index, parameters);

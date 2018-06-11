@@ -6,7 +6,10 @@
 #include "common/timer_report.hpp"
 
 
-void TimerReport::start(std::string note) {
+using namespace gram;
+
+
+void gram::TimerReport::start(std::string note) {
     this->note = note;
     timer.start();
 }

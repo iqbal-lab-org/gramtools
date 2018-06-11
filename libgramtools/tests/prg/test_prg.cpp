@@ -4,6 +4,9 @@
 #include "prg/masks.hpp"
 
 
+using namespace gram;
+
+
 TEST(GetMaxAlphabetNum, GivenPrg_CorrectMaxAlphabetNum) {
     auto prg_raw = "a5g6t5cccc11g12tttt11";
     auto prg_info = generate_prg_info(prg_raw);

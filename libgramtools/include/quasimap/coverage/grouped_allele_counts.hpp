@@ -5,32 +5,34 @@
 #ifndef GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP
 #define GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP
 
-namespace coverage {
-    namespace generate {
-        SitesGroupedAlleleCounts grouped_allele_counts(const PRG_Info &prg_info);
+namespace gram {
+    namespace coverage {
+        namespace generate {
+            SitesGroupedAlleleCounts grouped_allele_counts(const PRG_Info &prg_info);
+        }
+
+        namespace record {
+            void grouped_allele_counts(Coverage &coverage,
+                                       const SearchStates &search_states);
+        }
+
+        namespace dump {
+            void grouped_allele_counts(const Coverage &coverage,
+                                       const Parameters &parameters);
+        }
     }
 
-    namespace record {
-        void grouped_allele_counts(Coverage &coverage,
-                                   const SearchStates &search_states);
-    }
+    AlleleGroupHash hash_allele_groups(const SitesGroupedAlleleCounts &sites);
 
-    namespace dump {
-        void grouped_allele_counts(const Coverage &coverage,
-                                   const Parameters &parameters);
-    }
+    std::string dump_site(const AlleleGroupHash &allele_ids_groups_hash,
+                          const GroupedAlleleCounts &site);
+
+    std::string dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
+                                 const SitesGroupedAlleleCounts &sites);
+
+    std::string dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash);
+
+    std::string dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sites);
 }
-
-AlleleGroupHash hash_allele_groups(const SitesGroupedAlleleCounts &sites);
-
-std::string dump_site(const AlleleGroupHash &allele_ids_groups_hash,
-                      const GroupedAlleleCounts &site);
-
-std::string dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
-                             const SitesGroupedAlleleCounts &sites);
-
-std::string dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash);
-
-std::string dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sites);
 
 #endif //GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP

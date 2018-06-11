@@ -7,6 +7,9 @@
 #include "kmer_index/dump.hpp"
 
 
+using namespace gram;
+
+
 TEST(DumpKmers, GivenTwoKmers_CorrectAllKmersStructure) {
     Parameters parameters = {};
     parameters.kmers_size = 4;

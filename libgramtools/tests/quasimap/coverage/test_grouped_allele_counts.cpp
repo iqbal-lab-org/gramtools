@@ -6,6 +6,9 @@
 #include "../../test_utils.hpp"
 
 
+using namespace gram;
+
+
 TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
     auto prg_raw = "gct5c6g6t5ac7cc8a7";
     auto prg_info = generate_prg_info(prg_raw);

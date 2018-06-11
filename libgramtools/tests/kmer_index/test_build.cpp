@@ -8,6 +8,9 @@
 #include "kmer_index/dump.hpp"
 
 
+using namespace gram;
+
+
 TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {
     const auto dna_str = "AAACCCGGGTTTACGT";
     const auto result = encode_dna_bases(dna_str);
