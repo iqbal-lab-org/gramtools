@@ -65,7 +65,9 @@ def run(args):
     prg_parser = _parse_prg(_paths['prg'])
 
     if args.output_fasta is not None:
-        _dump_fasta(prg_parser, allele_indexes, args)
+        writer = _FastaWriter(args.output_fasta)
+        _dump_fasta(prg_parser, allele_indexes, writer)
+        writer.close()
     elif args.output_vcf is not None:
         _dump_vcf(allele_indexes, _paths, args)
     else:
@@ -110,8 +112,7 @@ def _dump_vcf(allele_indexes, _paths, args):
             vcf_writer.write_record(new_record)
 
 
-def _dump_fasta(prg_parser, allele_indexes, args):
-    writer = _FastaWriter(args.output_fasta)
+def _dump_fasta(prg_parser, allele_indexes, writer):
     allele_index = next(allele_indexes)
 
     for cursor in prg_parser:
@@ -134,7 +135,6 @@ def _dump_fasta(prg_parser, allele_indexes, args):
 
         if cursor.allele_id == allele_index:
             writer.append(cursor.char)
-    writer.close()
 
 
 class _FastaWriter:
