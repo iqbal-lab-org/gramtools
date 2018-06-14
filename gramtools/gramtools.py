@@ -3,7 +3,7 @@ import argparse
 import collections
 
 from . import version
-from . import build
+from .commands import build
 from . import simulate
 from . import quasimap
 from . import infer
