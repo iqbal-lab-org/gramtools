@@ -5,9 +5,9 @@ import logging
 import subprocess
 import collections
 
-from . import version
-from . import common
-from . import paths
+from .. import version
+from .. import common
+from .. import paths
 
 
 log = logging.getLogger('gramtools')
