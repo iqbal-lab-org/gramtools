@@ -1,7 +1,7 @@
 import unittest
 import collections
 
-from gramtools import discover
+from ...commands import discover
 
 
 class TestGetReference(unittest.TestCase):

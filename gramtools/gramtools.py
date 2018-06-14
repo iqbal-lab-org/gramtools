@@ -7,7 +7,7 @@ from .commands import build
 from .commands import simulate
 from .commands import quasimap
 from . import infer
-from . import discover
+from .commands import discover
 
 
 def _setup_logging(level):

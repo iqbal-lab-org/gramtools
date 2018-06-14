@@ -3,8 +3,8 @@ import logging
 import vcf
 from Bio import SeqIO, Seq
 
-from . import paths
-from . import prg
+from .. import paths
+from .. import prg
 
 
 log = logging.getLogger('gramtools')
