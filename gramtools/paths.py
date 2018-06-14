@@ -1,4 +1,5 @@
 import os
+import uuid
 import logging
 
 log = logging.getLogger('gramtools')
@@ -81,6 +82,19 @@ def generate_infer_paths(args):
     quasimap_paths = generate_quasimap_run_paths(args)
     paths = {**project_paths, **quasimap_paths}
     return paths
+
+
+def generate_discover_paths(args):
+    project_paths = _generate_project_paths(args)
+
+    directory_path = os.path.dirname(os.path.realpath(args.output_vcf))
+    inferred_fasta_file_name = '{_uuid}_inferred.fasta'.format(_uuid=str(uuid.uuid4()))
+    inferred_fasta_file_path = os.path.join(directory_path, inferred_fasta_file_name)
+    _paths = {
+        **project_paths,
+        'inferred_reference': inferred_fasta_file_path
+    }
+    return _paths
 
 
 def _quasimap_output_dirpath(outputs_base_path,

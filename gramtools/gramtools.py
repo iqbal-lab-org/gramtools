@@ -7,6 +7,7 @@ from . import build
 from . import simulate
 from . import quasimap
 from . import infer
+from . import discover
 
 
 def _setup_logging(level):
@@ -26,6 +27,7 @@ commands = collections.OrderedDict([
     ('simulate', simulate),
     ('quasimap', quasimap),
     ('infer', infer),
+    ('discover', discover),
 ])
 
 
