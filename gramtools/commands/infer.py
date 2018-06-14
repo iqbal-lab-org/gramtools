@@ -3,8 +3,8 @@ import logging
 
 import vcf
 
-from . import genotyper
-from . import paths
+from .. import genotyper
+from .. import paths
 
 log = logging.getLogger('gramtools')
 PRG_READ_CHUNK_SIZE = 10000

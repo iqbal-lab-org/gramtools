@@ -2,7 +2,7 @@ import copy
 import unittest
 from unittest.mock import Mock
 
-from gramtools import infer
+from ...commands import infer
 
 
 class TestIsInt(unittest.TestCase):

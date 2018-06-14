@@ -6,7 +6,7 @@ from . import version
 from .commands import build
 from .commands import simulate
 from .commands import quasimap
-from . import infer
+from .commands import infer
 from .commands import discover
 
 
