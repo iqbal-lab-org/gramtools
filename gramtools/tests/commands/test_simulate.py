@@ -1,8 +1,8 @@
 import unittest
 
-from . import common
-from .. import prg
-from .. import simulate
+from .. import common
+from ... import prg
+from ...commands import simulate
 
 
 class TestGenerateReads(unittest.TestCase):

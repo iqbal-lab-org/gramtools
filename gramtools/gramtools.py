@@ -4,7 +4,7 @@ import collections
 
 from . import version
 from .commands import build
-from . import simulate
+from .commands import simulate
 from .commands import quasimap
 from . import infer
 from . import discover
