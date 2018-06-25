@@ -92,6 +92,10 @@ setuptools.setup(
     install_requires=[
         'scipy >= 1.0.1',
         'pyvcf >= 0.6.8',
+        'py-cortex-api >= 1.0',
+    ],
+    dependency_links=[
+        "https://github.com/iqbal-lab-org/py-cortex-api/tarball/master#egg=py-cortex-api-1.0"
     ],
     test_suite='gramtools.tests',
     cmdclass={

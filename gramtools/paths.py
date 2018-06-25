@@ -89,10 +89,15 @@ def generate_discover_paths(args):
 
     directory_path = os.path.dirname(os.path.realpath(args.output_vcf))
     inferred_fasta_file_name = '{_uuid}_inferred.fasta'.format(_uuid=str(uuid.uuid4()))
-    inferred_fasta_file_path = os.path.join(directory_path, inferred_fasta_file_name)
+    cortex_directory_name = '{_uuid}_cortex'.format(_uuid=str(uuid.uuid4()))
+    cortex_vcf_name = '{_uuid}_cortex.vcf'.format(_uuid=str(uuid.uuid4()))
+
     _paths = {
         **project_paths,
-        'inferred_reference': inferred_fasta_file_path
+        'output_directory': directory_path,
+        'inferred_reference': os.path.join(directory_path, inferred_fasta_file_name),
+        'cortex_directory': os.path.join(directory_path, cortex_directory_name),
+        'cortex_vcf_path': os.path.join(directory_path, cortex_vcf_name),
     }
     return _paths
 

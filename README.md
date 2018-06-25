@@ -6,7 +6,9 @@
 Gramtools builds a directed acyclical graph (DAG) of genetic variation from a population of genomes. Given sequence data from a haploid individual, alleles on the graph are annotated with coverage information. A personalised reference genome for the sample being studied can then be inferred from the annotated graph.
 
 ## Install
-```pip3 install git+https://github.com/iqbal-lab-org/gramtools```
+```
+pip3 install --process-dependency-links git+https://github.com/iqbal-lab-org/gramtools
+```
 
 ## Usage
 Gramtools currently consists of three commands. These commands are documented in the wiki (see links below). In dependancy order, they are:
