@@ -1,6 +1,7 @@
 import os
 import uuid
 import logging
+import tempfile
 
 log = logging.getLogger('gramtools')
 
@@ -86,18 +87,14 @@ def generate_infer_paths(args):
 
 def generate_discover_paths(args):
     project_paths = _generate_project_paths(args)
-
-    directory_path = os.path.dirname(os.path.realpath(args.output_vcf))
-    inferred_fasta_file_name = '{_uuid}_inferred.fasta'.format(_uuid=str(uuid.uuid4()))
-    cortex_directory_name = '{_uuid}_cortex'.format(_uuid=str(uuid.uuid4()))
-    cortex_vcf_name = '{_uuid}_cortex.vcf'.format(_uuid=str(uuid.uuid4()))
+    tmp_directory = tempfile.gettempdir()
+    inferred_fasta_file_name = '{_uuid}_infer.fasta'.format(_uuid=str(uuid.uuid4()))
+    cortex_vcf_file_name = '{_uuid}_cortex.vcf'.format(_uuid=str(uuid.uuid4()))
 
     _paths = {
         **project_paths,
-        'output_directory': directory_path,
-        'inferred_reference': os.path.join(directory_path, inferred_fasta_file_name),
-        'cortex_directory': os.path.join(directory_path, cortex_directory_name),
-        'cortex_vcf_path': os.path.join(directory_path, cortex_vcf_name),
+        'inferred_reference': os.path.join(tmp_directory, inferred_fasta_file_name),
+        'cortex_vcf': os.path.join(tmp_directory, cortex_vcf_file_name),
     }
     return _paths
 

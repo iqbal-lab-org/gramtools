@@ -39,27 +39,17 @@ def run(args):
     _paths = paths.generate_discover_paths(args)
     _dump_inferred_fasta(args.inferred_vcf, _paths)
 
-    try:
-        cortex.calls(_paths['inferred_reference'],
-                     args.reads,
-                     _paths['cortex_directory'],
-                     "sample_name")
-    except RuntimeError:
-        pass
+    cortex.calls(_paths['inferred_reference'],
+                 args.reads,
+                 _paths['cortex_vcf'])
 
-    cortex_vcf_path = _discover_cortex_vcf_file_path(_paths)
-    shutil.copyfile(cortex_vcf_path, _paths['cortex_vcf_path'])
-    shutil.rmtree(_paths['cortex_directory'])
-
+    _cleanup(_paths)
     log.info('End process: discover')
 
 
-def _discover_cortex_vcf_file_path(_paths):
-    path_pattern = os.path.join(_paths['cortex_directory'],
-                                'cortex_output/vcfs/*_wk_*FINAL*raw.vcf')
-    found = list(glob.glob(path_pattern, recursive=True))
-    assert len(found) == 1, "Multiple possible output cortex VCF files found"
-    return found[0]
+def _cleanup(_paths):
+    os.remove(_paths['inferred_reference'])
+    os.remove(_paths['cortex_vcf'])
 
 
 def _dump_inferred_fasta(inferred_vcf_file_path, _paths):
