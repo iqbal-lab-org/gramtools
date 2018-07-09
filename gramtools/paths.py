@@ -86,15 +86,26 @@ def generate_infer_paths(args):
 
 
 def generate_discover_paths(args):
+    def add_uuid(template: str):
+        return template.format(uuid=str(uuid.uuid4()))
+
     project_paths = _generate_project_paths(args)
-    tmp_directory = tempfile.gettempdir()
-    inferred_fasta_file_name = '{_uuid}_infer.fasta'.format(_uuid=str(uuid.uuid4()))
-    cortex_vcf_file_name = '{_uuid}_cortex.vcf'.format(_uuid=str(uuid.uuid4()))
+    tmp_base_directory = tempfile.gettempdir()
+    tmp_directory_name = add_uuid('gramtools_discover_{uuid}')
+    tmp_directory = os.path.join(tmp_base_directory, tmp_directory_name)
+
+    base_reference_fasta_file_name = add_uuid('base_reference_{uuid}.fasta')
+    inferred_fasta_file_name = add_uuid('infer_{uuid}.fasta')
+    cortex_vcf_file_name = add_uuid('cortex_{uuid}.vcf')
+    rebase_vcf_file_name = add_uuid('rebase_{uuid}.vcf')
 
     _paths = {
         **project_paths,
+        'tmp_directory': tmp_directory,
+        'base_reference': os.path.join(tmp_directory, base_reference_fasta_file_name),
         'inferred_reference': os.path.join(tmp_directory, inferred_fasta_file_name),
         'cortex_vcf': os.path.join(tmp_directory, cortex_vcf_file_name),
+        'rebase_vcf': os.path.join(tmp_directory, rebase_vcf_file_name),
     }
     return _paths
 
