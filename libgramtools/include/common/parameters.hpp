@@ -30,6 +30,7 @@ namespace gram {
 
         uint32_t kmers_size;
         uint32_t max_read_size;
+        bool all_kmers_flag;
 
         // quasimap specific parameters
         std::vector<std::string> reads_fpaths;

@@ -22,7 +22,9 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
                              ("max-read-size", po::value<uint32_t>(),
                               "read maximum size for the set of reads used when quasimaping")
                              ("max-threads", po::value<uint32_t>()->default_value(1),
-                              "maximum number of threads used");
+                              "maximum number of threads used")
+                             ("all-kmers", po::bool_switch()->default_value(false),
+                              "generate all kmers of given size (as opposed to inspecting PRG for min set)");
 
     std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
                                                              po::include_positional);
@@ -49,6 +51,7 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
 
     parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
     parameters.max_read_size = vm["max-read-size"].as<uint32_t>();
+    parameters.all_kmers_flag = vm["all-kmers"].as<bool>();
     
     parameters.maximum_threads = vm["max-threads"].as<uint32_t>();
     return parameters;

@@ -820,7 +820,7 @@ ordered_vector_set<Pattern> gram::generate_all_kmers(const uint64_t &kmer_size) 
 std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
                                          const PRG_Info &prg_info) {
     ordered_vector_set<Pattern> ordered_reverse_kmers = {};
-    if (parameters.kmers_size <= 10) {
+    if (parameters.all_kmers_flag) {
         ordered_reverse_kmers = generate_all_kmers(parameters.kmers_size);
     } else {
         ordered_reverse_kmers = get_prg_reverse_kmers(parameters, prg_info);
@@ -866,8 +866,7 @@ std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
 std::vector<Pattern> gram::get_kmer_prefix_diffs(const Parameters &parameters,
                                                  const PRG_Info &prg_info) {
     std::cout << "Getting all kmers" << std::endl;
-    auto kmers = get_all_kmers(parameters,
-                               prg_info);
+    auto kmers = get_all_kmers(parameters, prg_info);
     std::cout << "Getting kmer prefix diffs" << std::endl;
     auto prefix_diffs = get_prefix_diffs(kmers);
     return prefix_diffs;

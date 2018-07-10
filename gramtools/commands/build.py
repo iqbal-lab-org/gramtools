@@ -139,6 +139,9 @@ def _execute_gramtools_cpp_build(build_paths, report, args):
         '--max-threads', str(args.max_threads),
     ]
 
+    if args.all_kmers:
+        command.append('--all-kmers')
+
     if args.debug:
         command += ['--debug']
     command_str = ' '.join(command)
