@@ -1,3 +1,4 @@
+import os
 import shutil
 import typing
 import bisect
@@ -38,6 +39,7 @@ def parse_args(common_parser, subparsers):
 def run(args):
     log.info('Start process: discover')
     _paths = paths.generate_discover_paths(args)
+    os.mkdir(_paths['tmp_directory'])
 
     with open(_paths['prg'], 'r') as file_handle:
         prg_seq = file_handle.read()
