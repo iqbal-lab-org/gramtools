@@ -60,6 +60,11 @@ def run(args):
     rebased_vcf_records = _rebase_vcf(args.inferred_vcf,
                                       inferred_reference_length,
                                       _paths['cortex_vcf'])
+    if rebased_vcf_records is None:
+        log.debug("Rebased VCF does not contain records")
+        shutil.rmtree(_paths['tmp_directory'])
+        log.info('End process: discover')
+        return
 
     template_vcf_file_path = _paths['cortex_vcf']
     _dump_rebased_vcf(rebased_vcf_records, _paths['rebase_vcf'], template_vcf_file_path)
@@ -81,8 +86,12 @@ def _rebase_vcf(base_vcf_file_path,
     secondary_vcf -> VCF describing new variants with inferred haploid as reference
     """
 
+    try:
+        secondary_records = _load_records(secondary_vcf_file_path)
+    except StopIteration:
+        log.warning("Cortex VCF does not contain novel variants")
+        return None
     base_records = _load_records(base_vcf_file_path)
-    secondary_records = _load_records(secondary_vcf_file_path)
 
     # Given a site index position in secondary_vcf, need to know if within base_vcf site
     secondary_regions = _get_secondary_regions(base_records, secondary_reference_length)
