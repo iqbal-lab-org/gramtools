@@ -23,9 +23,12 @@ class LibGramtools:
         except FileNotFoundError:
             pass
         subprocess.call(['mkdir', self.cmake_dir])
-
         subprocess.call('CC=gcc CXX=g++ cmake ..', cwd=self.cmake_dir, shell=True)
-        subprocess.call(['make'], cwd=self.cmake_dir)
+
+        return_code = subprocess.call(['make'], cwd=self.cmake_dir)
+        if return_code != 0:
+            print('ERROR: gramtools backend compilation returned: ', return_code)
+            exit(-1)
 
     def test(self):
         test_runner = os.path.join(self.cmake_dir,
@@ -38,7 +41,7 @@ class LibGramtools:
 
         return_code = subprocess.call([test_runner], cwd=test_dir)
         if return_code != 0:
-            print('ERROR: libgramtools test runner returned: ', return_code)
+            print('ERROR: gramtools backend test runner returned: ', return_code)
             exit(-1)
 
 
