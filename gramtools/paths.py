@@ -9,11 +9,6 @@ log = logging.getLogger('gramtools')
 def _generate_project_paths(args):
     project_dir = args.gram_directory
 
-    if hasattr(args, 'vcf') and args.vcf is not None:
-        vcf_file_path = os.path.abspath(args.vcf)
-    else:
-        vcf_file_path = ''
-
     if hasattr(args, 'reference') and args.reference is not None:
         reference_file_path = os.path.abspath(args.reference)
     else:
@@ -24,7 +19,6 @@ def _generate_project_paths(args):
 
     paths = {
         'project': project_dir,
-        'vcf': vcf_file_path,
         'reference': reference_file_path,
 
         'prg': project_path('prg'),

@@ -6,6 +6,8 @@ import logging
 import subprocess
 import collections
 
+import cluster_vcf_records
+
 from .. import version
 from .. import common
 from .. import paths
@@ -23,8 +25,8 @@ def parse_args(common_parser, subparsers):
 
     parser.add_argument('--vcf',
                         help='',
-                        type=str,
-                        required=False)
+                        action="append",
+                        type=str)
     parser.add_argument('--reference',
                         help='',
                         type=str,
@@ -197,6 +199,23 @@ def _save_report(start_time,
         json.dump(_report, fhandle, indent=4)
 
 
+def _handle_multi_vcf(vcf_files, command_paths):
+    if not vcf_files:
+        command_paths['vcf'] = ''
+        return command_paths
+
+    if len(vcf_files) == 1:
+        command_paths['vcf'] = os.path.abspath(vcf_files[0])
+        return command_paths
+
+    command_paths['vcf'] = os.path.join(command_paths['project'], 'build.vcf')
+    cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
+                                                             command_paths['reference'],
+                                                             command_paths['vcf'])
+    cluster.run()
+    return command_paths
+
+
 def run(args):
     log.info('Start process: build')
 
@@ -206,6 +225,7 @@ def run(args):
 
     command_paths = paths.generate_build_paths(args)
     paths.check_project_file_structure(command_paths)
+    command_paths = _handle_multi_vcf(args.vcf, command_paths)
 
     report = collections.OrderedDict()
 
