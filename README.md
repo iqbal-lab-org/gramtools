@@ -9,11 +9,13 @@ Gramtools builds a directed acyclical graph (DAG) of genetic variation from a po
 ```
 pip3 install -vvv --process-dependency-links wheel git+https://github.com/iqbal-lab-org/gramtools
 ```
-<br><br>
-If `sudo` is unavailable, use a Python virtual enviroment to ensures that gramtools can be found on PATH:
+<br>
+
+If `sudo` is unavailable, we recommend using a Python virtual enviroment:
 ```
 python3 -m venv gram_ve && source gram_ve/bin/activate
 ```
+Note: installation fails with `virtualenv`.
 
 ## Usage
 Gramtools currently consists of three commands. These commands are documented in the wiki (see links below). In dependancy order, they are:

@@ -8,4 +8,3 @@ gramtools/version/version.py
 *.pyc
 gramtools/lib
 libgramtools/tests/test_main
-venv/
