@@ -51,7 +51,7 @@ void gram::dump_kmers_stats(const KmerIndexStats &stats,
     // each kmer: number of search states, path length, path length...
     const auto &count_distinct_paths = stats.count_search_states;
     uint64_t count_memory_elements = stats.count_kmers + count_distinct_paths;
-    sdsl::int_vector<> kmers_stats(count_memory_elements, 1, 16);
+    sdsl::int_vector<> kmers_stats(count_memory_elements, 0, 32);
     uint64_t i = 0;
 
     uint64_t kmer_start_index = 0;
