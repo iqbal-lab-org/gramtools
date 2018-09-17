@@ -64,6 +64,42 @@ TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
 }
 
 
+TEST(IndexKmers, KmerDoesNotCrossSite_CorrectSaInterval) {
+    const std::string prg_raw = "aca5g6t5gctc";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer = encode_dna_bases("gctc");
+    const int kmer_size = 4;
+    Patterns kmers = {kmer};
+
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+    auto search_states = kmer_index[kmer];
+    auto search_state = search_states.front();
+    auto result = search_state.sa_interval;
+
+    SA_Interval expected = {6, 6};
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(IndexKmers, KmerDoesNotCrossSite_CorrectVariantSitePath) {
+    const std::string prg_raw = "aca5g6t5gctc";
+    const auto prg_info = generate_prg_info(prg_raw);
+
+    auto kmer = encode_dna_bases("gctc");
+    const int kmer_size = 4;
+    Patterns kmers = {kmer};
+
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+    auto search_states = kmer_index[kmer];
+    auto search_state = search_states.front();
+    auto result = search_state.variant_site_path;
+
+    VariantSitePath expected = {};
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     const std::string prg_raw = "aca5g6t5gcatt";
     const auto prg_info = generate_prg_info(prg_raw);
