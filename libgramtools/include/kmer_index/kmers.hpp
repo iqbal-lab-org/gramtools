@@ -1,3 +1,17 @@
+/**
+ * @file
+ * Routines for producing all required kmers, in sorted order. Either from:
+ * * The prg, extracting only kmers overlapping variant sites
+ * * All possible kmers
+ *
+ * The kmers are sorted such that each kmer shares the largest possible suffix with its predecessor in the set.
+ * This reduces the number of prg quasimappings to compute to a minimum. Indeed, all the search states associated with a
+ * given kmer suffix are kept in cache and then extended to produce larger kmer suffixes.
+ *
+ * For example, kmers '1111' and '2111' (corresponding to 'aaaa' and 'caaa' respectively) are stored consecutively.
+ * Then the set of `SearchStates` corresponding to the string '111' in the PRG is computed only once, and used to extend
+ * to both '1111' and '2111' during variant aware backward searching.
+ */
 #include <unordered_set>
 #include <unordered_map>
 
@@ -41,6 +55,9 @@ namespace gram {
     using PrgIndexRange = std::pair<uint64_t, uint64_t>;
     using KmerSuffixDiffs = std::vector<sdsl::int_vector<8>>;
 
+    /**
+    * Computes the start and end indices of all variant site markers in a given prg.
+    */
     std::vector<PrgIndexRange> get_boundary_marker_indexes(const PRG_Info &prg_info);
 
     std::vector<PrgIndexRange> get_kmer_region_ranges(std::vector<PrgIndexRange> &boundary_marker_indexes,
@@ -93,17 +110,37 @@ namespace gram {
 
     std::vector<Pattern> reverse(const ordered_vector_set<Pattern> &reverse_kmers);
 
+    /**
+     * Computes the minimal changes between kmers and their immediate predecessor in the ordered set.
+     * The changes are listed left to right (prefix order).
+     */
     std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers);
 
     ordered_vector_set<Pattern> get_prg_reverse_kmers(const Parameters &parameters,
                                                       const PRG_Info &prg_info);
 
-    std::vector<Pattern> get_kmer_prefix_diffs(const Parameters &parameters,
-                                               const PRG_Info &prg_info);
+    /**
+     * High-level routine for extracting all kmers of interest and computing the prefix differences.
+     * @see gram::kmer_index::build()
+     */
+    std::vector<Pattern> get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
+                                                               const PRG_Info &prg_info);
 
+    /**
+     * Core routine for producing kmers to index.
+     * If `all_kmers_flag` is unset (the default), only the relevant kmers are produced; these are the kmers overlapping
+     * variant sites in the prg.
+     * If it is set, produces all the kmers of given size.
+     */
     std::vector<Pattern> get_all_kmers(const Parameters &parameters,
                                        const PRG_Info &prg_info);
 
+    /**
+     * Generate all kmers of a given size, in order.
+     * Order is a dictionary order ('1111'<'1121' < '1211' etc..)
+     * Kmers themselves are produced in order ('1111' then '1112' etc..)
+     * @see next_kmer()
+     */
     ordered_vector_set<Pattern> generate_all_kmers(const uint64_t &kmer_size);
 
 }

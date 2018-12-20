@@ -11,7 +11,7 @@ class TestSecondaryRegionsForBaseSites(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
-        result = discover._secondary_regions_for_base_sites(base_records)
+        result = discover.mark_base_site_regions(base_records)
 
         expected = [
             discover._Region(start=1, end=1, record=base_records[0], offset=None)
@@ -24,7 +24,7 @@ class TestSecondaryRegionsForBaseSites(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCCAC'])
         ]
-        result = discover._secondary_regions_for_base_sites(base_records)
+        result = discover.mark_base_site_regions(base_records)
 
         expected = [
             discover._Region(start=1, end=5, record=base_records[0], offset=None)
@@ -38,7 +38,7 @@ class TestSecondaryRegionsForBaseSites(unittest.TestCase):
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCCAC']),
             _MockVcfRecord(POS=6, REF="G", ALT=['TTT'])
         ]
-        result = discover._secondary_regions_for_base_sites(base_records)
+        result = discover.mark_base_site_regions(base_records)
 
         expected = [
             discover._Region(start=1, end=5, record=base_records[0], offset=None),
@@ -54,7 +54,7 @@ class TestSecondaryRegionsForBaseSites(unittest.TestCase):
             _MockVcfRecord(POS=5, REF="C", ALT=['TCT']),
             _MockVcfRecord(POS=6, REF="G", ALT=['AA']),
         ]
-        result = discover._secondary_regions_for_base_sites(base_records)
+        result = discover.mark_base_site_regions(base_records)
 
         expected = [
             discover._Region(start=1, end=5, record=base_records[0], offset=None),
@@ -72,10 +72,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = [
             discover._Region(start=0, end=0, record=None, offset=0),
             discover._Region(start=2, end=4, record=None, offset=2),
@@ -89,10 +89,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCCAC'])
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = [
             discover._Region(start=0, end=0, record=None, offset=0),
             discover._Region(start=6, end=8, record=None, offset=-2),
@@ -107,10 +107,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCCAC']),
             _MockVcfRecord(POS=6, REF="G", ALT=['TTT'])
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = [
             discover._Region(start=0, end=0, record=None, offset=0),
             discover._Region(start=6, end=6, record=None, offset=-2),
@@ -127,10 +127,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
             _MockVcfRecord(POS=5, REF="C", ALT=['TCT']),
             _MockVcfRecord(POS=6, REF="G", ALT=['AA']),
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = [
             discover._Region(start=0, end=0, record=None, offset=0),
             discover._Region(start=11, end=11, record=None, offset=-5),
@@ -142,10 +142,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
         # secondary sequence: TTATCGG
         secondary_reference_length = 7
         base_records = []
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = []
         self.assertEqual(expected, result)
 
@@ -160,10 +160,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
             _MockVcfRecord(POS=6, REF="G", ALT=['AA']),
             _MockVcfRecord(POS=7, REF="G", ALT=['T']),
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = []
         self.assertEqual(expected, result)
 
@@ -174,10 +174,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=6, REF="GG", ALT=['TAC']),
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = [
             discover._Region(start=0, end=4, record=None, offset=0)
         ]
@@ -190,10 +190,10 @@ class TestSecondaryRegionsForBaseNonsites(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=1, REF="TTA", ALT=['TC']),
         ]
-        secondary_site_regions = discover._secondary_regions_for_base_sites(base_records)
-        result = discover._secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                               base_records,
-                                                               secondary_reference_length)
+        secondary_site_regions = discover.mark_base_site_regions(base_records)
+        result = discover.mark_base_nonsite_regions(secondary_site_regions,
+                                                    base_records,
+                                                    secondary_reference_length)
         expected = [
             discover._Region(start=2, end=5, record=None, offset=1)
         ]
@@ -420,7 +420,7 @@ class TestRebaseVcfRecord(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
-        secondary_regions = discover._get_secondary_regions(base_records, secondary_reference_length)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
         secondary_vcf_record = _MockVcfRecord(POS=3, REF='C', ALT=['G'])
         new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
         result = new_vcf_record.POS
@@ -435,7 +435,7 @@ class TestRebaseVcfRecord(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
-        secondary_regions = discover._get_secondary_regions(base_records, secondary_reference_length)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
         secondary_vcf_record = _MockVcfRecord(POS=1, REF='TG', ALT=['TAA'])
         new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
         result = new_vcf_record.POS

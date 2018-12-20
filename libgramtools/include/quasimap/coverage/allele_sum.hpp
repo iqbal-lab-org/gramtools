@@ -1,3 +1,7 @@
+/** @file
+ * Defines coverage related operations for allele sum coverage.
+ * `AlleleSumCoverage` stores the sum of all reads mapped for each allele of each variant site.
+ */
 #include "search/search_types.hpp"
 #include "quasimap/coverage/types.hpp"
 
@@ -11,6 +15,11 @@ namespace gram::coverage {
     }
 
     namespace record {
+        /**
+         * Loops over search_states and variant site paths, recording traversed alleles.
+         * @param coverage The `Coverage` structure common to all mapped reads.
+         * @param search_states The selected `SearchStates` for recording coverage.
+         */
         void allele_sum(Coverage &coverage,
                         const SearchStates &search_states);
     }

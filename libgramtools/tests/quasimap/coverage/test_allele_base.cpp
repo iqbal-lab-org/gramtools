@@ -46,8 +46,8 @@ TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
     SearchState search_state = {
             SA_Interval{3, 3},
             VariantSitePath{
-                    VariantSite{5, 2},
-                    VariantSite{7, 2},
+                    VariantLocus{5, 2},
+                    VariantLocus{7, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -98,8 +98,8 @@ TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBefo
     SearchState search_state = {
             SA_Interval{4, 4},
             VariantSitePath{
-                    VariantSite{5, 2},
-                    VariantSite{7, 2},
+                    VariantLocus{5, 2},
+                    VariantLocus{7, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -124,8 +124,8 @@ TEST(AlleleBaseCoverage, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_Corr
     SearchState search_state = {
             SA_Interval{11, 11},
             VariantSitePath{
-                    VariantSite{5, 3},
-                    VariantSite{7, 2},
+                    VariantLocus{5, 3},
+                    VariantLocus{7, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -165,7 +165,7 @@ TEST(SetSiteBaseCoverage, AlleleOffsetGreaterThanBasesToSet_CorrectBasesSet) {
     auto coverage = coverage::generate::empty_structure(prg_info);
 
     SitesCoverageBoundaries sites_coverage_boundaries = {};
-    VariantSite path_element = {5, 2};
+    VariantLocus path_element = {5, 2};
     uint64_t allele_coverage_offset = 6;
     uint64_t max_bases_to_set = 3;
 
@@ -212,7 +212,7 @@ TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage)
     SearchState search_state = {
             SA_Interval{7, 8},
             VariantSitePath{
-                    VariantSite{5, 1},
+                    VariantLocus{5, 1},
             },
     };
     SearchStates search_states = {search_state};
@@ -236,7 +236,7 @@ TEST(AlleleBaseCoverage, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCovera
     SearchState search_state = {
             SA_Interval{1, 1},
             VariantSitePath{
-                    VariantSite{5, 1}
+                    VariantLocus{5, 1}
             },
     };
     SearchStates search_states = {search_state};
@@ -260,7 +260,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) 
     SearchState search_state = {
             SA_Interval{8, 8},
             VariantSitePath{
-                    VariantSite{5, 1}
+                    VariantLocus{5, 1}
             },
     };
     SearchStates search_states = {search_state};
@@ -284,7 +284,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage)
     SearchState search_state = {
             SA_Interval{6, 6},
             VariantSitePath{
-                    VariantSite{5, 2}
+                    VariantLocus{5, 2}
             },
     };
     SearchStates search_states = {search_state};
@@ -308,7 +308,7 @@ TEST(AlleleBaseCoverage, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverag
     SearchState search_state = {
             SA_Interval{1, 1},
             VariantSitePath{
-                    VariantSite{5, 2}
+                    VariantLocus{5, 2}
             },
     };
     SearchStates search_states = {search_state};

@@ -14,6 +14,7 @@ class Genotyper:
         self.allele_groups_dict = allele_groups_dict
         self.likelihoods = None
         self.genotype = None
+        ## The difference in log likelihood between the most likely and second most likely genotype call
         self.genotype_confidence = None
         self.singleton_alleles_cov = {}
 

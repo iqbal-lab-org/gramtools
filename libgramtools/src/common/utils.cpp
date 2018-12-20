@@ -58,7 +58,10 @@ Pattern gram::encode_dna_bases(const std::string &dna_str) {
 }
 
 
-Base compliment_encoded_base(const Base &encoded_base) {
+/**
+ * Produce integer-encoded Watson-Crick base complement.
+ */
+Base complement_encoded_base(const Base &encoded_base) {
     switch (encoded_base) {
         case 1:
             return 4;
@@ -74,13 +77,13 @@ Base compliment_encoded_base(const Base &encoded_base) {
 }
 
 
-Pattern gram::reverse_compliment_read(const Pattern &read) {
+Pattern gram::reverse_complement_read(const Pattern &read) {
     Pattern reverse_read;
     reverse_read.reserve(read.size());
 
     for (auto it = read.rbegin(); it != read.rend(); ++it) {
         const auto &base = *it;
-        auto compliment_base = compliment_encoded_base(base);
+        auto compliment_base = complement_encoded_base(base);
         reverse_read.push_back(compliment_base);
     }
     return reverse_read;

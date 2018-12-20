@@ -29,15 +29,15 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 1}
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 1}
                     }
             },
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 2},
-                            VariantSite {7, 1},
+                            VariantLocus {5, 2},
+                            VariantLocus {7, 1},
                     },
             },
     };
@@ -60,15 +60,15 @@ TEST(GroupedAlleleCount, GivenUnorderedSearchStates_CorrectlyOrderedCoverageAlle
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 3},
-                            VariantSite {7, 2}
+                            VariantLocus {5, 3},
+                            VariantLocus {7, 2}
                     }
             },
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 1},
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 1},
                     },
             },
     };
@@ -91,7 +91,7 @@ TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 3}
+                            VariantLocus {5, 3}
                     }
             }
     };
@@ -114,14 +114,14 @@ TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 3}
+                            VariantLocus {5, 3}
                     }
             },
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 2}
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 2}
                     },
             },
     };
@@ -130,14 +130,14 @@ TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 4}
+                            VariantLocus {5, 4}
                     }
             },
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 2}
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 2}
                     },
             },
     };

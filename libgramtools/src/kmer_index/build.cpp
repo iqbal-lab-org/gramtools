@@ -7,10 +7,14 @@
 #include "kmer_index/kmers.hpp"
 #include "kmer_index/build.hpp"
 
-
 using namespace gram;
 
 
+/**
+ * Variant aware backward search on the next base of a kmer.
+ * @see process_markers_search_states()
+ * @see search_base_backwards()
+ */
 CacheElement get_next_cache_element(const Base &base,
                                     const bool kmer_base_is_first_processed,
                                     const CacheElement &last_cache_element,
@@ -32,9 +36,13 @@ CacheElement get_next_cache_element(const Base &base,
     };
 }
 
-
+/**
+ * Wrapper around `get_next_cache_element` to deal with first search of a base in the prg.
+ * @see get_next_cache_element()
+ */
 CacheElement get_initial_cache_element(const Base &base,
                                        const PRG_Info &prg_info) {
+    // Start with the full SA interval, over the whole PRG
     SearchState search_state = {
             SA_Interval{0, prg_info.fm_index.size() - 1}
     };
@@ -50,6 +58,11 @@ CacheElement get_initial_cache_element(const Base &base,
 }
 
 
+/**
+ * Routine for updating `SearchStates` using backward search starting from the `cache`
+ * @param cache a `KmerIndexCache`: list of `CacheElement`s, which contain one set of `SearchStates` and one `Base`
+ * @param full_kmer: a `Pattern`, which is a vector of `Base`s (`uint8`s)
+ */
 void build_kmer_cache(KmerIndexCache &cache,
                       const Pattern &kmer_prefix_diff,
                       const int kmer_size,
@@ -70,6 +83,7 @@ void build_kmer_cache(KmerIndexCache &cache,
     }
 
     for (; it != kmer_prefix_diff.rend(); ++it) {
+    // Case: a fully new kmer is encountered. No reuse of `cache`d search possible. Call a full search on the kmer.
         const auto &base = *it;
         // the right-most kmer base (first processed) is only ever handled by `get_initial_cache_element`
         const bool kmer_base_is_first_processed = false;
@@ -83,7 +97,9 @@ void build_kmer_cache(KmerIndexCache &cache,
     }
 }
 
-
+/**
+ * Modify the `full_kmer` using the set of differences recorded previously.
+ */
 void update_full_kmer(Pattern &full_kmer,
                       const Pattern &kmer_prefix_diff,
                       const int kmer_size) {
@@ -96,7 +112,6 @@ void update_full_kmer(Pattern &full_kmer,
     for (const auto &base: kmer_prefix_diff)
         full_kmer[start_idx++] = base;
 }
-
 
 KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
                             const int kmer_size,
@@ -118,15 +133,18 @@ KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
                       << std::endl;
         count++;
 
+        // Obtain the full kmer from the previous kmer and the current prefix_diff
         update_full_kmer(full_kmer,
                          kmer_prefix_diff,
                          kmer_size);
 
+        // Call cache update routine
         build_kmer_cache(cache,
                          kmer_prefix_diff,
                          kmer_size,
                          prg_info);
 
+        // Associate the current kmer with the resulting `SearchStates`, if they are not empty.
         const auto &last_cache_element = cache.back();
         if (not last_cache_element.search_states.empty())
             kmer_index[full_kmer] = last_cache_element.search_states;
@@ -134,11 +152,16 @@ KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
     return kmer_index;
 }
 
-
+/**
+ * Highest level indexing routine.
+ * @see get_kmer_prefix_diffs()
+ * @see index_kmers()
+ */
 KmerIndex gram::kmer_index::build(const Parameters &parameters,
                                   const PRG_Info &prg_info) {
-    Patterns kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                       prg_info);
+    // Extract all relevant kmers and generate the minimal differences between them.
+    Patterns kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                       prg_info);
     std::cout << "Indexing kmers" << std::endl;
     KmerIndex kmer_index = index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);
     return kmer_index;

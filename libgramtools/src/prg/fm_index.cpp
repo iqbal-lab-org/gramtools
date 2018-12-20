@@ -15,7 +15,6 @@ FM_Index gram::load_fm_index(const Parameters &parameters) {
     return fm_index;
 }
 
-
 FM_Index gram::generate_fm_index(const Parameters &parameters) {
     FM_Index fm_index;
 

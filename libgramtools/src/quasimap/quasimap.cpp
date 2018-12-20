@@ -47,17 +47,19 @@ void commands::quasimap::run(const Parameters &parameters) {
     timer.report();
 }
 
-
 QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
                                         const KmerIndex &kmer_index,
                                         const PRG_Info &prg_info) {
     std::cout << "Generating allele quasimap data structure" << std::endl;
+    // The coverage structure records mapped allele counts (per site), aggregated from all mapped reads
     auto coverage = coverage::generate::empty_structure(prg_info);
     std::cout << "Done generating allele quasimap data structure" << std::endl;
 
     std::cout << "Processing reads:" << std::endl;
+    // QuasimapReadsStats records counts of processed reads, skipped reads and mapped reads
     QuasimapReadsStats quasimap_stats = {};
 
+    // Execute quasimap for each read file provided
     for (const auto &reads_fpath: parameters.reads_fpaths) {
         handle_read_file(quasimap_stats,
                          coverage,
@@ -66,11 +68,17 @@ QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
                          kmer_index,
                          prg_info);
     }
+    // Write coverage results to disk
     coverage::dump::all(coverage, parameters);
     return quasimap_stats;
 }
 
 
+/**
+ * Emplace up to `max_set_size` reads into the reads buffer.
+ * Returns a vector of `Pattern`s: a `Pattern` being a vector of `Base`s, which are integer encoded.
+ * The encoding of DNA letters to integers also performed in this function.
+ */
 std::vector<Pattern> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &reads, const uint64_t &max_set_size) {
     std::vector<Pattern> reads_buffer;
     while (reads_it != reads.end() and reads_buffer.size() < max_set_size) {
@@ -82,7 +90,9 @@ std::vector<Pattern> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &r
     return reads_buffer;
 }
 
-
+/**
+ * Calls the (forward_reverse) mapping routine for each read in the read buffer, in parallel (if the CL option has been specified).
+ */
 void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                          Coverage &coverage,
                          const std::vector<Pattern> &reads_buffer,
@@ -91,10 +101,12 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                          const PRG_Info &prg_info) {
     uint64_t last_count_reported = 0;
 
+    //  Parallelise loop below
     #pragma omp parallel for
     for (int i = 0; i < reads_buffer.size(); ++i) {
 
         auto thread_id = omp_get_thread_num();
+        //  Report total number of mapped reads everytime at least `diff` such have been mapped
         if (thread_id == 0) {
             uint64_t diff = quasimap_stats.all_reads_count - last_count_reported;
             if (diff >= 10000) {
@@ -103,8 +115,9 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
             }
         }
 
+        //  atomic: for manipulating a static variable (shared among the threads)
         #pragma omp atomic
-        quasimap_stats.all_reads_count += 2;
+        quasimap_stats.all_reads_count += 2; //  Increment by 2: mapping forward and reverse of read
 
         auto read = reads_buffer[i];
         if (read.empty()) {
@@ -121,13 +134,13 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
     }
 }
 
-
 void gram::handle_read_file(QuasimapReadsStats &quasimap_stats,
                             Coverage &coverage,
                             const std::string &reads_fpath,
                             const Parameters &parameters,
                             const KmerIndex &kmer_index,
                             const PRG_Info &prg_info) {
+    //  Number of reads to load in memory; is upper limit of number of reads that can be mapped in parallel
     uint64_t max_set_size = 5000;
     SeqRead reads(reads_fpath.c_str());
     auto reads_it = reads.begin();
@@ -142,20 +155,21 @@ void gram::handle_read_file(QuasimapReadsStats &quasimap_stats,
     }
 }
 
-
 void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                                     Coverage &coverage,
                                     const Pattern &read,
                                     const Parameters &parameters,
                                     const KmerIndex &kmer_index,
                                     const PRG_Info &prg_info) {
+    // Forward mapping
     bool read_mapped_exactly = quasimap_read(read, coverage, kmer_index, prg_info, parameters);
     if (read_mapped_exactly) {
         #pragma omp atomic
         ++quasimap_reads_stats.mapped_reads_count;
     }
 
-    auto reverse_read = reverse_compliment_read(read);
+    auto reverse_read = reverse_complement_read(read);
+    // Reverse mapping
     read_mapped_exactly = quasimap_read(reverse_read, coverage, kmer_index, prg_info, parameters);
     if (read_mapped_exactly) {
         #pragma omp atomic
@@ -163,16 +177,17 @@ void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
     }
 }
 
-
 bool gram::quasimap_read(const Pattern &read,
                          Coverage &coverage,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info,
                          const Parameters &parameters,
                          const uint32_t &random_seed) {
-    auto kmer = get_kmer_from_read(parameters.kmers_size, read);
+    auto kmer = get_kmer_from_read(parameters.kmers_size, read); // Gets last k bases of read
+
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
     auto read_mapped_exactly = not search_states.empty();
+    // Test read did not map
     if (not read_mapped_exactly)
         return read_mapped_exactly;
     auto read_length = read.size();

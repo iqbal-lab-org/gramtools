@@ -58,7 +58,7 @@ TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
     auto result = search_state.variant_site_path;
 
     VariantSitePath expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -114,7 +114,7 @@ TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     auto result = search_state.variant_site_path;
 
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -141,7 +141,7 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
                             SearchState {
                                     SA_Interval {3, 3},
                                     VariantSitePath {
-                                            VariantSite {5, 1}
+                                            VariantLocus {5, 1}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -152,7 +152,7 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
                             SearchState {
                                     SA_Interval {3, 3},
                                     VariantSitePath {
-                                            VariantSite {5, 2}
+                                            VariantLocus {5, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -184,7 +184,7 @@ TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
                             SearchState {
                                     SA_Interval {3, 3},
                                     VariantSitePath {
-                                            VariantSite {5, 2}
+                                            VariantLocus {5, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -214,7 +214,7 @@ TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
     auto first_search_state = first_search_states.front();
     auto first_result = first_search_state.variant_site_path;
     VariantSitePath first_expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(first_result, first_expected);
 
@@ -243,7 +243,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -251,7 +251,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     search_state = search_states.front();
     result = search_state.variant_site_path;
     expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 
@@ -259,7 +259,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     search_state = search_states.front();
     result = search_state.variant_site_path;
     expected = {
-            VariantSite {5, 3}
+            VariantLocus {5, 3}
     };
     EXPECT_EQ(result, expected);
 }
@@ -285,7 +285,7 @@ TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -293,7 +293,7 @@ TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     search_state = search_states.front();
     result = search_state.variant_site_path;
     expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 
@@ -318,7 +318,7 @@ TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -365,7 +365,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -373,7 +373,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     search_state = search_states.front();
     result = search_state.variant_site_path;
     expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -395,7 +395,7 @@ TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -419,7 +419,7 @@ TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -427,7 +427,7 @@ TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     search_state = search_states.front();
     result = search_state.variant_site_path;
     expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -449,8 +449,8 @@ TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 2},
-            VariantSite {7, 1}
+            VariantLocus {5, 2},
+            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -488,14 +488,14 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantSite {5, 1}
+                                            VariantLocus {5, 1}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantSite {5, 2}
+                                            VariantLocus {5, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -515,8 +515,8 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -535,8 +535,8 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleChar
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -555,8 +555,8 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracte
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -576,8 +576,8 @@ TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -597,8 +597,8 @@ TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
     parameters.kmers_size = 15;
     parameters.max_read_size = 21;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -617,8 +617,8 @@ TEST(IndexKmers, KmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
     parameters.kmers_size = 18;
     parameters.max_read_size = 22;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -637,8 +637,8 @@ TEST(IndexKmers, KmerEndJustOutsideMaxReadSize_KmerNotFoundInIndex) {
     parameters.kmers_size = 18;
     parameters.max_read_size = 21;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -657,8 +657,8 @@ TEST(IndexKmers, TwoSitesAndKmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) 
     parameters.kmers_size = 5;
     parameters.max_read_size = 8;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
@@ -677,8 +677,8 @@ TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFou
     parameters.kmers_size = 12;
     parameters.max_read_size = 7;
 
-    auto kmer_prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                                   prg_info);
+    auto kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                   prg_info);
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);

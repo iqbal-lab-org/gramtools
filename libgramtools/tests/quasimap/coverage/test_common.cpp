@@ -42,7 +42,7 @@ TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
     SearchState search_state = {
             SA_Interval {7, 8},
             VariantSitePath {
-                    VariantSite {5, 2},
+                    VariantLocus {5, 2},
             },
             SearchVariantSiteState::within_variant_site
     };
@@ -62,7 +62,7 @@ TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
     SearchState search_state = {
             SA_Interval {7, 7},
             VariantSitePath {
-                    VariantSite {5, 2},
+                    VariantLocus {5, 2},
             },
             SearchVariantSiteState::within_variant_site
     };
@@ -100,7 +100,7 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
     SearchState search_state = {
             SA_Interval {5, 5},
             VariantSitePath {
-                    VariantSite {5, 2},
+                    VariantLocus {5, 2},
             },
             SearchVariantSiteState::within_variant_site
     };
@@ -120,7 +120,7 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
     SearchState search_state = {
             SA_Interval {6, 6},
             VariantSitePath {
-                    VariantSite {5, 2},
+                    VariantLocus {5, 2},
             },
             SearchVariantSiteState::outside_variant_site
     };
@@ -151,8 +151,8 @@ TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 2},
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 2},
                     }
             },
             SearchState {
@@ -172,15 +172,15 @@ TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 2},
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 2},
                     }
             },
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             }
 
@@ -199,15 +199,15 @@ TEST(GetUniquePathSites, TwoIdenticalPaths_SinglePathInSet) {
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             },
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             }
 
@@ -225,15 +225,15 @@ TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) 
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             },
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             },
             SearchState {
@@ -255,15 +255,15 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectSingleSearchState)
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 2},
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 2},
                     }
             },
             SearchState {
                     SA_Interval {3, 4},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             }
 
@@ -274,8 +274,8 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectSingleSearchState)
             SearchState {
                     SA_Interval {3, 4},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             }
 
@@ -289,15 +289,15 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectEmptySearchStates)
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantSite {5, 1},
-                            VariantSite {7, 2},
+                            VariantLocus {5, 1},
+                            VariantLocus {7, 2},
                     }
             },
             SearchState {
                     SA_Interval {3, 4},
                     VariantSitePath {
-                            VariantSite {9, 3},
-                            VariantSite {11, 5},
+                            VariantLocus {9, 3},
+                            VariantLocus {11, 5},
                     }
             }
 

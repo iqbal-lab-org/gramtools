@@ -1502,8 +1502,8 @@ TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound
     auto kmer_it = std::find(kmers.begin(), kmers.end(), kmer);
     auto index = std::distance(kmers.begin(), kmer_it);
 
-    auto prefix_diffs = get_kmer_prefix_diffs(parameters,
-                                              prg_info);
+    auto prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                              prg_info);
     auto result = prefix_diffs[index];
     Pattern expected = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3};
     EXPECT_EQ(result, expected);

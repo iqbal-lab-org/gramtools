@@ -145,11 +145,25 @@ SearchStates gram::filter_for_path_sites(const PathSites &target_path_sites,
 }
 
 
+/**
+ * Random uniform selection of one mapped path in the prg.
+ * What gets selected is either:
+ * * A single non-variant path through the prg, chosen from all distinct mappings of the read in the prg going through non-variant sites.
+ * * A single unique variant path through the prg. Unique is defined as a set of site IDs, irrespective of allele IDs inside sites.
+ *
+ *  In the second case, there are several sub-cases when **including allele ID traversal**:
+ *  * A single site/allele combination path has been selected. Return this.
+ *  * The read maps several times through the same set of sites, going through different alleles. Return all of them. Their coverages will all get recorded.
+ *  Specifically this will also be used for reporting allele group counts.
+ *  * The read maps through a single site/allele combination, multiple times. This means the read is **encapsulated** inside
+ *  two different alleles of the same site. Randomly select and return only one of those.
+ */
 SearchStates selection(const SearchStates &search_states,
                        const uint64_t &read_length,
                        const PRG_Info &prg_info,
                        const uint32_t &random_seed) {
     uint64_t nonvariant_count = count_nonvariant_search_states(search_states);
+    // Extract the unique path sites: vectors of site IDs traversed.
     auto path_sites = get_unique_path_sites(search_states);
 
     uint64_t count_total_options = nonvariant_count + path_sites.size();
@@ -157,15 +171,20 @@ SearchStates selection(const SearchStates &search_states,
         return SearchStates{};
     uint64_t selected_option = random_int_inclusive(1, count_total_options, random_seed);
 
+    // If we select a non-variant path, return empty `SearchStates`, leading to no coverage information.
     bool selected_no_path = selected_option <= nonvariant_count;
     if (selected_no_path)
         return SearchStates{};
 
+    // We have selected a variant path. Now select one of them.
     uint64_t paths_sites_offset = selected_option - nonvariant_count - 1;
     auto it = path_sites.begin();
     std::advance(it, paths_sites_offset);
-    auto selected_path_sites = *it;
+    auto selected_path_sites = *it; // a single vector of site IDs (sites path)
 
+    // Filter all given search states for the single randomly selected vector of site_id (site path).
+    // Allele IDs are not considered at this point.
+    // Mapping instance interactions within sites are considered later (in grouped allele coverage).
     auto selected_search_states = filter_for_path_sites(selected_path_sites, search_states);
     if (selected_search_states.size() > 1)
         return selected_search_states;

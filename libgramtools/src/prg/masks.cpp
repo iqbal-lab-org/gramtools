@@ -15,7 +15,6 @@ sdsl::bit_vector gram::generate_prg_markers_mask(const sdsl::int_vector<> &encod
     return variants_markers_mask;
 }
 
-
 sdsl::bit_vector gram::generate_bwt_markers_mask(const FM_Index &fm_index) {
     sdsl::bit_vector bwt_markers_mask(fm_index.bwt.size(), 0);
     for (uint64_t i = 0; i < fm_index.bwt.size(); i++)
@@ -30,7 +29,6 @@ sdsl::int_vector<> gram::load_allele_mask(const Parameters &parameters) {
     return allele_mask;
 }
 
-
 sdsl::int_vector<> gram::generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::int_vector<> allele_mask(encoded_prg.size(), 0, 32);
     uint32_t current_allele_id = 1;
@@ -38,9 +36,9 @@ sdsl::int_vector<> gram::generate_allele_mask(const sdsl::int_vector<> &encoded_
 
     for (uint64_t i = 0; i < encoded_prg.size(); ++i) {
         const auto &prg_char = encoded_prg[i];
-        auto at_varaint_site_boundary = prg_char > 4
+        auto at_variant_site_boundary = prg_char > 4
                                         and prg_char % 2 != 0;
-        auto entering_variant_site = at_varaint_site_boundary
+        auto entering_variant_site = at_variant_site_boundary
                                      and not within_variant_site;
         if (entering_variant_site){
             within_variant_site = true;
@@ -48,7 +46,7 @@ sdsl::int_vector<> gram::generate_allele_mask(const sdsl::int_vector<> &encoded_
             continue;
         }
 
-        auto exiting_variant_site = at_varaint_site_boundary
+        auto exiting_variant_site = at_variant_site_boundary
                                      and within_variant_site;
         if (exiting_variant_site){
             within_variant_site = false;
@@ -78,7 +76,6 @@ sdsl::int_vector<> gram::load_sites_mask(const Parameters &parameters) {
     return sites_mask;
 }
 
-
 sdsl::int_vector<> gram::generate_sites_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::int_vector<> sites_mask(encoded_prg.size(), 0, 32);
     Marker current_site_marker = 0;
@@ -86,9 +83,9 @@ sdsl::int_vector<> gram::generate_sites_mask(const sdsl::int_vector<> &encoded_p
 
     for (uint64_t i = 0; i < encoded_prg.size(); ++i) {
         const auto &prg_char = encoded_prg[i];
-        auto at_varaint_site_boundary = prg_char > 4
+        auto at_variant_site_boundary = prg_char > 4
                                         and prg_char % 2 != 0;
-        auto entering_variant_site = at_varaint_site_boundary
+        auto entering_variant_site = at_variant_site_boundary
                                      and not within_variant_site;
         if (entering_variant_site){
             within_variant_site = true;
@@ -96,7 +93,7 @@ sdsl::int_vector<> gram::generate_sites_mask(const sdsl::int_vector<> &encoded_p
             continue;
         }
 
-        auto exiting_variant_site = at_varaint_site_boundary
+        auto exiting_variant_site = at_variant_site_boundary
                                     and within_variant_site;
         if (exiting_variant_site){
             within_variant_site = false;

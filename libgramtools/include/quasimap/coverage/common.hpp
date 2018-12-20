@@ -7,8 +7,15 @@
 
 namespace gram {
 
+    /**
+     * Each type of coverage operation (record, generate, dump) operates on each level of coverage information.
+     */
     namespace coverage {
         namespace record {
+            /**
+             * Selects read mappings and records coverage information.
+             * @see selection()
+             */
             void search_states(Coverage &coverage,
                                const SearchStates &search_states,
                                const uint64_t &read_length,
@@ -17,10 +24,16 @@ namespace gram {
         }
 
         namespace generate {
+            /**
+             * Calls the routines for building empty structures to record different types of coverage information.
+             */
             Coverage empty_structure(const PRG_Info &prg_info);
         }
 
         namespace dump {
+            /**
+             * Write coverage information to disk.
+             */
             void all(const Coverage &coverage,
                      const Parameters &parameters);
         }

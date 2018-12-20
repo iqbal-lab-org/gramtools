@@ -5,6 +5,10 @@
 #define GRAMTOOLS_SEARCH_TYPES_HPP
 
 namespace gram {
+    /**
+     * Encapsulates the positioning of the current search state relative to variant sites.
+     * Initialised at `unknown`.
+     */
     enum class SearchVariantSiteState {
         within_variant_site,
         outside_variant_site,
@@ -12,14 +16,19 @@ namespace gram {
     };
 
 
+    /**
+     * A single path of a string through the prg.
+     * Boils down to an SA interval and a set of variants traversed so far.
+     * The former gets used for extending the search while the latter gets used to record coverage information.
+     */
     struct SearchState {
         SA_Interval sa_interval = {};
-        VariantSitePath variant_site_path = {};
+        VariantSitePath variant_site_path = {}; /**< Stores the path taken through variant sites in the prg. */
         SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
         bool cache_populated = false;
-        VariantSite cached_variant_site = {};
+        VariantLocus cached_variant_site = {};
 
-        bool invalid = false;
+        bool invalid = false; /**< Represents whether no path is found in the prg. */
 
         bool operator==(const SearchState &other) const {
             return this->sa_interval == other.sa_interval

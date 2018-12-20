@@ -1,3 +1,10 @@
+## @file
+# Variant discovery against inferred personalised reference.
+# The use case is the following: a set of reads is mapped to a prg using gram::commands::quasimap.
+# Then a haploid personalised reference is inferred using `infer.py`.
+# Finally the same set of reads can be mapped to this personalised reference for variant discovery using this module.
+# The output vcf file gets rebased to express variants in the original prg (rather than personalised reference) coordinate space.
+
 import os
 import shutil
 import typing
@@ -23,15 +30,15 @@ def parse_args(common_parser, subparsers):
                         type=str,
                         required=True)
     parser.add_argument('--inferred-vcf',
-                        help='',
+                        help='The vcf file corresponding to the inferred path through the PRG.',
                         type=str,
                         required=True)
     parser.add_argument('--reads',
-                        help='',
+                        help='Reads file for variant discovery with respect to the inferred personalised reference.',
                         type=str,
                         required=True)
     parser.add_argument('--output-vcf',
-                        help='',
+                        help='File path for variant calls.',
                         type=str,
                         required=False)
 
@@ -43,6 +50,7 @@ def run(args):
 
     with open(_paths['prg'], 'r') as file_handle:
         prg_seq = file_handle.read()
+    # `reference` is all non-variant parts of prg + first allele of each variant site of prg
     reference = _get_reference(prg_seq)
     fasta_description = "PRG base reference for gramtools"
     _dump_fasta(reference, fasta_description, _paths['base_reference'])
@@ -54,9 +62,11 @@ def run(args):
     fasta_description = "inferred personal reference generated using gramtools"
     _dump_fasta(inferred_reference, fasta_description, _paths['inferred_reference'])
 
+    # call variants using `cortex`
     cortex.calls(_paths['inferred_reference'], args.reads, _paths['cortex_vcf'])
 
     inferred_reference_length = len(inferred_reference)
+    # Convert coordinates in personalised reference space to coordinates in (original) prg space.
     rebased_vcf_records = _rebase_vcf(args.inferred_vcf,
                                       inferred_reference_length,
                                       _paths['cortex_vcf'])
@@ -70,34 +80,49 @@ def run(args):
     _dump_rebased_vcf(rebased_vcf_records, _paths['rebase_vcf'], template_vcf_file_path)
 
     vcf_files = [_paths['rebase_vcf']]
+    # Cluster together variants in close proximity.
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files, _paths['base_reference'], args.output_vcf)
     cluster.run()
 
     shutil.rmtree(_paths['tmp_directory'])
     log.info('End process: discover')
 
-
+## Rebase a vcf so that it uses same reference as base_vcf.
+#
+# Here is the use case. We have:
+#  new_vcf                         new_reference_vcf
+#   |                               |
+#  new_reference                   old_reference
+#
+# And we want:
+#  new_vcf
+#   |
+#  old_reference
+#
+# In the context of gramtools:
+# * `new_vcf` is the vcf produced by cortex, ie variant calls against personalised reference.
+# * `new_reference_vcf` is the vcf describing the personalised reference with respect to the original prg.
+# * `old_reference` is the original prg. The first allele of each variant site in the prg is taken for making this.
+# * `new_reference` is the personalised reference; it is the original prg with inferred variant alleles instead.
+#
+# Thus what rebasing achieves is to express the variant calls in terms of the original prg coordinates.
 def _rebase_vcf(base_vcf_file_path,
-                secondary_reference_length: int,
-                secondary_vcf_file_path):
-    """Rebase secondary_vcf so that it uses same reference as base_vcf.
-
-    base_vcf -> VCF describing inferred haploid
-    secondary_vcf -> VCF describing new variants with inferred haploid as reference
-    """
+                personalised_reference_length: int,
+                personalised_vcf_file_path):
 
     try:
-        secondary_records = _load_records(secondary_vcf_file_path)
+        # Load the variant calls with respect to the personalised reference.
+        variant_call_records = _load_records(personalised_vcf_file_path)
     except StopIteration:
         log.warning("Cortex VCF does not contain novel variants")
         return None
     base_records = _load_records(base_vcf_file_path)
 
-    # Given a site index position in secondary_vcf, need to know if within base_vcf site
-    secondary_regions = _get_secondary_regions(base_records, secondary_reference_length)
+    # Given a variant call position w.r.t the personalised reference, we will need to know how this position maps to the original prg.
+    flagged_personalised_regions = _flag_personalised_reference_regions(base_records, personalised_reference_length)
 
-    new_vcf_records = [_rebase_vcf_record(vcf_record, secondary_regions)
-                       for vcf_record in secondary_records]
+    new_vcf_records = [_rebase_vcf_record(vcf_record, flagged_personalised_regions)
+                       for vcf_record in variant_call_records]
     return new_vcf_records
 
 
@@ -111,12 +136,18 @@ def _dump_rebased_vcf(records, rebase_file_path, template_vcf_file_path):
         writer.write_record(record)
     writer.close()
 
-
+## Class that marks a region in a reference (call it 2) with a relationship to another reference (call it 1).
+# By 'earlier' we imply that reference 2 is based off of reference 1.
+# A `_Region` either marks a region in ref 2 within a variant region in ref 1, or a region in ref 2 within an invariant region in ref 1.
 class _Region:
     def __init__(self, start, end, offset, record):
+        ## Start coordinate in personalised reference.
         self.start = start
+        ## End coordinate in personalised reference.
         self.end = end
+        ## Holds the total difference in coordinates between ref 2 and ref 1. Only populated if region marks a non-variant site in ref 1.
         self.offset = offset
+        ## Holds vcf record for this region of ref 2 relative to ref 1. Only populated if region marks a variant site in ref 1.
         self.record = record
 
     @property
@@ -142,14 +173,17 @@ class _Region:
 _Regions = typing.List[_Region]
 
 
-def _get_secondary_regions(base_records, secondary_reference_length) -> _Regions:
-    secondary_site_regions = _secondary_regions_for_base_sites(base_records)
-    secondary_nonsite_regions = _secondary_regions_for_base_nonsites(secondary_site_regions,
-                                                                     base_records,
-                                                                     secondary_reference_length)
 
-    secondary_regions = _merge_regions(secondary_site_regions, secondary_nonsite_regions)
-    return secondary_regions
+## Marks the personalised reference with `Regions` flagging a relationship with the base reference.
+# There are two types of `Regions`: those inside variant sites in the prg, and those outside.
+def _flag_personalised_reference_regions(base_records, secondary_reference_length) -> _Regions:
+    site_regions = mark_base_site_regions(base_records)
+    nonsite_regions = mark_base_nonsite_regions(site_regions,
+                                                base_records,
+                                                secondary_reference_length)
+
+    all_personalised_ref_regions = _merge_regions(site_regions, nonsite_regions)
+    return all_personalised_ref_regions
 
 
 _vcf_record_attributes = [
@@ -183,16 +217,21 @@ def _modify_vcf_record(vcf_record, **new_attributes):
     new_vcf_record = _make_vcf_record(**attributes)
     return new_vcf_record
 
+## Change `vcf_record` to be expressed relative to a different reference.
+# @param vcf_record a representation of a vcf entry;
+# @param personalised_reference_regions a set of `_Regions` marking the personalised reference and its relationship to the prg reference.
+def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
+    # Get index of region containing the start of the `vcf_record`.
+    first_region_index = _find_start_region_index(vcf_record, personalised_reference_regions)
+    overlap_regions = _find_overlap_regions(vcf_record, first_region_index, personalised_reference_regions)
 
-def _rebase_vcf_record(vcf_record, secondary_regions: _Regions):
-    first_region_index = _find_start_region_index(vcf_record, secondary_regions)
-    overlap_regions = _find_overlap_regions(vcf_record, first_region_index, secondary_regions)
-
-    # TODO: what about start and end in nonsites and sites in the middle?
-    # below condition probably not general enough
+    # TODO: what about start and end in nonsites and sites in the middle? below condition probably not general enough
     overlap_sites = any(region.is_site for region in overlap_regions)
+
+    # Case: the variant region does not overlap any variant sites in the prg reference.
+    # All we need to do is modify the coordinates of the record to map to the prg reference.
     if not overlap_sites:
-        offset_sum = sum(region.offset for region in overlap_regions)
+        offset_sum = sum(region.offset for region in overlap_regions) # TODO: if we do not overlap any sites, we should overlap only ONE site?
         new_pos = vcf_record.POS + offset_sum
 
         vcf_record = _modify_vcf_record(vcf_record, POS=new_pos)
@@ -207,35 +246,30 @@ def _rebase_vcf_record(vcf_record, secondary_regions: _Regions):
     return vcf_record
 
 
+## Pad start of VCF record with what the original variant has.
+# The POS and REf of `vcf_record` get set to what they are in the original prg.
 def _pad_vcf_record_start(vcf_record, overlap_regions: _Regions):
-    """Pad start of VCF record.
-
-    Set REF to base site REF for given region. Update POS to region start.
-    Pad ALT start with region start ALT (if any from current start backwards)
-    """
-    first_region = overlap_regions[0]
+    original_variant_region = overlap_regions[0]
 
     record_start_index = vcf_record.POS - 1
-    region_start_index = first_region.record.POS - 1
-    assert region_start_index <= record_start_index
+    original_region_start_index = original_variant_region.record.POS - 1
+    assert original_region_start_index <= record_start_index
 
-    start_offset = record_start_index - region_start_index
+    start_offset = record_start_index - original_region_start_index
 
-    region_alt = str(first_region.record.ALT[0])
+    region_alt = str(original_variant_region.record.ALT[0])
     new_record_alt = region_alt[:start_offset] + str(vcf_record.ALT[0])
 
+    # REF gets set to what the original (base; prg-level) REF is, as stored in the `_Region` object.
     vcf_record = _modify_vcf_record(vcf_record,
-                                    POS=first_region.record.POS,
-                                    REF=first_region.record.REF,
+                                    POS=original_variant_region.record.POS,
+                                    REF=original_variant_region.record.REF,
                                     ALT=[new_record_alt])
     return vcf_record
 
 
+## Pad end of VCF record with what the original variant has.
 def _pad_vcf_record_end(vcf_record, overlap_regions: _Regions):
-    """Pad end of VCF record.
-
-    Pad ALT end with region end ALT (if any from current end backwards).
-    """
     record_start_index = vcf_record.POS - 1
     record_end_index = record_start_index + len(vcf_record.REF) - 1
 
@@ -250,10 +284,13 @@ def _pad_vcf_record_end(vcf_record, overlap_regions: _Regions):
     vcf_record = _modify_vcf_record(vcf_record, ALT=[new_alt])
     return vcf_record
 
-
-def _find_overlap_regions(vcf_record, first_region_index, secondary_regions):
+## Find all `_Region`s overlapped by a `vcf_record`.
+# @return the overlapped `_Region`s.
+def _find_overlap_regions(vcf_record, first_region_index, marked_regions):
     record_start_index = vcf_record.POS - 1
 
+    # Take the largest region alluded to in the `vcf_record`. This region is used to query which `_Region`s are overlapped.
+    # TODO: should it not be the REF length that is used as record length, rather than max of REF and ALT?
     if len(vcf_record.ALT[0]) > len(vcf_record.REF):
         record_end_index = record_start_index + len(vcf_record.ALT[0]) - 1
     else:
@@ -261,43 +298,52 @@ def _find_overlap_regions(vcf_record, first_region_index, secondary_regions):
     record_max_length = record_end_index - record_start_index + 1
 
     record_length_consumed = 0
-    regions = iter(secondary_regions[first_region_index:])
+    regions = iter(marked_regions[first_region_index:])
     overlap_regions = []
-    first_region_processed = False
+    process_first_region = True
+
+    # Keep appending regions while we have not traversed the personalised reference with the full length of the record.
     while record_length_consumed < record_max_length:
         region = next(regions, None)
         if region is None:
             break
 
-        if not first_region_processed:
+        # When processing the first region, the `record_start_index` can be greater than the start of the region.
+        # We do not consume the whole region thus, but only the region between the `record_start_index` and the region's end.
+        if process_first_region:
             start_offset = record_start_index - region.start
             record_length_consumed = len(region) - start_offset
-            first_region_processed = True
+            process_first_region = False
         else:
             record_length_consumed += len(region)
 
         overlap_regions.append(region)
     return overlap_regions
 
-
-def _find_start_region_index(vcf_record, secondary_regions):
+## Return the marked `_Region` containing the position referred to by `vcf_record`.
+def _find_start_region_index(vcf_record, marked_regions):
     record_start_index = vcf_record.POS - 1
-    region_index = bisect.bisect_left(secondary_regions, record_start_index)
+    # Bisect-left is a binary search on a sorted array. The '<' comparator is overloaded in `_Region` definition to allow the search.
+    region_index = bisect.bisect_left(marked_regions, record_start_index)
 
-    if region_index > len(secondary_regions) - 1:
-        region_index = len(secondary_regions) - 1
+    # Case: We have picked out the very last region.
+    if region_index > len(marked_regions) - 1:
+        region_index = len(marked_regions) - 1
 
-    region = secondary_regions[region_index]
+    region = marked_regions[region_index]
+    # This part is important. The `bisect_left` routine can produce the index of the region **just to the right**
+    # of the region containing the `vcf_record`. This will in fact always be the case when the vcf_record position is
+    # after the region's start. Then we decrement the index.
     if record_start_index < region.start:
         region_index -= 1
     return region_index
 
 
-def _secondary_regions_for_base_sites(base_records) -> _Regions:
-    """Identifies base sites (via index ranges) in secondary reference.
-    Any secondary reference index which falls within one of these ranges overlaps an entry in the base VCF.
-    """
-    # Base site ranges (inclusive) in secondary indexes
+## Flags `_Regions` in the personalised reference which are in variant sites in the original PRG.
+# Any personalised reference position which falls within one of these `Regions` overlaps an entry in the original VCF.
+# Thus, the `_Regions` are marked with the base vcf record.
+def mark_base_site_regions(base_records) -> _Regions:
+    # Base site ranges (inclusive) in personalised reference
     secondary_regions = []
     index_offset = 0
 
@@ -308,14 +354,20 @@ def _secondary_regions_for_base_sites(base_records) -> _Regions:
         region = _Region(start, end, record=record, offset=None)
         secondary_regions.append(region)
 
+        # The offset keeps track of how much larger or smaller the personalised reference is relative to the prg reference.
         index_offset += len(record.ALT[0]) - len(record.REF)
     return secondary_regions
 
 
+## A class for iterating through elements in pairs.
+# There are two edge cases:
+# * The very first iteration sets up a pair of an empty element and the first element of `elements`.
+# * The very last iteration sets up a pair of the very last element of `elements` and an empty element.
+# @param elements the elements to iterate through in pairs.
 class IterPairs:
     def __init__(self, elements):
-        self._elements = iter(elements)
-
+        self._elements = iter(elements) # Sets up iterator on `elements` so we can call next() on them.
+        ## This variable flags whether we have iterated past the very first pair.
         self._first_next_done = False
         self._first = None
         self._second = None
@@ -324,7 +376,7 @@ class IterPairs:
         return self
 
     def __next__(self):
-        if self._first_next_done is False:
+        if self._first_next_done is False: # Iterate through very first pair: returns the very first element paired to an empty element.
             self._first = None
             self._second = next(self._elements, None)
 
@@ -338,29 +390,33 @@ class IterPairs:
     @staticmethod
     def _safe_yield(first, second):
         if first is None and second is None:
-            raise StopIteration
+            raise StopIteration # Nothing left to give, stop there
         return first, second
 
 
-def _secondary_regions_for_base_nonsites(secondary_site_regions: _Regions,
-                                         base_records,
-                                         secondary_reference_length: int) -> _Regions:
+## Flags `_Regions` in the personalised reference which are in non-variant sites in the original PRG.
+# Use `IterPairs` class because we need the information on two consecutive site region to compute `_Region` coordinates.
+def mark_base_nonsite_regions(site_regions: _Regions,
+                              base_records,
+                              secondary_reference_length: int) -> _Regions:
     # add offset to secondary index to get base offset
     offset = 0
     secondary_regions = []
 
-    for record_pair, region_pair in zip(IterPairs(base_records), IterPairs(secondary_site_regions)):
+    for record_pair, region_pair in zip(IterPairs(base_records), IterPairs(site_regions)):
         base_record = record_pair[0]
-        if base_record is not None:
+        if base_record is not None: # This is only false once, when we encounter the very first record. Then offset must stay 0.
             offset += len(base_record.REF) - len(base_record.ALT[0])
 
-        first_region, second_region = region_pair
+        first_region, second_region = region_pair # Unpack the two regions
+
+        # If the first position of the personalised reference corresponds to a variant site in the prg, there is nothing to record.
         if second_region is not None and second_region.start == 0:
             continue
 
-        at_first_region = first_region is None
+        at_first_region = first_region is None # `IterPairs` produces an empty `first_region` for the very first pair.
         at_mid_region = first_region is not None and second_region is not None
-        at_last_region = second_region is None
+        at_last_region = second_region is None # `IterPairs` produces an empty `second_region` for the very last pair.
         start, end = None, None
 
         if at_first_region:
@@ -370,6 +426,7 @@ def _secondary_regions_for_base_nonsites(secondary_site_regions: _Regions,
 
         if at_mid_region:
             adjacent_site_regions = first_region.end + 1 == second_region.start
+            # If there is no gap between the pair of site regions, there is nothing to record.
             if adjacent_site_regions:
                 continue
             start = first_region.end + 1
@@ -386,7 +443,7 @@ def _secondary_regions_for_base_nonsites(secondary_site_regions: _Regions,
         secondary_regions.append(region)
     return secondary_regions
 
-
+## Merges the `Regions` (site and nonsite) by ordering them using position coordinates.
 def _merge_regions(site_regions: _Regions, nonsite_regions: _Regions) -> _Regions:
     merged = []
 
@@ -398,11 +455,15 @@ def _merge_regions(site_regions: _Regions, nonsite_regions: _Regions) -> _Region
 
     while site_region is not None or nonsite_region is not None:
         if site_region is not None and nonsite_region is not None:
+            # Case 1: we have both a site_region and a nonsite_region.
+            # `get_next_site` flags whether we next need to deal with the site region (`true`) or the nonsite region (`false`).
             get_next_site = site_region.start < nonsite_region.start
         else:
+            # Case 2: we have only one type of `Region` left.
+            # `get_next_site` flags whether that `Region` is a site region (`true`) or the nonsite region.
             get_next_site = nonsite_region is None
 
-        if get_next_site:
+        if get_next_site: # Append the site_region, and get the next one.
             merged.append(site_region)
             site_region = next(site_regions, None)
         else:
@@ -411,7 +472,7 @@ def _merge_regions(site_regions: _Regions, nonsite_regions: _Regions) -> _Region
 
     return merged
 
-
+## Produce a list of vcf records parsed from `vcf_file_path`.
 def _load_records(vcf_file_path):
     file_handle = open(vcf_file_path, 'r')
     vcf_reader = vcf.Reader(file_handle)
@@ -429,7 +490,9 @@ def _dump_fasta(inferred_reference, description, file_path):
     log.debug("Writing fasta reference:\n%s\n%s", file_path, description)
     SeqIO.write(record, file_path, "fasta")
 
-
+## Compute a new reference from an old reference and a set of vcf records.
+# @param reference the old reference.
+# @param vcf_reader set of vcf records describing variants against the old reference.
 def _get_inferred_reference(reference, vcf_reader):
     inferred_reference = []
     record = next(vcf_reader, None)

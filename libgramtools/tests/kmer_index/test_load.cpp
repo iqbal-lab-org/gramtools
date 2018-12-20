@@ -112,14 +112,14 @@ TEST(ParsePaths, GivenTwoPathsDifferentLengths_CorrectKmerIndex) {
                             SearchState {
                                     SA_Interval {},
                                     VariantSitePath {
-                                            VariantSite {42, 43}
+                                            VariantLocus {42, 43}
                                     }
                             },
                             SearchState {
                                     SA_Interval {},
                                     VariantSitePath {
-                                            VariantSite {52, 53},
-                                            VariantSite {62, 63}
+                                            VariantLocus {52, 53},
+                                            VariantLocus {62, 63}
                                     }
                             }
                     }
@@ -160,14 +160,14 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
                             SearchState {
                                     SA_Interval {1, 1},
                                     VariantSitePath {
-                                            VariantSite {42, 43}
+                                            VariantLocus {42, 43}
                                     }
                             },
                             SearchState {
                                     SA_Interval {2, 2},
                                     VariantSitePath {
-                                            VariantSite {52, 53},
-                                            VariantSite {62, 63}
+                                            VariantLocus {52, 53},
+                                            VariantLocus {62, 63}
                                     }
                             }
                     }
@@ -208,7 +208,7 @@ TEST(ParseKmerIndex, GivenTwoKmersWithMultipleSearchStates_CorrectKmerIndex) {
                             SearchState {
                                     SA_Interval {1, 1},
                                     VariantSitePath {
-                                            VariantSite {42, 43}
+                                            VariantLocus {42, 43}
                                     }
                             }
                     }
@@ -218,14 +218,14 @@ TEST(ParseKmerIndex, GivenTwoKmersWithMultipleSearchStates_CorrectKmerIndex) {
                             SearchState {
                                     SA_Interval {1, 1},
                                     VariantSitePath {
-                                            VariantSite {42, 43}
+                                            VariantLocus {42, 43}
                                     }
                             },
                             SearchState {
                                     SA_Interval {2, 2},
                                     VariantSitePath {
-                                            VariantSite {52, 53},
-                                            VariantSite {62, 63}
+                                            VariantLocus {52, 53},
+                                            VariantLocus {62, 63}
                                     }
                             }
                     }

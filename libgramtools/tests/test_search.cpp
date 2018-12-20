@@ -379,7 +379,7 @@ i	F	BTW	text	SA	suffix
 10	9	3	9	    8	9 4 10 1 9 0
 11	10	4	0	    8	10 1 9 0
 */
-TEST(Search, GivenPrgWithNonContiniousAlphabet_CorrectAlleleMarkerEndBoundary) {
+TEST(Search, GivenPrgWithNonContinuousAlphabet_CorrectAlleleMarkerEndBoundary) {
     auto prg_raw = "7g8c7g9t10a9";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -492,11 +492,11 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVaria
     const auto &markers_search_states = process_markers_search_state(initial_search_state,
                                                                      prg_info);
 
-    std::vector<VariantSite> result;
+    std::vector<VariantLocus> result;
     for (const auto &search_state: markers_search_states)
         result.push_back(search_state.cached_variant_site);
 
-    std::vector<VariantSite> expected = {
+    std::vector<VariantLocus> expected = {
             {5, 1},
             {5, 2},
             {5, 3},
@@ -552,7 +552,7 @@ TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
             true,
-            VariantSite {5, 3}
+            VariantLocus {5, 3}
     };
     EXPECT_EQ(result, expected);
 }
@@ -575,7 +575,7 @@ TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
             true,
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -598,7 +598,7 @@ TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
             true,
-            VariantSite {5, 1}
+            VariantLocus {5, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -614,7 +614,7 @@ TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInP
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
             true,
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     SearchStates initial_search_states = {initial_search_state};
 
@@ -625,7 +625,7 @@ TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInP
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
     const auto &result = search_state.variant_site_path.front();
-    VariantSite expected = {5, 2};
+    VariantLocus expected = {5, 2};
     EXPECT_EQ(result, expected);
 }
 
@@ -637,10 +637,10 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
 
     SearchState initial_search_state = {
             SA_Interval {16, 16},
-            VariantSitePath {VariantSite {42, 53}},
+            VariantSitePath {VariantLocus {42, 53}},
             SearchVariantSiteState::outside_variant_site,
             true,
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     SearchStates initial_search_states = {initial_search_state};
 
@@ -652,8 +652,8 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
     auto search_state = final_search_states.front();
     const auto &result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 2},
-            VariantSite {42, 53}
+            VariantLocus {5, 2},
+            VariantLocus {42, 53}
     };
     EXPECT_EQ(result, expected);
 }
@@ -710,7 +710,7 @@ TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 3}
+            VariantLocus {5, 3}
     };
     EXPECT_EQ(result, expected);
 }
@@ -732,7 +732,7 @@ TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -754,7 +754,7 @@ TEST(Search, GivenReadCrossingAllele_CorrectVariantSitePath) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 2}
+            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -803,8 +803,8 @@ TEST(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
     const auto &search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1},
-            VariantSite {7, 1}
+            VariantLocus {5, 1},
+            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -827,8 +827,8 @@ TEST(Search, KmerWithinAlleleNotCrossingMarker_ReadCoversCorrectPath) {
     const auto &search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 1},
-            VariantSite {7, 1}
+            VariantLocus {5, 1},
+            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -851,7 +851,7 @@ TEST(Search, KmerImmediatelyAfterVariantSite_ReadCoversCorrectPath) {
     const auto &search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {7, 2}
+            VariantLocus {7, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -874,7 +874,7 @@ TEST(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
     const auto &search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {7, 2}
+            VariantLocus {7, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -897,8 +897,8 @@ TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
     const auto &search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 3},
-            VariantSite {7, 1}
+            VariantLocus {5, 3},
+            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -921,8 +921,8 @@ TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
     const auto &search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantSite {5, 3},
-            VariantSite {7, 1}
+            VariantLocus {5, 3},
+            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -1004,7 +1004,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectP
             SearchState {
                     SA_Interval {8, 8},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             }
@@ -1020,7 +1020,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
             SearchState {
                     SA_Interval {8, 8},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             }
@@ -1030,7 +1030,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
             SearchState {
                     SA_Interval {8, 8},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             }
@@ -1052,7 +1052,7 @@ TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_
             SearchState {
                     SA_Interval {3, 4},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             }
@@ -1149,7 +1149,7 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
             SearchState {
                     SA_Interval {8, 8},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             }
@@ -1219,14 +1219,14 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState {
                     SA_Interval {10, 10},
                     VariantSitePath {
-                            VariantSite {5, 1}
+                            VariantLocus {5, 1}
                     },
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
                     SA_Interval {11, 11},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             },
@@ -1238,21 +1238,21 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState {
                     SA_Interval {13, 13},
                     VariantSitePath {
-                            VariantSite {7, 1}
+                            VariantLocus {7, 1}
                     },
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
                     SA_Interval {14, 14},
                     VariantSitePath {
-                            VariantSite {5, 2}
+                            VariantLocus {5, 2}
                     },
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
                     SA_Interval {15, 15},
                     VariantSitePath {
-                            VariantSite {5, 1}
+                            VariantLocus {5, 1}
                     },
                     SearchVariantSiteState::within_variant_site
             }

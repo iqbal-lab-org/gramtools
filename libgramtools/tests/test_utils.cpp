@@ -49,7 +49,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
 
 TEST(ReverseComplimentRead, GivenRead_ReverseComplimnetReadReturned) {
     Pattern read = {1, 2, 1, 3, 4};
-    auto result = reverse_compliment_read(read);
+    auto result = reverse_complement_read(read);
     Pattern expected = {1, 2, 4, 3, 4};
     EXPECT_EQ(result, expected);
 }

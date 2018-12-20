@@ -3,7 +3,6 @@
 
 using namespace gram;
 
-
 std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg_info) {
     std::vector<PrgIndexRange> boundary_marker_indexes;
 
@@ -787,25 +786,31 @@ std::vector<Pattern> gram::reverse(const ordered_vector_set<Pattern> &reverse_km
 }
 
 
+/**
+ * Given the current pattern, find the next one.
+ * The rightmost incrementable (value < 4) position is the one incremented, maximising prefix conservation.
+ */
 void next_kmer(Pattern &current_kmer, const uint64_t &kmer_size) {
     int64_t max_update_index = kmer_size - 1;
+
+    // TODO: memory leakage here. Replace with: while (max_update_index >= 0 and current_kmer[max_update_index] == 4)
     while (current_kmer[max_update_index] == 4)
         max_update_index--;
 
-    if (max_update_index < 0) {
+    if (max_update_index < 0) { // We have reached '4 4 4 4' and so we are done
         current_kmer = {};
         return;
     }
-
+    // Increment the focal position
     current_kmer[max_update_index] = current_kmer[max_update_index] + (uint8_t) 1;
+    // Reset to 1 all positions to the right of the incremented position
     for (uint64_t i = (uint64_t) max_update_index + 1; i < kmer_size; i++)
         current_kmer[i] = 1;
 }
 
-
 ordered_vector_set<Pattern> gram::generate_all_kmers(const uint64_t &kmer_size) {
     ordered_vector_set<Pattern> all_kmers = {};
-    Pattern current_kmer(kmer_size, 1);
+    Pattern current_kmer(kmer_size, 1); // Start with the pattern '1 1 1 1'
 
     while (true) {
         all_kmers.insert(current_kmer);
@@ -816,7 +821,6 @@ ordered_vector_set<Pattern> gram::generate_all_kmers(const uint64_t &kmer_size) 
     return all_kmers;
 }
 
-
 std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
                                          const PRG_Info &prg_info) {
     ordered_vector_set<Pattern> ordered_reverse_kmers = {};
@@ -825,10 +829,10 @@ std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
     } else {
         ordered_reverse_kmers = get_prg_reverse_kmers(parameters, prg_info);
     }
+    // Call to reverse: c[j]=c[kmers_size-i-1], i the original position, j the new. For eg changes '1234' to '4321'
     auto ordered_kmers = reverse(ordered_reverse_kmers);
     return ordered_kmers;
 }
-
 
 std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
     std::vector<Pattern> prefix_diffs = {};
@@ -844,17 +848,19 @@ std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
         bool prefix_found_flag = false;
         std::list<Base> prefix_diff_list = {};
 
-        for (int64_t i = last_full_kmer.size() - 1; i >= 0; --i) {
-            auto &base = kmer[i];
-            auto &last_full_base = last_full_kmer[i];
 
-            if (base != last_full_base)
+        for (int64_t i = last_full_kmer.size() - 1; i >= 0; --i) {
+            auto &base = kmer[i]; // The current base in the current kmer
+            auto &last_full_base = last_full_kmer[i]; // The current base in the previous kmer
+
+            if (base != last_full_base) // Found first difference from the right
                 prefix_found_flag = true;
 
             if (prefix_found_flag)
                 prefix_diff_list.push_front(base);
         }
-        last_full_kmer = kmer;
+        last_full_kmer = kmer; // Update the kmer predecessor
+        // Produce a `Pattern` (vector of `Base`s) from the list of differences
         Pattern prefix_diff{std::make_move_iterator(std::begin(prefix_diff_list)),
                             std::make_move_iterator(std::end(prefix_diff_list))};
         prefix_diffs.push_back(prefix_diff);
@@ -862,9 +868,8 @@ std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
     return prefix_diffs;
 }
 
-
-std::vector<Pattern> gram::get_kmer_prefix_diffs(const Parameters &parameters,
-                                                 const PRG_Info &prg_info) {
+std::vector<Pattern> gram::get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
+                                                                 const PRG_Info &prg_info) {
     std::cout << "Getting all kmers" << std::endl;
     auto kmers = get_all_kmers(parameters, prg_info);
     std::cout << "Getting kmer prefix diffs" << std::endl;

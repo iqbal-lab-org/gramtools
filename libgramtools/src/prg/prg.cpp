@@ -4,7 +4,6 @@
 
 using namespace gram;
 
-
 uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
                             const Marker &dna_base,
                             const PRG_Info &prg_info) {
@@ -21,7 +20,6 @@ uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
             return 0;
     }
 }
-
 
 uint64_t gram::get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg) {
     uint64_t max_alphabet_num = 0;
@@ -46,7 +44,6 @@ sdsl::int_vector<> gram::parse_raw_prg_file(const std::string &prg_fpath) {
     return encoded_prg;
 }
 
-
 std::string gram::load_raw_prg(const std::string &prg_fpath) {
     std::ifstream fhandle(prg_fpath, std::ios::in | std::ios::binary);
     if (not fhandle) {
@@ -55,16 +52,18 @@ std::string gram::load_raw_prg(const std::string &prg_fpath) {
     }
 
     std::string prg;
+    // Sets the input position indicator to end of file (0 relative to end).
     fhandle.seekg(0, std::ios::end);
+    // Set the prg string size to the number of characters in the file.
     prg.resize((unsigned long) fhandle.tellg());
 
+    // Go back to file beginning, and read all characters to prg string.
     fhandle.seekg(0, std::ios::beg);
     fhandle.read(&prg[0], prg.size());
     fhandle.close();
 
     return prg;
 }
-
 
 sdsl::int_vector<> gram::encode_prg(const std::string &prg_raw) {
     sdsl::int_vector<> encoded_prg(prg_raw.length(), 0, 32);
@@ -76,12 +75,15 @@ sdsl::int_vector<> gram::encode_prg(const std::string &prg_raw) {
         EncodeResult encode_result = encode_char(c);
 
         if (encode_result.is_dna) {
+            // `flush_marker_digits` flushes any latent marker characters
             flush_marker_digits(marker_digits, encoded_prg, count_chars);
-            encoded_prg[count_chars++] = encode_result.charecter;
+            encoded_prg[count_chars++] = encode_result.character;
             continue;
         }
 
-        marker_digits.push_back(encode_result.charecter);
+        // else: record the digit, and stand ready to record another
+        // TODO: check that character is numeric?
+        marker_digits.push_back(encode_result.character);
     }
     flush_marker_digits(marker_digits, encoded_prg, count_chars);
 
@@ -89,7 +91,6 @@ sdsl::int_vector<> gram::encode_prg(const std::string &prg_raw) {
     sdsl::util::bit_compress(encoded_prg);
     return encoded_prg;
 }
-
 
 void gram::flush_marker_digits(std::vector<int> &marker_digits,
                                sdsl::int_vector<> &encoded_prg,
@@ -102,14 +103,12 @@ void gram::flush_marker_digits(std::vector<int> &marker_digits,
     marker_digits.clear();
 }
 
-
 uint64_t gram::concat_marker_digits(const std::vector<int> &marker_digits) {
     uint64_t marker = 0;
     for (const auto &digit: marker_digits)
         marker = marker * 10 + digit;
     return marker;
 }
-
 
 EncodeResult gram::encode_char(const char &c) {
     EncodeResult encode_result = {};
@@ -118,34 +117,34 @@ EncodeResult gram::encode_char(const char &c) {
         case 'A':
         case 'a':
             encode_result.is_dna = true;
-            encode_result.charecter = 1;
+            encode_result.character = 1;
             return encode_result;
 
         case 'C':
         case 'c':
             encode_result.is_dna = true;
-            encode_result.charecter = 2;
+            encode_result.character = 2;
             return encode_result;
 
         case 'G':
         case 'g':
             encode_result.is_dna = true;
-            encode_result.charecter = 3;
+            encode_result.character = 3;
             return encode_result;
 
         case 'T':
         case 't':
             encode_result.is_dna = true;
-            encode_result.charecter = 4;
+            encode_result.character = 4;
             return encode_result;
 
         default:
+            /// The character is non-DNA, so must be a variant marker.
             encode_result.is_dna = false;
-            encode_result.charecter = (uint32_t) c - '0';
+            encode_result.character = (uint32_t) c - '0';
             return encode_result;
     }
 }
-
 
 PRG_Info gram::load_prg_info(const Parameters &parameters) {
     PRG_Info prg_info = {};

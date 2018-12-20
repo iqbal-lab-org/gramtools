@@ -1,3 +1,7 @@
+## @file
+# Build/load a population reference genome and set it up for quasimapping.
+# Either a vcf/reference is passed and a prg generated from it, or an existing prg is passed.
+# Once the prg is stored the back-end `build` routine is called, producing the encoded prg, its fm-index, and other supporting data structures.
 import os
 import time
 import json
@@ -24,20 +28,20 @@ def parse_args(common_parser, subparsers):
                         required=True)
 
     parser.add_argument('--vcf',
-                        help='',
+                        help='File containing variant information to capture in the prg.',
                         action="append",
                         type=str)
     parser.add_argument('--reference',
-                        help='',
+                        help='Reference the vcf file refers to, used to build non-variant parts of the prg.',
                         type=str,
                         required=False)
     parser.add_argument('--prg',
-                        help='',
+                        help='A prg can be passed in directly instead of a vcf/reference combination.',
                         type=str,
                         required=False)
 
     parser.add_argument('--kmer-size',
-                        help='',
+                        help='Kmer size for indexing the prg. Defaults to 5.',
                         type=int,
                         default=5,
                         required=False)
@@ -52,8 +56,9 @@ def parse_args(common_parser, subparsers):
                         default=150,
                         required=False)
 
+    # The default behaviour is to generate an index of all possible kmers of size `kmer-size`
     parser.add_argument('--all-kmers',
-                        help='',
+                        help='Whether or not all kmers of given size should be indexed.',
                         action='store_true',
                         required=False)
 

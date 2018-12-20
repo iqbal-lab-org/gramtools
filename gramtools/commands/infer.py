@@ -1,3 +1,8 @@
+## @file
+# From quasimap output (allele coverages), infer a personalised reference.
+# Personalised reference can be written out as fasta or vcf.
+# Reads can then be mapped onto this reference for variant calling: see `discover.py`.
+
 import json
 import logging
 
@@ -161,6 +166,8 @@ class _FastaWriter:
         self._fhandle.close()
 
 
+## Generate max. likelihood call for each allele.
+# @see _max_likelihood_allele()
 def _max_likelihood_alleles(mean_depth,
                             error_rate,
                             all_per_base_coverage,
@@ -191,6 +198,9 @@ def _max_likelihood_allele(mean_depth,
     if gtyper.likelihoods is None:
         return None
 
+    # gtyper.likelihoods is ordered from most likely to least
+    # "alleles" is allele groups, we ignore groups which consist of more than just one allele id
+    # We return the most likely single allele id
     for alleles, likelihood in gtyper.likelihoods:
         if len(alleles) != 1:
             continue

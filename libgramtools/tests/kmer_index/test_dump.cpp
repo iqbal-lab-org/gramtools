@@ -39,14 +39,14 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantSite {5, 1}
+                                            VariantLocus {5, 1}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {7, 42},
                                     VariantSitePath {
-                                            VariantSite {5, 2}
+                                            VariantLocus {5, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -79,15 +79,15 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantSite {5, 1}
+                                            VariantLocus {5, 1}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {7, 42},
                                     VariantSitePath {
-                                            VariantSite {5, 2},
-                                            VariantSite {7, 3}
+                                            VariantLocus {5, 2},
+                                            VariantLocus {7, 3}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -121,21 +121,21 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantSite {5, 1}
+                                            VariantLocus {5, 1}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {7, 7},
                                     VariantSitePath {
-                                            VariantSite {5, 2}
+                                            VariantLocus {5, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {8, 8},
                                     VariantSitePath {
-                                            VariantSite {5, 2}
+                                            VariantLocus {5, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }
@@ -151,8 +151,8 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {11, 11},
                                     VariantSitePath {
-                                            VariantSite {5, 2},
-                                            VariantSite {7, 2}
+                                            VariantLocus {5, 2},
+                                            VariantLocus {7, 2}
                                     },
                                     SearchVariantSiteState::outside_variant_site
                             }

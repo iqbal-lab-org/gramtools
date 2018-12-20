@@ -99,7 +99,7 @@ void handle_path_element(SearchStates &search_states,
             AlleleId allele_id = paths[paths_index + 1];
             paths_index += 2;
 
-            VariantSite site = {marker, allele_id};
+            VariantLocus site = {marker, allele_id};
             search_state.variant_site_path.emplace_back(site);
         }
     }

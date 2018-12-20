@@ -23,13 +23,13 @@ void commands::build::run(const Parameters &parameters) {
     timer.start("Encoded PRG");
     prg_info.encoded_prg = generate_encoded_prg(parameters);
     timer.stop();
-    std::cout << "Number of charecters in integer encoded linear PRG: "
+    std::cout << "Number of characters in integer encoded linear PRG: "
               << prg_info.encoded_prg.size()
               << std::endl;
 
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
     std::cout << "Maximum alphabet character: " << prg_info.max_alphabet_num << std::endl;
-    if (prg_info.max_alphabet_num <= 4) {
+    if (prg_info.max_alphabet_num <= 4) { // No personalised reference to infer; exit
         std::cout << "No variant sites found.\nExiting 1" << std::endl;
         std::exit(1);
     }

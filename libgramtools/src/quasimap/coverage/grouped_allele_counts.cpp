@@ -11,17 +11,22 @@ using namespace gram;
 
 
 SitesGroupedAlleleCounts coverage::generate::grouped_allele_counts(const PRG_Info &prg_info) {
-    uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
-    SitesGroupedAlleleCounts grouped_allele_counts(numer_of_variant_sites);
+    uint64_t number_of_variant_sites = get_number_of_variant_sites(prg_info);
+    // Stores as many empty maps (associating allele IDs to mapped read counts) as there are variant sites in the prg.
+    SitesGroupedAlleleCounts grouped_allele_counts(number_of_variant_sites);
     return grouped_allele_counts;
 }
 
 
 void coverage::record::grouped_allele_counts(Coverage &coverage,
                                              const SearchStates &search_states) {
+    // We will store, for each variant site `Marker`, which alleles are traversed across
+    // **all** mapping instances of the processed read.
     using AlleleIdSet = std::set<AlleleId>;
     std::unordered_map<Marker, AlleleIdSet> site_allele_group;
 
+    // Loop through all `SearchStates` and the variant/allele combinations in their `variant_site_path`.
+    // Record which alleles are traversed for each site.
     for (const auto &search_state: search_states) {
         for (const auto &variant_site: search_state.variant_site_path) {
             auto site_marker = variant_site.first;
@@ -30,6 +35,7 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
         }
     }
 
+    // Loop through the variant site markers traversed at least once by the read.
     for (const auto &entry: site_allele_group) {
         auto site_marker = entry.first;
         auto allele_ids_set = entry.second;
@@ -38,10 +44,13 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
                   std::back_inserter(allele_ids));
 
         auto min_boundary_marker = 5;
+        // Which site entry in `grouped_allele_counts` is concerned.
         auto site_coverage_index = (site_marker - min_boundary_marker) / 2;
 
+        // Get the map between allele Ids and counts.
         auto &site_coverage = coverage.grouped_allele_counts[site_coverage_index];
         #pragma omp atomic
+        // Note: if the key does not already exists, creates a key value pair **and** initialises the value to 0.
         site_coverage[allele_ids] += 1;
     }
 }
@@ -49,15 +58,17 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
 
 AlleleGroupHash gram::hash_allele_groups(const SitesGroupedAlleleCounts &sites) {
     AlleleGroupHash allele_ids_groups_hash;
-    uint64_t group_hash = 0;
+    uint64_t group_ID = 0;
+    // Loop through all allele id groups across all variant sites.
     for (const auto &site: sites) {
         for (const auto &allele_group: site) {
             auto allele_ids_group = allele_group.first;
             auto group_seen = allele_ids_groups_hash.find(allele_ids_group)
                               != allele_ids_groups_hash.end();
+            // Group already has an ID, continue.
             if (group_seen)
                 continue;
-            allele_ids_groups_hash[allele_ids_group] = group_hash++;
+            allele_ids_groups_hash[allele_ids_group] = group_ID++;
         }
     }
     return allele_ids_groups_hash;
@@ -71,10 +82,10 @@ std::string gram::dump_site(const AlleleGroupHash &allele_ids_groups_hash,
     auto i = 0;
     for (const auto &allele_entry: site) {
         auto allele_ids_group = allele_entry.first;
-        uint64_t group_hash = allele_ids_groups_hash.at(allele_ids_group);
+        uint64_t group_ID = allele_ids_groups_hash.at(allele_ids_group);
         auto count = allele_entry.second;
 
-        stream << "\"" << (int) group_hash << "\":" << (int) count;
+        stream << "\"" << (int) group_ID << "\":" << (int) count;
         if (i++ < site.size() - 1)
             stream << ",";
     }
@@ -88,6 +99,7 @@ std::string gram::dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash
     std::stringstream stream;
     stream << "\"site_counts\":[";
     auto i = 0;
+    // Call dump_site() for each site, regardless of whether it has any coverage information at all.
     for (const auto &site: sites) {
         stream << dump_site(allele_ids_groups_hash, site);
         if (i++ < sites.size() - 1)

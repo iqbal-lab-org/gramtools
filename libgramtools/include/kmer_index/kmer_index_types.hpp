@@ -5,6 +5,9 @@
 #ifndef GRAMTOOLS_KMER_INDEX_TYPES_HPP
 #define GRAMTOOLS_KMER_INDEX_TYPES_HPP
 
+// s1 s2 s3 s4
+// 1  2   1  4
+
 namespace gram {
     struct CacheElement {
         SearchStates search_states = {};

@@ -7,7 +7,9 @@
 namespace fs = boost::filesystem;
 using namespace gram;
 
-
+/**
+ * Generates a bit vector with bit set if the given DNA `base` is present at each index of the BWT.
+ */
 sdsl::bit_vector generate_base_bwt_mask(const Base &base,
                                         const FM_Index &fm_index) {
     sdsl::bit_vector mask(fm_index.bwt.size(), 0);
@@ -16,7 +18,10 @@ sdsl::bit_vector generate_base_bwt_mask(const Base &base,
     return mask;
 }
 
-
+/**
+ * Generates a filename for a BWT mask for nucleotide bases.
+ * @see generate_base_bwt_mask()
+ */
 std::string bwt_mask_fname(const std::string &base_char,
                            const Parameters &parameters) {
     auto handling_unit_tests = parameters.gram_dirpath[0] == '@';
@@ -31,7 +36,6 @@ std::string bwt_mask_fname(const std::string &base_char,
     fs::path full_path = dir / file;
     return full_path.string();
 }
-
 
 void gram::generate_dna_bwt_masks(const FM_Index &fm_index,
                                   const Parameters &parameters) {

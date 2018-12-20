@@ -9,3 +9,4 @@ gramtools/version/version.py
 gramtools/lib
 libgramtools/tests/test_main
 doc/html
+*~

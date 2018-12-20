@@ -1,3 +1,5 @@
+## @file
+# The entry point for the `gramtools` software.
 import logging
 import argparse
 import collections

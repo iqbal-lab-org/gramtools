@@ -38,7 +38,7 @@ AlleleSumCoverage gram::coverage::generate::allele_sum_structure(const PRG_Info 
 void gram::coverage::record::allele_sum(Coverage &coverage,
                                         const SearchStates &search_states) {
     auto &allele_sum_coverage = coverage.allele_sum_coverage;
-    HashSet<VariantSite> seen_sites;
+    HashSet<VariantLocus> seen_sites;
 
     for (const auto &search_state: search_states) {
         for (const auto &variant_site: search_state.variant_site_path) {
@@ -47,11 +47,11 @@ void gram::coverage::record::allele_sum(Coverage &coverage,
                 continue;
 
             auto marker = variant_site.first;
-            auto allell_id = variant_site.second;
+            auto allele_id = variant_site.second;
 
             auto min_boundary_marker = 5;
-            auto site_coverage_index = (marker - min_boundary_marker) / 2;
-            auto allele_coverage_index = allell_id - 1;
+            auto site_coverage_index = (marker - min_boundary_marker) / 2; // The variant site markers are at least 2 apart (odd numbers) so divide by 2.
+            auto allele_coverage_index = allele_id - 1;
 
             #pragma omp atomic
             allele_sum_coverage[site_coverage_index][allele_coverage_index] += 1;

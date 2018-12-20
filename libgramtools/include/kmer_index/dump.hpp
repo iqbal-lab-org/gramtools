@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Set of routines to dump the `KmerIndex` as well as summary statistics of it to disk.
+ */
 #include "kmer_index/build.hpp"
 
 

@@ -1,3 +1,6 @@
+/** @file
+ * Defines gramtools back-end commands and prg-related filepaths.
+ */
 #include <string>
 #include <vector>
 
@@ -12,6 +15,14 @@ namespace gram {
         quasimap
     };
 
+    /**
+     * PRG file path parameters.
+     * Used for either:
+     * * serialising all the necessary information for vBWT mapping to a given prg after `build` process.
+     * * loading such information for `quasimap`ping reads to the prg.
+     * @see gram::commands::build::parse_parameters()
+     * @see gram::command::quasimap::parse_parameters()
+     */
     struct Parameters {
         std::string gram_dirpath;
         std::string linear_prg_fpath;
