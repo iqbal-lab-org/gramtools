@@ -12,12 +12,12 @@ using namespace gram;
 
 
 CacheElement get_next_cache_element(const Base &base,
-                                    const bool kmer_base_is_last,
+                                    const bool kmer_base_is_first_processed,
                                     const CacheElement &last_cache_element,
                                     const PRG_Info &prg_info) {
     const auto &old_search_states = last_cache_element.search_states;
     SearchStates new_search_states;
-    if (not kmer_base_is_last) {
+    if (not kmer_base_is_first_processed) {
         new_search_states = process_markers_search_states(old_search_states,
                                                           prg_info);
     } else {
@@ -39,68 +39,44 @@ CacheElement get_initial_cache_element(const Base &base,
             SA_Interval{0, prg_info.fm_index.size() - 1}
     };
     SearchStates search_states = {search_state};
-    CacheElement initial_cache_element = {search_states};
+    CacheElement full_sa_interval = {search_states};
 
-    bool kmer_base_is_last = true;
+    bool kmer_base_is_first_processed = true;
     const auto &cache_element = get_next_cache_element(base,
-                                                       kmer_base_is_last,
-                                                       initial_cache_element,
+                                                       kmer_base_is_first_processed,
+                                                       full_sa_interval,
                                                        prg_info);
     return cache_element;
 }
 
 
-KmerIndexCache initial_kmer_index_cache(const Pattern &full_kmer,
-                                        const PRG_Info &prg_info) {
-    KmerIndexCache cache;
+void build_kmer_cache(KmerIndexCache &cache,
+                      const Pattern &kmer_prefix_diff,
+                      const int kmer_size,
+                      const PRG_Info &prg_info) {
+    auto it = kmer_prefix_diff.rbegin();
 
-    for (auto it = full_kmer.rbegin(); it != full_kmer.rend(); ++it) {
-        const auto &base = *it;
-        const bool kmer_base_is_last = it == full_kmer.rbegin();
-
-        if (cache.empty()) {
-            auto cache_element = get_initial_cache_element(base, prg_info);
-            cache.emplace_back(cache_element);
-            continue;
-        }
-
-        const auto &last_cache_element = cache.back();
-        if (last_cache_element.search_states.empty()) {
-            cache.emplace_back(CacheElement{});
-            continue;
-        }
-
-        const auto &new_cache_element = get_next_cache_element(base,
-                                                               kmer_base_is_last,
-                                                               last_cache_element,
-                                                               prg_info);
-        cache.emplace_back(new_cache_element);
-    }
-    return cache;
-}
-
-
-void update_kmer_index_cache(KmerIndexCache &cache,
-                             const Pattern &kmer_prefix_diff,
-                             const int kmer_size,
-                             const PRG_Info &prg_info) {
     if (kmer_prefix_diff.size() == kmer_size) {
-        auto &full_kmer = kmer_prefix_diff;
-        cache = initial_kmer_index_cache(full_kmer, prg_info);
-        return;
+        const auto &base = *it;
+        cache.resize(0); // Empty the `cache`
+        auto cache_element = get_initial_cache_element(base, prg_info);
+        cache.emplace_back(cache_element);
+        ++it;
     }
 
-    const auto truncated_cache_size = kmer_size - kmer_prefix_diff.size();
-    cache.resize(truncated_cache_size);
+    else {
+        const auto preserved_cache_size = kmer_size - kmer_prefix_diff.size();
+        cache.resize(preserved_cache_size);
+    }
 
-    for (auto it = kmer_prefix_diff.rbegin(); it != kmer_prefix_diff.rend(); ++it) {
+    for (; it != kmer_prefix_diff.rend(); ++it) {
         const auto &base = *it;
-        // the last kmer base is only handled by initial_kmer_index_cache(.)
-        const bool kmer_base_is_last = false;
+        // the right-most kmer base (first processed) is only ever handled by `get_initial_cache_element`
+        const bool kmer_base_is_first_processed = false;
 
         auto &last_cache_element = cache.back();
         const auto &new_cache_element = get_next_cache_element(base,
-                                                               kmer_base_is_last,
+                                                               kmer_base_is_first_processed,
                                                                last_cache_element,
                                                                prg_info);
         cache.emplace_back(new_cache_element);
@@ -146,10 +122,10 @@ KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
                          kmer_prefix_diff,
                          kmer_size);
 
-        update_kmer_index_cache(cache,
-                                kmer_prefix_diff,
-                                kmer_size,
-                                prg_info);
+        build_kmer_cache(cache,
+                         kmer_prefix_diff,
+                         kmer_size,
+                         prg_info);
 
         const auto &last_cache_element = cache.back();
         if (not last_cache_element.search_states.empty())
