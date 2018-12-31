@@ -39,12 +39,12 @@ CacheElement get_initial_cache_element(const Base &base,
             SA_Interval{0, prg_info.fm_index.size() - 1}
     };
     SearchStates search_states = {search_state};
-    CacheElement full_SA_interval = {search_states};
+    CacheElement full_sa_interval = {search_states};
 
     bool kmer_base_is_first_processed = true;
     const auto &cache_element = get_next_cache_element(base,
                                                        kmer_base_is_first_processed,
-                                                       full_SA_interval,
+                                                       full_sa_interval,
                                                        prg_info);
     return cache_element;
 }
@@ -69,8 +69,7 @@ void build_kmer_cache(KmerIndexCache &cache,
         cache.resize(preserved_cache_size);
     }
 
-
-    for (it ; it != kmer_prefix_diff.rend(); ++it) {
+    for (; it != kmer_prefix_diff.rend(); ++it) {
         const auto &base = *it;
         // the right-most kmer base (first processed) is only ever handled by `get_initial_cache_element`
         const bool kmer_base_is_first_processed = false;
