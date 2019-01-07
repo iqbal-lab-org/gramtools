@@ -146,7 +146,14 @@ TEST(AlleleBaseCoverage, GivenTwoSites_CorrectInterSiteBaseCount) {
 
     uint64_t first_site_marker = 5;
     uint64_t second_site_marker = 7;
-    auto result = inter_site_base_count(first_site_marker, second_site_marker, prg_info);
+
+    auto first_site_prg_start_end = site_marker_prg_indexes(first_site_marker, prg_info);
+    auto first_site_prg_end = first_site_prg_start_end.second;
+
+    auto second_site_prg_start_end = site_marker_prg_indexes(second_site_marker, prg_info);
+    auto second_site_prg_start = second_site_prg_start_end.first;
+
+    uint64_t result = second_site_prg_start - first_site_prg_end - 1;
     uint64_t expected = 2;
     EXPECT_EQ(result, expected);
 }

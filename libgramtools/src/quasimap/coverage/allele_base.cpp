@@ -79,14 +79,14 @@ uint64_t gram::set_site_base_coverage(Coverage &coverage,
         if (allele_coverage[i] == UINT16_MAX)
             continue;
 
-        #pragma omp atomic
+#pragma omp atomic
         ++allele_coverage[i];
     }
     return count_bases_consumed;
 }
 
 
-std::pair<uint64_t, uint64_t> site_marker_prg_indexes(const uint64_t &site_marker, const PRG_Info &prg_info) {
+std::pair<uint64_t, uint64_t> gram::site_marker_prg_indexes(const uint64_t &site_marker, const PRG_Info &prg_info) {
     auto alphabet_rank = prg_info.fm_index.char2comp[site_marker];
     auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
     auto second_sa_index = first_sa_index + 1;
@@ -101,19 +101,6 @@ std::pair<uint64_t, uint64_t> site_marker_prg_indexes(const uint64_t &site_marke
 }
 
 
-uint64_t gram::inter_site_base_count(const uint64_t &first_site_marker,
-                               const uint64_t &second_site_marker,
-                               const PRG_Info &prg_info) {
-    auto first_site_prg_start_end = site_marker_prg_indexes(first_site_marker, prg_info);
-    auto first_site_prg_end = first_site_prg_start_end.second;
-
-    auto second_site_prg_start_end = site_marker_prg_indexes(second_site_marker, prg_info);
-    auto second_site_prg_start = second_site_prg_start_end.first;
-
-    return second_site_prg_start - first_site_prg_end - 1;
-}
-
-
 void sa_index_allele_base_coverage(Coverage &coverage,
                                    SitesCoverageBoundaries &sites_coverage_boundaries,
                                    const uint64_t &sa_index,
@@ -122,6 +109,8 @@ void sa_index_allele_base_coverage(Coverage &coverage,
                                    const PRG_Info &prg_info) {
     uint64_t read_bases_consumed = 0;
     uint64_t last_site_marker = 0;
+    std::pair<uint64_t, uint64_t> last_site_prg_start_end = std::make_pair(0, 0);
+    std::pair<uint64_t, uint64_t> site_prg_start_end = std::make_pair(0, 0);
     auto path_it = search_state.variant_site_path.begin();
 
     auto read_start_index = prg_info.fm_index[sa_index];
@@ -129,7 +118,8 @@ void sa_index_allele_base_coverage(Coverage &coverage,
     bool read_starts_within_site = start_site_marker != 0;
     if (read_starts_within_site) {
         const auto &path_element = *path_it;
-        last_site_marker = path_element.first;
+        auto site_marker = path_element.first;
+        last_site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
 
         auto allele_coverage_offset = allele_start_offset_index(read_start_index, prg_info);
         auto max_bases_to_set = read_length - read_bases_consumed;
@@ -143,7 +133,7 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         // forward to first path element
         const auto &path_element = *path_it;
         auto site_marker = path_element.first;
-        auto site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
+        site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
         read_bases_consumed += site_prg_start_end.first - read_start_index;
     }
 
@@ -153,9 +143,11 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         const auto &path_element = *path_it;
         auto site_marker = path_element.first;
 
-        if (last_site_marker != 0)
-            read_bases_consumed += inter_site_base_count(last_site_marker, site_marker, prg_info);
-        last_site_marker = site_marker;
+        if (last_site_prg_start_end.first != 0) {
+            site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
+            read_bases_consumed += site_prg_start_end.first - last_site_prg_start_end.second - 1;
+        }
+        last_site_prg_start_end = site_prg_start_end;
 
         uint64_t allele_coverage_offset = 0;
         auto max_bases_to_set = read_length - read_bases_consumed;
