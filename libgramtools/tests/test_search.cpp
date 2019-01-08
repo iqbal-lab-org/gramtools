@@ -364,6 +364,32 @@ TEST(Search, GivenBoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
 
 
 /*
+PRG: 7g8c7g9t10a9
+i	F	BTW	text	SA	suffix
+0	0	9	7	    11	0
+1	1	10	3	    9	1 9 0
+2	2	8	8	    3	2 7 3 9 4 10 1 9 0
+3	3	7	2	    1	3 8 2 7 3 9 4 10 1 9 0
+4	3	7	7	    7	3 9 4 10 1 9 0
+5	4	9	3	    7	4 10 1 9 0
+6	7	0	9	    0	7 3 8 2 7 3 9 4 10 1 9 0
+7	7	2	4	    4	7 3 9 4 10 1 9 0
+8	8	3	10	    2	8 2 7 3 9 4 10 1 9 0
+9	9	1	1	    10	9 0
+10	9	3	9	    8	9 4 10 1 9 0
+11	10	4	0	    8	10 1 9 0
+*/
+TEST(Search, GivenPrgWithNonContiniousAlphabet_CorrectAlleleMarkerEndBoundary) {
+    auto prg_raw = "7g8c7g9t10a9";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto result = get_allele_marker_sa_interval(7, prg_info);
+    SA_Interval expected = {8, 8};
+    EXPECT_EQ(result, expected);
+}
+
+
+/*
 PRG: gcgct5c6g6t5agtcct
 i	F	BWT	text	SA	suffix
 0	0	4	 3	    18	  0
