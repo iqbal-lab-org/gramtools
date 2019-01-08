@@ -308,8 +308,12 @@ SA_Interval gram::get_allele_marker_sa_interval(const Marker &site_marker_char,
     const auto start_sa_index = prg_info.fm_index.C[alphabet_rank];
 
     const auto next_boundary_marker = allele_marker_char + 1;
-    const auto max_char_in_alphabet = prg_info.fm_index.sigma - 1;
-    const bool next_boundary_marker_valid = next_boundary_marker <= max_char_in_alphabet;
+    // sigma: contains the size (=number of unique symbols) of the alphabet
+    const auto max_alphabet_char = prg_info.fm_index.comp2char[prg_info.fm_index.sigma - 1];
+
+    // The max_alphabet_char is one of {1, 2, 3, 4, <max allele marker>}
+    // next_boundary_marker is already > 4, therefore conditional simplifies to the following
+    const bool next_boundary_marker_valid = next_boundary_marker < max_alphabet_char;
 
     SA_Index end_sa_index;
     if (next_boundary_marker_valid) {
@@ -329,6 +333,7 @@ AlleleId gram::get_allele_id(const SA_Index &allele_marker_sa_index,
                              const PRG_Info &prg_info) {
     auto internal_allele_text_index = prg_info.fm_index[allele_marker_sa_index] - 1;
     auto allele_id = (AlleleId) prg_info.allele_mask[internal_allele_text_index];
+    assert(allele_id > 0);
     return allele_id;
 }
 
