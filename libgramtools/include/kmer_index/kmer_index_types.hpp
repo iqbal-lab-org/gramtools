@@ -15,7 +15,7 @@ namespace gram {
     };
     using KmerIndexCache = std::list<CacheElement>;
 
-    using KmerIndex = SequenceHashMap<Pattern, SearchStates>;
+    using KmerIndex = SequenceHashMap<Pattern, SearchStates>; /**< Fast access to mappings of `Pattern` (kmer).*/
 }
 
 #endif //GRAMTOOLS_KMER_INDEX_TYPES_HPP

@@ -9,6 +9,8 @@ std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg
     using MarkerIndex = uint64_t;
     std::unordered_map<Marker, MarkerIndex> start_indexes;
 
+    // Loop over all markers (allele and site markers).
+    // We don't loop through all indices of the prg to minimise calls to `encoded_prg`.
     for (uint64_t marker_count = 1;
          marker_count <= prg_info.markers_mask_count_set_bits;
          ++marker_count) {
@@ -16,20 +18,23 @@ std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg
         uint64_t marker_char = prg_info.encoded_prg[marker_index];
 
         auto marker_is_site_boundary = marker_char % 2 != 0;
+        // If we have an allele marker, keep going.
         if (not marker_is_site_boundary)
             continue;
 
         auto start_index_memorized = start_indexes.find(marker_char) != start_indexes.end();
+        // If this is the first time we see a given site marker, mark it as the start, and keep going.
         if (not start_index_memorized) {
             start_indexes[marker_char] = marker_index;
             continue;
         }
 
+        // #else: we are in a site marker, marking the end of a site in the prg.
         auto start_index = start_indexes[marker_char];
         auto &end_index = marker_index;
         boundary_marker_indexes.emplace_back(PrgIndexRange{start_index, end_index});
 
-        start_indexes.erase(marker_char);
+        start_indexes.erase(marker_char); // We will only ever see variant site marker twice, and we have, so erase it.
     }
     return boundary_marker_indexes;
 }
@@ -40,29 +45,42 @@ uint64_t gram::find_site_end_boundary(const uint64_t &within_site_index,
     auto last_prg_index = prg_info.encoded_prg.size() - 1;
     auto number_markers_before = prg_info.prg_markers_rank(within_site_index);
 
+    // Iterate through all markers from the one closest to the right of `within_site_index`
     for (uint64_t marker_count = number_markers_before + 1;
          marker_count <= prg_info.markers_mask_count_set_bits;
          ++marker_count) {
+
         auto marker_index = prg_info.prg_markers_select(marker_count);
         uint64_t marker_char = prg_info.encoded_prg[marker_index];
 
+        // Guarantee we have a variant site marker; eliminate allele markers.
         auto marker_is_boundary = marker_char % 2 != 0;
         if (not marker_is_boundary)
             continue;
 
+        // Return the marker if it is the last position of the prg, in which case it must
+        // an end boundary position.
         auto char_is_last_in_prg = marker_index == last_prg_index;
         if (char_is_last_in_prg)
             return marker_index;
 
+        // The only case left to eliminate is site marker marking site start boundary.
+        // In which case the next position is an allele position.
         auto next_char_within_allele = prg_info.allele_mask[marker_index + 1] != 0;
         if (next_char_within_allele)
             continue;
+
+        // All conditions met: we have a end boundary site marker index.
         return marker_index;
     }
     return 0;
 }
 
 
+/**
+ * Extends a variant site region in the prg up to a read mapping at least one base into the region.
+ * The extension is 'to the right' only in the prg because read mapping will be right to left.
+ */
 uint64_t get_kmer_region_end_index(const uint64_t end_marker_index,
                                    const uint64_t max_read_size,
                                    const PRG_Info &prg_info) {
@@ -74,6 +92,7 @@ uint64_t get_kmer_region_end_index(const uint64_t end_marker_index,
     auto within_variant_site = prg_info.allele_mask[end_index] > 0
                                or prg_info.prg_markers_mask[end_index] != 0;
     if (within_variant_site) {
+        // We have not reached the end of the site; kmers between here and the end of the site need to be searchable.
         end_index = find_site_end_boundary(end_index,
                                            prg_info);
     }
@@ -85,6 +104,7 @@ std::vector<PrgIndexRange> gram::get_kmer_region_ranges(std::vector<PrgIndexRang
                                                         const uint64_t &max_read_size,
                                                         const PRG_Info &prg_info) {
     std::vector<PrgIndexRange> kmer_region_ranges;
+    // Unpack each variant site region, and extend it to the right in the prg.
     for (const auto &marker_indexes_range: boundary_marker_indexes) {
         auto &start_marker_index = marker_indexes_range.first;
         auto &end_marker_index = marker_indexes_range.second;
@@ -102,6 +122,7 @@ std::vector<PrgIndexRange> gram::get_kmer_region_ranges(std::vector<PrgIndexRang
 
 Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
                                         const PRG_Info &prg_info) {
+    // TODO: this is probably unnecessary, as the function is only called with an end boundary index?
     auto site_end_index = find_site_end_boundary(within_site_index, prg_info);
     auto boundary_marker = prg_info.encoded_prg[site_end_index];
 
@@ -117,6 +138,7 @@ Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
         auto at_site_start_marker = current_char == boundary_marker;
         auto at_allele_marker = current_char > 4 and current_char % 2 == 0;
         if (at_site_start_marker or at_allele_marker) {
+            // Turn the allele bases in the order they are seen in the prg.
             std::reverse(allele.begin(), allele.end());
             site_alleles.push_back(allele);
             allele.clear();
@@ -126,6 +148,7 @@ Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
         allele.emplace_back(current_char);
     }
 
+    // Turn the recorded alleles to order they are seen in the prg.
     std::reverse(site_alleles.begin(), site_alleles.end());
     return site_alleles;
 }
@@ -139,8 +162,14 @@ struct KmerTraversalState {
 };
 
 
+/**
+ * Checks whether a variant site is within reach for kmer indexing.
+ * The computed distance is conservative, because each traversed site contributes only one base to
+ * the kmer to index.
+ */
 bool check_marker_in_kmer_range(const KmerTraversalState &traversal_state,
                                 const uint64_t kmer_size) {
+    //TODO: We may include a variant site even though it is actually out of reach due to counting one base per site only?
     auto kmer_distance_traversed = traversal_state.total_intersite_size
                                    + traversal_state.total_handled_sites_count;
     auto marker_in_range = kmer_distance_traversed + 1 <= kmer_size;
@@ -155,6 +184,10 @@ enum class MarkerHandlerStatus {
 };
 
 
+/**
+ * Tests if the marker at `marker_index` is an allele marker.
+ * If it is, does not add it to `inrange_sites`, just marks it as last marker seen.
+ */
 MarkerHandlerStatus handle_allele_marker(KmerTraversalState &traversal_state,
                                          const uint64_t marker_index,
                                          const PRG_Info &prg_info) {
@@ -169,6 +202,12 @@ MarkerHandlerStatus handle_allele_marker(KmerTraversalState &traversal_state,
 }
 
 
+/**
+ * Adds a marker to visitable markers if it is the first marker encountered
+ * and it is within reach.
+ * @param marker_index the queried marker
+ * @param inrange_sites the list of visitable markers
+ */
 MarkerHandlerStatus handle_first_marker_seen(std::list<uint64_t> &inrange_sites,
                                              KmerTraversalState &traversal_state,
                                              const uint64_t marker_index,
@@ -187,11 +226,16 @@ MarkerHandlerStatus handle_first_marker_seen(std::list<uint64_t> &inrange_sites,
         return MarkerHandlerStatus::marker_not_in_range;
 
     traversal_state.last_marker_index = marker_index;
+
+    // Add encountered site to the list of inrange sites.
     inrange_sites.push_front(marker_index);
     return MarkerHandlerStatus::handled;
 }
 
-
+/**
+ * Tests whether `marker_index` is the end of a boundary marker,
+ * when we have already added another different variant site to `inrange_sites`.
+ */
 MarkerHandlerStatus handle_end_boundary_marker(std::list<uint64_t> &inrange_sites,
                                                KmerTraversalState &traversal_state,
                                                const uint64_t marker_index,
@@ -199,14 +243,20 @@ MarkerHandlerStatus handle_end_boundary_marker(std::list<uint64_t> &inrange_site
                                                const PRG_Info &prg_info) {
     auto marker_char = prg_info.encoded_prg[marker_index];
     auto at_boundary_marker = marker_char % 2 != 0;
+
     const auto &last_marker_index = traversal_state.last_marker_index;
     const auto &last_marker_char = prg_info.encoded_prg[last_marker_index];
+
+    // If `last_marker_char` is a variant site marker, it must be a site entry point.
+    // This is because when it is an exit point, we must first go through an allele marker,
+    // and that overwrites `last_marker_index` attribute.
     auto last_marker_was_boundary = last_marker_char % 2 != 0;
     auto at_boundary_end_marker = at_boundary_marker and last_marker_was_boundary;
 
     if (not at_boundary_end_marker)
         return MarkerHandlerStatus::unhandled;
 
+    // Add the non-variant region between the two sites as processed characters.
     traversal_state.total_intersite_size += last_marker_index
                                             - marker_index
                                             - 1;
@@ -227,25 +277,35 @@ MarkerHandlerStatus handle_start_boundary_marker(std::list<uint64_t> &inrange_si
                                                  const PRG_Info &prg_info) {
     auto marker_char = prg_info.encoded_prg[marker_index];
     auto at_boundary_marker = marker_char % 2 != 0;
+
+    // Use `last_marker_index` to verify if we are at a variant site entry point.
+    // For this to be true, it must be that the last processed
+    // (ie to the right in the prg) variant site marker is an allele marker.
     const auto &last_marker_index = traversal_state.last_marker_index;
     const auto &last_marker_char = prg_info.encoded_prg[last_marker_index];
-    auto last_marker_was_boundary = last_marker_char % 2 != 0;
+    auto last_marker_was_boundary = last_marker_char % 2 != 0; // Needs to be false for handling the marker.
     auto at_boundary_start_marker = at_boundary_marker and not last_marker_was_boundary;
 
     if (not at_boundary_start_marker)
         return MarkerHandlerStatus::unhandled;
 
+    // #else: we have handled an additional site.
     traversal_state.total_handled_sites_count++;
     traversal_state.last_marker_index = marker_index;
     return MarkerHandlerStatus::handled;
 }
 
 
+/**
+ * Process a marker based on its identity, recording variant site traversal.
+ */
 MarkerHandlerStatus find_site_end_indexes(std::list<uint64_t> &inrange_sites,
                                           KmerTraversalState &traversal_state,
                                           const uint64_t marker_index,
                                           const uint64_t kmer_size,
                                           const PRG_Info &prg_info) {
+
+    // Lambda function which returns whether the result is either `handled` or `marker_not_in_range`.
     auto result_handled = [](const auto &result) {
         return result != MarkerHandlerStatus::unhandled;
     };
@@ -299,6 +359,7 @@ std::list<uint64_t> gram::sites_inrange_left(const uint64_t outside_site_start_i
     auto number_markers_before = prg_info.prg_markers_rank(start_index);
     auto at_site_end_boundary = index_is_site_end_boundary(start_index,
                                                            prg_info);
+    // Make sure we process a site end boundary if we start searching from there. Needed because rank query is non-inclusive.
     if (at_site_end_boundary)
         number_markers_before += 1;
 
@@ -306,6 +367,7 @@ std::list<uint64_t> gram::sites_inrange_left(const uint64_t outside_site_start_i
     KmerTraversalState traversal_state;
     traversal_state.outside_site_start_index = outside_site_start_index;
 
+    // Loop through preceding variant markers, breaking when a marker is no longer reachable by the kmer(s) to index.
     for (uint64_t marker_count = number_markers_before;
          marker_count > 0;
          --marker_count) {
@@ -315,6 +377,7 @@ std::list<uint64_t> gram::sites_inrange_left(const uint64_t outside_site_start_i
                                             marker_index,
                                             kmer_size,
                                             prg_info);
+        // At first marker not reachable by our `kmer_size` to index, break out.
         if (result == MarkerHandlerStatus::marker_not_in_range)
             break;
     }
@@ -364,6 +427,10 @@ std::vector<Base> gram::right_intersite_nonvariant_region(const uint64_t &site_e
 }
 
 
+/**
+ * Extract a simple kmer from the prg, storing it back to front.
+ * Simple kmer means the kmer to index does not overlap a single variant site.
+ */
 std::vector<Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
                                               const uint64_t kmer_size,
                                               const PRG_Info &prg_info) {
@@ -375,7 +442,7 @@ std::vector<Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
                                 - (int64_t) kmer_size + 1 >= 0;
     if (start_index_is_valid)
         kmer_start_index = kmer_end_index - kmer_size + 1;
-    else
+    else // Nothing to index, cannot fit a full kmer
         return reverse_kmer;
 
     for (uint64_t i = kmer_end_index; i >= kmer_start_index; --i) {
@@ -396,6 +463,8 @@ uint64_t gram::find_site_start_boundary(const uint64_t &end_boundary_index,
     uint64_t current_marker = 0;
     auto number_markers_before = prg_info.prg_markers_rank(current_index);
 
+    // Process the markers before the end position until we hit the target marker.
+    // In other words, process interveaning alleles until we hit variant site marker start.
     while (current_marker != target_marker) {
         current_index = prg_info.prg_markers_select(number_markers_before);
         current_marker = prg_info.encoded_prg[current_index];
@@ -407,6 +476,9 @@ uint64_t gram::find_site_start_boundary(const uint64_t &end_boundary_index,
 }
 
 
+/**
+ * Extract the region before the last reachable site in the prg.
+ */
 Pattern get_pre_site_part(const uint64_t site_end_boundary,
                           const uint64_t kmer_size,
                           const PRG_Info &prg_info) {
@@ -414,6 +486,7 @@ Pattern get_pre_site_part(const uint64_t site_end_boundary,
                                                               prg_info);
     Pattern pre_site_part = {};
     if (first_site_start_boundary != 0) {
+        // TODO: this should be +1 not -1 otherwise you can map a full kmer outside the variant site.
         int64_t end_index = first_site_start_boundary - kmer_size - 1;
         if (end_index < 0)
             end_index = 0;
@@ -421,7 +494,7 @@ Pattern get_pre_site_part(const uint64_t site_end_boundary,
         for (int64_t i = first_site_start_boundary - 1;
              i >= end_index; --i) {
             auto base = (Base) prg_info.encoded_prg[i];
-            if (base > 4)
+            if (base > 4) // We know that we cannot reach the next variant site; so just stop if encountered.
                 break;
             pre_site_part.push_back(base);
         }
@@ -431,10 +504,15 @@ Pattern get_pre_site_part(const uint64_t site_end_boundary,
 }
 
 
+/**
+ * Add the region past the last reachable variant site in the kmer to`region_parts`.
+ * This region could contribute to a kmer to index and so needs to be added to regions to consider for kmer indexing.
+ */
 void add_pre_site_region(std::list<Patterns> &region_parts,
                          const std::list<uint64_t> &inrange_sites,
                          const uint64_t kmer_size,
                          const PRG_Info &prg_info) {
+    // Extract the first variant site in the prg: ie the last reachable one for kmer to index.
     auto first_site_end_boundary = inrange_sites.front();
     Pattern pre_site_part = get_pre_site_part(first_site_end_boundary,
                                               kmer_size,
@@ -444,6 +522,10 @@ void add_pre_site_region(std::list<Patterns> &region_parts,
 }
 
 
+/**
+ * Adds all alleles of reachable sites and non-variant regions between them to `region_parts`.
+ * @param region_parts list of nucleotide regions to add. These will be combined to form kmers to index.
+ */
 void add_site_regions(std::list<Patterns> &region_parts,
                       const std::list<uint64_t> &inrange_sites,
                       const PRG_Info &prg_info) {
@@ -457,6 +539,7 @@ void add_site_regions(std::list<Patterns> &region_parts,
         if (at_last_site)
             continue;
 
+        // Push the non-variant region between two sites, if not at the last site.
         auto nonvariant_region = right_intersite_nonvariant_region(end_boundary_index,
                                                                    prg_info);
         region_parts.emplace_back(Patterns{nonvariant_region});
@@ -540,10 +623,11 @@ bool gram::update_allele_index_path(std::vector<uint64_t> &current_allele_index_
     // find rightmost index to increase
     int64_t i = (int64_t) current_allele_index_path.size() - 1;
     for (; i >= 0; --i) {
+        // This evaluates to false whenever there is another unused allele still.
         auto at_last_valid_index = current_allele_index_path[i] + 1 == parts_allele_counts[i];
         if (not at_last_valid_index) {
             more_paths_possible = true;
-            break;
+            break; // break ensures we will only increment the allele index of the first position where there is another allele.
         }
     }
 
@@ -554,12 +638,17 @@ bool gram::update_allele_index_path(std::vector<uint64_t> &current_allele_index_
     current_allele_index_path[i]++;
     i++;
 
+    // Reset all indices to the right to 0, so that we enumerate again all paths, but with our new modification.
     for (; i < current_allele_index_path.size(); ++i)
         current_allele_index_path[i] = 0;
     return more_paths_possible;
 }
 
 
+/**
+ * Count the maximum number of different kmers to index to produce.
+ * Based on multiplying each variant site's number of alleles.
+ */
 uint64_t total_number_paths(const std::list<Patterns> &region_parts) {
     uint64_t number_of_paths_expected = 1;
     for (const auto &ordered_alleles: region_parts) {
@@ -587,8 +676,8 @@ unordered_vector_set<Pattern> gram::get_path_reverse_kmers(const Pattern &path,
 unordered_vector_set<Pattern> gram::get_region_parts_reverse_kmers(const std::list<Patterns> &region_parts,
                                                                    const uint64_t &kmer_size) {
     uint64_t number_of_paths_expected = total_number_paths(region_parts);
-    std::vector<uint64_t> current_allele_index_path(region_parts.size(), 0);
-    std::vector<uint64_t> parts_allele_counts;
+    std::vector<uint64_t> current_allele_index_path(region_parts.size(), 0); // Start at index 0 for each part of `region_parts`.
+    std::vector<uint64_t> parts_allele_counts; // Stores the number of alleles for each part of `region_parts`
     parts_allele_counts.reserve(region_parts.size());
     for (const auto &ordered_alleles: region_parts)
         parts_allele_counts.push_back(ordered_alleles.size());
@@ -637,6 +726,8 @@ unordered_vector_set<Pattern> gram::get_sites_reverse_kmers(uint64_t &current_ra
     auto all_reverse_kmers = get_region_parts_reverse_kmers(region_parts,
                                                             kmer_size);
 
+    // Now that we have produced all possible kmers traversing all variant sites within reach,
+    // We update the `current_range_end_index` past the last (leftmost) reachable variant site.
     auto first_site_end_boundary = inrange_sites.front();
     auto first_site_start_boundary = find_site_start_boundary(first_site_end_boundary,
                                                               prg_info);
@@ -647,7 +738,6 @@ unordered_vector_set<Pattern> gram::get_sites_reverse_kmers(uint64_t &current_ra
     return all_reverse_kmers;
 }
 
-
 unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
                                                                    const uint64_t &kmer_size,
                                                                    const PRG_Info &prg_info) {
@@ -656,12 +746,13 @@ unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgInde
 
     unordered_vector_set<Pattern> all_reverse_kmers = {};
 
+    // Loop through each index position, building kmers to index.
     for (auto current_index = region_end;
          current_index >= region_start;
          --current_index) {
         auto current_index_is_valid = (int64_t) current_index
                                       - (int64_t) kmer_size + 1 >= 0;
-        if (not current_index_is_valid)
+        if (not current_index_is_valid) // Can we fit a kmer in prg whose end is at `current_index`?
             break;
 
         auto inrange_sites = sites_inrange_left(current_index,
@@ -670,6 +761,7 @@ unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgInde
 
         auto sites_in_range = not inrange_sites.empty();
         if (sites_in_range) {
+            // This call modifies `current_index`
             auto reverse_kmers = get_sites_reverse_kmers(current_index,
                                                          inrange_sites,
                                                          kmer_size,
@@ -680,8 +772,10 @@ unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgInde
             continue;
         }
 
+        // If we are within a site, we will just keep going.
         auto within_site = prg_info.allele_mask[current_index] > 0
                            or prg_info.prg_markers_mask[current_index] != 0;
+
         if (not within_site) {
             auto reverse_kmer = extract_simple_reverse_kmer(current_index,
                                                             kmer_size,
@@ -699,6 +793,7 @@ unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgInde
 std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<PrgIndexRange> &kmer_region_ranges) {
     auto sorted_ranges = kmer_region_ranges;
 
+    // TODO: is `kmer_region_ranges` already sorted?
     auto ordering_condition = [](const auto &lhs, const auto &rhs) {
         if (lhs.first < rhs.first)
             return true;
@@ -717,6 +812,7 @@ std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<P
 
         auto at_first_range = last_range_seen.first == 0
                               and last_range_seen.second == 0;
+        // Initialise to first range.
         if (at_first_range) {
             last_range_seen.first = range.first;
             last_range_seen.second = range.second;
@@ -735,6 +831,7 @@ std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<P
         if (range_completely_encapsulated)
             continue;
 
+        // There is an overlap, but it is not completely encapsulated; so we extend the constructed region to the end of this one.
         last_range_seen.second = range.second;
     }
 
@@ -748,6 +845,7 @@ std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<P
         return reduced_ranges;
     }
 
+    // Check that we have an unregistered final constructed range left, due to no overlapping in above loop.
     auto last_range_not_added = reduced_ranges.back() != last_range_seen;
     if (last_range_not_added)
         reduced_ranges.push_back(last_range_seen);
@@ -761,6 +859,7 @@ ordered_vector_set<Pattern> gram::get_prg_reverse_kmers(const Parameters &parame
     auto kmer_region_ranges = get_kmer_region_ranges(boundary_marker_indexes,
                                                      parameters.max_read_size,
                                                      prg_info);
+    // Merge all overlaps, so that we do not have redundancies in regions of the prg to index.
     kmer_region_ranges = combine_overlapping_regions(kmer_region_ranges);
 
     // this data structure orders the kmers
@@ -829,7 +928,8 @@ std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
     } else {
         ordered_reverse_kmers = get_prg_reverse_kmers(parameters, prg_info);
     }
-    // Call to reverse: c[j]=c[kmers_size-i-1], i the original position, j the new. For eg changes '1234' to '4321'
+    // Call to reverse: changes for eg '1234' to '4321'. c[j]=c[kmers_size-i-1], i the original position, j the new.
+    // Then the kmers are stored as seen in the prg, but in ordered fashion such that they have maximally identical suffixes.
     auto ordered_kmers = reverse(ordered_reverse_kmers);
     return ordered_kmers;
 }

@@ -1362,7 +1362,10 @@ TEST(GetAllReverseKmers, SecondVariantSiteEndsAtPrgEnd_CorrectReverseKmers) {
     EXPECT_EQ(result, expected);
 }
 
-
+/**
+ * @note the expected elements are written out in an easier to read right-to-left order;
+ * but are stored in ordered fashion ({2,1,1,4,2} first).
+ */
 TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
     auto prg_raw = "cta5g6a5cgt7cc8t7";
     auto prg_info = generate_prg_info(prg_raw);

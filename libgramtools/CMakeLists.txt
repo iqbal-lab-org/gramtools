@@ -26,7 +26,8 @@ set(INCLUDE
 
 find_package(BZip2)
 
-include_directories()
+# In development mode, makes sure can access the dependencies
+include_directories(${EXTERNAL_INCLUDE_DIR})
 
 set(EXTERN_LIBS
         boost_filesystem
