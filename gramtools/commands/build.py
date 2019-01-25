@@ -69,6 +69,7 @@ def parse_args(common_parser, subparsers):
                         required=False)
 
 
+## Checks prg file exists and copies it to gram directory.
 def _skip_prg_construction(build_paths, report, args):
     if report.get('return_value_is_0') is False:
         report['prg_build_report'] = {
@@ -92,6 +93,7 @@ def _skip_prg_construction(build_paths, report, args):
     return report
 
 
+## Calls perl utility that converts a vcf and fasta reference into a linear prg.
 def _execute_command_generate_prg(build_paths, report, _):
     if report.get('return_value_is_0') is False:
         report['prg_build_report'] = {
@@ -129,7 +131,7 @@ def _execute_command_generate_prg(build_paths, report, _):
     ])
     return report
 
-
+## Executes `gram build` backend.
 def _execute_gramtools_cpp_build(build_paths, report, args):
     if report.get('return_value_is_0') is False:
         report['gramtools_cpp_build'] = {
@@ -203,7 +205,8 @@ def _save_report(start_time,
     with open(report_file_path, 'w') as fhandle:
         json.dump(_report, fhandle, indent=4)
 
-
+## Combines multiple vcf files together using external python utility.
+# Records where the REF overlaps are merged together and all possible haplotypes enumerated.
 def _handle_multi_vcf(vcf_files, command_paths):
     if not vcf_files:
         command_paths['vcf'] = ''

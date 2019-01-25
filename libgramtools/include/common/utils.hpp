@@ -1,5 +1,5 @@
 /** @file
- * Defines a set of useful types and functions common to the backend.
+ * Defines a set of data structures and functions common to the backend.
  */
 #include <vector>
 #include <list>
@@ -46,7 +46,7 @@ namespace gram {
     using VariantSitePath = std::list<VariantLocus>; /**< A path through variant sites is a list of allele/site combinations. */
     using VariantSitePaths = std::list<VariantSitePath>;
 
-    /** The suffix array (SA) holds the first position of all (lexicographically sorted) cyclic permutations of the prg.
+    /** The suffix array (SA) holds the starting index of all (lexicographically sorted) cyclic permutations of the prg.
      * An `SA_Index` is an index into one such position.*/
     using SA_Index = uint64_t;
     using SA_Interval = std::pair<SA_Index, SA_Index>; /**< A set of **contiguous** indices in the suffix array.*/

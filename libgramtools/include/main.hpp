@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Entry point for gramtools backend (`gram`).
+ */
 #include "common/parameters.hpp"
 
 

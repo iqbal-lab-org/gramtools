@@ -11,6 +11,11 @@
 
 namespace gram::coverage {
     namespace generate {
+        /**
+         * Generates the coverage structure recording allele sum counts.
+         * Iterates over the `gram::PRG_Info::sites_mask` to do so.
+         * @return `gram::AlleleSumCoverage` A vector of vectors of integers. The top-level vector represents each site, as a vector of allele counts.
+         */
         AlleleSumCoverage allele_sum_structure(const PRG_Info &prg_info);
     }
 

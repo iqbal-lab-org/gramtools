@@ -29,24 +29,35 @@ IndexedKmerStats gram::deserialize_next_stats(const uint64_t &stats_index,
     assert(stats_index < kmers_stats.size());
     IndexedKmerStats stats = {};
 
-    stats.count_search_states = kmers_stats[stats_index];
+    stats.count_search_states = kmers_stats[stats_index]; //The first element is the number of SearchStates for the indexed kmer.
     if (stats.count_search_states == 0)
         return stats;
 
+    // The next elements are the path lengths of each Search State for the indexed kmer.
     for (uint64_t i = stats_index + 1; i <= stats_index + stats.count_search_states; ++i)
         stats.path_lengths.push_back(kmers_stats[i]);
     return stats;
 }
 
 
+/**
+ * Creates empty `gram::SearchState`s.
+ * These will get populated with `gram::SA_interval`s and `gram::variant_site_path`s.
+ */
 void pad_search_states(SearchStates &search_states,
                        const IndexedKmerStats &stats) {
+    // The function may not do anything if called on already existing `SearchStates`.
+    // This occurs when expected_count evaluates to 0.
     auto expected_count = stats.count_search_states - search_states.size();
     for (uint64_t i = search_states.size(); i < expected_count; ++i)
         search_states.emplace_back(SearchState{});
 }
 
 
+/**
+ * Populates each `gram::SearchState` of an indexed kmer with its start and end SA indices.
+ * @param sa_intervals all the `gram::SA_Interval`s deserialised.
+ */
 void handle_sa_interval(SearchStates &search_states,
                         uint64_t &sa_interval_index,
                         const sdsl::int_vector<> &sa_intervals) {
@@ -76,6 +87,7 @@ void gram::parse_sa_intervals(KmerIndex &kmer_index,
         auto stats = deserialize_next_stats(stats_index, kmers_stats);
         stats_index += stats.count_search_states + 1;
 
+        // Creates an empty `SearchStates` for the next indexed kmer, adds it to the `KmerIndex`, returns it. (unordered_map STL behaviour).
         auto &search_states = kmer_index[kmer];
         pad_search_states(search_states, stats);
 
@@ -86,12 +98,18 @@ void gram::parse_sa_intervals(KmerIndex &kmer_index,
 }
 
 
+/**
+ * Populate each `gram::SearchState` of an indexed kmer with its `gram::variant_site_path`.
+ * @param paths the serialised `gram::variant_site_path`s.
+ */
 void handle_path_element(SearchStates &search_states,
                          uint64_t &paths_index,
                          const sdsl::int_vector<> &paths,
                          const IndexedKmerStats &stats) {
     uint64_t i = 0;
     for (auto &search_state: search_states) {
+        // The path_length of each `SearchState` has been extracted from the serialised kmer stats.
+        // Note that it can be 0, in which case the variant_site_path remains empty.
         const auto &path_length = stats.path_lengths[i++];
 
         for (uint64_t j = 0; j < path_length; ++j) {
@@ -126,6 +144,7 @@ void gram::parse_paths(KmerIndex &kmer_index,
         auto stats = deserialize_next_stats(stats_index, kmers_stats);
         stats_index += stats.count_search_states + 1;
 
+        // This brings back existing `SearchStates`, created in function parse_sa_intervals.
         auto &search_states = kmer_index[kmer];
         pad_search_states(search_states, stats);
 

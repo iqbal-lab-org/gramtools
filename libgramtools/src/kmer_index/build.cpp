@@ -70,6 +70,7 @@ void build_kmer_cache(KmerIndexCache &cache,
     auto it = kmer_prefix_diff.rbegin();
 
     if (kmer_prefix_diff.size() == kmer_size) {
+    // Case: a fully new kmer is encountered. No reuse of `cache`d search possible. Call a full search on the kmer.
         const auto &base = *it;
         cache.resize(0); // Empty the `cache`
         auto cache_element = get_initial_cache_element(base, prg_info);
@@ -83,7 +84,6 @@ void build_kmer_cache(KmerIndexCache &cache,
     }
 
     for (; it != kmer_prefix_diff.rend(); ++it) {
-    // Case: a fully new kmer is encountered. No reuse of `cache`d search possible. Call a full search on the kmer.
         const auto &base = *it;
         // the right-most kmer base (first processed) is only ever handled by `get_initial_cache_element`
         const bool kmer_base_is_first_processed = false;

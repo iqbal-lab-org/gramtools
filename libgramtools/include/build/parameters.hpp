@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Command-line argument processing for `build` command.
+ */
 namespace po = boost::program_options;
 
 

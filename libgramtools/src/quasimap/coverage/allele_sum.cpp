@@ -25,8 +25,8 @@ AlleleSumCoverage gram::coverage::generate::allele_sum_structure(const PRG_Info 
         }
 
         const auto &current_marker = mask_value;
-        if (last_char_was_zero) {
-            auto variant_site_cover_index = (current_marker - min_boundary_marker) / 2;
+        if (last_char_was_zero) { // We found a new allele. Make room for it and give it a 0 count.
+            auto variant_site_cover_index = (current_marker - min_boundary_marker) / 2; // Maps marker 5 to index 0; marker 7 to index 1; etc.
             allele_sum_coverage[variant_site_cover_index].push_back(0);
             last_char_was_zero = false;
         }

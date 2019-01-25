@@ -1,3 +1,5 @@
+## @file
+# Sets up file names and directory structures for storing the gramtools inputs and outputs.
 import os
 import uuid
 import logging
@@ -5,7 +7,8 @@ import tempfile
 
 log = logging.getLogger('gramtools')
 
-
+## Defines the file names for all gramtools-related data files.
+# These data files are committed to disk by the `build` process, and loaded for the `quasimap` process.
 def _generate_project_paths(args):
     project_dir = args.gram_directory
 
@@ -34,19 +37,19 @@ def _generate_project_paths(args):
     }
     return paths
 
-
+## Renames the vcf produced by the perl utility for clarity.
 def _move_perl_vcf(build_paths):
     original_fpath = build_paths['prg'] + '.vcf'
     target_fpath = build_paths['perl_generated_vcf']
     os.rename(original_fpath, target_fpath)
 
-
+## Renames the fasta reference produced by the perl utility for clarity.
 def _move_perl_reference(build_paths):
     original_fpath = build_paths['prg'] + '.fa'
     target_fpath = build_paths['perl_generated_fa']
     os.rename(original_fpath, target_fpath)
 
-
+## Removes unnecessary accessory files produced by perl utility.
 def perl_script_file_cleanup(build_paths):
     os.remove(build_paths['prg'] + '.mask_sites')
     os.remove(build_paths['prg'] + '.mask_alleles')
@@ -112,14 +115,14 @@ def _quasimap_output_dirpath(outputs_base_path,
     path = os.path.join(outputs_base_path, directory_name)
     return path
 
-
+## Make quasimap-related file and directory paths.
 def generate_quasimap_paths(args, start_time):
     project_paths = _generate_project_paths(args)
 
     if hasattr(args, 'output_directory') and args.output_directory is not None:
         outputs_base_path = os.path.abspath(os.path.join(args.output_directory, os.pardir))
         run_dirpath = args.output_directory
-    else:
+    else: # Name a default output directory inside the gram project directory.
         outputs_base_path = os.path.join(project_paths['project'], 'quasimap_outputs')
         run_dirpath = _quasimap_output_dirpath(outputs_base_path,
                                                args.kmer_size,
@@ -135,7 +138,7 @@ def generate_quasimap_paths(args, start_time):
     paths.update(project_paths)
     return paths
 
-
+## Makes project directories if they are required and do not exist.
 def check_project_file_structure(paths):
     log.debug('Checking project file structure')
     directory_keys = [

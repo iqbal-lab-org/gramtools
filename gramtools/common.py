@@ -1,3 +1,5 @@
+## @file
+# File path and process result logging related utilities. Are used across commands.
 import os
 import hashlib
 import logging
@@ -5,6 +7,7 @@ import logging
 
 log = logging.getLogger('gramtools')
 
+# Find executable locations
 base_install_path = os.path.dirname(os.path.abspath(__file__))
 gramtools_exec_fpath = os.path.join(base_install_path,
                                     'bin',
@@ -12,7 +15,7 @@ gramtools_exec_fpath = os.path.join(base_install_path,
 prg_build_exec_fpath = os.path.join(base_install_path,
                                     'utils',
                                     'vcf_to_linear_prg.pl')
-
+# Add the dynamically linked libraries at runtime
 _old_ld_library_path = os.environ["LD_LIBRARY_PATH"] if "LD_LIBRARY_PATH" in os.environ else ''
 lib_paths = (os.path.join(base_install_path, 'lib')
              + ":" + _old_ld_library_path)

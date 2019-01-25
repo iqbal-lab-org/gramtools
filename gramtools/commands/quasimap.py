@@ -1,3 +1,5 @@
+## @file
+# Executes `gram quasimap` backend for variant aware backward searching.
 import os
 import time
 import json

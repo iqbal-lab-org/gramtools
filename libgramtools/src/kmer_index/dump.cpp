@@ -28,7 +28,7 @@ KmerIndexStats gram::calculate_stats(const KmerIndex &kmer_index) {
 
 sdsl::int_vector<3> gram::dump_kmers(const KmerIndex &kmer_index,
                                      const Parameters &parameters) {
-    sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
+    sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size); //Constructor parameter passed: total number of bases to store.
     uint64_t i = 0;
 
     for (const auto &entry: kmer_index) {
@@ -48,7 +48,7 @@ void gram::dump_kmers_stats(const KmerIndexStats &stats,
                             const sdsl::int_vector<3> &all_kmers,
                             const KmerIndex &kmer_index,
                             const Parameters &parameters) {
-    // each kmer: number of search states, path length, path length...
+    // Makes room for storing for each kmer: number of search states, path length, path length...
     const auto &count_distinct_paths = stats.count_search_states;
     uint64_t count_memory_elements = stats.count_kmers + count_distinct_paths;
     sdsl::int_vector<> kmers_stats(count_memory_elements, 0, 32);

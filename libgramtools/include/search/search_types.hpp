@@ -1,3 +1,6 @@
+/** @file
+ * Defines the key data structures supporting `quasimap`ping.
+ */
 #include "prg/prg.hpp"
 
 
@@ -6,7 +9,7 @@
 
 namespace gram {
     /**
-     * Encapsulates the positioning of the current search state relative to variant sites.
+     * Expresses the positioning of the current search state relative to variant sites.
      * Initialised at `unknown`.
      */
     enum class SearchVariantSiteState {
@@ -17,12 +20,12 @@ namespace gram {
 
 
     /**
-     * A single path of a string through the prg.
-     * Boils down to an SA interval and a set of variants traversed so far.
+     * A single path of a read through the prg.
+     * Boils down to an SA interval (`gram::SA_Interval`) and a set of variants traversed so far (`gram::variant_site_path`).
      * The former gets used for extending the search while the latter gets used to record coverage information.
      */
     struct SearchState {
-        SA_Interval sa_interval = {};
+        SA_Interval sa_interval = {}; /**< Stores an interval in the suffix array. (By definition,) All members of the interval share a certain prefix of a suffix of the prg.*/
         VariantSitePath variant_site_path = {}; /**< Stores the path taken through variant sites in the prg. */
         SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
         bool cache_populated = false;

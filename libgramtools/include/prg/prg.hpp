@@ -23,15 +23,15 @@ namespace gram {
      * The key data structure holding all of the information used for vBWT backward search.
      */
     struct PRG_Info {
-        FM_Index fm_index; /**< @note Accessing this data structure ([]) accesses the suffix array. */
+        FM_Index fm_index; /**< FM_index as a `sdsl::csa_wt` from the `sdsl` library. @note Accessing this data structure ([]) accesses the suffix array. */
         sdsl::int_vector<> encoded_prg;
 
-        sdsl::int_vector<> sites_mask;
-        sdsl::int_vector<> allele_mask;
+        sdsl::int_vector<> sites_mask; /**< Stores the site number at each allele position. Variant markers and outside variant sites get 0.*/
+        sdsl::int_vector<> allele_mask; /**< Stores the allele index at each allele position. Variant markers and outside variant sites get 0. */
 
         sdsl::bit_vector bwt_markers_mask; /**< Bit vector flagging variant site marker presence in bwt.*/
         sdsl::rank_support_v<1> bwt_markers_rank; /**< Used for searching for variant site markers inside an SA interval. @see `gram::left_markers_search()`.*/
-        sdsl::select_support_mcl<1> bwt_markers_select; /**< Used for counting all variant site markers up to the left of an SA interval. @see `gram::left_markers_search()`.*/
+        sdsl::select_support_mcl<1> bwt_markers_select; /**< Used for extracting a variant marker from the BWT, at position inside an SA interval. @see `gram::left_markers_search()`.*/
         uint64_t markers_mask_count_set_bits;
 
         sdsl::bit_vector prg_markers_mask;

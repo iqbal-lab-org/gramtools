@@ -772,6 +772,7 @@ unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgInde
             continue;
         }
 
+        // #else: no sites in range
         // If we are within a site, we will just keep going.
         auto within_site = prg_info.allele_mask[current_index] > 0
                            or prg_info.prg_markers_mask[current_index] != 0;

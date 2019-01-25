@@ -1,3 +1,6 @@
+/** @file
+ * Loads the data structures supporting vBWT search, and maps reads to the prg.
+ */
 #include "parameters.hpp"
 #include "kmer_index/kmer_index_types.hpp"
 #include "quasimap/coverage/types.hpp"
@@ -43,12 +46,9 @@ namespace gram {
 
     /**
      * Map a read to the prg, starting from the precomputed set of search states using the rightmost kmer in the read.
-     * @param read
-     * @param coverage
-     * @param kmer_index
-     * @param prg_info
-     * @param parameters
-     * @param random_seed
+     * @param coverage object in which mapping statistics are recorded.
+     * @param kmer_index object holding the pre-computed mappings for kmers. the first kmer in the read will be seeded this way.
+     * @param prg_info object holding all data structures necessary for vBWT, including `gram::FM_Index`.
      * @return
      */
     bool quasimap_read(const Pattern &read, Coverage &coverage, const KmerIndex &kmer_index, const PRG_Info &prg_info,

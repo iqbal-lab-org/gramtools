@@ -1,3 +1,6 @@
+/** @file
+ * Defines the kmer index and the caching structure for remembering the relevant previous mappings.
+ */
 #include "common/utils.hpp"
 #include "search/search_types.hpp"
 
@@ -11,11 +14,11 @@
 namespace gram {
     struct CacheElement {
         SearchStates search_states = {};
-        Base base = 0;
+        Base base = 0; /**< The next base added relative to the previous `CacheElement`.*/
     };
-    using KmerIndexCache = std::list<CacheElement>;
+    using KmerIndexCache = std::list<CacheElement>; /**< Stored previously computed `SearchStates` for re-use when indexing different kmers. */
 
-    using KmerIndex = SequenceHashMap<Pattern, SearchStates>; /**< Fast access to mappings of `Pattern` (kmer).*/
+    using KmerIndex = SequenceHashMap<Pattern, SearchStates>; /**< Unordered map linking a kmer to all mapped locations in the prg.*/
 }
 
 #endif //GRAMTOOLS_KMER_INDEX_TYPES_HPP

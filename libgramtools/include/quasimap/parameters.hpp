@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Command-line argument processing for `quasimap` command.
+ */
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/variant/variant.hpp>

@@ -13,11 +13,11 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
                                 ("gram", po::value<std::string>(),
                                  "gramtools directory")
                                 ("reads", po::value<std::vector<std::string>>()->multitoken(),
-                                 "file contining reads (FASTA or FASTQ)")
+                                 "file containing reads (FASTA or FASTQ)")
                                 ("kmer-size", po::value<uint32_t>(),
                                  "kmer size used in constructing the kmer index")
                                 ("run-directory", po::value<std::string>(),
-                                 "a directory which contains all quasimap output files")
+                                 "the directory where to store all quasimap output files")
                                 ("max-threads", po::value<uint32_t>()->default_value(1),
                                  "maximum number of threads used");
 

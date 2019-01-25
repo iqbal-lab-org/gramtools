@@ -21,6 +21,9 @@
 
 namespace gram {
 
+    /**
+     * Stores the total number of indexed kmers, the total number of computed `gram::SA_Interval`s, and the total number of traversed `gram::VariantLocus`.
+     */
     struct KmerIndexStats {
         uint64_t count_kmers;
         uint64_t count_search_states;

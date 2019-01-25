@@ -59,8 +59,8 @@ using SaIndexRightOfMarker = uint64_t;
      * Indeed, if a variant marker precedes an index position of the SA interval (as discovered using BWT),
      * the search states will need to be updated accordingly.
      *
-     * Returns a vector of markers, which are pairs of SA index position and marker character.
-     * Note that the SA index position is not that of the marker, but of the character to the right of it in the prg.
+     * @return A vector of markers, which are pairs of SA index position and marker character.
+     * @note The SA index position is not that of the marker, but of the character to the right of it in the prg.
      */
     MarkersSearchResults left_markers_search(const SearchState &search_state,
                                              const PRG_Info &prg_info);
