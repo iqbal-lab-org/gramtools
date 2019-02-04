@@ -477,7 +477,7 @@ uint64_t gram::find_site_start_boundary(const uint64_t &end_boundary_index,
 
 
 /**
- * Extract the region before the last reachable site in the prg.
+ * Extract the region before the last reachable site (right-to-left) in the prg for an indexable kmer.
  */
 Pattern get_pre_site_part(const uint64_t site_end_boundary,
                           const uint64_t kmer_size,

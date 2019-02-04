@@ -34,7 +34,7 @@ namespace gram {
         sdsl::select_support_mcl<1> bwt_markers_select; /**< Used for extracting a variant marker from the BWT, at position inside an SA interval. @see `gram::left_markers_search()`.*/
         uint64_t markers_mask_count_set_bits;
 
-        sdsl::bit_vector prg_markers_mask;
+        sdsl::bit_vector prg_markers_mask; /**< Bit vector flagging variant site marker presence in prg.*/
         sdsl::rank_support_v<1> prg_markers_rank;
         sdsl::select_support_mcl<1> prg_markers_select;
 

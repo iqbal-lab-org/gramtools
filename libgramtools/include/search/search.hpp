@@ -113,6 +113,8 @@ using SaIndexRightOfMarker = uint64_t;
 
     /**
     * Call `process_markers_search_state` for each `SearchState`.
+    * Each SA index whose corresponding BWT entry is a marker will generate one or more new `SearchStates`.
+    * Note that the original `SearchState` is otherwise left untouched; SA indices with preceding markers in the prg will get naturally dropped by backward base extension.
     * @see process_markers_search_state()
     * @see SearchState()
     */

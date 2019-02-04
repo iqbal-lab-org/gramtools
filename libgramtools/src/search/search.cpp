@@ -577,7 +577,7 @@ SearchState process_allele_marker(const Marker &allele_marker_char,
     auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
     auto second_sa_index = first_sa_index + 1; // Variant site markers are adjacent in the suffix array.
 
-    // Determine which SA index position marks the variant site entrance by looking at the prg.
+    // Determine which SA index position marks the variant site entrance by comparing the prg indices.
     SA_Index boundary_start_sa_index;
     bool boundary_start_is_first_sa = prg_info.fm_index[first_sa_index]
                                       < prg_info.fm_index[second_sa_index];
