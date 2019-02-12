@@ -503,28 +503,13 @@ MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
     MarkersSearchResults markers_search_results;
 
     const auto &sa_interval = search_state.sa_interval;
-    auto max_sa_index = sa_interval.second;
-    auto sa_index = sa_interval.first;
 
-    //  Compute number of allele and site markers before the left index of SA interval
-    auto num_markers_before = prg_info.bwt_markers_rank(sa_index);
-    uint64_t marker_count_offset = num_markers_before + 1;
-    //  Checks if the left index of SA interval is past the last marker; if so, there are no markers in the SA interval
-    if (marker_count_offset > prg_info.markers_mask_count_set_bits)
-        return markers_search_results;
+    for (int index=sa_interval.first; index<= sa_interval.second; index++) {
+        if (prg_info.bwt_markers_mask[index] == 0) continue;
 
-    //  Retrieve the position of the first marker past all the ones less than the SA interval start
-    auto bwt_marker_index = prg_info.bwt_markers_select(marker_count_offset);
-
-    while (bwt_marker_index <= max_sa_index) {
-        auto marker = prg_info.fm_index.bwt[bwt_marker_index];
-        auto search_result = std::make_pair(bwt_marker_index, marker);
+        auto marker = prg_info.fm_index.bwt[index];
+        auto search_result = std::make_pair(index, marker);
         markers_search_results.emplace_back(search_result);
-
-        ++marker_count_offset;
-        if (marker_count_offset > prg_info.markers_mask_count_set_bits)
-            return markers_search_results;
-        bwt_marker_index = prg_info.bwt_markers_select(marker_count_offset);
     }
 
     return markers_search_results;

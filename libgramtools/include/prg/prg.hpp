@@ -30,8 +30,6 @@ namespace gram {
         sdsl::int_vector<> allele_mask; /**< Stores the allele index at each allele position. Variant markers and outside variant sites get 0. */
 
         sdsl::bit_vector bwt_markers_mask; /**< Bit vector flagging variant site marker presence in bwt.*/
-        sdsl::rank_support_v<1> bwt_markers_rank; /**< Used for searching for variant site markers inside an SA interval. @see `gram::left_markers_search()`.*/
-        sdsl::select_support_mcl<1> bwt_markers_select; /**< Used for extracting a variant marker from the BWT, at position inside an SA interval. @see `gram::left_markers_search()`.*/
         uint64_t markers_mask_count_set_bits;
 
         sdsl::bit_vector prg_markers_mask; /**< Bit vector flagging variant site marker presence in prg.*/
