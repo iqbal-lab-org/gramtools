@@ -28,17 +28,13 @@ namespace gram {
         SA_Interval sa_interval = {}; /**< Stores an interval in the suffix array. (By definition,) All members of the interval share a certain prefix of a suffix of the prg.*/
         VariantSitePath variant_site_path = {}; /**< Stores the path taken through variant sites in the prg. */
         SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
-        bool cache_populated = false;
-        VariantLocus cached_variant_site = {};
 
         bool invalid = false; /**< Represents whether no path is found in the prg. */
 
         bool operator==(const SearchState &other) const {
             return this->sa_interval == other.sa_interval
                    and this->variant_site_path == other.variant_site_path
-                   and this->variant_site_state == other.variant_site_state
-                   and this->cache_populated == other.cache_populated
-                   and this->cached_variant_site == other.cached_variant_site;
+                   and this->variant_site_state == other.variant_site_state;
         };
     };
 

@@ -494,7 +494,7 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVaria
 
     std::vector<VariantLocus> result;
     for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.cached_variant_site);
+        result.push_back(search_state.variant_site_path.front());
 
     std::vector<VariantLocus> expected = {
             {5, 1},
@@ -517,7 +517,7 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariantSi
                                                                      prg_info);
     std::vector<bool> result;
     for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.cache_populated);
+        result.push_back(search_state.variant_site_path.size()==1);
 
     std::vector<bool> expected = {true, true, true};
     EXPECT_EQ(result, expected);
@@ -549,10 +549,8 @@ TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     auto result = markers_search_states.front();
     SearchState expected = {
             SA_Interval {16, 16},
-            VariantSitePath {},
+            VariantSitePath {VariantLocus{5,3}},
             SearchVariantSiteState::outside_variant_site,
-            true,
-            VariantLocus {5, 3}
     };
     EXPECT_EQ(result, expected);
 }
@@ -572,10 +570,8 @@ TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     auto result = markers_search_states.front();
     SearchState expected = {
             SA_Interval {16, 16},
-            VariantSitePath {},
+            VariantSitePath {VariantLocus{5, 2}},
             SearchVariantSiteState::outside_variant_site,
-            true,
-            VariantLocus {5, 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -595,37 +591,9 @@ TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     auto result = markers_search_states.front();
     SearchState expected = {
             SA_Interval {16, 16},
-            VariantSitePath {},
+            VariantSitePath {VariantLocus{5,1}},
             SearchVariantSiteState::outside_variant_site,
-            true,
-            VariantLocus {5, 1}
     };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(Search, GivenSearchStateExitingSiteAndNextChar_CachedVariantSiteRecordedInPathHistory) {
-    auto prg_raw = "gcgct5c6g6t5agtcct";
-    auto prg_info = generate_prg_info(prg_raw);
-    auto pattern_char = encode_dna_base('t');
-
-    SearchState initial_search_state = {
-            SA_Interval {16, 16},
-            VariantSitePath {},
-            SearchVariantSiteState::outside_variant_site,
-            true,
-            VariantLocus {5, 2}
-    };
-    SearchStates initial_search_states = {initial_search_state};
-
-    auto final_search_states = search_base_backwards(pattern_char,
-                                                     initial_search_states,
-                                                     prg_info);
-
-    EXPECT_EQ(final_search_states.size(), 1);
-    auto search_state = final_search_states.front();
-    const auto &result = search_state.variant_site_path.front();
-    VariantLocus expected = {5, 2};
     EXPECT_EQ(result, expected);
 }
 
@@ -636,17 +604,13 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
     auto pattern_char = encode_dna_base('t');
 
     SearchState initial_search_state = {
-            SA_Interval {16, 16},
+            SA_Interval {10,10}, //Starting at char 'c' at index 6 in prg
             VariantSitePath {VariantLocus {42, 53}},
-            SearchVariantSiteState::outside_variant_site,
-            true,
-            VariantLocus {5, 2}
+            SearchVariantSiteState::unknown,
     };
     SearchStates initial_search_states = {initial_search_state};
 
-    auto final_search_states = search_base_backwards(pattern_char,
-                                                     initial_search_states,
-                                                     prg_info);
+    auto final_search_states=process_read_char_search_states(pattern_char,initial_search_states,prg_info);
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
