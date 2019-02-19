@@ -32,30 +32,17 @@ def _generate_project_paths(args):
 
         'fm_index': project_path('fm_index'),
 
-        'perl_generated_vcf': project_path('perl_generated_vcf'),
-        'perl_generated_fa': project_path('perl_generated_fa'),
+        'perl_generated': project_path('perl_generated'),
+        'perl_generated_vcf': project_path('perl_generated.vcf'),
+        'perl_generated_fa': project_path('perl_generated.fa'),
     }
     return paths
 
-## Renames the vcf produced by the perl utility for clarity.
-def _move_perl_vcf(build_paths):
-    original_fpath = build_paths['prg'] + '.vcf'
-    target_fpath = build_paths['perl_generated_vcf']
-    os.rename(original_fpath, target_fpath)
-
-## Renames the fasta reference produced by the perl utility for clarity.
-def _move_perl_reference(build_paths):
-    original_fpath = build_paths['prg'] + '.fa'
-    target_fpath = build_paths['perl_generated_fa']
-    os.rename(original_fpath, target_fpath)
 
 ## Removes unnecessary accessory files produced by perl utility.
 def perl_script_file_cleanup(build_paths):
     os.remove(build_paths['prg'] + '.mask_sites')
     os.remove(build_paths['prg'] + '.mask_alleles')
-    _move_perl_vcf(build_paths)
-    _move_perl_reference(build_paths)
-
 
 def generate_build_paths(args):
     project_paths = _generate_project_paths(args)

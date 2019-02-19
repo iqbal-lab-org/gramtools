@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import Mock
 
 from ...commands import infer
+from ... import genotyper
 
 
 class TestIsInt(unittest.TestCase):
@@ -164,9 +165,15 @@ class TestAssembleReference(unittest.TestCase):
         cursor = infer._Cursor()
         prg_parser = [copy.copy(cursor)
                       for cursor in infer._parse_prg_structure(chars, cursor)]
-        allele_indexes = iter([1, 0])
+
+        dummy_stats = [0, 0, 0, 0, 0]
+        Gt1, Gt2 = genotyper.Genotyper(*dummy_stats),genotyper.Genotyper(*dummy_stats)
+        Gt1.likelihoods, Gt2.likelihoods = [({1}, -1)], [({0}, -1)]
+        Gt1.genotype, Gt2.genotype = {1}, {0}
+
+        genotypers = iter([Gt1, Gt2])
         cache_writer = []
-        infer._dump_fasta(prg_parser, allele_indexes, cache_writer)
+        infer._dump_fasta(prg_parser, genotypers, cache_writer)
 
         result = ''.join(cache_writer)
         expected = 'ACAACCCAC'
@@ -177,9 +184,15 @@ class TestAssembleReference(unittest.TestCase):
         cursor = infer._Cursor()
         prg_parser = [copy.copy(cursor)
                       for cursor in infer._parse_prg_structure(chars, cursor)]
-        allele_indexes = iter([1, 0])
+
+        dummy_stats = [0, 0, 0, 0, 0]
+        Gt1, Gt2 = genotyper.Genotyper(*dummy_stats),genotyper.Genotyper(*dummy_stats)
+        Gt1.likelihoods, Gt2.likelihoods = [({1}, -1)], [({0}, -1)]
+        Gt1.genotype, Gt2.genotype = {1}, {0}
+
+        genotypers = iter([Gt1, Gt2])
         cache_writer = []
-        infer._dump_fasta(prg_parser, allele_indexes, cache_writer)
+        infer._dump_fasta(prg_parser, genotypers, cache_writer)
 
         result = ''.join(cache_writer)
         expected = 'ACAACCCACTT'
