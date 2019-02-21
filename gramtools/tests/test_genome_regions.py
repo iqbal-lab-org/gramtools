@@ -1,7 +1,7 @@
 import unittest
 
 from . import common
-from .. import prg
+from .. import prg_regions_parser
 
 
 class TestDirectionalRegionRange(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['TC', 'A'],
         ]
         prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
+        regions = prg_regions_parser.parse(prg_seq)
         result = []
         for region in regions:
             result.append([''.join(x) for x in region.alleles])
@@ -38,7 +38,7 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['C'],
         ]
         prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
+        regions = prg_regions_parser.parse(prg_seq)
 
         start_region = regions[-1]
         regions_range = regions.range(start_region, reverse=True)
@@ -61,7 +61,7 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['TC', 'A'],
         ]
         prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
+        regions = prg_regions_parser.parse(prg_seq)
 
         start_region = regions[0]
         directional_regions = list(regions.range(start_region, reverse=False))
@@ -79,7 +79,7 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['TC', 'A'],
         ]
         prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
+        regions = prg_regions_parser.parse(prg_seq)
 
         start_region = regions[-1]
         range_alleles = [r.alleles for r in
@@ -94,7 +94,7 @@ class TestDirectionalRegionRange(unittest.TestCase):
             ['TC', 'A'],
         ]
         prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
+        regions = prg_regions_parser.parse(prg_seq)
 
         start_region = regions[1]
         range_alleles = [r.alleles for r in

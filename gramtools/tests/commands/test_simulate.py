@@ -1,7 +1,7 @@
 import unittest
 
 from .. import common
-from ... import prg
+from ... import prg_regions_parser
 from ...commands import simulate
 
 
@@ -9,7 +9,7 @@ class TestGenerateReads(unittest.TestCase):
     def _analyse_case(self, read_length, prg_structure,
                       expected, max_num_reads=None):
         prg_seq = common.compose_prg(prg_structure)
-        regions = prg.parse(prg_seq)
+        regions = prg_regions_parser.parse(prg_seq)
         reads = set(simulate._generate_reads(read_length, regions,
                                              max_num_reads))
         self.assertEqual(reads, expected)

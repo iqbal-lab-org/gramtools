@@ -1,3 +1,5 @@
+## @file
+# Extracts and loads in memory all regions from a prg (variant and non-variant)
 from . import genome_regions
 
 var_marker_chars = set('0123456789')

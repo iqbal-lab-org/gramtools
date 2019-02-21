@@ -2,7 +2,7 @@ import logging
 import itertools
 import collections
 
-from .. import prg
+from .. import prg_regions_parser
 
 log = logging.getLogger('gramtools')
 
@@ -86,7 +86,7 @@ def run(args):
     with open(args.reference, 'r') as file_handle:
         prg_seq = file_handle.read()
 
-    regions = prg.parse(prg_seq)
+    regions = prg_regions_parser.parse(prg_seq)
 
     log.debug('Generating reads')
     reads = _generate_reads(args.read_length, regions, args.max_num_reads)

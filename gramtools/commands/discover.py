@@ -17,7 +17,7 @@ from Bio import SeqIO, Seq
 import cluster_vcf_records
 
 from .. import paths
-from .. import prg
+from .. import prg_regions_parser
 
 log = logging.getLogger('gramtools')
 
@@ -526,7 +526,7 @@ def _get_inferred_reference(reference, vcf_reader):
 def _get_reference(prg_seq) -> typing.List:
     """Get reference by parsing a PRG sequence."""
     log.debug('Parsing PRG for reference')
-    regions = prg.parse(prg_seq)
+    regions = prg_regions_parser.parse(prg_seq)
 
     reference = []
     for region in regions:

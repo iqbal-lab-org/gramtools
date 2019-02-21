@@ -6,7 +6,7 @@ class GenomeRegions:
 
     def __init__(self):
         self._regions = []
-        self._region_idx = {}
+        self._region_idx = {}  # Maps a `_GenomeRegion` to its index in `_regions`
 
     def __iter__(self):
         for region in self._regions:
