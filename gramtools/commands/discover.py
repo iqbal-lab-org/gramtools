@@ -17,7 +17,10 @@ from Bio import SeqIO, Seq
 import cluster_vcf_records
 
 from .. import paths
-from .. import prg_regions_parser
+from .. import prg_local_parser
+
+REF_READ_CHUNK_SIZE = 1000000
+DNA = {'A', 'C', 'G', 'T'}
 
 log = logging.getLogger('gramtools')
 
@@ -48,24 +51,26 @@ def run(args):
     _paths = paths.generate_discover_paths(args)
     os.mkdir(_paths['tmp_directory'])
 
-    with open(_paths['prg'], 'r') as file_handle:
-        prg_seq = file_handle.read()
-    # `reference` is all non-variant parts of prg + first allele of each variant site of prg
-    reference = _get_reference(prg_seq)
+    #Parse the prg and write out a base reference; extracts the first (REF) allele from each variant site.
     fasta_description = "PRG base reference for gramtools"
-    _dump_fasta(reference, fasta_description, _paths['base_reference'])
+    PrgParser = prg_local_parser.Prg_Local_Parser(prg_fpath = _paths["prg"], output_file_name = _paths["base_reference"],
+                                                  fasta_header = fasta_description, allele_indexes = _alwaysRef())
+    PrgParser.parse()
 
     file_handle = open(args.inferred_vcf, 'r')
     vcf_reader = vcf.Reader(file_handle)
 
-    inferred_reference = _get_inferred_reference(reference, vcf_reader)
-    fasta_description = "inferred personal reference generated using gramtools"
-    _dump_fasta(inferred_reference, fasta_description, _paths['inferred_reference'])
+    fasta_description = "Inferred personal reference generated using gramtools"
+    #inferred_reference = _produce_inferred_reference("/home/brice/Desktop/base_ref.fa", vcf_reader, "/home/brice/Desktop/inferred_ref.fa", fasta_description)
+    inferred_reference = _produce_inferred_reference(_paths["base_reference"], vcf_reader, _paths['inferred_reference'], fasta_description)
+    #_dump_fasta(inferred_reference, fasta_description, _paths['inferred_reference'])
 
     # call variants using `cortex`
     cortex.calls(_paths['inferred_reference'], args.reads, _paths['cortex_vcf'])
 
     inferred_reference_length = len(inferred_reference)
+
+
     # Convert coordinates in personalised reference space to coordinates in (original) prg space.
     rebased_vcf_records = _rebase_vcf(args.inferred_vcf,
                                       inferred_reference_length,
@@ -217,6 +222,7 @@ def _modify_vcf_record(vcf_record, **new_attributes):
     new_vcf_record = _make_vcf_record(**attributes)
     return new_vcf_record
 
+
 ## Change `vcf_record` to be expressed relative to a different reference.
 # @param vcf_record a representation of a vcf entry;
 # @param personalised_reference_regions a set of `_Regions` marking the personalised reference and its relationship to the prg reference.
@@ -319,6 +325,7 @@ def _find_overlap_regions(vcf_record, first_region_index, marked_regions):
 
         overlap_regions.append(region)
     return overlap_regions
+
 
 ## Return the marked `_Region` containing the position referred to by `vcf_record`.
 def _find_start_region_index(vcf_record, marked_regions):
@@ -490,11 +497,14 @@ def _dump_fasta(inferred_reference, description, file_path):
     log.debug("Writing fasta reference:\n%s\n%s", file_path, description)
     SeqIO.write(record, file_path, "fasta")
 
-## Compute a new reference from an old reference and a set of vcf records.
-# @param reference the old reference.
-# @param vcf_reader set of vcf records describing variants against the old reference.
-def _get_inferred_reference(reference, vcf_reader):
-    inferred_reference = []
+
+## Compute a new reference from an base reference and a set of vcf records.
+# @param reference the 'base' reference: non-variant sites of the prg + first allele of each variant site.
+# @param vcf_reader set of vcf records describing variants inferred against the old reference.
+def _produce_inferred_reference(reference_fpath, vcf_reader, fasta_fpath, description):
+    reference = _refParser(reference_fpath)
+    inferred_reference = prg_local_parser.FastaWriter(fasta_fpath, description)
+
     record = next(vcf_reader, None)
 
     start_ref_idx = -1
@@ -510,26 +520,62 @@ def _get_inferred_reference(reference, vcf_reader):
             inferred_reference.append(x)
             continue
 
+        # This update only actually occurs once we have passed a record
         start_ref_idx = record.POS - 1
         end_ref_idx = start_ref_idx + len(record.REF) - 1
 
         at_allele_insert_idx = idx == start_ref_idx
+
+        # Let's insert the genotyped allele
         if at_allele_insert_idx:
-            inferred_reference += list(str(record.ALT[0]))
+            sample = record.samples[0]
+            genotype = sample.gt_alleles
+
+            # Case: no genotype. Let's pick REF allele.
+            if set(genotype) == {None}:
+                allele_index = 0
+
+            # Case: single haploid genotype. Pick that allele.
+            # OR Case: there are >1 calls. Just pick the first.
+            else:
+                allele_index = int(genotype[0])
+
+
+            if allele_index == 0:
+                template = str(record.REF)
+            else:
+                template = str(record.ALT[allele_index - 1])
+
+            for alt_char in template:
+                inferred_reference.append(alt_char)
+
             record = next(vcf_reader, None)
             continue
 
+        # Add the non-variant regions
         inferred_reference.append(x)
-    return inferred_reference
+
+    inferred_reference.close()
 
 
-def _get_reference(prg_seq) -> typing.List:
-    """Get reference by parsing a PRG sequence."""
-    log.debug('Parsing PRG for reference')
-    regions = prg_regions_parser.parse(prg_seq)
+## Generator to always yield the first allele (REF) of a variant site.
+def _alwaysRef():
+    while True:
+        yield 0
 
-    reference = []
-    for region in regions:
-        region = region.alleles[0]
-        reference += list(region)
-    return reference
+
+## Generator to parse fasta ref sequence in blocks.
+def _refParser(ref_fpath, chunk_size = REF_READ_CHUNK_SIZE):
+    with open(ref_fpath) as fhandle:
+        next(fhandle)
+        while True:
+            chars = fhandle.read(chunk_size)
+            if len(chars) == 0:
+                return
+
+            for char in chars:
+                if char.upper() not in DNA:
+                    continue
+                yield char
+
+

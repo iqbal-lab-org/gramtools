@@ -594,7 +594,7 @@ class TestGetInferredReference(unittest.TestCase):
         vcf_reader = iter([
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ])
-        result = discover._get_inferred_reference(reference, vcf_reader)
+        result = discover._produce_inferred_reference(reference, vcf_reader)
 
         expected = ['T', 'G', 'C', 'G', 'G']
         self.assertEqual(expected, result)
@@ -604,7 +604,7 @@ class TestGetInferredReference(unittest.TestCase):
         vcf_reader = iter([
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCG']),
         ])
-        result = discover._get_inferred_reference(reference, vcf_reader)
+        result = discover._produce_inferred_reference(reference, vcf_reader)
 
         expected = ['T', 'G', 'C', 'G', 'C', 'G', 'G']
         self.assertEqual(expected, result)
@@ -615,7 +615,7 @@ class TestGetInferredReference(unittest.TestCase):
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCG']),
             _MockVcfRecord(POS=6, REF="G", ALT=['A']),
         ])
-        result = discover._get_inferred_reference(reference, vcf_reader)
+        result = discover._produce_inferred_reference(reference, vcf_reader)
 
         expected = ['T', 'G', 'C', 'G', 'C', 'A', 'G']
         self.assertEqual(expected, result)
@@ -625,7 +625,7 @@ class TestGetInferredReference(unittest.TestCase):
         vcf_reader = iter([
             _MockVcfRecord(POS=7, REF="G", ALT=['GCG']),
         ])
-        result = discover._get_inferred_reference(reference, vcf_reader)
+        result = discover._produce_inferred_reference(reference, vcf_reader)
 
         expected = ['T', 'T', 'A', 'T', 'C', 'G', 'G', 'C', 'G']
         self.assertEqual(expected, result)

@@ -1,26 +1,47 @@
 ## @file
 # Extracts characters one by one from the prg, keeping only chunks of characters in memory.
-# The characters are amenable to direct use.
+# The characters are directly comparison to an allele_index, which is used to choose which allele needs to be picked for each variant site.
 
-PRG_READ_CHUNK_SIZE = 10000
+PRG_READ_CHUNK_SIZE = 1000000
 DIGITS = {
     '0', '1', '2', '3',
     '4', '5', '6', '7',
     '8', '9'
 }
+FASTA_LINE_SIZE = 60  #In characters
+
+
+## An OOP implementation of cursor-based 'local' prg parsing.
+# @param allele_indexes a **generator** giving the allele index to choose for each variant site of the prg in `prg_fpath`
+class Prg_Local_Parser(object):
+    def __init__(self, prg_fpath, output_file_name, fasta_header, allele_indexes):
+        self.prg_parser = _parse(prg_fpath)
+        self.writer = FastaWriter(output_file_name, description = fasta_header)
+        self.allele_indexes = allele_indexes
+
+    def parse(self):
+        _dump_fasta(self.prg_parser, self.allele_indexes, self.writer)
+        self.writer.close()
 
 
 class FastaWriter:
-    def __init__(self, fpath):
+    def __init__(self, fpath, description):
         self._fpath = fpath
         self._fhandle = open(self._fpath, 'w')
-        self._fhandle.write('> A personal reference sequence built using gramtools.\n')
+        self._fhandle.write("> {} \n".format(description))
+        self._running_tally = 0
 
         self._cache = []
-        self._max_cache_size = 10000
+        self._max_cache_size = 1000000
 
     def append(self, char):
         self._cache.append(char)
+        self._running_tally += 1
+
+        if self._running_tally == FASTA_LINE_SIZE:
+            self._cache.append('\n')
+            self._running_tally = 0
+
         if len(self._cache) > self._max_cache_size:
             self._flush()
 
@@ -29,8 +50,15 @@ class FastaWriter:
         self._fhandle.write(cache)
         self._cache = []
 
+    def _flush_endFile(self):
+        if self._cache[-1] != '\n':
+            self._cache.append('\n')
+
+        cache = ''.join(self._cache)
+        self._fhandle.write(cache)
+
     def close(self):
-        self._flush()
+        self._flush_endFile()
         self._fhandle.close()
 
 
@@ -43,23 +71,7 @@ def _is_int(data):
     return data in DIGITS
 
 
-def _parse_prg_chars(chars):
-    int_chars = []
-    for char in chars:
-        if _is_int(char):
-            int_chars.append(char)
-            continue
-
-        else:
-            if int_chars:
-                yield ''.join(int_chars)
-                int_chars = []
-            yield char
-
-    if int_chars:
-        yield ''.join(int_chars)
-
-
+## A cursor on a single character in the prg.
 class _Cursor:
     char = None
     site_marker = None
@@ -77,6 +89,23 @@ class _Cursor:
     @property
     def within_allele(self):
         return self.site_marker is not None and self.on_marker is False
+
+
+def _parse_prg_chars(chars):
+    int_chars = []
+    for char in chars:
+        if _is_int(char):
+            int_chars.append(char)
+            continue
+
+        else:
+            if int_chars:
+                yield ''.join(int_chars)
+                int_chars = []
+            yield char
+
+    if int_chars:
+        yield ''.join(int_chars)
 
 
 def _parse_prg_structure(chars, cursor):
@@ -126,14 +155,14 @@ def _read_chunk(file_handle, chunk_size=PRG_READ_CHUNK_SIZE):
         extra_chars = []
         while not extra_chars or _is_int(extra_chars[-1]):
             char = file_handle.read(1)
-            if not chars:
+            if not char:
                 break
             extra_chars.append(char)
         chars += ''.join(extra_chars)
     return chars
 
 
-def parse(prg_fpath):
+def _parse(prg_fpath):
     cursor = _Cursor()
     with open(prg_fpath) as file_handle:
         while True:
@@ -143,3 +172,24 @@ def parse(prg_fpath):
 
             for cursor in _parse_prg_structure(chars, cursor):
                 yield cursor
+
+def _dump_fasta(prg_parser, allele_indexes, writer):
+    allele_index = next(allele_indexes)
+
+    for cursor in prg_parser:
+        if cursor.just_left_site:
+            try:
+                allele_index = next(allele_indexes)
+            except StopIteration:
+                allele_index = 0
+
+        if cursor.on_marker:
+            continue
+
+        if not cursor.within_allele:
+            writer.append(cursor.char)
+            continue
+
+        if cursor.allele_id == allele_index:
+            writer.append(cursor.char)
+

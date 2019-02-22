@@ -86,10 +86,9 @@ def run(args):
                                              allele_groups)
 
     if args.output_fasta is not None:
-        prg_parser = prg_local_parser.parse(_paths['prg'])
-        writer = prg_local_parser.FastaWriter(args.output_fasta)
-        _dump_fasta(prg_parser, genotypers, writer)
-        writer.close()
+        allele_indexes =_extract_allele_indexes(genotypers)
+        Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], args.output_fasta, 'A personal reference sequence built using gramtools `infer`', allele_indexes)
+        Prg_Parser.parse()
 
     if args.output_vcf is not None:
         _dump_vcf(genotypers, _paths, args)
@@ -289,45 +288,26 @@ def _max_likelihood_alleles(mean_depth,
 
 
 
-def _dump_fasta(prg_parser, genotypers, writer):
-    gtyper = next(genotypers)
-    allele_index =_extract_allele_index(gtyper)
-
-    for cursor in prg_parser:
-        if cursor.just_left_site:
-            try:
-                allele_index = _extract_allele_index(next(genotypers))
-            except StopIteration:
-                allele_index = 0
-
-        if cursor.on_marker:
-            continue
-
-        if not cursor.within_allele:
-            writer.append(cursor.char)
-            continue
-
-        if cursor.allele_id == allele_index:
-            writer.append(cursor.char)
-
 
 ## Returns the most likely single allele id
-def _extract_allele_index(gtyper):
-    if '.' in gtyper.genotype:  # If no genotyping information, return REF allele index (is 0)
-        return 0
+def _extract_allele_indexes(genotypers):
+    for gtyper in genotypers:
+        if '.' in gtyper.genotype:  # If no genotyping information, return REF allele index (is 0)
+            yield 0
+            continue
 
-    allele_index = None
+        allele_index = None
 
-    # "alleles" is allele groups, we ignore groups which consist of more than just one allele id
-    for alleles, likelihood in gtyper.likelihoods:
-        if len(alleles) != 1:
-           continue
-        allele_index = list(alleles)[0]
-        break
-    if allele_index is None:
-        raise ValueError('Genotyper likelihoods does not have any valid haploid data')
+        # "alleles" is allele groups, we ignore groups which consist of more than just one allele id
+        for alleles, likelihood in gtyper.likelihoods:
+            if len(alleles) != 1:
+               continue
+            allele_index = list(alleles)[0]
+            break
+        if allele_index is None:
+            raise ValueError('Genotyper likelihoods does not have any valid haploid data')
 
-    return allele_index
+        yield allele_index
 
 
 def _load_grouped_allele_coverage(fpath):
