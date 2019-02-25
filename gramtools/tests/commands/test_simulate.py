@@ -76,3 +76,6 @@ class TestGenerateReads(unittest.TestCase):
         }
         read_length = 4
         self._analyse_case(read_length, prg_structure, expected)
+
+if __name__ == "__main__":
+    unittest.main()

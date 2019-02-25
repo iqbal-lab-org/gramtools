@@ -61,14 +61,10 @@ def run(args):
     vcf_reader = vcf.Reader(file_handle)
 
     fasta_description = "Inferred personal reference generated using gramtools"
-    #inferred_reference = _produce_inferred_reference("/home/brice/Desktop/base_ref.fa", vcf_reader, "/home/brice/Desktop/inferred_ref.fa", fasta_description)
-    inferred_reference = _produce_inferred_reference(_paths["base_reference"], vcf_reader, _paths['inferred_reference'], fasta_description)
-    #_dump_fasta(inferred_reference, fasta_description, _paths['inferred_reference'])
+    inferred_reference_length = _produce_inferred_reference(_paths["base_reference"], vcf_reader, _paths['inferred_reference'], fasta_description)
 
     # call variants using `cortex`
     cortex.calls(_paths['inferred_reference'], args.reads, _paths['cortex_vcf'])
-
-    inferred_reference_length = len(inferred_reference)
 
 
     # Convert coordinates in personalised reference space to coordinates in (original) prg space.
@@ -502,6 +498,8 @@ def _dump_fasta(inferred_reference, description, file_path):
 # @param reference the 'base' reference: non-variant sites of the prg + first allele of each variant site.
 # @param vcf_reader set of vcf records describing variants inferred against the old reference.
 def _produce_inferred_reference(reference_fpath, vcf_reader, fasta_fpath, description):
+    inferred_reference_length = 0
+
     reference = _refParser(reference_fpath)
     inferred_reference = prg_local_parser.FastaWriter(fasta_fpath, description)
 
@@ -518,6 +516,7 @@ def _produce_inferred_reference(reference_fpath, vcf_reader, fasta_fpath, descri
         vcf_finished = record is None
         if vcf_finished:
             inferred_reference.append(x)
+            inferred_reference_length += 1
             continue
 
         # This update only actually occurs once we have passed a record
@@ -549,13 +548,18 @@ def _produce_inferred_reference(reference_fpath, vcf_reader, fasta_fpath, descri
             for alt_char in template:
                 inferred_reference.append(alt_char)
 
+            inferred_reference_length += len(template)
+
             record = next(vcf_reader, None)
             continue
 
         # Add the non-variant regions
         inferred_reference.append(x)
+        inferred_reference_length += 1
 
     inferred_reference.close()
+
+    return inferred_reference_length
 
 
 ## Generator to always yield the first allele (REF) of a variant site.
@@ -567,7 +571,7 @@ def _alwaysRef():
 ## Generator to parse fasta ref sequence in blocks.
 def _refParser(ref_fpath, chunk_size = REF_READ_CHUNK_SIZE):
     with open(ref_fpath) as fhandle:
-        next(fhandle)
+        next(fhandle)  # Skip header line
         while True:
             chars = fhandle.read(chunk_size)
             if len(chars) == 0:

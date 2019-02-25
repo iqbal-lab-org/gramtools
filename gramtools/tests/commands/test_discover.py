@@ -1,7 +1,9 @@
 import unittest
 import vcf
+import os
 
 from ...commands import discover
+from ... import prg_local_parser
 
 
 class TestSecondaryRegionsForBaseSites(unittest.TestCase):
@@ -566,18 +568,40 @@ class TestPadVcfRecordEnd(unittest.TestCase):
 
 class TestGetReference(unittest.TestCase):
     def test_GivenPrgWithTwoSites_CorrectReferenceExtracted(self):
-        prg_seq = 'TT5A6T5AA7C8A7'
-        result = discover._get_reference(prg_seq)
+        test_prg = "test_prg"
+        test_inferred = "test_inferred"
 
-        expected = ['T', 'T', 'A', 'A', 'A', 'C']
+        prg_seq = 'TT5A6T5AA7C8A7'
+
+        allele_indexes = (0 for _ in range(4))
+
+        with open(test_prg, "w") as prg:
+            prg.write(prg_seq)
+
+
+        prg_parser = prg_local_parser.Prg_Local_Parser(test_prg, test_inferred, fasta_header= '', allele_indexes = allele_indexes)
+        prg_parser.parse()
+
+        with open(test_inferred,"r") as inferred:
+            result = inferred.readlines()[-1].strip()
+
+        expected = 'TTAAAC'
+        os.remove(test_prg); os.remove(test_inferred)
+
         self.assertEqual(expected, result)
 
 
+class _Sample:
+    def __init__(self,genotype):
+        self.gt_alleles = genotype
+
+
 class _MockVcfRecord:
-    def __init__(self, POS, REF, ALT):
+    def __init__(self, POS, REF, ALT, samples=[]):
         self.POS = POS
         self.REF = REF
         self.ALT = [vcf.model._Substitution(x) for x in ALT]
+        self.samples = samples
 
     def __repr__(self):
         return str(self.__dict__)
@@ -589,43 +613,81 @@ class _MockVcfRecord:
 
 
 class TestGetInferredReference(unittest.TestCase):
-    def test_VcfEntryAltShorterThanRef_CorrectInferReference(self):
-        reference = ['T', 'T', 'A', 'T', 'C', 'G', 'G']
-        vcf_reader = iter([
-            _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
-        ])
-        result = discover._produce_inferred_reference(reference, vcf_reader)
 
-        expected = ['T', 'G', 'C', 'G', 'G']
+    def setUp(self):
+        self.test_ref = "test_ref.fa"
+        self.test_inferred = "test_inferred.fa"
+
+    def tearDown(self):
+        os.remove(self.test_ref)
+        os.remove(self.test_inferred)
+
+
+    def test_VcfEntryAltShorterThanRef_CorrectInferReference(self):
+
+        with open(self.test_ref, "w") as ref:
+            ref.write('>First_line \n TTATCGG')
+
+        vcf_reader = iter([
+            _MockVcfRecord(POS=2, REF="TAT", ALT=['G'], samples = [_Sample(genotype = [1])])
+        ])
+        discover._produce_inferred_reference(self.test_ref, vcf_reader, self.test_inferred, description='')
+
+        with open(self.test_inferred, "r") as inferred:
+            result = inferred.readlines()[-1].strip()
+
+        expected = 'TGCGG'
         self.assertEqual(expected, result)
 
     def test_VcfEntryAltLongerThanRef_CorrectInferReference(self):
-        reference = ['T', 'T', 'A', 'T', 'C', 'G', 'G']
-        vcf_reader = iter([
-            _MockVcfRecord(POS=2, REF="TAT", ALT=['GCG']),
-        ])
-        result = discover._produce_inferred_reference(reference, vcf_reader)
 
-        expected = ['T', 'G', 'C', 'G', 'C', 'G', 'G']
+        with open(self.test_ref, "w") as ref:
+            ref.write('>First_line \n TTATCGG')
+
+        vcf_reader = iter([
+            _MockVcfRecord(POS=2, REF="TAT", ALT=['GCG'], samples = [_Sample(genotype = [1])]),
+        ])
+        discover._produce_inferred_reference(self.test_ref, vcf_reader, self.test_inferred, description = '')
+
+        with open(self.test_inferred, "r") as inferred:
+            result = inferred.readlines()[-1].strip()
+
+        expected = 'TGCGCGG'
         self.assertEqual(expected, result)
 
     def test_MultipleVcfEntries_CorrectInferReference(self):
-        reference = ['T', 'T', 'A', 'T', 'C', 'G', 'G']
-        vcf_reader = iter([
-            _MockVcfRecord(POS=2, REF="TAT", ALT=['GCG']),
-            _MockVcfRecord(POS=6, REF="G", ALT=['A']),
-        ])
-        result = discover._produce_inferred_reference(reference, vcf_reader)
 
-        expected = ['T', 'G', 'C', 'G', 'C', 'A', 'G']
+        with open(self.test_ref, "w") as ref:
+            ref.write('>First_line \n TTATCGG')
+
+        vcf_reader = iter([
+            _MockVcfRecord(POS=2, REF="TAT", ALT=['GCG'], samples = [_Sample(genotype = [1])]),
+            _MockVcfRecord(POS=6, REF="G", ALT=['A'], samples = [_Sample(genotype = [1])]),
+        ])
+        discover._produce_inferred_reference(self.test_ref, vcf_reader, self.test_inferred, description = '')
+
+        with open(self.test_inferred, "r") as inferred:
+            result = inferred.readlines()[-1].strip()
+
+        expected = 'TGCGCAG'
         self.assertEqual(expected, result)
 
     def test_VcfEntryModifiesLastBase_CorrectInferReference(self):
-        reference = ['T', 'T', 'A', 'T', 'C', 'G', 'G']
-        vcf_reader = iter([
-            _MockVcfRecord(POS=7, REF="G", ALT=['GCG']),
-        ])
-        result = discover._produce_inferred_reference(reference, vcf_reader)
 
-        expected = ['T', 'T', 'A', 'T', 'C', 'G', 'G', 'C', 'G']
+        with open(self.test_ref, "w") as ref:
+            ref.write('>First_line \n TTATCGG')
+
+        vcf_reader = iter([
+            _MockVcfRecord(POS=7, REF="G", ALT=['GCG'],samples = [_Sample(genotype = [1])]),
+        ])
+        discover._produce_inferred_reference(self.test_ref, vcf_reader, self.test_inferred, description='')
+
+        with open(self.test_inferred, "r") as inferred:
+            result = inferred.readlines()[-1].strip()
+
+        expected = 'TTATCGGCG'
+
         self.assertEqual(expected, result)
+
+if __name__ == "__main__":
+    unittest.main()

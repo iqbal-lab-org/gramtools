@@ -101,3 +101,6 @@ class TestGenotyper(unittest.TestCase):
         gtyper.run()
         self.assertEqual({'.'}, gtyper.genotype)
         self.assertEqual(0.0, gtyper.genotype_confidence)
+
+if __name__ == "__main__":
+    unittest.main()
