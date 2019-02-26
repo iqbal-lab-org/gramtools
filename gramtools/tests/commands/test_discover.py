@@ -462,10 +462,13 @@ class TestRebaseVcfRecord(unittest.TestCase):
 
         secondary_vcf_record = _MockVcfRecord(POS=1, REF='TGCG', ALT=['GGCT'])
 
-        expected_POS = 1; expected_REF = 'TTATCG'; expected_ALT = ['GGCT']
-
         secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        print(secondary_regions)
+
         new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+
+        expected_POS = 1; expected_REF = 'TTATCG'; expected_ALT = ['GGCT']
+        print(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT[0])
 
         self.assertEqual(new_vcf_record.REF, expected_REF)
 
@@ -491,7 +494,9 @@ class TestRebaseVcfRecord(unittest.TestCase):
 
         expected_POS = 8; expected_REF = 'T'; expected_ALT = 'TCTAC'
 
-        self.assertEqual(new_vcf_record.ALT, expected_REF)
+        # print(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT[0])
+
+        self.assertEqual(new_vcf_record.ALT[0], expected_ALT)
 
 
 class TestPadVcfRecordStart(unittest.TestCase):
