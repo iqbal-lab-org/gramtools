@@ -446,6 +446,54 @@ class TestRebaseVcfRecord(unittest.TestCase):
         self.assertEqual(expected, result)
 
 
+    def test_RecordOverlapsVariantAndNonVariantSites(self):
+        """
+        A test case where the variation on top of the inferred reference overlaps: a non-variant site, a variant site,
+        and a non-variant site in the prg.
+
+        What we need is for the rebased REF to include all three sites.
+        """
+        # base sequ: T TAT CGG
+        # secondary: T G   CGG
+        secondary_reference_length = 5
+        base_records = [
+            _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
+        ]
+
+        secondary_vcf_record = _MockVcfRecord(POS=1, REF='TGCG', ALT=['GGCT'])
+
+        expected_POS = 1; expected_REF = 'TTATCG'; expected_ALT = ['GGCT']
+
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+
+        self.assertEqual(new_vcf_record.REF, expected_REF)
+
+
+    def test_SNP_OnTopOfIndel(self):
+        """
+        A test case where we find a SNP atop the inferred reference inside an insertion.
+
+        What we need is for the rebased ALT to include the flanking bases which are not present in the base sequence.
+        """
+        # base sequ: T TAT CGG T     A
+        # secondary: T G   CGG TCTGC A
+        secondary_reference_length = 8
+        base_records = [
+            _MockVcfRecord(POS=2, REF="TAT", ALT=['G']),
+            _MockVcfRecord(POS=8, REF="T", ALT=['TCTGC'])
+        ]
+
+        secondary_vcf_record = _MockVcfRecord(POS=9, REF='G', ALT=['A'])
+
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+
+        expected_POS = 8; expected_REF = 'T'; expected_ALT = 'TCTAC'
+
+        self.assertEqual(new_vcf_record.ALT, expected_REF)
+
+
 class TestPadVcfRecordStart(unittest.TestCase):
     def test_RecordStartsOneBaseIntoSite_CorrectModifiedRecord(self):
         # base sequence:      T TAT  CGG
