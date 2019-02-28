@@ -205,10 +205,11 @@ def _flag_personalised_reference_regions(base_records, secondary_reference_lengt
         base_ref_pos += len(vcf_record.REF)
         inf_ref_pos += var_region.length
 
-    ## End game: deal with the last non-var and var regions.
-    if base_ref_pos <= secondary_reference_length:
+    # End game: deal with the last non-var region if there is one.
+    # We test `inf_ref_pos` because we have the inferred reference length (= secondary reference)
+    if inf_ref_pos <= secondary_reference_length:
         non_var_region = _Region(base_POS = base_ref_pos, inf_POS = inf_ref_pos,
-                                 length = secondary_reference_length - base_ref_pos + 1)
+                                 length = secondary_reference_length - inf_ref_pos + 1)
         all_personalised_ref_regions.append(non_var_region)
 
     return all_personalised_ref_regions
@@ -244,6 +245,7 @@ def _modify_vcf_record(vcf_record, **new_attributes):
 
     new_vcf_record = _make_vcf_record(**attributes)
     return new_vcf_record
+
 
 ## Change `vcf_record` to be expressed relative to a different reference.
 # @param vcf_record a representation of a vcf entry;
@@ -324,72 +326,6 @@ def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
 
     return vcf_record
 
-## Change `vcf_record` to be expressed relative to a different reference.
-# @param vcf_record a representation of a vcf entry;
-# @param personalised_reference_regions a set of `_Regions` marking the personalised reference and its relationship to the prg reference.
-def __rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
-    # Get index of region containing the start of the `vcf_record`.
-    first_region_index = _find_start_region_index(vcf_record, personalised_reference_regions)
-    overlap_regions = _find_overlap_regions(vcf_record, first_region_index, personalised_reference_regions)
-
-    # TODO: what about start and end in nonsites and sites in the middle? below condition probably not general enough
-    overlap_sites = any(region.is_site for region in overlap_regions)
-
-    # Case: the variant region does not overlap any variant sites in the prg reference.
-    # All we need to do is modify the coordinates of the record to map to the prg reference.
-    if not overlap_sites:
-        offset_sum = sum(region.offset for region in overlap_regions) # TODO: if we do not overlap any sites, we should overlap only ONE site?
-        new_pos = vcf_record.POS + offset_sum
-
-        vcf_record = _modify_vcf_record(vcf_record, POS=new_pos)
-        return vcf_record
-
-    if overlap_regions[0].is_site:
-        vcf_record = _pad_vcf_record_start(vcf_record, overlap_regions)
-
-    if overlap_regions[-1].is_site:
-        vcf_record = _pad_vcf_record_end(vcf_record, overlap_regions)
-
-    return vcf_record
-
-
-## Pad start of VCF record with what the original variant has.
-# The POS and REf of `vcf_record` get set to what they are in the original prg.
-def _pad_vcf_record_start(vcf_record, overlap_regions: _Regions):
-    original_variant_region = overlap_regions[0]
-
-    record_start_index = vcf_record.POS - 1
-    original_region_start_index = original_variant_region.record.POS - 1
-    assert original_region_start_index <= record_start_index
-
-    start_offset = record_start_index - original_region_start_index
-
-    region_alt = str(original_variant_region.record.ALT[0])
-    new_record_alt = region_alt[:start_offset] + str(vcf_record.ALT[0])
-
-    # REF gets set to what the original (base; prg-level) REF is, as stored in the `_Region` object.
-    vcf_record = _modify_vcf_record(vcf_record,
-                                    POS=original_variant_region.record.POS,
-                                    REF=original_variant_region.record.REF,
-                                    ALT=[new_record_alt])
-    return vcf_record
-
-
-## Pad end of VCF record with what the original variant has.
-def _pad_vcf_record_end(vcf_record, overlap_regions: _Regions):
-    record_start_index = vcf_record.POS - 1
-    record_end_index = record_start_index + len(vcf_record.REF) - 1
-
-    last_region = overlap_regions[-1]
-    overlap_end_index = record_end_index - last_region.start
-
-    region_alt = str(last_region.record.ALT[0])
-    record_alt = str(vcf_record.ALT[0])
-    alt_extension = region_alt[overlap_end_index + 1:]
-    new_alt = record_alt + alt_extension
-
-    vcf_record = _modify_vcf_record(vcf_record, ALT=[new_alt])
-    return vcf_record
 
 ## Find all `_Region`s overlapped by a `vcf_record`.
 # @return the overlapped `_Region`s.
@@ -452,138 +388,6 @@ def _find_start_region_index(vcf_record, marked_regions):
     return region_index
 
 
-## Flags `_Regions` in the personalised reference which are in variant sites in the original PRG.
-# Any personalised reference position which falls within one of these `Regions` overlaps an entry in the original VCF.
-# Thus, the `_Regions` are marked with the base vcf record.
-def mark_base_site_regions(base_records) -> _Regions:
-    # Base site ranges (inclusive) in personalised reference
-    secondary_regions = []
-    index_offset = 0
-
-    for record in base_records:
-        start = index_offset + record.POS - 1
-        end = start + len(record.ALT[0]) - 1
-
-        region = _Region(start, end, record=record, offset=None)
-        secondary_regions.append(region)
-
-        # The offset keeps track of how much larger or smaller the personalised reference is relative to the prg reference.
-        index_offset += len(record.ALT[0]) - len(record.REF)
-    return secondary_regions
-
-
-## A class for iterating through elements in pairs.
-# There are two edge cases:
-# * The very first iteration sets up a pair of an empty element and the first element of `elements`.
-# * The very last iteration sets up a pair of the very last element of `elements` and an empty element.
-# @param elements the elements to iterate through in pairs.
-class IterPairs:
-    def __init__(self, elements):
-        self._elements = iter(elements) # Sets up iterator on `elements` so we can call next() on them.
-        ## This variable flags whether we have iterated past the very first pair.
-        self._first_next_done = False
-        self._first = None
-        self._second = None
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._first_next_done is False: # Iterate through very first pair: returns the very first element paired to an empty element.
-            self._first = None
-            self._second = next(self._elements, None)
-
-            self._first_next_done = True
-            return self._safe_yield(self._first, self._second)
-
-        self._first = self._second
-        self._second = next(self._elements, None)
-        return self._safe_yield(self._first, self._second)
-
-    @staticmethod
-    def _safe_yield(first, second):
-        if first is None and second is None:
-            raise StopIteration # Nothing left to give, stop there
-        return first, second
-
-
-## Flags `_Regions` in the personalised reference which are in non-variant sites in the original PRG.
-# Use `IterPairs` class because we need the information on two consecutive site region to compute `_Region` coordinates.
-def mark_base_nonsite_regions(site_regions: _Regions,
-                              base_records,
-                              secondary_reference_length: int) -> _Regions:
-    # add offset to secondary index to get base offset
-    offset = 0
-    secondary_regions = []
-
-    for record_pair, region_pair in zip(IterPairs(base_records), IterPairs(site_regions)):
-        base_record = record_pair[0]
-        if base_record is not None: # This is only false once, when we encounter the very first record. Then offset must stay 0.
-            offset += len(base_record.REF) - len(base_record.ALT[0])
-
-        first_region, second_region = region_pair # Unpack the two regions
-
-        # If the first position of the personalised reference corresponds to a variant site in the prg, there is nothing to record.
-        if second_region is not None and second_region.start == 0:
-            continue
-
-        at_first_region = first_region is None # `IterPairs` produces an empty `first_region` for the very first pair.
-        at_mid_region = first_region is not None and second_region is not None
-        at_last_region = second_region is None # `IterPairs` produces an empty `second_region` for the very last pair.
-        start, end = None, None
-
-        if at_first_region:
-            start = 0
-            end = second_region.start - 1
-            offset = 0
-
-        if at_mid_region:
-            adjacent_site_regions = first_region.end + 1 == second_region.start
-            # If there is no gap between the pair of site regions, there is nothing to record.
-            if adjacent_site_regions:
-                continue
-            start = first_region.end + 1
-            end = second_region.start - 1
-
-        if at_last_region:
-            ends_in_site_region = first_region.end + 1 == secondary_reference_length
-            if ends_in_site_region:
-                continue
-            start = first_region.end + 1
-            end = secondary_reference_length - 1
-
-        region = _Region(start, end, record=None, offset=offset)
-        secondary_regions.append(region)
-    return secondary_regions
-
-## Merges the `Regions` (site and nonsite) by ordering them using position coordinates.
-def _merge_regions(site_regions: _Regions, nonsite_regions: _Regions) -> _Regions:
-    merged = []
-
-    site_regions = iter(site_regions)
-    nonsite_regions = iter(nonsite_regions)
-
-    site_region = next(site_regions, None)
-    nonsite_region = next(nonsite_regions, None)
-
-    while site_region is not None or nonsite_region is not None:
-        if site_region is not None and nonsite_region is not None:
-            # Case 1: we have both a site_region and a nonsite_region.
-            # `get_next_site` flags whether we next need to deal with the site region (`true`) or the nonsite region (`false`).
-            get_next_site = site_region.start < nonsite_region.start
-        else:
-            # Case 2: we have only one type of `Region` left.
-            # `get_next_site` flags whether that `Region` is a site region (`true`) or the nonsite region.
-            get_next_site = nonsite_region is None
-
-        if get_next_site: # Append the site_region, and get the next one.
-            merged.append(site_region)
-            site_region = next(site_regions, None)
-        else:
-            merged.append(nonsite_region)
-            nonsite_region = next(nonsite_regions, None)
-
-    return merged
 
 ## Produce a list of vcf records parsed from `vcf_file_path`.
 def _load_records(vcf_file_path):
