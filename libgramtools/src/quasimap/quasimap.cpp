@@ -181,8 +181,7 @@ bool gram::quasimap_read(const Pattern &read,
                          Coverage &coverage,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info,
-                         const Parameters &parameters,
-                         const uint32_t &random_seed) {
+                         const Parameters &parameters) {
     auto kmer = get_kmer_from_read(parameters.kmers_size, read); // Gets last k bases of read
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
@@ -191,6 +190,8 @@ bool gram::quasimap_read(const Pattern &read,
     if (not read_mapped_exactly)
         return read_mapped_exactly;
     auto read_length = read.size();
+
+    uint64_t  random_seed = parameters.seed;
     coverage::record::search_states(coverage,
                                     search_states,
                                     read_length,

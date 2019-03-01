@@ -51,6 +51,7 @@ namespace gram {
         std::string grouped_allele_counts_fpath;
 
         uint32_t maximum_threads;
+        uint32_t seed;
     };
 
 }
