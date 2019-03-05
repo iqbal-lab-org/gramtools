@@ -598,6 +598,29 @@ TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 }
 
 
+/*
+PRG: gcgct5c6g6t5agtcct
+i	F	BWT	text	SA	suffix
+0	0	4	 3	    18	  0
+1	1	5	 2	    12	  1 3 4 2 2 4 0
+2	2	4	 3	    15	  2 2 4 0
+3	2	3	 2	    1	  2 3 2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+4	2	2	 4	    16	  2 4 0
+5	2	3	 5	    3	  2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+6	2	5	 2	    6	  2 6 3 6 4 5 1 3 4 2 2 4 0
+7	3	0	 6	    0	  3 2 3 2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+8	3	2	 3	    2	  3 2 4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+9	3	1	 6	    13	  3 4 2 2 4 0
+10	3	6	 4	    8	  3 6 4 5 1 3 4 2 2 4 0
+11	4	2	 5	    17	  4 0
+12	4	3	 1	    14	  4 2 2 4 0
+13	4	6	 3	    10	  4 5 1 3 4 2 2 4 0
+14	4	2	 4	    4	  4 5 2 6 3 6 4 5 1 3 4 2 2 4 0
+15	5	4	 2	    11	  5 1 3 4 2 2 4 0
+16	5	4	 2	    5	  5 2 6 3 6 4 5 1 3 4 2 2 4 0
+17	6	2	 4	    7	  6 3 6 4 5 1 3 4 2 2 4 0
+18	6	3	 0	    9	  6 4 5 1 3 4 2 2 4 0
+ */
 TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInResult) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
@@ -605,7 +628,7 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
 
     SearchState initial_search_state = {
             SA_Interval {10,10}, //Starting at char 'c' at index 6 in prg
-            VariantSitePath {VariantLocus {42, 53}},
+            VariantSitePath {},
             SearchVariantSiteState::unknown,
     };
     SearchStates initial_search_states = {initial_search_state};
@@ -617,7 +640,6 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
     const auto &result = search_state.variant_site_path;
     VariantSitePath expected = {
             VariantLocus {5, 2},
-            VariantLocus {42, 53}
     };
     EXPECT_EQ(result, expected);
 }
