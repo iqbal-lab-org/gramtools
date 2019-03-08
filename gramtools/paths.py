@@ -41,8 +41,9 @@ def _generate_project_paths(args):
 
 ## Removes unnecessary accessory files produced by perl utility.
 def perl_script_file_cleanup(build_paths):
-    os.remove(build_paths['prg'] + '.mask_sites')
-    os.remove(build_paths['prg'] + '.mask_alleles')
+    os.remove(build_paths['perl_generated'] + '.mask_sites')
+    os.remove(build_paths['perl_generated'] + '.mask_alleles')
+    os.rename(build_paths['perl_generated'],build_paths['prg'])
 
 def generate_build_paths(args):
     project_paths = _generate_project_paths(args)
