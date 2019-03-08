@@ -2,6 +2,8 @@ import os
 import shutil
 import subprocess
 import setuptools
+import unittest
+import sys
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.test import test
@@ -40,24 +42,52 @@ def _test_backend(root_dir):
         exit(-1)
 
 
+## Run the front end unit tests: operations making prg, `infer`, `quasimap`.
+# Code adapted from https://stackoverflow.com/q/17001010
+def _test_frontend(root_dir):
+    print("Running gramtools front end unit tests")
+    # use the default shared TestLoader instance
+    test_loader = unittest.defaultTestLoader
+    test_suite = test_loader.discover(root_dir, pattern = "test*.py") # The pattern used is the default
+
+    # use the basic test runner that outputs to sys.stderr
+    test_runner = unittest.TextTestRunner(stream = sys.stdout, verbosity = 2)
+    tests_results = test_runner.run(test_suite)
+
+    if not tests_results.wasSuccessful():
+        print('ERROR: gramtools frontend test runner produced >0 failures')
+        exit(-1)
+
+
 class _InstallCommand(install):
-    """pip3 install -vvv ./gramtools"""
+    """
+    Command:
+        pip3 install -vvv ./gramtools
+    """
     def run(self):
         _build_backend(_root_dir)
         _test_backend(_root_dir)
+        _test_frontend(_root_dir)
         install.run(self)
 
 
 class _DevelopCommand(develop):
-    """pip3 install -vvv --editable ./gramtools"""
+    """
+    Command:
+        pip3 install -vvv --editable ./gramtools
+    """
     def run(self):
         _build_backend(_root_dir)
         _test_backend(_root_dir)
+        _test_frontend(_root_dir)
         develop.run(self)
 
 
 class _TestCommand(test):
-    """python3 setup.py test"""
+    """
+    Command:
+        python3 setup.py test
+    """
     def run(self):
         _build_backend(_root_dir)
         _test_backend(_root_dir)
