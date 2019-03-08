@@ -42,6 +42,13 @@ def parse_args(common_parser, subparsers):
                         default=1,
                         required=False)
 
+    parser.add_argument('--seed',
+                        help='Use this for fixing seed. Fixing seed will produce consistent coverage output across different runs.'
+                             'By default, seed is randomly generated.',
+                        type=int,
+                        default=0,
+                        required=False)
+
 
 def _execute_command(quasimap_paths, report, args):
     if report.get('return_value_is_0') is False:
@@ -58,6 +65,7 @@ def _execute_command(quasimap_paths, report, args):
         '--kmer-size', str(args.kmer_size),
         '--run-directory', quasimap_paths['quasimap_run_dirpath'],
         '--max-threads', str(args.max_threads),
+        '--seed', str(args.seed),
     ]
 
     command_str = ' '.join(command)
