@@ -23,6 +23,8 @@ class Prg_Local_Parser(object):
         _dump_fasta(self.prg_parser, self.allele_indexes, self.writer)
         self.writer.close()
 
+        return self.writer.get_size()
+
 
 class FastaWriter:
     def __init__(self, fpath, description):
@@ -30,13 +32,19 @@ class FastaWriter:
         self._fhandle = open(self._fpath, 'w')
         self._fhandle.write("> {} \n".format(description))
         self._running_tally = 0
+        self._total_size = 0
 
         self._cache = []
         self._max_cache_size = 1000000
 
+
+    def get_size(self):
+        return self._total_size
+
     def append(self, char):
         self._cache.append(char)
         self._running_tally += 1
+        self._total_size += 1
 
         if self._running_tally == FASTA_LINE_SIZE:
             self._cache.append('\n')
@@ -54,8 +62,8 @@ class FastaWriter:
         if self._cache[-1] != '\n':
             self._cache.append('\n')
 
-        cache = ''.join(self._cache)
-        self._fhandle.write(cache)
+        self._flush()
+
 
     def close(self):
         self._flush_endFile()

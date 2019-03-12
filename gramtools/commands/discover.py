@@ -28,20 +28,22 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('discover',
                                    parents=[common_parser])
-    parser.add_argument('--gram-directory',
+    parser.add_argument('--gram-dir','--gram-directory',
                         help='',
                         type=str,
+                        dest='gram_directory',
                         required=True)
-    parser.add_argument('--inferred-vcf',
-                        help='The vcf file corresponding to the inferred path through the PRG.',
+    parser.add_argument('--infer-dir',
+                        help='The directory containing the outputs from `infer` command',
                         type=str,
                         required=True)
     parser.add_argument('--reads',
                         help='Reads file for variant discovery with respect to the inferred personalised reference.',
                         type=str,
                         required=True)
-    parser.add_argument('--output-vcf',
-                        help='File path for variant calls.',
+    parser.add_argument('--discover-dir',
+                        help='Directory to output results from `discover` command'
+                             'Defaults to inside "gram-dir"',
                         type=str,
                         required=False)
 
@@ -49,26 +51,19 @@ def parse_args(common_parser, subparsers):
 def run(args):
     log.info('Start process: discover')
     _paths = paths.generate_discover_paths(args)
-    os.mkdir(_paths['tmp_directory'])
+    # os.mkdir(_paths['tmp_directory'])
 
-    #Parse the prg and write out a base reference; extracts the first (REF) allele from each variant site.
-    fasta_description = "PRG base reference for gramtools"
-    PrgParser = prg_local_parser.Prg_Local_Parser(prg_fpath = _paths["prg"], output_file_name = _paths["base_reference"],
-                                                  fasta_header = fasta_description, allele_indexes = _alwaysRef())
-    PrgParser.parse()
-
-    file_handle = open(args.inferred_vcf, 'r')
-    vcf_reader = vcf.Reader(file_handle)
-
-    fasta_description = "Inferred personal reference generated using gramtools"
-    inferred_reference_length = _produce_inferred_reference(_paths["base_reference"], vcf_reader, _paths['inferred_reference'], fasta_description)
 
     # call variants using `cortex`
-    cortex.calls(_paths['inferred_reference'], args.reads, _paths['cortex_vcf'])
+    cortex.calls(_paths['inferred_fasta'], args.reads, _paths['cortex_vcf'])
 
+
+    # Get the length of the inferred fasta reference; was computed at infer stage.
+    with open(_paths["inferred_ref_size"]) as f:
+        inferred_reference_length = int(f.read())
 
     # Convert coordinates in personalised reference space to coordinates in (original) prg space.
-    rebased_vcf_records = _rebase_vcf(args.inferred_vcf,
+    rebased_vcf_records = _rebase_vcf(_paths["inferred_vcf"],
                                       inferred_reference_length,
                                       _paths['cortex_vcf'])
     if rebased_vcf_records is None:
@@ -80,9 +75,9 @@ def run(args):
     template_vcf_file_path = _paths['cortex_vcf']
     _dump_rebased_vcf(rebased_vcf_records, _paths['rebase_vcf'], template_vcf_file_path)
 
-    vcf_files = [_paths['rebase_vcf']]
+    vcf_files = [_paths['rebased_vcf']]
     # Cluster together variants in close proximity.
-    cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files, _paths['base_reference'], args.output_vcf)
+    cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files, _paths['base_reference'], _paths['final_output_vcf'])
     cluster.run()
 
     shutil.rmtree(_paths['tmp_directory'])

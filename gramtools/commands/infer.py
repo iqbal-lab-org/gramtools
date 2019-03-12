@@ -88,7 +88,10 @@ def run(args):
     log.info("Generating personalised fasta. Output at {}".format(_paths["inferred_fasta"]))
     allele_indexes = iter(allele_indexes)
     Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], _paths["inferred_fasta"], "Personalised reference generated using gramtools `infer`", allele_indexes)
-    Prg_Parser.parse()
+    ref_size = Prg_Parser.parse()
+
+    with open(_paths["inferred_ref_size"], "w") as f:
+        f.write(str(ref_size))
 
     log.info('End process: infer')
 

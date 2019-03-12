@@ -78,6 +78,7 @@ def generate_infer_paths(args):
 
     paths["inferred_fasta"] = os.path.join(paths["infer_dir"],"inferred.fasta")
     paths["inferred_vcf"] = os.path.join(paths["infer_dir"],"inferred.vcf")
+    paths["inferred_ref_size"] = os.path.join(paths["infer_dir"], "inferred_ref_size")
 
     return paths
 
@@ -87,23 +88,43 @@ def generate_discover_paths(args):
         return template.format(uuid=str(uuid.uuid4()))
 
     project_paths = _generate_project_paths(args)
-    tmp_base_directory = tempfile.gettempdir()
-    tmp_directory_name = add_uuid('gramtools_discover_{uuid}')
-    tmp_directory = os.path.join(tmp_base_directory, tmp_directory_name)
+#    tmp_base_directory = tempfile.gettempdir()
+#    tmp_directory_name = add_uuid('gramtools_discover_{uuid}')
+#    tmp_directory = os.path.join(tmp_base_directory, tmp_directory_name)
 
-    base_reference_fasta_file_name = add_uuid('base_reference_{uuid}.fasta')
-    inferred_fasta_file_name = add_uuid('infer_{uuid}.fasta')
-    cortex_vcf_file_name = add_uuid('cortex_{uuid}.vcf')
-    rebase_vcf_file_name = add_uuid('rebase_{uuid}.vcf')
-
+#    cortex_vcf_file_name = add_uuid('cortex_{uuid}.vcf')
     _paths = {
         **project_paths,
-        'tmp_directory': tmp_directory,
-        'base_reference': os.path.join(tmp_directory, base_reference_fasta_file_name),
-        'inferred_reference': os.path.join(tmp_directory, inferred_fasta_file_name),
-        'cortex_vcf': os.path.join(tmp_directory, cortex_vcf_file_name),
-        'rebase_vcf': os.path.join(tmp_directory, rebase_vcf_file_name),
+        "infer_dir" : args.infer_dir,
     }
+
+    # Discovery directory for permanent output
+    if args.discover_dir is not None:
+        _paths["discover_dir"] = args.discover_dir
+    else:
+        _paths["discover_dir"] = os.path.join(_paths["project"], "discover_outputs")
+
+    if not os.path.exists(_paths["discover_dir"]):
+        os.mkdir(_paths["discover_dir"])
+
+    # Outputs
+    _paths['cortex_vcf'] = os.path.join(_paths["discover_dir"], "cortex.vcf")
+    _paths['rebased_vcf'] = os.path.join(_paths["discover_dir"], "rebased.vcf")
+    _paths['final_output_vcf'] = os.path.join(_paths["discover_dir"], "final_output.vcf")
+
+
+    # Check we have the required files from `infer`.
+    _paths["inferred_fasta"] = os.path.join(_paths["infer_dir"],"inferred.fasta")
+    _paths["inferred_vcf"] = os.path.join(_paths["infer_dir"],"inferred.vcf")
+    _paths["inferred_ref_size"] = os.path.join(_paths["infer_dir"], "inferred_ref_size")
+
+    if not os.path.exists(_paths["inferred_fasta"]):
+        log.error("Cannot find fasta formatted inferred personalised reference, at {}".format(_paths["inferred_fasta"]))
+
+    if not os.path.exists(_paths["inferred_vcf"]):
+        log.error("Cannot find vcf formatted inferred personalised reference, at {}".format(_paths["inferred_fasta"]))
+
+
     return _paths
 
 
