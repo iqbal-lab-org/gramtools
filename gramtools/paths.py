@@ -67,6 +67,18 @@ def generate_infer_paths(args):
     project_paths = _generate_project_paths(args)
     quasimap_paths = generate_quasimap_run_paths(args)
     paths = {**project_paths, **quasimap_paths}
+
+    if args.infer_dir is not None:
+        paths["infer_dir"] = args.infer_dir
+    else:
+        paths["infer_dir"] = os.path.join(paths["project"],"infer_outputs")
+
+    if not os.path.exists(paths["infer_dir"]):
+        os.mkdir(paths["infer_dir"])
+
+    paths["inferred_fasta"] = os.path.join(paths["infer_dir"],"inferred.fasta")
+    paths["inferred_vcf"] = os.path.join(paths["infer_dir"],"inferred.vcf")
+
     return paths
 
 

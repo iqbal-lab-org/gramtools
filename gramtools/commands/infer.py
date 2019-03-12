@@ -5,7 +5,6 @@
 
 import json
 import logging
-import sys
 
 import vcf
 import collections
@@ -21,13 +20,13 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('infer',
                                    parents=[common_parser])
-    parser.add_argument('--gram-dir',
+    parser.add_argument('--gram-dir', '--gram-directory',
                         help='Directory where the output of `build` is stored',
                         dest='gram_directory',
                         type=str,
                         required=True)
 
-    parser.add_argument('--quasimap-dir',
+    parser.add_argument('--quasimap-dir','--quasimap-directory',
                         help='Directory where the output of `quasimap` is stored',
                         dest='quasimap_directory',
                         type=str,
@@ -43,37 +42,32 @@ def parse_args(common_parser, subparsers):
                         type=float,
                         required=True)
 
+
+    parser.add_argument('--infer-dir',
+                        help='Directory for storing outputs of `infer`.'
+                             'The stored files will be the personalised reference as a (haploid) fasta,'
+                             'and the personalised reference as a vcf.'
+                             'Defaults to inside "gram-dir".',
+                        type=str,
+                        required=False)
+
+    parser.add_argument('--vcf-mode',
+                        help='If "single", the output vcf will not contain alleles with zero-coverage in successfully genotyped sites.'
+                             'If "population", all alleles will be represented for all sites.',
+                        type=str,
+                        required=False,
+                        choices=['single','population'],
+                        default='single')
+
     parser.add_argument('--haploid',
                         help='',
                         action='store_true',
                         required=False)
 
-    parser.add_argument('--output-fasta',
-                        help='Output the inferred personalised reference as a fasta',
-                        type=str,
-                        required=False)
-
-    parser.add_argument('--output-vcf',
-                        help='Output the inferred personalised reference as a vcf.'
-                             'If specified, You will need to specify whether to output vcf in "single" or "population" mode',
-                        type=str,
-                        required=False)
-
-    parser.add_argument('--vcf_mode',
-                        help='If "single", the output vcf will not contain alleles with zero-coverage in successfully genotyped sites.'
-                             'If "population", all alleles will be represented for all sites.',
-                        type=str,
-                        required='--output-vcf' in sys.argv,
-                        choices=['single','population'],)
-
 
 def run(args):
     log.info('Start process: infer')
     _paths = paths.generate_infer_paths(args)
-
-    if args.output_fasta is None and args.output_vcf is None:
-        log.error("Either --output-fasta or --output-vcf must be specified")
-        exit(1)
 
     all_per_base_coverage = _load_per_base_coverage(_paths['allele_base_coverage'])
     allele_groups, all_groups_site_counts = \
@@ -85,13 +79,16 @@ def run(args):
                                              all_groups_site_counts,
                                              allele_groups)
 
-    if args.output_fasta is not None:
-        allele_indexes =_extract_allele_indexes(genotypers)
-        Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], args.output_fasta, 'A personal reference sequence built using gramtools `infer`', allele_indexes)
-        Prg_Parser.parse()
+    # Make the vcf
+    log.info("Inferring personalised vcf. Output at {}".format(_paths["inferred_vcf"]))
+    allele_indexes = _dump_vcf(genotypers, _paths, args)
 
-    if args.output_vcf is not None:
-        _dump_vcf(genotypers, _paths, args)
+
+    # Make the fasta
+    log.info("Generating personalised fasta. Output at {}".format(_paths["inferred_fasta"]))
+    allele_indexes = iter(allele_indexes)
+    Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], _paths["inferred_fasta"], "Personalised reference generated using gramtools `infer`", allele_indexes)
+    Prg_Parser.parse()
 
     log.info('End process: infer')
 
@@ -152,7 +149,7 @@ def _dump_vcf(genotypers, _paths, args):
     # Build an updater object. It will update the vcf records differently based on infer mode specified at command-line.
     VcfUpdater = _VcfUpdater.factory(args.vcf_mode, CallData, FORMAT, sample_name)
 
-    with open(args.output_vcf, 'w') as file_handle:
+    with open(_paths["inferred_vcf"], 'w') as file_handle:
         vcf_writer = vcf.Writer(file_handle, vcf_reader) # Takes the reader as template
 
         for vcf_record, gtyper in zip(vcf_reader, genotypers):
@@ -164,8 +161,17 @@ def _dump_vcf(genotypers, _paths, args):
 
             vcf_writer.write_record(new_record)
 
+    return VcfUpdater.allele_indexes
+
+
 
 class _VcfUpdater(object):
+
+    def __init__(self,CallData, FORMAT, sample_name):
+        self.CallData = CallData
+        self.FORMAT = FORMAT
+        self.sample_name = sample_name
+        self.allele_indexes = []
 
     @staticmethod
     def factory(type, CallData, FORMAT, sample_name):
@@ -177,9 +183,7 @@ class _VcfUpdater(object):
 
 class _SingleUpdater(_VcfUpdater):
     def __init__(self,CallData, FORMAT, sample_name):
-        self.CallData = CallData
-        self.FORMAT = FORMAT
-        self.sample_name = sample_name
+        _VcfUpdater.__init__(self, CallData,FORMAT,sample_name)
 
     ## Computes and records depth, genotype, coverage, genotype confidence.
     # Also removes non-zero coverage alleles if site has been genotyped.
@@ -234,12 +238,12 @@ class _SingleUpdater(_VcfUpdater):
         new_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
         new_record.FORMAT = self.FORMAT
 
+        self.allele_indexes.append(_extract_allele_index(gtyper))
+
 
 class _PopulationUpdater(_VcfUpdater):
     def __init__(self,CallData, FORMAT, sample_name):
-        self.CallData = CallData
-        self.FORMAT = FORMAT
-        self.sample_name = sample_name
+        _VcfUpdater.__init__(self, CallData,FORMAT,sample_name)
 
     ## Computes and records depth, genotype, coverage, genotype confidence.
     # Keeps all alleles at all sites even if they have no coverage.
@@ -268,6 +272,8 @@ class _PopulationUpdater(_VcfUpdater):
         new_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
         new_record.FORMAT = self.FORMAT
 
+        self.allele_indexes.append(_extract_allele_index(gtyper))
+
 
 ## Generate max. likelihood call for each allele.
 def _max_likelihood_alleles(mean_depth,
@@ -288,26 +294,23 @@ def _max_likelihood_alleles(mean_depth,
 
 
 
-
 ## Returns the most likely single allele id
-def _extract_allele_indexes(genotypers):
-    for gtyper in genotypers:
-        if '.' in gtyper.genotype:  # If no genotyping information, return REF allele index (is 0)
-            yield 0
-            continue
+def _extract_allele_index(gtyper):
+    if '.' in gtyper.genotype:  # If no genotyping information, return REF allele index (is 0)
+        return 0
 
-        allele_index = None
+    allele_index = None
 
-        # "alleles" is allele groups, we ignore groups which consist of more than just one allele id
-        for alleles, likelihood in gtyper.likelihoods:
-            if len(alleles) != 1:
-               continue
-            allele_index = list(alleles)[0]
-            break
-        if allele_index is None:
-            raise ValueError('Genotyper likelihoods does not have any valid haploid data')
+    # "alleles" is allele groups, we ignore groups which consist of more than just one allele id
+    for alleles, likelihood in gtyper.likelihoods:
+        if len(alleles) != 1:
+           continue
+        allele_index = list(alleles)[0]
+        break
+    if allele_index is None:
+        raise ValueError('Genotyper likelihoods does not have any valid haploid data')
 
-        yield allele_index
+    return allele_index
 
 
 def _load_grouped_allele_coverage(fpath):
