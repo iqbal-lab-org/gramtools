@@ -1,9 +1,7 @@
 ## @file
 # Sets up file names and directory structures for storing the gramtools inputs and outputs.
 import os
-import uuid
 import logging
-import tempfile
 
 log = logging.getLogger('gramtools')
 
@@ -84,25 +82,19 @@ def generate_infer_paths(args):
 
 
 def generate_discover_paths(args):
-    def add_uuid(template: str):
-        return template.format(uuid=str(uuid.uuid4()))
 
     project_paths = _generate_project_paths(args)
-#    tmp_base_directory = tempfile.gettempdir()
-#    tmp_directory_name = add_uuid('gramtools_discover_{uuid}')
-#    tmp_directory = os.path.join(tmp_base_directory, tmp_directory_name)
 
-#    cortex_vcf_file_name = add_uuid('cortex_{uuid}.vcf')
     _paths = {
         **project_paths,
-        "infer_dir" : args.infer_dir,
+        "infer_dir" : os.path.abspath(args.infer_dir),
     }
 
     # Discovery directory for permanent output
     if args.discover_dir is not None:
         _paths["discover_dir"] = args.discover_dir
     else:
-        _paths["discover_dir"] = os.path.join(_paths["project"], "discover_outputs")
+        _paths["discover_dir"] = os.path.join(os.path.abspath(_paths["project"]), "discover_outputs")
 
     if not os.path.exists(_paths["discover_dir"]):
         os.mkdir(_paths["discover_dir"])
@@ -110,7 +102,6 @@ def generate_discover_paths(args):
     # Outputs
     _paths['cortex_vcf'] = os.path.join(_paths["discover_dir"], "cortex.vcf")
     _paths['rebased_vcf'] = os.path.join(_paths["discover_dir"], "rebased.vcf")
-    _paths['final_output_vcf'] = os.path.join(_paths["discover_dir"], "final_output.vcf")
 
 
     # Check we have the required files from `infer`.

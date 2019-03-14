@@ -5,15 +5,12 @@
 # Finally the same set of reads can be mapped to this personalised reference for variant discovery using this module.
 # The output vcf file gets rebased to express variants in the original prg (rather than personalised reference) coordinate space.
 
-import shutil
 import typing
 import bisect
 import logging
 
 import vcf
 import cortex
-from Bio import SeqIO, Seq
-import cluster_vcf_records
 
 from .. import paths
 
@@ -46,10 +43,10 @@ def parse_args(common_parser, subparsers):
 def run(args):
     log.info('Start process: discover')
     _paths = paths.generate_discover_paths(args)
-    # os.mkdir(_paths['tmp_directory'])
 
 
     # call variants using `cortex`
+    log.debug('Running cortex')
     cortex.calls(_paths['inferred_fasta'], args.reads, _paths['cortex_vcf'])
 
 
@@ -58,25 +55,21 @@ def run(args):
         inferred_reference_length = int(f.read())
 
     # Convert coordinates in personalised reference space to coordinates in (original) prg space.
+    log.debug('Rebasing vcf')
     rebased_vcf_records = _rebase_vcf(_paths["inferred_vcf"],
                                       inferred_reference_length,
                                       _paths['cortex_vcf'])
     if rebased_vcf_records is None:
         log.debug("Rebased VCF does not contain records")
-        shutil.rmtree(_paths['tmp_directory'])
         log.info('End process: discover')
         return
 
     template_vcf_file_path = _paths['cortex_vcf']
-    _dump_rebased_vcf(rebased_vcf_records, _paths['rebase_vcf'], template_vcf_file_path)
+    _dump_rebased_vcf(rebased_vcf_records, _paths['rebased_vcf'], template_vcf_file_path)
 
-    vcf_files = [_paths['rebased_vcf']]
-    # Cluster together variants in close proximity.
-    cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files, _paths['base_reference'], _paths['final_output_vcf'])
-    cluster.run()
+    log.info('End process: discover. '
+             'Rebased vcf in {}'.format(_paths['rebased_vcf']))
 
-    shutil.rmtree(_paths['tmp_directory'])
-    log.info('End process: discover')
 
 ## Rebase a vcf so that it uses same reference as base_vcf.
 #
@@ -126,6 +119,7 @@ def _dump_rebased_vcf(records, rebase_file_path, template_vcf_file_path):
     for record in records:
         writer.write_record(record)
     writer.close()
+
 
 ## Class that allows mapping between a vcf record in one REF coordinate to a vcf record in another REF coordinate system.
 # Call the two references coordinates ref 2 and ref 1.
@@ -317,41 +311,6 @@ def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
     return vcf_record
 
 
-## Find all `_Region`s overlapped by a `vcf_record`.
-# @return the overlapped `_Region`s.
-def _find_overlap_regions(vcf_record, first_region_index, marked_regions):
-    record_start_index = vcf_record.POS - 1
-
-    # Take the largest region alluded to in the `vcf_record`. This region is used to query which `_Region`s are overlapped.
-    # TODO: should it not be the REF length that is used as record length, rather than max of REF and ALT?
-    if len(vcf_record.ALT[0]) > len(vcf_record.REF):
-        record_end_index = record_start_index + len(vcf_record.ALT[0]) - 1
-    else:
-        record_end_index = record_start_index + len(vcf_record.REF) - 1
-    record_max_length = record_end_index - record_start_index + 1
-
-    record_length_consumed = 0
-    regions = iter(marked_regions[first_region_index:])
-    overlap_regions = []
-    process_first_region = True
-
-    # Keep appending regions while we have not traversed the personalised reference with the full length of the record.
-    while record_length_consumed < record_max_length:
-        region = next(regions, None)
-        if region is None:
-            break
-
-        # When processing the first region, the `record_start_index` can be greater than the start of the region.
-        # We do not consume the whole region thus, but only the region between the `record_start_index` and the region's end.
-        if process_first_region:
-            start_offset = record_start_index - region.start
-            record_length_consumed = len(region) - start_offset
-            process_first_region = False
-        else:
-            record_length_consumed += len(region)
-
-        overlap_regions.append(region)
-    return overlap_regions
 
 
 ## Return the marked `_Region` containing the position referred to by `vcf_record`.
@@ -386,16 +345,6 @@ def _load_records(vcf_file_path):
     records = list(vcf_reader)
     return records
 
-
-def _dump_fasta(inferred_reference, description, file_path):
-    inferred_reference = ''.join(inferred_reference)
-
-    seq = Seq.Seq(inferred_reference, Seq.IUPAC.unambiguous_dna)
-    seq_record = SeqIO.SeqRecord(seq, '', description=description)
-    record = [seq_record]
-
-    log.debug("Writing fasta reference:\n%s\n%s", file_path, description)
-    SeqIO.write(record, file_path, "fasta")
 
 ## Generator to always yield the first allele (REF) of a variant site.
 def _alwaysRef():
