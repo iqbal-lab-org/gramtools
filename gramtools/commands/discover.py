@@ -5,7 +5,6 @@
 # Finally the same set of reads can be mapped to this personalised reference for variant discovery using this module.
 # The output vcf file gets rebased to express variants in the original prg (rather than personalised reference) coordinate space.
 
-import os
 import shutil
 import typing
 import bisect
@@ -17,10 +16,6 @@ from Bio import SeqIO, Seq
 import cluster_vcf_records
 
 from .. import paths
-from .. import prg_local_parser
-
-REF_READ_CHUNK_SIZE = 1000000
-DNA = {'A', 'C', 'G', 'T'}
 
 log = logging.getLogger('gramtools')
 
@@ -402,93 +397,9 @@ def _dump_fasta(inferred_reference, description, file_path):
     log.debug("Writing fasta reference:\n%s\n%s", file_path, description)
     SeqIO.write(record, file_path, "fasta")
 
-
-## Compute a new reference from an base reference and a set of vcf records.
-# @param reference the 'base' reference: non-variant sites of the prg + first allele of each variant site.
-# @param vcf_reader set of vcf records describing variants inferred against the old reference.
-def _produce_inferred_reference(reference_fpath, vcf_reader, fasta_fpath, description):
-    inferred_reference_length = 0
-
-    reference = _refParser(reference_fpath)
-    inferred_reference = prg_local_parser.FastaWriter(fasta_fpath, description)
-
-    record = next(vcf_reader, None)
-
-    start_ref_idx = -1
-    end_ref_idx = -1
-
-    for idx, x in enumerate(reference):
-        within_replaced_ref = start_ref_idx < idx <= end_ref_idx
-        if within_replaced_ref:
-            continue
-
-        vcf_finished = record is None
-        if vcf_finished:
-            inferred_reference.append(x)
-            inferred_reference_length += 1
-            continue
-
-        # This update only actually occurs once we have passed a record
-        start_ref_idx = record.POS - 1
-        end_ref_idx = start_ref_idx + len(record.REF) - 1
-
-        at_allele_insert_idx = idx == start_ref_idx
-
-        # Let's insert the genotyped allele
-        if at_allele_insert_idx:
-            sample = record.samples[0]
-            genotype = sample.gt_alleles
-
-            # Case: no genotype. Let's pick REF allele.
-            if set(genotype) == {None}:
-                allele_index = 0
-
-            # Case: single haploid genotype. Pick that allele.
-            # OR Case: there are >1 calls. Just pick the first.
-            else:
-                allele_index = int(genotype[0])
-
-
-            if allele_index == 0:
-                template = str(record.REF)
-            else:
-                template = str(record.ALT[allele_index - 1])
-
-            for alt_char in template:
-                inferred_reference.append(alt_char)
-
-            inferred_reference_length += len(template)
-
-            record = next(vcf_reader, None)
-            continue
-
-        # Add the non-variant regions
-        inferred_reference.append(x)
-        inferred_reference_length += 1
-
-    inferred_reference.close()
-
-    return inferred_reference_length
-
-
 ## Generator to always yield the first allele (REF) of a variant site.
 def _alwaysRef():
     while True:
         yield 0
-
-
-## Generator to parse fasta ref sequence in blocks.
-def _refParser(ref_fpath, chunk_size = REF_READ_CHUNK_SIZE):
-    with open(ref_fpath) as fhandle:
-        next(fhandle)  # Skip header line
-        while True:
-            chars = fhandle.read(chunk_size)
-            if len(chars) == 0:
-                return
-
-            for char in chars:
-                if char.upper() not in DNA:
-                    continue
-                yield char
 
 
