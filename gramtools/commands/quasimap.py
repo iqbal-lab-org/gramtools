@@ -18,22 +18,23 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('quasimap',
                                    parents=[common_parser])
-    parser.add_argument('--gram-directory',
-                        help='',
-                        type=str)
+    parser.add_argument('--gram-dir','--gram-directory',
+                        help='Directory containing outputs from gramtools `build`',
+                        dest='gram_directory',
+                        type=str,
+                        required=True)
+
     parser.add_argument('--reads',
                         help='',
                         action="append",
                         type=str)
 
-    # deprecated, use --output-directory
-    parser.add_argument('--run-directory',
-                        help='',
+
+    parser.add_argument('--quasimap-dir','--quasimap-directory',
+                        help='Directory where outputs of quasimap will be stored.\n'
+                             'Defaults to \'quasimap_outputs\' inside \'gram-dir\'',
                         type=str,
-                        required=False)
-    parser.add_argument('--output-directory',
-                        help='',
-                        type=str,
+                        dest='quasimap_dir',
                         required=False)
 
     parser.add_argument('--max-threads',
@@ -47,6 +48,13 @@ def parse_args(common_parser, subparsers):
                              'By default, seed is randomly generated.',
                         type=int,
                         default=0,
+                        required=False)
+
+    parser.add_argument('--output-directory',
+                        help='[Deprecated: use --quasimap-dir instead].\n'
+                             'Directory where outputs of quasimap will be stored.'
+                             'Defaults to \'quasimap_outputs\' inside \'gram-dir\'.',
+                        type=str,
                         required=False)
 
 
@@ -63,7 +71,7 @@ def _execute_command(quasimap_paths, report, args):
         '--gram', quasimap_paths['project'],
         '--reads', ' '.join(quasimap_paths['reads']),
         '--kmer-size', str(args.kmer_size),
-        '--run-directory', quasimap_paths['quasimap_run_dirpath'],
+        '--run-directory', quasimap_paths['quasimap_dir'],
         '--max-threads', str(args.max_threads),
         '--seed', str(args.seed),
     ]
@@ -80,7 +88,7 @@ def _execute_command(quasimap_paths, report, args):
                                       env={'LD_LIBRARY_PATH': common.lib_paths})
 
     command_result, entire_stdout = common.handle_process_result(process_handle)
-    log.info('Output run directory:\n%s', quasimap_paths['quasimap_run_dirpath'])
+    log.info('Output run directory:\n%s', quasimap_paths['quasimap_dir'])
 
     report['return_value_is_0'] = command_result
     report['gramtools_cpp_quasimap'] = collections.OrderedDict([
@@ -117,13 +125,12 @@ def _save_report(start_time,
         json.dump(_report, fhandle, indent=4)
 
 
-def _load_build_report(args):
-    build_paths = paths.generate_build_paths(args)
+def _load_build_report(project_paths):
     try:
-        with open(build_paths['build_report']) as fhandle:
+        with open(project_paths['build_report']) as fhandle:
             return json.load(fhandle)
     except FileNotFoundError:
-        log.error("Build report not found: %s", build_paths['build_report'])
+        log.error("Build report not found: %s. Try re-running gramtools `build`?", project_paths['build_report'])
         exit(1)
 
 
@@ -136,19 +143,19 @@ def _check_build_success(build_report):
 def run(args):
     log.info('Start process: quasimap')
 
-    build_report = _load_build_report(args)
-    _check_build_success(build_report)
-
-    kmer_size = build_report['kmer_size']
-    setattr(args, 'kmer_size', kmer_size)
-
-    if args.run_directory is not None:
-        log.warning("Deprecated argument: --run-directory; instead use: --output-directory")
-        args.output_directory = args.run_directory
+    if args.output_directory is not None:
+        log.warning("DEPRECATED Option: '--output-directory'. Please use '--quasimap-dir' in the future instead.")
+        args.quasimap_dir = args.output_directory
 
     start_time = str(time.time()).split('.')[0]
     command_paths = paths.generate_quasimap_paths(args, start_time)
     paths.check_project_file_structure(command_paths)
+
+    build_report = _load_build_report(command_paths)
+    _check_build_success(build_report)
+
+    kmer_size = build_report['kmer_size']
+    setattr(args, 'kmer_size', kmer_size)
 
     report = collections.OrderedDict()
     report = _execute_command(command_paths, report, args)

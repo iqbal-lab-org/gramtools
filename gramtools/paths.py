@@ -6,7 +6,7 @@ import logging
 log = logging.getLogger('gramtools')
 
 ## Defines the file names for all gramtools-related data files.
-# These data files are committed to disk by the `build` process, and loaded for the `quasimap` process.
+# These data files are committed to disk by the `build` process, and some/all used in later commands.
 def _generate_project_paths(args):
     project_dir = args.gram_directory
 
@@ -33,6 +33,8 @@ def _generate_project_paths(args):
         'perl_generated': project_path('perl_generated'),
         'perl_generated_vcf': project_path('perl_generated.vcf'),
         'perl_generated_fa': project_path('perl_generated.fa'),
+
+        'build_report': project_path('build_report.json')
     }
     return paths
 
@@ -45,7 +47,6 @@ def perl_script_file_cleanup(build_paths):
 
 def generate_build_paths(args):
     project_paths = _generate_project_paths(args)
-    project_paths['build_report'] = os.path.join(project_paths['project'], 'build_report.json')
     return project_paths
 
 
@@ -119,33 +120,19 @@ def generate_discover_paths(args):
     return _paths
 
 
-def _quasimap_output_dirpath(outputs_base_path,
-                             kmer_size,
-                             start_time):
-    template = '{start_time}_ksize{kmer_size}'
-    directory_name = template.format(start_time=start_time, kmer_size=kmer_size)
-    path = os.path.join(outputs_base_path, directory_name)
-    return path
-
 ## Make quasimap-related file and directory paths.
 def generate_quasimap_paths(args, start_time):
     project_paths = _generate_project_paths(args)
 
-    if hasattr(args, 'output_directory') and args.output_directory is not None:
-        outputs_base_path = os.path.abspath(os.path.join(args.output_directory, os.pardir))
-        run_dirpath = args.output_directory
-    else: # Name a default output directory inside the gram project directory.
-        outputs_base_path = os.path.join(project_paths['project'], 'quasimap_outputs')
-        run_dirpath = _quasimap_output_dirpath(outputs_base_path,
-                                               args.kmer_size,
-                                               start_time)
+    quasimap_dir = args.quasimap_dir
+    if quasimap_dir is None: # Name a default output directory inside the gram project directory.
+        quasimap_dir = os.path.join(project_paths['project'], 'quasimap_outputs')
 
     paths = {
         'reads': args.reads,
 
-        'quasimap_outputs_dirpath': outputs_base_path,
-        'quasimap_run_dirpath': run_dirpath,
-        'run_report': os.path.join(run_dirpath, 'report.json'),
+        'quasimap_dir': quasimap_dir,
+        'run_report': os.path.join(quasimap_dir, 'quasimap_report.json'),
     }
     paths.update(project_paths)
     return paths
@@ -155,8 +142,7 @@ def check_project_file_structure(paths):
     log.debug('Checking project file structure')
     directory_keys = [
         'project',
-        'quasimap_outputs_dirpath',
-        'quasimap_run_dirpath',
+        'quasimap_dir',
     ]
     for directory_key in directory_keys:
         try:
