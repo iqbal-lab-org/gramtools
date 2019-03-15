@@ -25,9 +25,14 @@ def parse_args(common_parser, subparsers):
                         required=True)
 
     parser.add_argument('--reads',
-                        help='',
+                        help='One or more read files.\n'
+                             'Valid formats: fastq, sam/bam/cram, fasta, txt; compressed or uncompressed; fuzzy extensions (eg fq, fsq for fastq).\n'
+                             'Read files can be given after one or several \'--reads\' argument:'
+                             'Eg \'--reads rf_1.fq rf_2.fq.gz --reads rf_3.bam \'',
+                        nargs='+',
                         action="append",
-                        type=str)
+                        type=str,
+                        required=True)
 
 
     parser.add_argument('--quasimap-dir','--quasimap-directory',

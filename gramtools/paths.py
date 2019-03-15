@@ -129,7 +129,7 @@ def generate_quasimap_paths(args, start_time):
         quasimap_dir = os.path.join(project_paths['project'], 'quasimap_outputs')
 
     paths = {
-        'reads': args.reads,
+        'reads': [read_file for arglist in args.reads for read_file in arglist], # Flattens out list of lists
 
         'quasimap_dir': quasimap_dir,
         'run_report': os.path.join(quasimap_dir, 'quasimap_report.json'),
