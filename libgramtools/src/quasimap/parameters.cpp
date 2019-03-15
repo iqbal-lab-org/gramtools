@@ -52,6 +52,8 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.allele_sum_coverage_fpath = full_path(run_dirpath, "allele_sum_coverage");
     parameters.allele_base_coverage_fpath = full_path(run_dirpath, "allele_base_coverage.json");
     parameters.grouped_allele_counts_fpath = full_path(run_dirpath, "grouped_allele_counts_coverage.json");
+    
+    parameters.read_stats_fpath = full_path(run_dirpath, "read_stats.json");
 
     parameters.maximum_threads = vm["max-threads"].as<uint32_t>();
     parameters.seed = vm["seed"].as<uint32_t>();

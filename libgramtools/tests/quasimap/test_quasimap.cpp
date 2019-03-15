@@ -6,6 +6,7 @@
 #include "kmer_index/build.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
+#include "common/utils.hpp"
 
 
 using namespace gram;
@@ -604,3 +605,4 @@ TEST(Quasimap, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
     };
     EXPECT_EQ(result, expected);
 }
+

@@ -46,6 +46,7 @@ link_directories(${EXTERNAL_LIBS_DIR})
 set(SOURCE_FILES
         ${SOURCE}/common/utils.cpp
         ${SOURCE}/common/timer_report.cpp
+        ${SOURCE}/common/read_stats.cpp
 
         ${SOURCE}/search/search.cpp
         
@@ -73,6 +74,7 @@ set(SOURCE_FILES
 set(INCLUDE_FILES
         ${INCLUDE}/common/utils.hpp
         ${INCLUDE}/common/timer_report.hpp
+        ${INCLUDE}/common/read_stats.hpp
 
         ${INCLUDE}/search/search.hpp
         ${INCLUDE}/search/search_types.hpp
@@ -98,7 +100,7 @@ set(INCLUDE_FILES
         ${INCLUDE}/prg/prg.hpp
         ${INCLUDE}/prg/masks.hpp
         ${INCLUDE}/prg/dna_ranks.hpp
-        ${INCLUDE}/prg/fm_index.hpp)
+        ${INCLUDE}/prg/fm_index.hpp )
 
 # libgramtools
 add_library(gramtools STATIC
