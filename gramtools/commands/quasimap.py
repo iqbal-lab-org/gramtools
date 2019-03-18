@@ -165,6 +165,16 @@ def run(args):
     report = collections.OrderedDict()
     report = _execute_command(command_paths, report, args)
 
+    ## Get the read statistics; report if most variant sites have no coverage.
+    read_stats = json.load(paths['read_stats'])
+
+    num_sites_noCov, num_sites_total = read_stats["Read_depth"]["num_sites_noCov"], read_stats["Read_depth"]["num_sites_total"]
+    if num_sites_noCov / num_sites_total > 0.5:
+        log.warning("More than 50% of all variant sites have no coverage ({} out of {})\n"
+                    "Possible reasons include: reads not quality-trimmed; low sequencing depth."\
+                    .format(num_sites_noCov, num_sites_total))
+
+
     log.debug('Computing sha256 hash of project paths')
     command_hash_paths = common.hash_command_paths(command_paths)
 

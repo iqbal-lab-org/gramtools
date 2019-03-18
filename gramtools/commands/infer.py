@@ -4,6 +4,7 @@
 # Reads can subsequently be mapped onto the inferred reference for variant calling: see `discover.py`.
 
 import json
+import os
 import logging
 
 import vcf
@@ -32,17 +33,6 @@ def parse_args(common_parser, subparsers):
                         type=str,
                         required=True)
 
-    parser.add_argument('--mean-depth',
-                        help='The average read depth of the reads mapped to the prg using `quasimap`',
-                        type=int,
-                        required=True)
-
-    parser.add_argument('--error-rate',
-                        help='The estimated per-base error probability in the reads mapped to the prg using `quasimap`',
-                        type=float,
-                        required=True)
-
-
     parser.add_argument('--infer-dir',
                         help='Directory for storing outputs of `infer`.'
                              'The stored files will be the personalised reference as a (haploid) fasta,'
@@ -59,6 +49,20 @@ def parse_args(common_parser, subparsers):
                         choices=['single','population'],
                         default='single')
 
+    parser.add_argument('--mean-depth',
+                        help='The average read depth.'
+                             'By default, the estimation from \`quasimap\` is used.',
+                        type=int,
+                        required=False)
+
+
+    parser.add_argument('--error-rate',
+                        help='The estimated per-base error probability in the reads.'
+                             'By default, the estimation from \`quasimap\` is used.',
+                        type=float,
+                        required=False)
+
+
     parser.add_argument('--haploid',
                         help='',
                         action='store_true',
@@ -69,12 +73,31 @@ def run(args):
     log.info('Start process: infer')
     _paths = paths.generate_infer_paths(args)
 
+    ## Read in the genotyping parameters from the read stats file.
+    if not os.path.exists(_paths['read_stats']) and (args.error_rate is None or args.mean_depth is None):
+        log.error("One of --error-rate or --mean-depth genotyping parameter needs to be read from file {} "
+                  "but it does not exist."
+                  "This file should have been generated at `quasimap` stage.".format(_paths['read_stats']))
+
+    with open(_paths["read_stats"]) as f:
+        read_stats = json.load(f)
+
+    mean_depth, error_rate = args.mean_depth, args.error_rate
+    if args.mean_depth is None:
+        mean_depth = int(read_stats["Read_depth"]["Mean"])
+
+    if args.error_rate is None:
+        error_rate = float(read_stats["Quality"]["Error_rate_mean"])
+
+
+    ## Load coverage stats
     all_per_base_coverage = _load_per_base_coverage(_paths['allele_base_coverage'])
     allele_groups, all_groups_site_counts = \
         _load_grouped_allele_coverage(_paths['grouped_allele_counts_coverage'])
 
-    genotypers = _max_likelihood_alleles(args.mean_depth,
-                                             args.error_rate,
+    ## Set up the genotyping (iterator).
+    genotypers = _max_likelihood_alleles(mean_depth,
+                                             error_rate,
                                              all_per_base_coverage,
                                              all_groups_site_counts,
                                              allele_groups)
@@ -87,7 +110,9 @@ def run(args):
     # Make the fasta
     log.info("Generating personalised fasta. Output at {}".format(_paths["inferred_fasta"]))
     allele_indexes = iter(allele_indexes)
-    Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], _paths["inferred_fasta"], "Personalised reference generated using gramtools `infer`", allele_indexes)
+
+    Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], _paths["inferred_fasta"],
+                                                   "Personalised reference generated using gramtools `infer`", allele_indexes)
     ref_size = Prg_Parser.parse()
 
     with open(_paths["inferred_ref_size"], "w") as f:

@@ -59,6 +59,7 @@ def generate_quasimap_run_paths(args):
         'grouped_allele_counts_coverage': path('grouped_allele_counts_coverage.json'),
         'allele_sum_coverage': path('allele_sum_coverage'),
         'report': path('report.json'),
+        'read_stats' : path('read_stats.json'),
     }
 
 
