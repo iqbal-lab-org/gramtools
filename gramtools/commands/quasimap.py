@@ -153,37 +153,38 @@ def run(args):
         args.quasimap_dir = args.output_directory
 
     start_time = str(time.time()).split('.')[0]
-    command_paths = paths.generate_quasimap_paths(args, start_time)
-    paths.check_project_file_structure(command_paths)
+    _paths = paths.generate_quasimap_paths(args)
+    paths.check_project_file_structure(_paths)
 
-    build_report = _load_build_report(command_paths)
+    build_report = _load_build_report(_paths)
     _check_build_success(build_report)
 
     kmer_size = build_report['kmer_size']
     setattr(args, 'kmer_size', kmer_size)
 
     report = collections.OrderedDict()
-    report = _execute_command(command_paths, report, args)
+    report = _execute_command(_paths, report, args)
 
     ## Get the read statistics; report if most variant sites have no coverage.
-    read_stats = json.load(paths['read_stats'])
+    with open(_paths['read_stats']) as f:
+        read_stats = json.load(f)
 
     num_sites_noCov, num_sites_total = read_stats["Read_depth"]["num_sites_noCov"], read_stats["Read_depth"]["num_sites_total"]
     if num_sites_noCov / num_sites_total > 0.5:
-        log.warning("More than 50% of all variant sites have no coverage ({} out of {})\n"
+        log.warning("More than 50% of all variant sites have no coverage ({} out of {})."
                     "Possible reasons include: reads not quality-trimmed; low sequencing depth."\
                     .format(num_sites_noCov, num_sites_total))
 
 
     log.debug('Computing sha256 hash of project paths')
-    command_hash_paths = common.hash_command_paths(command_paths)
+    command_hash_paths = common.hash_command_paths(_paths)
 
-    log.debug('Saving command report:\n%s', command_paths['run_report'])
+    log.debug('Saving command report:\n%s', _paths['report'])
     _save_report(start_time,
                  report,
-                 command_paths,
+                 _paths,
                  command_hash_paths,
-                 command_paths['run_report'])
+                 _paths['report'])
     log.info('End process: quasimap')
 
     if report.get('return_value_is_0') is False:

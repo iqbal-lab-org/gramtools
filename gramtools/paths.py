@@ -34,7 +34,9 @@ def _generate_project_paths(args):
         'perl_generated_vcf': project_path('perl_generated.vcf'),
         'perl_generated_fa': project_path('perl_generated.fa'),
 
-        'build_report': project_path('build_report.json')
+        'build_report': project_path('build_report.json'),
+
+        'quasimap_dir' : project_path('quasimap_outputs')
     }
     return paths
 
@@ -49,23 +51,48 @@ def generate_build_paths(args):
     project_paths = _generate_project_paths(args)
     return project_paths
 
+def _quasimap_output_paths(quasimap_dir):
+    path = lambda fname : os.path.join(quasimap_dir, fname)
 
-def generate_quasimap_run_paths(args):
-    def path(fname):
-        return os.path.join(args.quasimap_directory, fname)
-
-    return {
+    output_paths = {
         'allele_base_coverage': path('allele_base_coverage.json'),
         'grouped_allele_counts_coverage': path('grouped_allele_counts_coverage.json'),
         'allele_sum_coverage': path('allele_sum_coverage'),
-        'report': path('report.json'),
         'read_stats' : path('read_stats.json'),
     }
+
+    return output_paths
+
+## Make quasimap-related file and directory paths.
+def generate_quasimap_paths(args):
+    project_paths = _generate_project_paths(args)
+
+    # Override the default quasimap output dir if need be.
+    if args.quasimap_dir is not None:
+        project_paths['quasimap_dir'] = args.quasimap_dir
+
+    quasimap_dir = project_paths['quasimap_dir']
+
+    path = lambda fname : os.path.join(quasimap_dir, fname)
+
+
+    paths = {
+        'reads': [read_file for arglist in args.reads for read_file in arglist], # Flattens out list of lists.
+
+        'quasimap_dir': quasimap_dir,
+        'report': path('quasimap_report.json'),
+    }
+    paths.update(project_paths)
+
+    output_paths = _quasimap_output_paths(paths['quasimap_dir'])
+    paths.update(output_paths)
+
+    return paths
 
 
 def generate_infer_paths(args):
     project_paths = _generate_project_paths(args)
-    quasimap_paths = generate_quasimap_run_paths(args)
+    quasimap_paths = _quasimap_output_paths(project_paths["quasimap_dir"])
     paths = {**project_paths, **quasimap_paths}
 
     if args.infer_dir is not None:
@@ -121,22 +148,6 @@ def generate_discover_paths(args):
     return _paths
 
 
-## Make quasimap-related file and directory paths.
-def generate_quasimap_paths(args, start_time):
-    project_paths = _generate_project_paths(args)
-
-    quasimap_dir = args.quasimap_dir
-    if quasimap_dir is None: # Name a default output directory inside the gram project directory.
-        quasimap_dir = os.path.join(project_paths['project'], 'quasimap_outputs')
-
-    paths = {
-        'reads': [read_file for arglist in args.reads for read_file in arglist], # Flattens out list of lists
-
-        'quasimap_dir': quasimap_dir,
-        'run_report': os.path.join(quasimap_dir, 'quasimap_report.json'),
-    }
-    paths.update(project_paths)
-    return paths
 
 ## Makes project directories if they are required and do not exist.
 def check_project_file_structure(paths):
