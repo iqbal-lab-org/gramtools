@@ -22,24 +22,12 @@ def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('infer',
                                    parents=[common_parser])
     parser.add_argument('--run-dir', '--run-directory',
-                        help='Common directory for gramtools running commands. Will contain outputs',
+                        help='Common directory for gramtools running commands. Will contain infer outputs.'
+                        'The outputs are: the personalised reference as a (haploid) fasta,'
+                        'and the personalised reference as a vcf.',
                         dest='run_dir',
                         type=str,
                         required=True)
-
-    parser.add_argument('--quasimap-dir','--quasimap-directory',
-                        help='Directory where the output of `quasimap` is stored',
-                        dest='quasimap_dir',
-                        type=str,
-                        required=True)
-
-    parser.add_argument('--infer-dir',
-                        help='Directory for storing outputs of `infer`.'
-                             'The stored files will be the personalised reference as a (haploid) fasta,'
-                             'and the personalised reference as a vcf.'
-                             'Defaults to inside "gram-dir".',
-                        type=str,
-                        required=False)
 
     parser.add_argument('--vcf-mode',
                         help='If "single", the output vcf will not contain alleles with zero-coverage in successfully genotyped sites.'

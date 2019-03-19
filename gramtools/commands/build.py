@@ -228,7 +228,6 @@ def run(args):
     start_time = str(time.time()).split('.')[0]
 
     command_paths = paths.generate_build_paths(args)
-    paths.check_project_file_structure(command_paths)
     command_paths = _handle_multi_vcf(args.vcf, command_paths)
 
     report = collections.OrderedDict()

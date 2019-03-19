@@ -2,23 +2,19 @@
 # Sets up file names and directory structures for storing the gramtools inputs and outputs.
 import os
 import logging
+import shutil
 
 log = logging.getLogger('gramtools')
 
 ## Defines the file names for all gramtools-related data files.
 # These data files are committed to disk by the `build` process, and some/all used in later commands.
 def _generate_project_paths(gram_dir):
-    # if hasattr(args, 'reference') and args.reference is not None:
-    #     reference_file_path = os.path.abspath(args.reference)
-    # else:
-    #     reference_file_path = ''
 
     def gram_path(file_name):
         return os.path.join(gram_dir, file_name)
 
     paths = {
         'gram_dir': gram_dir,
-        # 'reference': reference_file_path,
 
         'prg': gram_path('prg'),
         'encoded_prg': gram_path('encoded_prg'),
@@ -50,19 +46,14 @@ def generate_build_paths(args):
     if not os.path.exists(paths['gram_dir']):
         os.mkdir(paths['gram_dir'])
         log.debug('Creating gram directory:\n%s', paths['gram_dir'])
+
+    if args.reference is not None:
+        paths.update({
+            'reference' : os.path.abspath(args.reference)
+        })
+
     return paths
 
-def _quasimap_output_paths(quasimap_dir):
-    path = lambda fname : os.path.join(quasimap_dir, fname)
-
-    output_paths = {
-        'allele_base_coverage': path('allele_base_coverage.json'),
-        'grouped_allele_counts_coverage': path('grouped_allele_counts_coverage.json'),
-        'allele_sum_coverage': path('allele_sum_coverage'),
-        'read_stats' : path('read_stats.json'),
-    }
-
-    return output_paths
 
 ## Generates paths that will be shared between 'run' commands.
 def _generate_run_paths(run_dir):
@@ -117,7 +108,7 @@ def _generate_run_paths(run_dir):
 
 ## Make quasimap-related file and directory paths.
 def generate_quasimap_paths(args):
-    all_paths = _generate_project_paths(args)
+    all_paths = _generate_project_paths(args.gram_dir)
     all_paths.update(_generate_run_paths(args.run_dir))
 
     if not os.path.exists(all_paths['run_dir']):
@@ -131,19 +122,26 @@ def generate_quasimap_paths(args):
 
     # Make a reference to the gram_dir made in build. This will avoid downstream commands
     # to require a --gram_dir argument.
-    os.symlink(all_paths['gram_dir'], all_paths['build_dir'])
+    if not os.path.exists(all_paths['build_dir']):
+        os.symlink(all_paths['gram_dir'], all_paths['build_dir'], target_is_directory=True)
 
-    if not os.path.exists(all_paths['reads_dir']):
-        os.mkdir(all_paths['reads_dir'])
+    if os.path.exists(all_paths['reads_dir']):
+        log.warning("Erasing reads directory {} and its contents to avoid accumulation".format(all_paths['reads_dir']))
+        shutil.rmtree(all_paths['reads_dir'])
+
+    os.mkdir(all_paths['reads_dir'])
 
     # Make symlinks to the read files
-    read_files = [read_file for arglist in args.reads for read_file in arglist], # Flattens out list of lists.
-    for read_file in read_files:
+    reads_files = [read_file for arglist in args.reads for read_file in arglist] # Flattens out list of lists.
+    for read_file in reads_files:
         base = os.path.basename(read_file)
-        os.symlink(read_file, os.path.join(all_paths['reads_dir'], base))
+        target = os.path.join(all_paths['reads_dir'], base)
+        if not os.path.exists(target):
+            os.symlink(read_file,target)
 
     all_paths.update({
         'report': os.path.join(all_paths['quasimap_dir'],'quasimap_report.json'),
+        'reads_files' : reads_files,
     })
 
     return all_paths
@@ -161,21 +159,34 @@ def generate_infer_paths(args):
     return all_paths
 
 
+## Make `discover` file paths. Includes making the paths to the reads files used in `quasimap`.
 def generate_discover_paths(args):
 
     all_paths = _generate_run_paths(args.run_dir)
     build_dir = all_paths['build_dir'] # Symlink to original --gram-dir, index against which quasimap and infer ran.
     all_paths.update(_generate_project_paths(build_dir))
 
+    # Make discovery output dir
     if not os.path.exists(all_paths["discover_dir"]):
         os.mkdir(all_paths['discover_dir'])
 
-
+    # Check `infer` files are present
     if not os.path.exists(all_paths['inferred_fasta']):
-        log.error("Cannot find fasta formatted inferred personalised reference, at {}".format(_paths["inferred_fasta"]))
+        log.error("Cannot find fasta formatted inferred personalised reference, at {}".format(all_paths["inferred_fasta"]))
 
     if not os.path.exists(all_paths['inferred_vcf']):
-        log.error("Cannot find vcf formatted inferred personalised reference, at {}".format(_paths["inferred_fasta"]))
+        log.error("Cannot find vcf formatted inferred personalised reference, at {}".format(all_paths["inferred_fasta"]))
+
+    # Build read file paths by scanning the reads_directory, and following symlinks.
+    if args.reads is None:
+        reads_files = []
+        with os.scandir(all_paths['reads_dir']) as it:
+            for entry in it:
+                reads_files.append(os.path.realpath(entry.path)) #realpath resolves symlinks, unlike abspath
+
+        all_paths.update({
+            'reads_files' : reads_files,
+        })
 
     return all_paths
 

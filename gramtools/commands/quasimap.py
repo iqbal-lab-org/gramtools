@@ -24,6 +24,13 @@ def parse_args(common_parser, subparsers):
                         type=str,
                         required=True)
 
+    parser.add_argument('--run-dir','--run-directory',
+                        help='Common directory for gramtools running commands. Will contain quasimap outputs.'
+                             'These are JSON formatted files describing read coverage over variant sites in the prg.',
+                        type=str,
+                        dest='run_dir',
+                        required=True)
+
     parser.add_argument('--reads',
                         help='One or more read files.\n'
                              'Valid formats: fastq, sam/bam/cram, fasta, txt; compressed or uncompressed; fuzzy extensions (eg fq, fsq for fastq).\n'
@@ -34,15 +41,9 @@ def parse_args(common_parser, subparsers):
                         type=str,
                         required=True)
 
-
-    parser.add_argument('--run-dir','--run-directory',
-                        help='Directory where quasimap outputs will be stored.',
-                        type=str,
-                        dest='run_dir',
-                        required=True)
-
     parser.add_argument('--max-threads',
-                        help='',
+                        help='Read quasimapping to the prg can be multi-threaded.'
+                             'By default, uses just one thread.',
                         type=int,
                         default=1,
                         required=False)
@@ -55,7 +56,7 @@ def parse_args(common_parser, subparsers):
                         required=False)
 
     parser.add_argument('--output-directory',
-                        help='[Deprecated: use --quasimap-dir instead].\n'
+                        help='[Deprecated: use --run-dir instead].\n'
                              'Directory where outputs of quasimap will be stored.'
                              'Defaults to \'quasimap_outputs\' inside \'gram-dir\'.',
                         type=str,
@@ -73,7 +74,7 @@ def _execute_command(quasimap_paths, report, args):
         common.gramtools_exec_fpath,
         'quasimap',
         '--gram', quasimap_paths['gram_dir'],
-        '--reads', ' '.join(quasimap_paths['reads']),
+        '--reads', ' '.join(quasimap_paths['reads_files']),
         '--kmer-size', str(args.kmer_size),
         '--run-directory', quasimap_paths['quasimap_dir'],
         '--max-threads', str(args.max_threads),
@@ -153,7 +154,6 @@ def run(args):
 
     start_time = str(time.time()).split('.')[0]
     _paths = paths.generate_quasimap_paths(args)
-    paths.check_project_file_structure(_paths)
 
     build_report = _load_build_report(_paths)
     _check_build_success(build_report)

@@ -20,22 +20,20 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('discover',
                                    parents=[common_parser])
-    parser.add_argument('--gram-dir','--gram-directory',
-                        help='',
+
+    parser.add_argument('--run-dir', '--run-directory',
+                        help='Common directory for gramtools running commands. Will contain discover outputs.'
+                             'The outputs are: the vcf files from the variant callers,'
+                             '[their adjucated combination], both native and rebased '
+                             '(=expressed in original reference coordinates).',
+                        dest='run_dir',
                         type=str,
-                        dest='gram_dir',
                         required=True)
-    parser.add_argument('--infer-dir',
-                        help='The directory containing the outputs from `infer` command',
-                        type=str,
-                        required=True)
+
     parser.add_argument('--reads',
-                        help='Reads file for variant discovery with respect to the inferred personalised reference.',
-                        type=str,
-                        required=True)
-    parser.add_argument('--discover-dir',
-                        help='Directory to output results from `discover` command'
-                             'Defaults to inside "gram-dir"',
+                        help='Reads files for variant discovery against `infer`.\n'
+                             'These should be the same as those used in `quasimap`.'
+                             'Those are used by default.',
                         type=str,
                         required=False)
 
@@ -44,14 +42,12 @@ def run(args):
     log.info('Start process: discover')
     _paths = paths.generate_discover_paths(args)
 
-
     # call variants using `cortex`
     log.debug('Running cortex')
-    cortex.calls(_paths['inferred_fasta'], args.reads, _paths['cortex_vcf'])
-
+    cortex.calls(_paths['inferred_fasta'], ' '.join(_paths['reads_files']), _paths['cortex_vcf'])
 
     # Get the length of the inferred fasta reference; was computed at infer stage.
-    with open(_paths["inferred_ref_size"]) as f:
+    with open(_paths['inferred_ref_size']) as f:
         inferred_reference_length = int(f.read())
 
     # Convert coordinates in personalised reference space to coordinates in (original) prg space.
