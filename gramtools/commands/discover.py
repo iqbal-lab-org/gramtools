@@ -23,7 +23,7 @@ def parse_args(common_parser, subparsers):
     parser.add_argument('--gram-dir','--gram-directory',
                         help='',
                         type=str,
-                        dest='gram_directory',
+                        dest='gram_dir',
                         required=True)
     parser.add_argument('--infer-dir',
                         help='The directory containing the outputs from `infer` command',

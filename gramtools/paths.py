@@ -7,36 +7,33 @@ log = logging.getLogger('gramtools')
 
 ## Defines the file names for all gramtools-related data files.
 # These data files are committed to disk by the `build` process, and some/all used in later commands.
-def _generate_project_paths(args):
-    project_dir = args.gram_directory
+def _generate_project_paths(gram_dir):
+    # if hasattr(args, 'reference') and args.reference is not None:
+    #     reference_file_path = os.path.abspath(args.reference)
+    # else:
+    #     reference_file_path = ''
 
-    if hasattr(args, 'reference') and args.reference is not None:
-        reference_file_path = os.path.abspath(args.reference)
-    else:
-        reference_file_path = ''
-
-    def project_path(file_name):
-        return os.path.join(project_dir, file_name)
+    def gram_path(file_name):
+        return os.path.join(gram_dir, file_name)
 
     paths = {
-        'project': project_dir,
-        'reference': reference_file_path,
+        'gram_dir': gram_dir,
+        # 'reference': reference_file_path,
 
-        'prg': project_path('prg'),
-        'encoded_prg': project_path('encoded_prg'),
+        'prg': gram_path('prg'),
+        'encoded_prg': gram_path('encoded_prg'),
 
-        'variant_site_mask': project_path('variant_site_mask'),
-        'allele_mask': project_path('allele_mask'),
+        'variant_site_mask': gram_path('variant_site_mask'),
+        'allele_mask': gram_path('allele_mask'),
 
-        'fm_index': project_path('fm_index'),
+        'fm_index': gram_path('fm_index'),
 
-        'perl_generated': project_path('perl_generated'),
-        'perl_generated_vcf': project_path('perl_generated.vcf'),
-        'perl_generated_fa': project_path('perl_generated.fa'),
+        'perl_generated': gram_path('perl_generated'),
+        'perl_generated_vcf': gram_path('perl_generated.vcf'),
+        'perl_generated_fa': gram_path('perl_generated.fa'),
 
-        'build_report': project_path('build_report.json'),
+        'build_report': gram_path('build_report.json'),
 
-        'quasimap_dir' : project_path('quasimap_outputs')
     }
     return paths
 
@@ -48,8 +45,12 @@ def perl_script_file_cleanup(build_paths):
     os.rename(build_paths['perl_generated'],build_paths['prg'])
 
 def generate_build_paths(args):
-    project_paths = _generate_project_paths(args)
-    return project_paths
+    paths = _generate_project_paths(args.gram_dir)
+
+    if not os.path.exists(paths['gram_dir']):
+        os.mkdir(paths['gram_dir'])
+        log.debug('Creating gram directory:\n%s', paths['gram_dir'])
+    return paths
 
 def _quasimap_output_paths(quasimap_dir):
     path = lambda fname : os.path.join(quasimap_dir, fname)
@@ -63,105 +64,120 @@ def _quasimap_output_paths(quasimap_dir):
 
     return output_paths
 
+## Generates paths that will be shared between 'run' commands.
+def _generate_run_paths(run_dir):
+
+   def path_fact(base_dir):
+       '''
+        Factory building functions which build paths from a base_dir.
+       '''
+       return lambda fname: os.path.join(base_dir,fname)
+
+   # Quasimap paths
+   run_path = path_fact(run_dir)
+
+   paths = {
+       'run_dir' : run_dir,
+       'build_dir' : run_path('build_dir'), # This will be a symlink of the actual build dir
+       'reads_dir' : run_path('reads'), # This will contain symlinks to the actual reads
+       'quasimap_dir' : run_path('quasimap_outputs'),
+       'infer_dir' : run_path('infer_outputs'),
+       'discover_dir' : run_path('discover_outputs'),
+   }
+
+   quasimap_path = path_fact(paths['quasimap_dir'])
+
+   paths.update({
+
+       'allele_base_coverage': quasimap_path('allele_base_coverage.json'),
+       'grouped_allele_counts_coverage': quasimap_path('grouped_allele_counts_coverage.json'),
+       'allele_sum_coverage': quasimap_path('allele_sum_coverage'),
+       'read_stats' : quasimap_path('read_stats.json'),
+   })
+
+   # Infer paths
+   infer_path = path_fact(paths['infer_dir'])
+
+   paths.update({
+
+       'inferred_fasta' : infer_path('inferred.fasta'),
+       'inferred_vcf' : infer_path('inferred.vcf'),
+       'inferred_ref_size' : infer_path('inferred_ref_size'),
+   })
+
+   # Discover paths
+   discover_path = path_fact(paths['discover_dir'])
+   paths.update({
+       'cortex_vcf' : discover_path('cortex.vcf'),
+       'rebased_vcf' : discover_path('rebased.vcf'),
+   })
+
+   return paths
+
+
 ## Make quasimap-related file and directory paths.
 def generate_quasimap_paths(args):
-    project_paths = _generate_project_paths(args)
+    all_paths = _generate_project_paths(args)
+    all_paths.update(_generate_run_paths(args.run_dir))
 
-    # Override the default quasimap output dir if need be.
-    if args.quasimap_dir is not None:
-        project_paths['quasimap_dir'] = args.quasimap_dir
+    if not os.path.exists(all_paths['run_dir']):
+        os.mkdir(all_paths['run_dir'])
+    else:
+        log.warning("Directory {} already exists. Existing files and directories with conflicting names"
+                    "(eg: 'reads', 'quasimap_outputs', 'build_dir') will be overriden.".format(all_paths['run_dir']))
 
-    quasimap_dir = project_paths['quasimap_dir']
+    if not os.path.exists(all_paths['quasimap_dir']):
+        os.mkdir(all_paths['quasimap_dir'])
 
-    path = lambda fname : os.path.join(quasimap_dir, fname)
+    # Make a reference to the gram_dir made in build. This will avoid downstream commands
+    # to require a --gram_dir argument.
+    os.symlink(all_paths['gram_dir'], all_paths['build_dir'])
 
+    if not os.path.exists(all_paths['reads_dir']):
+        os.mkdir(all_paths['reads_dir'])
 
-    paths = {
-        'reads': [read_file for arglist in args.reads for read_file in arglist], # Flattens out list of lists.
+    # Make symlinks to the read files
+    read_files = [read_file for arglist in args.reads for read_file in arglist], # Flattens out list of lists.
+    for read_file in read_files:
+        base = os.path.basename(read_file)
+        os.symlink(read_file, os.path.join(all_paths['reads_dir'], base))
 
-        'quasimap_dir': quasimap_dir,
-        'report': path('quasimap_report.json'),
-    }
-    paths.update(project_paths)
+    all_paths.update({
+        'report': os.path.join(all_paths['quasimap_dir'],'quasimap_report.json'),
+    })
 
-    output_paths = _quasimap_output_paths(paths['quasimap_dir'])
-    paths.update(output_paths)
-
-    return paths
+    return all_paths
 
 
 def generate_infer_paths(args):
-    project_paths = _generate_project_paths(args)
-    quasimap_paths = _quasimap_output_paths(project_paths["quasimap_dir"])
-    paths = {**project_paths, **quasimap_paths}
 
-    if args.infer_dir is not None:
-        paths["infer_dir"] = args.infer_dir
-    else:
-        paths["infer_dir"] = os.path.join(paths["project"],"infer_outputs")
+    all_paths = _generate_run_paths(args.run_dir)
+    build_dir = all_paths['build_dir'] # Symlink to original --gram-dir, index against which quasimap was ran.
+    all_paths.update(_generate_project_paths(build_dir))
 
-    if not os.path.exists(paths["infer_dir"]):
-        os.mkdir(paths["infer_dir"])
+    if not os.path.exists(all_paths['infer_dir']):
+        os.mkdir(all_paths['infer_dir'])
 
-    paths["inferred_fasta"] = os.path.join(paths["infer_dir"],"inferred.fasta")
-    paths["inferred_vcf"] = os.path.join(paths["infer_dir"],"inferred.vcf")
-    paths["inferred_ref_size"] = os.path.join(paths["infer_dir"], "inferred_ref_size")
-
-    return paths
+    return all_paths
 
 
 def generate_discover_paths(args):
 
-    project_paths = _generate_project_paths(args)
+    all_paths = _generate_run_paths(args.run_dir)
+    build_dir = all_paths['build_dir'] # Symlink to original --gram-dir, index against which quasimap and infer ran.
+    all_paths.update(_generate_project_paths(build_dir))
 
-    _paths = {
-        **project_paths,
-        "infer_dir" : os.path.abspath(args.infer_dir),
-    }
-
-    # Discovery directory for permanent output
-    if args.discover_dir is not None:
-        _paths["discover_dir"] = args.discover_dir
-    else:
-        _paths["discover_dir"] = os.path.join(os.path.abspath(_paths["project"]), "discover_outputs")
-
-    if not os.path.exists(_paths["discover_dir"]):
-        os.mkdir(_paths["discover_dir"])
-
-    # Outputs
-    _paths['cortex_vcf'] = os.path.join(_paths["discover_dir"], "cortex.vcf")
-    _paths['rebased_vcf'] = os.path.join(_paths["discover_dir"], "rebased.vcf")
+    if not os.path.exists(all_paths["discover_dir"]):
+        os.mkdir(all_paths['discover_dir'])
 
 
-    # Check we have the required files from `infer`.
-    _paths["inferred_fasta"] = os.path.join(_paths["infer_dir"],"inferred.fasta")
-    _paths["inferred_vcf"] = os.path.join(_paths["infer_dir"],"inferred.vcf")
-    _paths["inferred_ref_size"] = os.path.join(_paths["infer_dir"], "inferred_ref_size")
-
-    if not os.path.exists(_paths["inferred_fasta"]):
+    if not os.path.exists(all_paths['inferred_fasta']):
         log.error("Cannot find fasta formatted inferred personalised reference, at {}".format(_paths["inferred_fasta"]))
 
-    if not os.path.exists(_paths["inferred_vcf"]):
+    if not os.path.exists(all_paths['inferred_vcf']):
         log.error("Cannot find vcf formatted inferred personalised reference, at {}".format(_paths["inferred_fasta"]))
 
-
-    return _paths
-
+    return all_paths
 
 
-## Makes project directories if they are required and do not exist.
-def check_project_file_structure(paths):
-    log.debug('Checking project file structure')
-    directory_keys = [
-        'project',
-        'quasimap_dir',
-    ]
-    for directory_key in directory_keys:
-        try:
-            directory_path = paths[directory_key]
-        except KeyError:
-            continue
-        if os.path.isdir(directory_path):
-            continue
-        log.debug('Creating missing directory:\n%s', directory_path)
-        os.mkdir(directory_path)
+

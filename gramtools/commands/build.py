@@ -22,8 +22,9 @@ log = logging.getLogger('gramtools')
 def parse_args(common_parser, subparsers):
     parser = subparsers.add_parser('build',
                                    parents=[common_parser])
-    parser.add_argument('--gram-directory',
+    parser.add_argument('--gram-dir','--gram-directory',
                         help='',
+                        dest='gram_dir',
                         type=str,
                         required=True)
 
@@ -45,20 +46,17 @@ def parse_args(common_parser, subparsers):
                         type=int,
                         default=5,
                         required=False)
-    parser.add_argument('--kmer-region-size',
-                        help='',
-                        type=int,
-                        default=150,
-                        required=False)
+
     parser.add_argument('--max-read-length',
                         help='',
                         type=int,
                         default=150,
                         required=False)
 
-    # The default behaviour is to generate an index of all possible kmers of size `kmer-size`
+    # The current default behaviour is to extract only relevant kmers from prg.
     parser.add_argument('--all-kmers',
-                        help='Whether or not all kmers of given size should be indexed.',
+                        help='Whether or not all kmers of given size should be indexed.\n'
+                             'When this flag is not used, only kmers overlapping variant sites in prg will be indexed.',
                         action='store_true',
                         required=False)
 
@@ -142,7 +140,7 @@ def _execute_gramtools_cpp_build(build_paths, report, args):
     command = [
         common.gramtools_exec_fpath,
         'build',
-        '--gram', build_paths['project'],
+        '--gram', build_paths['gram_dir'],
         '--kmer-size', str(args.kmer_size),
         '--max-read-size', str(args.max_read_length),
         '--max-threads', str(args.max_threads),
@@ -228,8 +226,6 @@ def run(args):
     log.info('Start process: build')
 
     start_time = str(time.time()).split('.')[0]
-    if hasattr(args, 'max_read_length'):
-        args.kmer_region_size = args.max_read_length
 
     command_paths = paths.generate_build_paths(args)
     paths.check_project_file_structure(command_paths)

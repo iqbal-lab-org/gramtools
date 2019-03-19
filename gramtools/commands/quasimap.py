@@ -20,7 +20,7 @@ def parse_args(common_parser, subparsers):
                                    parents=[common_parser])
     parser.add_argument('--gram-dir','--gram-directory',
                         help='Directory containing outputs from gramtools `build`',
-                        dest='gram_directory',
+                        dest='gram_dir',
                         type=str,
                         required=True)
 
@@ -35,12 +35,11 @@ def parse_args(common_parser, subparsers):
                         required=True)
 
 
-    parser.add_argument('--quasimap-dir','--quasimap-directory',
-                        help='Directory where outputs of quasimap will be stored.\n'
-                             'Defaults to \'quasimap_outputs\' inside \'gram-dir\'',
+    parser.add_argument('--run-dir','--run-directory',
+                        help='Directory where quasimap outputs will be stored.',
                         type=str,
-                        dest='quasimap_dir',
-                        required=False)
+                        dest='run_dir',
+                        required=True)
 
     parser.add_argument('--max-threads',
                         help='',
@@ -73,7 +72,7 @@ def _execute_command(quasimap_paths, report, args):
     command = [
         common.gramtools_exec_fpath,
         'quasimap',
-        '--gram', quasimap_paths['project'],
+        '--gram', quasimap_paths['gram_dir'],
         '--reads', ' '.join(quasimap_paths['reads']),
         '--kmer-size', str(args.kmer_size),
         '--run-directory', quasimap_paths['quasimap_dir'],
@@ -149,8 +148,8 @@ def run(args):
     log.info('Start process: quasimap')
 
     if args.output_directory is not None:
-        log.warning("DEPRECATED Option: '--output-directory'. Please use '--quasimap-dir' in the future instead.")
-        args.quasimap_dir = args.output_directory
+        log.warning("DEPRECATED Option: '--output-directory'. Please use '--run-dir' in the future instead.")
+        args.run_dir = args.output_directory
 
     start_time = str(time.time()).split('.')[0]
     _paths = paths.generate_quasimap_paths(args)
