@@ -61,7 +61,7 @@ void gram::ReadStats::compute_base_error_rate(const std::string &reads_fpath){
 void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
     std::vector<uint64_t> coverages;
     uint64_t this_site_cov;
-    uint64_t total_coverage = 0;
+    double total_coverage = 0;
     int64_t num_sites_noCov = 0;
     int64_t num_sites_total = 0;
 
@@ -85,7 +85,7 @@ void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
     mean_coverage = total_coverage / coverages.size();
 
     // Compute variance
-    uint64_t total_variance = 0;
+    double total_variance = 0;
     for (const auto& site_cov : coverages){
        total_variance += pow((site_cov - mean_coverage), 2);
     }

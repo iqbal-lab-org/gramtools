@@ -65,9 +65,9 @@ class _InstallCommand(install):
         pip3 install -vvv ./gramtools
     """
     def run(self):
+        _test_frontend(_root_dir)
         _build_backend(_root_dir)
         _test_backend(_root_dir)
-        _test_frontend(_root_dir)
         install.run(self)
 
 
@@ -77,9 +77,9 @@ class _DevelopCommand(develop):
         pip3 install -vvv --editable ./gramtools
     """
     def run(self):
+        _test_frontend(_root_dir)
         _build_backend(_root_dir)
         _test_backend(_root_dir)
-        _test_frontend(_root_dir)
         develop.run(self)
 
 
