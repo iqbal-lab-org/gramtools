@@ -100,8 +100,15 @@ def run(args):
     log.info("Generating personalised fasta. Output at {}".format(_paths["inferred_fasta"]))
     allele_indexes = iter(allele_indexes)
 
+    # Get the reference ID. This is needed in the personalised fasta so that vcf produced against it in `discover`
+    # Has CHROM column corresponding to the original reference fasta, for joining (eg vcf clustering) purposes.
+    # Note: perl_generated_fa writes the [first word] of the original fasta to perl_generated_fa header.
+    with open(_paths["perl_generated_fa"]) as prg_fasta:
+        ref_ID = prg_fasta.readline().strip().replace(">","")
+
     Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], _paths["inferred_fasta"],
-                                                   "Personalised reference generated using gramtools `infer`", allele_indexes)
+                                                   "{} personalised reference from gramtools `infer`".format(ref_ID),
+                                                   allele_indexes)
     ref_size = Prg_Parser.parse()
 
     with open(_paths["inferred_ref_size"], "w") as f:

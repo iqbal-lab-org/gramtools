@@ -214,7 +214,7 @@ def _handle_multi_vcf(vcf_files, command_paths):
         command_paths['vcf'] = os.path.abspath(vcf_files[0])
         return command_paths
 
-    command_paths['vcf'] = os.path.join(command_paths['project'], 'build.vcf')
+    command_paths['vcf'] = os.path.join(command_paths['gram_dir'], 'build.vcf')
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
                                                              command_paths['reference'],
                                                              command_paths['vcf'])

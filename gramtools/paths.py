@@ -10,6 +10,9 @@ log = logging.getLogger('gramtools')
 # These data files are committed to disk by the `build` process, and some/all used in later commands.
 def _generate_project_paths(gram_dir):
 
+    # Make sure we work with absolute paths. This is particularly important for symlinking during quasimap 'run' setup.
+    gram_dir = os.path.abspath(gram_dir)
+
     def gram_path(file_name):
         return os.path.join(gram_dir, file_name)
 
@@ -58,52 +61,54 @@ def generate_build_paths(args):
 ## Generates paths that will be shared between 'run' commands.
 def _generate_run_paths(run_dir):
 
-   def path_fact(base_dir):
+    run_dir = os.path.abspath(run_dir)
+
+    def path_fact(base_dir):
        '''
         Factory building functions which build paths from a base_dir.
        '''
        return lambda fname: os.path.join(base_dir,fname)
 
-   # Quasimap paths
-   run_path = path_fact(run_dir)
+    # Quasimap paths
+    run_path = path_fact(run_dir)
 
-   paths = {
+    paths = {
        'run_dir' : run_dir,
        'build_dir' : run_path('build_dir'), # This will be a symlink of the actual build dir
        'reads_dir' : run_path('reads'), # This will contain symlinks to the actual reads
        'quasimap_dir' : run_path('quasimap_outputs'),
        'infer_dir' : run_path('infer_outputs'),
        'discover_dir' : run_path('discover_outputs'),
-   }
+    }
 
-   quasimap_path = path_fact(paths['quasimap_dir'])
+    quasimap_path = path_fact(paths['quasimap_dir'])
 
-   paths.update({
+    paths.update({
 
        'allele_base_coverage': quasimap_path('allele_base_coverage.json'),
        'grouped_allele_counts_coverage': quasimap_path('grouped_allele_counts_coverage.json'),
        'allele_sum_coverage': quasimap_path('allele_sum_coverage'),
        'read_stats' : quasimap_path('read_stats.json'),
-   })
+    })
 
-   # Infer paths
-   infer_path = path_fact(paths['infer_dir'])
+    # Infer paths
+    infer_path = path_fact(paths['infer_dir'])
 
-   paths.update({
+    paths.update({
 
        'inferred_fasta' : infer_path('inferred.fasta'),
        'inferred_vcf' : infer_path('inferred.vcf'),
        'inferred_ref_size' : infer_path('inferred_ref_size'),
-   })
+    })
 
-   # Discover paths
-   discover_path = path_fact(paths['discover_dir'])
-   paths.update({
+    # Discover paths
+    discover_path = path_fact(paths['discover_dir'])
+    paths.update({
        'cortex_vcf' : discover_path('cortex.vcf'),
        'rebased_vcf' : discover_path('rebased.vcf'),
-   })
+    })
 
-   return paths
+    return paths
 
 
 ## Make quasimap-related file and directory paths.
@@ -134,6 +139,8 @@ def generate_quasimap_paths(args):
     # Make symlinks to the read files
     reads_files = [read_file for arglist in args.reads for read_file in arglist] # Flattens out list of lists.
     for read_file in reads_files:
+        read_file = os.path.abspath(read_file) # So that symlinking does not need absolute fpaths passed at command line.
+
         base = os.path.basename(read_file)
         target = os.path.join(all_paths['reads_dir'], base)
         if not os.path.exists(target):

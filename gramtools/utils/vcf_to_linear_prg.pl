@@ -60,7 +60,7 @@ close($output_vcf_fh);
 ##make a .fa version for Carlos's pythin script
 my $outfile_fa =$vars{"outfile"}.".fa";
 open(OUT, ">".$outfile_fa)||die();
-print OUT ">PRG with fasta header purely for an internal Python script that needs i\n";
+print OUT ">$chroms[0] \n";
 close(OUT);
 my $cfinal = "cat ".$vars{"outfile"}." >> $outfile_fa";
 qx{$cfinal};
