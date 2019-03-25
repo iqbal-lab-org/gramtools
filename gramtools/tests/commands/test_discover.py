@@ -1,6 +1,7 @@
 import unittest
 import vcf
 import os
+import collections
 
 from ...commands import discover
 from ... import prg_local_parser
@@ -337,7 +338,11 @@ class _MockVcfRecord:
         self.POS = POS
         self.REF = REF
         self.ALT = [vcf.model._Substitution(x) for x in ALT]
-        self.samples = samples
+
+        if len(samples) == 0:
+            self.samples = [_Sample(["1","1"])] # Default to recording a ALT call for a single sample.
+        else:
+            self.samples = samples
 
     def __repr__(self):
         return str(self.__dict__)

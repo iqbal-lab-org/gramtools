@@ -212,6 +212,8 @@ class _SingleUpdater(_VcfUpdater):
     ## Computes and records depth, genotype, coverage, genotype confidence.
     # Also removes non-zero coverage alleles if site has been genotyped.
     def update_vcf_record(self, new_record, gtyper):
+        most_likely_single_allele = _extract_allele_index(gtyper)
+
         if '.' in gtyper.genotype: #Case: we had no coverage anywhere in the variant site. We will keep all REF and ALTs in the vcf output.
             depth, gt_conf = '0', '0.0'
             cov_string = ','.join(['0' for x in range(1 + len(new_record.ALT))])
@@ -256,13 +258,18 @@ class _SingleUpdater(_VcfUpdater):
                 genotype_index = genotype_indexes[0]
                 genotype = str(genotype_index) + '/' + str(genotype_index)
             else:
-                genotype = '/'.join([str(x) for x in genotype_indexes])
+                # Make sure we output the **most likely single** allele first
+                other_genotype_indexes = gtyper.genotype.copy()
+                other_genotype_indexes.discard(most_likely_single_allele)
+
+                ordered_genotyped_indexes = [most_likely_single_allele + sorted(list(other_genotype_indexes))]
+                genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
         sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
         new_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
         new_record.FORMAT = self.FORMAT
 
-        self.allele_indexes.append(_extract_allele_index(gtyper))
+        self.allele_indexes.append(most_likely_single_allele)
 
 
 class _PopulationUpdater(_VcfUpdater):
@@ -272,6 +279,8 @@ class _PopulationUpdater(_VcfUpdater):
     ## Computes and records depth, genotype, coverage, genotype confidence.
     # Keeps all alleles at all sites even if they have no coverage.
     def update_vcf_record(self, new_record, gtyper):
+        most_likely_single_allele = _extract_allele_index(gtyper)
+
         if '.' in gtyper.genotype: #Case: we had no coverage anywhere in the variant site.
             depth, gt_conf = '0', '0.0'
             cov_string = ','.join(['0' for _ in range(1 + len(new_record.ALT))])
@@ -290,13 +299,18 @@ class _PopulationUpdater(_VcfUpdater):
                 genotype_index = genotype_indexes[0]
                 genotype = str(genotype_index) + '/' + str(genotype_index)
             else:
-                genotype = '/'.join([str(x) for x in genotype_indexes])
+                # Make sure we output the **most likely single** allele first
+                other_genotype_indexes = gtyper.genotype.copy()
+                other_genotype_indexes.discard(most_likely_single_allele)
+
+                ordered_genotyped_indexes = [most_likely_single_allele + sorted(list(other_genotype_indexes))]
+                genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
         sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
         new_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
         new_record.FORMAT = self.FORMAT
 
-        self.allele_indexes.append(_extract_allele_index(gtyper))
+        self.allele_indexes.append(most_likely_single_allele)
 
 
 ## Generate max. likelihood call for each allele.

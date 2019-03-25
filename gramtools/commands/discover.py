@@ -177,13 +177,26 @@ def _flag_personalised_reference_regions(base_records, secondary_reference_lengt
             inf_ref_pos += non_var_region.length
 
         # Build variant region
-        var_region = _Region(base_POS = base_ref_pos, inf_POS = inf_ref_pos,
-                             length = len(vcf_record.ALT[0]), vcf_record_REF = vcf_record.REF,
-                             vcf_record_ALT = str(vcf_record.ALT[0]))
-        all_personalised_ref_regions.append(var_region)
+        # Note the following 'guarantee' from `infer`: the first element of GT is the single most likely haploid genotype call.
+        # We need to take that, as that is what gets used to produce the inferred reference fasta- which is the reference used for variant calling.
+        picked_alleles = vcf_record.samples[0].gt_alleles
 
-        base_ref_pos += len(vcf_record.REF)
-        inf_ref_pos += var_region.length
+        if set(picked_alleles) == {None}:
+            picked_allele = 0 # GT of './.'
+        else:
+            picked_allele = int(picked_alleles[0]) # Get the first one. Can be 0 (REF) !
+
+        # Only make a var region if the inference procedure did not pick the REF.
+        if picked_allele != 0:
+            var_region = _Region(base_POS = base_ref_pos, inf_POS = inf_ref_pos,
+                                 length = len(vcf_record.ALT[picked_allele - 1]), vcf_record_REF = vcf_record.REF,
+                                 vcf_record_ALT = str(vcf_record.ALT[picked_allele - 1]))
+
+            all_personalised_ref_regions.append(var_region)
+            base_ref_pos += len(vcf_record.REF)
+            inf_ref_pos += var_region.length
+
+
 
     # End game: deal with the last non-var region if there is one.
     # We test `inf_ref_pos` because we have the inferred reference length (= secondary reference)
