@@ -26,7 +26,6 @@ def _setup_logging(level):
 root_parser = argparse.ArgumentParser(prog='gramtools')
 commands = collections.OrderedDict([
     ('build', build),
-    ('simulate', simulate),
     ('quasimap', quasimap),
     ('infer', infer),
     ('discover', discover),

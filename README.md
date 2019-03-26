@@ -18,40 +18,44 @@ python3 -m venv gram_ve && source gram_ve/bin/activate
 Note: installation fails with `virtualenv`.
 
 ## Usage
-Gramtools currently consists of three commands. These commands are documented in the wiki (see links below). In dependancy order, they are:
+Gramtools currently consists of four commands. These commands are documented in the wiki (see links below). In dependency order, they are:
 1) [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - given a VCF and reference, construct the graph
 
-2) [quasimap](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-quasimap) - given a set of reads and a graph, generate mapping coverage information
+2) [quasimap](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-quasimap) - map reads to a graph generated in `build`
 
-3) [infer](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-infer) - given coverage information and a grpah, infer a maximum likelihood genome
+3) [infer](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-infer) - infer a maximum likelihood personalised reference genome from the mapping coverage generated in `quasimap`
 
-Examples, documentation, and planned future enhancments can be found in the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
+4) [discover](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-discover) - find new variation against the personalised reference genome using 1+ standard variant callers (currently: cortex)
+
+Examples, documentation, and planned future enhancements can be found in the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
 
 ```
 Gramtools
 
 Usage:
-  gramtools build --gram-directory --vcf --reference
-  gramtools quasimap --gram-directory --reads --output-directory
-  gramtools infer --gram-directory --mean-depth --error-rate --quasimap-directory --output
+  gramtools build --gram-dir --vcf --reference --kmer-size [--all-kmers]
+  gramtools quasimap --gram-dir --reads --run-dir
+  gramtools infer --run-dir [--infer-mode]
+  gramtools discover --run-dir
+
   gramtools (-h | --help)
   gramtools --version
 
 Options:
-  --gram-directory      Gramtools supporting data structures
-  --quasimap-directory  Quasimap coverage information output directory
-  --output-directory    Command output directory
-  --output              Command output file path
-  --mean-depth          Mean read coverage depth
-  --error-rate          Per base error rate
+  --gram-dir 	Gramtools directory containing outputs of `build` 
+  --kmer-size 	Kmer size at which to build the graph (used for seeding reads in `quasimap`)	
+
+  --run-dir 	Run directory; stores outputs of `quasimap`, `infer`, `discover`
+  --reads 	1+ reads file, in (fasta/fastq/sam/bam/cram) format
 
   -h --help             Show this screen
   --version             Show version
 
 Subcommands:
   build         Construct the graph and supporting data structures
-  quasimap      Generate mapping coverage information given reads
-  infer         Infer a maximum likelihood genome
+  quasimap      Map reads to graph
+  infer         Infer a maximum likelihood personalised reference genome
+  discover	Discover new variation against personalised reference genome
 ```
 
 ## Reference documentation
