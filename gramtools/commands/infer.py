@@ -214,27 +214,33 @@ class _SingleUpdater(_VcfUpdater):
     def update_vcf_record(self, new_record, gtyper):
         most_likely_single_allele = _extract_allele_index(gtyper)
 
-        if '.' in gtyper.genotype: #Case: we had no coverage anywhere in the variant site. We will keep all REF and ALTs in the vcf output.
+        #Case: we had no coverage anywhere in the variant site. We will keep all REF and ALTs in the vcf output.
+        if '.' in gtyper.genotype:
             depth, gt_conf = '0', '0.0'
             cov_string = ','.join(['0' for x in range(1 + len(new_record.ALT))])
             genotype = './.'
 
-        else: #Case: we have a genotype. Remove all non-zero coverage alleles in output vcf.
-            non_zero_covs = [x for x in range(1 + len(new_record.ALT)) if x in gtyper.singleton_alleles_cov] # Mark which alleles have non-zero coverage (we are counting reads mapping **only** to a given allele here)
+        #Case: we have a genotype. Remove all non-zero coverage alleles in output vcf.
+        else:
+            # Mark which alleles have non-zero coverage (we are counting reads mapping **only** to a given allele here)
+            non_zero_covs = [x for x in range(1 + len(new_record.ALT)) if x in gtyper.singleton_alleles_cov]
 
-            if non_zero_covs == [0]:  #If all coverage is on REF, add a 'dummy' ALT which will get 0 coverage.
+            #If all coverage is on REF, add a 'dummy' ALT which will get 0 coverage.
+            if non_zero_covs == [0]:
                 new_record.ALT = [new_record.ALT[0]]
                 non_zero_covs.append(1)
+
+            # Make new ALT from all non-zero coverages, excluding REF (which is at index 0)
             else:
-                new_record.ALT = [new_record.ALT[x - 1] for x in non_zero_covs if x > 0] # Exclude the REF from consideration here. It is marked as '0' allele.
+                new_record.ALT = [new_record.ALT[x - 1] for x in non_zero_covs if x > 0]
 
 
-            genotype_indexes = sorted(list(gtyper.genotype))
+            genotype_indexes = sorted(list(gtyper.genotype)) # The indexes of called genotype
 
-            #TODO: is it actually possible that a zero coverage allele gets called?
+            # Add called indexes in case zero coverage allele got called (TODO: is this possible?)
             relevant_covs = sorted(list(set(non_zero_covs + genotype_indexes)))
 
-            if 0 not in gtyper.singleton_alleles_cov: # Add what will be 0 coverage on the REF allele.
+            if 0 not in gtyper.singleton_alleles_cov: # If no coverage on REF, provide REF index (0)- REF will get 0 cov.
                 relevant_covs = [0] + relevant_covs
 
             cov_values = [gtyper.singleton_alleles_cov.get(x,0) for x in relevant_covs]
@@ -243,10 +249,13 @@ class _SingleUpdater(_VcfUpdater):
             depth = str(sum(gtyper.allele_combination_cov.values()))
             gt_conf = str(gtyper.genotype_confidence)
 
-            # Rebase the indexes so that they refer to the called alleles relative to the selected (non-zero coverage) alleles.
-            genotype_pos = 0; index_length = len(genotype_indexes)
+            # We need the GT indexes to refer to the alleles we have selected (ref + all non-zero coverage alts).
+            # So we rebase the indexes of the called alleles
+            genotype_pos = 0
+            index_length = len(genotype_indexes)
             for rebased_index, allele_index in enumerate(relevant_covs):
-                if allele_index == genotype_indexes[genotype_pos]:
+                if allele_index == genotype_indexes[genotype_pos]: # Match: we called this allele index
+                    # Convert the allele index to a position relative to the alleles that will get written in new vcf record.
                     genotype_indexes[genotype_pos] = rebased_index
                     genotype_pos+=1
                     if genotype_pos == index_length:
@@ -254,15 +263,17 @@ class _SingleUpdater(_VcfUpdater):
 
             assert genotype_pos == index_length
 
+            # Case: haploid call
             if index_length == 1:
                 genotype_index = genotype_indexes[0]
                 genotype = str(genotype_index) + '/' + str(genotype_index)
+            # Case: diploid call. (Can generalise to multiploid call)
             else:
-                # Make sure we output the **most likely single** allele first
+                # As a matter of convention, we will output the most likely 'haploid call' allele first.
                 other_genotype_indexes = gtyper.genotype.copy()
                 other_genotype_indexes.discard(most_likely_single_allele)
 
-                ordered_genotyped_indexes = [most_likely_single_allele + sorted(list(other_genotype_indexes))]
+                ordered_genotyped_indexes = [most_likely_single_allele] + sorted(list(other_genotype_indexes))
                 genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
         sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
