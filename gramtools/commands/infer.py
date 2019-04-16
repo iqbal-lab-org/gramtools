@@ -251,29 +251,26 @@ class _SingleUpdater(_VcfUpdater):
 
             # We need the GT indexes to refer to the alleles we have selected (ref + all non-zero coverage alts).
             # So we rebase the indexes of the called alleles
-            genotype_pos = 0
-            index_length = len(genotype_indexes)
-            for rebased_index, allele_index in enumerate(relevant_covs):
-                if allele_index == genotype_indexes[genotype_pos]: # Match: we called this allele index
-                    # Convert the allele index to a position relative to the alleles that will get written in new vcf record.
-                    genotype_indexes[genotype_pos] = rebased_index
-                    genotype_pos+=1
-                    if genotype_pos == index_length:
-                        break
+            for i in range(len(genotype_indexes)):
+                gt = genotype_indexes[i]
+                # Convert the allele index to a position relative to the alleles that will get written in new vcf record.
+                genotype_indexes[i] = relevant_covs.index(gt)
+                # Also rebase the most likely single allele
+                if most_likely_single_allele == gt:
+                    rebased_most_likely_single_allele = genotype_indexes[i]
 
-            assert genotype_pos == index_length
 
             # Case: haploid call
-            if index_length == 1:
+            if len(genotype_indexes) == 1:
                 genotype_index = genotype_indexes[0]
                 genotype = str(genotype_index) + '/' + str(genotype_index)
             # Case: diploid call. (Can generalise to multiploid call)
             else:
                 # As a matter of convention, we will output the most likely 'haploid call' allele first.
-                other_genotype_indexes = gtyper.genotype.copy()
-                other_genotype_indexes.discard(most_likely_single_allele)
+                other_genotype_indexes = set(genotype_indexes)
+                other_genotype_indexes.discard(rebased_most_likely_single_allele)
 
-                ordered_genotyped_indexes = [most_likely_single_allele] + sorted(list(other_genotype_indexes))
+                ordered_genotyped_indexes = [rebased_most_likely_single_allele] + sorted(list(other_genotype_indexes))
                 genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
         sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
@@ -314,7 +311,7 @@ class _PopulationUpdater(_VcfUpdater):
                 other_genotype_indexes = gtyper.genotype.copy()
                 other_genotype_indexes.discard(most_likely_single_allele)
 
-                ordered_genotyped_indexes = [most_likely_single_allele + sorted(list(other_genotype_indexes))]
+                ordered_genotyped_indexes = [most_likely_single_allele] + sorted(list(other_genotype_indexes))
                 genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
         sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
