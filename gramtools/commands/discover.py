@@ -44,7 +44,7 @@ def run(args):
 
     # call variants using `cortex`
     log.debug('Running cortex')
-    cortex.calls(_paths['inferred_fasta'], ' '.join(_paths['reads_files']), _paths['cortex_vcf'])
+    cortex.calls(_paths['inferred_fasta'], _paths['reads_files'], _paths['cortex_vcf'])
 
     # Get the length of the inferred fasta reference; was computed at infer stage.
     with open(_paths['inferred_ref_size']) as f:
@@ -208,36 +208,17 @@ def _flag_personalised_reference_regions(base_records, secondary_reference_lengt
     return all_personalised_ref_regions
 
 
-_vcf_record_attributes = [
-    'CHROM',
-    'POS',
-    'ID',
-    'REF',
-    'ALT',
-    'QUAL',
-    'FILTER',
-    'INFO',
-    'FORMAT',
-    '_sample_indexes'
-]
 
 
-def _make_vcf_record(**attributes):
-    attributes['ALT'] = [vcf.model._Substitution(x) for x in attributes['ALT']]
-    attributes = [attributes.get(name) for name in _vcf_record_attributes]
 
-    new_vcf_record = vcf.model._Record(*attributes)
-    return new_vcf_record
-
-
+## Take all vcf_record class attributes, modify those of interest, and make a new vcf record.
+# For valid `new_attributes`, see https://pyvcf.readthedocs.io/en/latest/API.html#vcf-model-record
 def _modify_vcf_record(vcf_record, **new_attributes):
-    current_attributes = {name: getattr(vcf_record, name, None)
-                          for name in _vcf_record_attributes}
-    attributes = current_attributes
-    attributes.update(new_attributes)
+    for attribute,value in new_attributes.items():
+        if getattr(vcf_record, attribute, None):
+            setattr(vcf_record,attribute,value)
 
-    new_vcf_record = _make_vcf_record(**attributes)
-    return new_vcf_record
+    return vcf_record
 
 
 ## Change `vcf_record` to be expressed relative to a different reference.
