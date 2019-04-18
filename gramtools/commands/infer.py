@@ -14,6 +14,7 @@ from .. import genotyper
 from .. import paths
 from .. import version
 from .. import prg_local_parser
+# For reference of vcf record attributes: cf https://pyvcf.readthedocs.io/en/latest/API.html#vcf-model-record
 
 log = logging.getLogger('gramtools')
 
@@ -24,7 +25,8 @@ def parse_args(common_parser, subparsers):
     parser.add_argument('--run-dir', '--run-directory',
                         help='Common directory for gramtools running commands. Will contain infer outputs.'
                         'The outputs are: the personalised reference as a (haploid) fasta,'
-                        'and the personalised reference as a vcf.',
+                        'and the personalised reference as a vcf. '
+                             'Note: the sample name used in the vcf output is the --run-dir directory name.',
                         dest='run_dir',
                         type=str,
                         required=True)
@@ -40,7 +42,7 @@ def parse_args(common_parser, subparsers):
 
     parser.add_argument('--mean-depth',
                         help='The average read depth.'
-                             'By default, the estimation from \`quasimap\` is used.',
+                             'By default, the estimation from `quasimap` is used.',
                         type=int,
                         required=False)
 
@@ -136,39 +138,29 @@ def _dump_vcf(genotypers, _paths, args):
     CallData = collections.namedtuple('CallData',format_keys)
     Format = collections.namedtuple('Format','id num type desc')
 
-    ## Make vcf header specifications
+    ## Update Metadata headers ##
     headers = collections.OrderedDict({
         'fileformat':'VCF4.2', # Some metadata lines, including fileformat, are expected to be 'singular', ie not a list
-        'source': ['gramtools, version {}, last commit {}'.format(version.version.version_number,version.version.last_git_commit_hash)],
+        'source': ['gramtools, version {}, last commit {}'.format(version.version.version_number,version.version.last_git_commit_hash[:6])],
     })
 
+    if vcf_reader.metadata.get('fileformat',None) is None:
+        vcf_reader.metadata['fileformat'] = headers['fileformat']
+    vcf_reader.metadata['source'] = headers['source']
+
+    ## Update Format headers ##
     formats = collections.OrderedDict({
         'GT' : Format(id='GT', num='1', type='String', desc='Genotype'),
-        'DP' : Format(id='DP', num='1', type='Integer', desc='Total read depth from gramtools'),
+        'DP' : Format(id='DP', num='1', type='Integer', desc='Total read depth on variant site, from gramtools'),
         'COV' : Format(id='COV', num='R', type='Integer', desc='Number of reads on ref and alt allele(s)'),
         'GT_CONF' : Format(id='GT_CONF', num='1', type='Float', desc='Genotype confidence. Difference in log likelihood of most likely and next most likely genotype'),
     })
 
-    vcf_reader.metadata = headers
     vcf_reader.formats = formats
 
-
-
-    # What we want to capture from the original vcf describing the prg
-    record_attributes = [
-        'CHROM',
-        'POS',
-        'ID',
-        'REF',
-        'ALT',
-        'QUAL',
-        'FILTER',
-        'INFO',
-        'FORMAT',
-        'sample_indexes',
-        'samples',
-    ]
-
+    ## Name the sample ##
+    sample_name = os.path.basename(os.path.normpath(_paths['run_dir']))
+    vcf_reader.samples = [sample_name]
 
     # Build an updater object. It will update the vcf records differently based on infer mode specified at command-line.
     VcfUpdater = _VcfUpdater.factory(args.vcf_mode, CallData, FORMAT, sample_name)
@@ -177,13 +169,10 @@ def _dump_vcf(genotypers, _paths, args):
         vcf_writer = vcf.Writer(file_handle, vcf_reader) # Takes the reader as template
 
         for vcf_record, gtyper in zip(vcf_reader, genotypers):
-            # TODO: might want to use copy.deepcopy instead of bothering with record_attributes. Or, would pyvcf expose a copy constructor?
-            attributes = {name: getattr(vcf_record, name, None) for name in record_attributes}
-            new_record = vcf.model._Record(**attributes)
 
-            VcfUpdater.update_vcf_record(new_record, gtyper)
+            VcfUpdater.update_vcf_record(vcf_record, gtyper)
 
-            vcf_writer.write_record(new_record)
+            vcf_writer.write_record(vcf_record)
 
     return VcfUpdater.allele_indexes
 
@@ -211,28 +200,28 @@ class _SingleUpdater(_VcfUpdater):
 
     ## Computes and records depth, genotype, coverage, genotype confidence.
     # Also removes non-zero coverage alleles if site has been genotyped.
-    def update_vcf_record(self, new_record, gtyper):
+    def update_vcf_record(self, vcf_record, gtyper):
         most_likely_single_allele = _extract_allele_index(gtyper)
 
         #Case: we had no coverage anywhere in the variant site. We will keep all REF and ALTs in the vcf output.
         if '.' in gtyper.genotype:
             depth, gt_conf = '0', '0.0'
-            cov_string = ','.join(['0' for x in range(1 + len(new_record.ALT))])
+            cov_string = ','.join(['0' for x in range(1 + len(vcf_record.ALT))])
             genotype = './.'
 
         #Case: we have a genotype. Remove all non-zero coverage alleles in output vcf.
         else:
             # Mark which alleles have non-zero coverage (we are counting reads mapping **only** to a given allele here)
-            non_zero_covs = [x for x in range(1 + len(new_record.ALT)) if x in gtyper.singleton_alleles_cov]
+            non_zero_covs = [x for x in range(1 + len(vcf_record.ALT)) if x in gtyper.singleton_alleles_cov]
 
             #If all coverage is on REF, add a 'dummy' ALT which will get 0 coverage.
             if non_zero_covs == [0]:
-                new_record.ALT = [new_record.ALT[0]]
+                vcf_record.ALT = [vcf_record.ALT[0]]
                 non_zero_covs.append(1)
 
             # Make new ALT from all non-zero coverages, excluding REF (which is at index 0)
             else:
-                new_record.ALT = [new_record.ALT[x - 1] for x in non_zero_covs if x > 0]
+                vcf_record.ALT = [vcf_record.ALT[x - 1] for x in non_zero_covs if x > 0]
 
 
             genotype_indexes = sorted(list(gtyper.genotype)) # The indexes of called genotype
@@ -273,9 +262,9 @@ class _SingleUpdater(_VcfUpdater):
                 ordered_genotyped_indexes = [rebased_most_likely_single_allele] + sorted(list(other_genotype_indexes))
                 genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
-        sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
-        new_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
-        new_record.FORMAT = self.FORMAT
+        sample = vcf.model._Call(site = vcf_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string, GT_CONF=gt_conf))
+        vcf_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
+        vcf_record.FORMAT = self.FORMAT
 
         self.allele_indexes.append(most_likely_single_allele)
 
@@ -286,16 +275,16 @@ class _PopulationUpdater(_VcfUpdater):
 
     ## Computes and records depth, genotype, coverage, genotype confidence.
     # Keeps all alleles at all sites even if they have no coverage.
-    def update_vcf_record(self, new_record, gtyper):
+    def update_vcf_record(self, vcf_record, gtyper):
         most_likely_single_allele = _extract_allele_index(gtyper)
 
         if '.' in gtyper.genotype: #Case: we had no coverage anywhere in the variant site.
             depth, gt_conf = '0', '0.0'
-            cov_string = ','.join(['0' for _ in range(1 + len(new_record.ALT))])
+            cov_string = ','.join(['0' for _ in range(1 + len(vcf_record.ALT))])
             genotype = './.'
 
         else: #Case: we have a genotype. Remove all non-zero coverage alleles in output vcf.
-            cov_values = [gtyper.singleton_alleles_cov.get(x,0) for x in range(1 + len(new_record.ALT))]
+            cov_values = [gtyper.singleton_alleles_cov.get(x,0) for x in range(1 + len(vcf_record.ALT))]
             cov_string = ','.join([str(x) for x in cov_values])
 
             depth = str(sum(gtyper.allele_combination_cov.values()))
@@ -314,9 +303,9 @@ class _PopulationUpdater(_VcfUpdater):
                 ordered_genotyped_indexes = [most_likely_single_allele] + sorted(list(other_genotype_indexes))
                 genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
 
-        sample = vcf.model._Call(site = new_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string,GT_CONF=gt_conf))
-        new_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
-        new_record.FORMAT = self.FORMAT
+        sample = vcf.model._Call(site = vcf_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string, GT_CONF=gt_conf))
+        vcf_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
+        vcf_record.FORMAT = self.FORMAT
 
         self.allele_indexes.append(most_likely_single_allele)
 

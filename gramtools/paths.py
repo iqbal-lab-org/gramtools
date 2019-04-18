@@ -55,6 +55,10 @@ def generate_build_paths(args):
             'reference' : os.path.abspath(args.reference)
         })
 
+    if len(args.vcf) == 1:
+        # If more than one vcf file is provided, we will combine them together later.
+        paths['vcf'] = os.path.abspath(args.vcf[0])
+
     return paths
 
 
