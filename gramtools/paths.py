@@ -43,6 +43,7 @@ def perl_script_file_cleanup(build_paths):
     os.remove(build_paths['perl_generated'] + '.mask_alleles')
     os.rename(build_paths['perl_generated'],build_paths['prg'])
 
+
 def generate_build_paths(args):
     paths = _generate_project_paths(args.gram_dir)
 
@@ -55,10 +56,14 @@ def generate_build_paths(args):
             'reference' : os.path.abspath(args.reference)
         })
 
-    if len(args.vcf) == 1:
-        # If more than one vcf file is provided, we will combine them together later.
-        paths['vcf'] = os.path.abspath(args.vcf[0])
+    if args.vcf is not None:
+        vcf_files = [vcf_file for arglist in args.vcf for vcf_file in arglist] # Flattens out list of lists.
 
+        if len(vcf_files) == 1:
+            paths['vcf'] = os.path.abspath(vcf_files[0])
+        else:
+            # If more than one vcf file is provided, we will deal with all of them subsequently.
+            paths['vcf'] = vcf_files
     return paths
 
 

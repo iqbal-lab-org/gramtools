@@ -127,9 +127,6 @@ def _dump_vcf(genotypers, _paths, args):
     file_handle = open(_paths['perl_generated_vcf'], 'r')
     vcf_reader = vcf.Reader(file_handle)
 
-    # Get some metadata
-    sample_name = vcf_reader.samples[0]
-
     # Genotyping information we will output
     format_keys = ['GT', 'DP', 'COV', 'GT_CONF']  # Note of caution: PyVcf (and the VCF format spec) requires 'GT' to be the first field.
     FORMAT = ":".join(format_keys)

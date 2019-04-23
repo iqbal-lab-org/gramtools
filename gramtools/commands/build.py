@@ -31,6 +31,7 @@ def parse_args(common_parser, subparsers):
 
     parser.add_argument('--vcf',
                         help='File containing variant information to capture in the prg.',
+                        nargs="+",
                         action="append",
                         type=str)
     parser.add_argument('--reference',
@@ -209,7 +210,8 @@ def _save_report(start_time,
 ## Combines multiple vcf files together using external python utility.
 # Records where the REFs overlap are merged together and all possible haplotypes enumerated.
 # New path to 'vcf' is path to the combined vcf
-def _handle_multi_vcf(vcf_files, command_paths):
+def _handle_multi_vcf(command_paths):
+    vcf_files = command_paths['vcf']
     tmp_vcf_name = os.path.join(command_paths['gram_dir'], 'tmp.vcf')
     final_vcf_name = os.path.join(command_paths['gram_dir'], 'build.vcf')
 
@@ -218,18 +220,22 @@ def _handle_multi_vcf(vcf_files, command_paths):
                                                              tmp_vcf_name)
     cluster.run()
 
+
     ## Rewrite header so that it better reflects the clustered vcf contents.
     ## This is needed in order to correctly merge multiple vcf from multi-sample pipeline.
     ## The headers output by vcf_clusterer are barebones, because it may get differently specified vcf's; here, we assume they are uniform.
     ## TODO: uniformity will NOT be guaranteed when the initial vcf is not in the same format as that produced by `discover`
-
     vcf_template_name = vcf_files[0]
-    if os.path.basename(vcf_template_name) == "perl_generated.vcf": # In multi-sample case, we do not want the initial build vcf to be used as template
+
+    # In multi-sample case, we do not want the initial build vcf to be used as template
+    if os.path.basename(vcf_template_name) == os.path.basename(command_paths['perl_generated_vcf']):
         vcf_template_name = vcf_files[1]
+
+    print(vcf_template_name)
 
     with open(vcf_template_name) as vcf_template_file:
         vcf_template = vcf.Reader(vcf_template_file) # We will take the headers from the first provided vcf file.
-        vcf_template.metadata['source'] = ["Vcf clusterer"]
+        vcf_template.metadata['source'] = ["cluster_vcf_records module, version {}".format(cluster_vcf_records.__version__)]
 
         with open(final_vcf_name, "w") as build_out:
             # We will take the headers from the template, and the records from the clusterer output.
@@ -253,8 +259,9 @@ def run(args):
 
     command_paths = paths.generate_build_paths(args)
 
-    if len(args.vcf > 1):
-        command_paths = _handle_multi_vcf(args.vcf, command_paths)
+    if type(command_paths['vcf']) is list: # Meaning: more than one vcf filepath provided at command line.
+        # Update the vcf path to a combined vcf from all those provided.
+        command_paths = _handle_multi_vcf(command_paths)
 
     report = collections.OrderedDict()
 
