@@ -217,7 +217,7 @@ def _handle_multi_vcf(command_paths):
 
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
                                                              command_paths['reference'],
-                                                             tmp_vcf_name)
+                                                             tmp_vcf_name, max_alleles_per_cluster=5000)
     cluster.run()
 
 

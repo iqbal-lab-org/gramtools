@@ -237,6 +237,7 @@ class _SingleUpdater(_VcfUpdater):
 
             # We need the GT indexes to refer to the alleles we have selected (ref + all non-zero coverage alts).
             # So we rebase the indexes of the called alleles
+            rebased_most_likely_single_allele = None # Will stay None if most likely haploid call does not appear in most likely diploid call.
             for i in range(len(genotype_indexes)):
                 gt = genotype_indexes[i]
                 # Convert the allele index to a position relative to the alleles that will get written in new vcf record.
@@ -245,7 +246,6 @@ class _SingleUpdater(_VcfUpdater):
                 if most_likely_single_allele == gt:
                     rebased_most_likely_single_allele = genotype_indexes[i]
 
-
             # Case: haploid call
             if len(genotype_indexes) == 1:
                 genotype_index = genotype_indexes[0]
@@ -253,11 +253,13 @@ class _SingleUpdater(_VcfUpdater):
             # Case: diploid call. (Can generalise to multiploid call)
             else:
                 # As a matter of convention, we will output the most likely 'haploid call' allele first.
-                other_genotype_indexes = set(genotype_indexes)
-                other_genotype_indexes.discard(rebased_most_likely_single_allele)
+                # We will not do so,however, if the most likely 'haploid call' does not appear in the most likely diploid call.
+                if rebased_most_likely_single_allele is not None:
+                    other_genotype_indexes = set(genotype_indexes)
+                    other_genotype_indexes.discard(rebased_most_likely_single_allele)
+                    genotype_indexes = [rebased_most_likely_single_allele] + sorted(list(other_genotype_indexes))
 
-                ordered_genotyped_indexes = [rebased_most_likely_single_allele] + sorted(list(other_genotype_indexes))
-                genotype = '/'.join([str(x) for x in ordered_genotyped_indexes])
+                genotype = '/'.join([str(x) for x in genotype_indexes])
 
         sample = vcf.model._Call(site = vcf_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string, GT_CONF=gt_conf))
         vcf_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
