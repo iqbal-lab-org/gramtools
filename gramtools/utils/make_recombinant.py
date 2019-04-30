@@ -5,12 +5,13 @@ import vcf
 import random
 import os
 
-DNA = {'A', 'C', 'G', 'T'}
+DNA = {'A', 'C', 'G', 'T', 'N'}
 REF_READ_CHUNK_SIZE = 1000000
+
 
 ## An interface to the module for making new fasta (recombinant) from fasta + vcf.
 class Recombinator(object):
-    def __init__(self, reference_fpath, vcf_fpath, output_fpath, random_selection = True, seed = None, offset = 1):
+    def __init__(self, reference_fpath, vcf_fpath, output_fpath, random_selection=True, seed=None, offset=1):
         self.reference_fpath = reference_fpath
         self.vcf_fpath = vcf_fpath
         self.output_fpath = output_fpath
@@ -27,7 +28,8 @@ class Recombinator(object):
         fhandle = open(self.vcf_fpath)
         vcf_reader = vcf.Reader(fhandle)
         description = "Recombinant built from ref and vcf"
-        _make_recombinant(self.reference_fpath, vcf_reader, self.output_fpath, description, self.random_selection, self.seed, self.offset)
+        _make_recombinant(self.reference_fpath, vcf_reader, self.output_fpath, description, self.random_selection,
+                          self.seed, self.offset)
         if len(Recombinator.picked_alleles) > 0:
             picked_file = os.path.realpath(os.path.dirname(self.output_fpath))
             picked_file = os.path.join(picked_file, "picked_alleles")
@@ -35,12 +37,13 @@ class Recombinator(object):
                 f.write("\t".join(Recombinator.picked_alleles))
         fhandle.close()
 
+
 ## Compute a new reference from an base reference and a set of vcf records.
-# @param reference the 'base' reference: non-variant sites of the prg + first allele of each variant site.
+#  @param reference the 'base' reference: non-variant sites of the prg + first allele of each variant site.
 # @param vcf_reader set of vcf records describing variants inferred against the old reference.
 # Default random_selection to False because can be used as is for 'genotyping' mode.
-def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, random_selection = False, seed = None, offset = 1):
-
+def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, random_selection=False, seed=None,
+                      offset=1):
     if random_selection and seed is not None:
         random.seed(seed)
 
@@ -76,7 +79,7 @@ def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, ra
             sample = record.samples[0]
             genotype = sample.gt_alleles
 
-            if random_selection is False: # Genotyping mode
+            if random_selection is False:  # Genotyping mode
                 # Case: no genotype. Let's pick REF allele.
                 if set(genotype) == {None}:
                     allele_index = 0
@@ -84,10 +87,10 @@ def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, ra
                 # Case: single haploid genotype. Pick that allele.
                 # OR Case: there are >1 calls. Just pick the first.
                 else:
-                        allele_index = int(genotype[0])
+                    allele_index = int(genotype[0])
 
-            else: # Random selection mode
-                allele_index = random.randrange(len(record.ALT) + 1) # Add 1 to choose between REF and all ALTs
+            else:  # Random selection mode
+                allele_index = random.randrange(len(record.ALT) + 1)  # Add 1 to choose between REF and all ALTs
                 Recombinator.picked_alleles.append(str(allele_index))
 
             if allele_index == 0:
@@ -111,19 +114,77 @@ def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, ra
 
     return inferred_reference_length
 
+def make_new_ref_using_vcf(original_fasta, vcf_file, out_fasta):
+   in_parse = _refParser(original_fasta)
+   out_parse = _FastaWriter(out_fasta)
+
+   vcf_Reader = vcf.Reader(vcf_file)
+
+class Fasta_Char():
+    valid = {"use", "header", "write"}
+
+    def __init__(self, char, mode):
+        self.char = char
+
+        if mode not in Fasta_Char.valid:
+            raise ValueError("Must initialise with mode in {}".format(str(Fasta_Char.valid)))
+
+        if mode == "use":
+            self.use = True
+            self.header = False
+
+        elif mode == "header":
+            self.use = False
+            self.header = True
+
+        else:
+            self.use = False
+            self.header = False
+
+
+class _FastaWriter():
+    max_load = REF_READ_CHUNK_SIZE
+    def __init__(self, outfilename):
+        self.load = []
+        self.fhandle = open(outfilename, "w")
+
+    def commit(self, char):
+        self.load.append(char)
+        if len(self.load) > _FastaWriter.max_load:
+            self.fhandle.write("".join(self.load))
+            self.load = []
+
+    def close(self):
+        if len(self.load) > 0:
+            self.fhandle.write("".join(self.load))
+        self.fhandle.close()
 
 ## Generator to parse fasta ref sequence in blocks.
-def _refParser(ref_fpath, chunk_size = REF_READ_CHUNK_SIZE):
+def _refParser(ref_fpath, chunk_size=REF_READ_CHUNK_SIZE):
+    header = False
     with open(ref_fpath) as fhandle:
-        next(fhandle)  # Skip header line
         while True:
             chars = fhandle.read(chunk_size)
+
             if len(chars) == 0:
                 return
 
             for char in chars:
-                if char.upper() not in DNA:
-                    continue
-                yield char
+                if char == ">":
+                    header = True
+                    fasta_char = Fasta_Char(char, mode="header")
 
+                elif char == '\n':
+                    fasta_char = Fasta_Char(char, mode="write")
+                    if header:
+                        header = False
 
+                else:
+                    if header:
+                        fasta_char = Fasta_Char(char, mode="write")
+                    else:
+                        if char.upper() not in DNA:
+                            raise ValueError("Found an invalid character: {}".format(char))
+                        fasta_char = Fasta_Char(char, mode = "use")
+
+            yield fasta_char
