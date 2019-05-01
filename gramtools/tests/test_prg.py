@@ -1,5 +1,5 @@
 import unittest
-from gramtools import prg_regions_parser
+from ..utils import prg_regions_parser
 
 
 class TestParsePrg(unittest.TestCase):

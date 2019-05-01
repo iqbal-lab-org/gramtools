@@ -13,7 +13,8 @@ import collections
 from .. import genotyper
 from .. import paths
 from .. import version
-from .. import prg_local_parser
+from .. import fasta_from_vcf
+
 # For reference of vcf record attributes: cf https://pyvcf.readthedocs.io/en/latest/API.html#vcf-model-record
 
 log = logging.getLogger('gramtools')
@@ -95,26 +96,25 @@ def run(args):
 
     # Make the vcf
     log.info("Inferring personalised vcf. Output at {}".format(_paths["inferred_vcf"]))
-    allele_indexes = _dump_vcf(genotypers, _paths, args)
+    _dump_vcf(genotypers, _paths, args)
 
 
     # Make the fasta
     log.info("Generating personalised fasta. Output at {}".format(_paths["inferred_fasta"]))
-    allele_indexes = iter(allele_indexes)
 
-    # Get the reference ID. This is needed in the personalised fasta so that vcf produced against it in `discover`
-    # Has CHROM column corresponding to the original reference fasta, for joining (eg vcf clustering) purposes.
-    # Note: perl_generated_fa writes the [first word] of the original fasta to perl_generated_fa header.
-    with open(_paths["perl_generated_fa"]) as prg_fasta:
-        ref_ID = prg_fasta.readline().strip().replace(">","")
+    inferred_vcf_records = vcf.Reader(open(_paths["inferred_vcf"]))
+    total_ref_size, num_discordances, total_num_sites = \
+        fasta_from_vcf.make_new_ref_using_vcf(_paths["original_reference"], inferred_vcf_records, _paths["inferred_fasta"])
 
-    Prg_Parser = prg_local_parser.Prg_Local_Parser(_paths["prg"], _paths["inferred_fasta"],
-                                                   "{} personalised reference from gramtools `infer`".format(ref_ID),
-                                                   allele_indexes)
-    ref_size = Prg_Parser.parse()
+    if num_discordances > 0:
+        log.warning("{frac_d} ({num_d} of {num_recs}) of vcf records have a"\
+                "REF discordant with ref provided."\
+                    "Have you checked that original vcf used in build matches original reference?"\
+                    .format(frac_d = round(num_discordances/total_num_sites), num_d = num_discordances,
+                            num_recs = total_num_sites))
 
     with open(_paths["inferred_ref_size"], "w") as f:
-        f.write(str(ref_size))
+        f.write(str(total_ref_size))
 
     log.info('End process: infer')
 

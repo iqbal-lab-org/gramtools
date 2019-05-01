@@ -105,7 +105,7 @@ def _execute_command_generate_prg(build_paths, report, _):
         'perl', common.prg_build_exec_fpath,
         '--outfile', build_paths['perl_generated'],
         '--vcf', build_paths['vcf'],
-        '--ref', build_paths['reference'],
+        '--ref', build_paths['original_reference'],
     ]
     command_str = ' '.join(command)
     log.debug('Executing command:\n\n%s\n', command_str)

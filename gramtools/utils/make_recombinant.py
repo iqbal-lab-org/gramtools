@@ -1,9 +1,9 @@
-## @file Make new fasta (recombinant) from fasta + vcf.
+## @file Make recombinant fasta + vcf.
 
-from .. import prg_local_parser
-import vcf
+from . import prg_local_parser
 import random
 import os
+import vcf
 
 DNA = {'A', 'C', 'G', 'T', 'N'}
 REF_READ_CHUNK_SIZE = 1000000
@@ -114,77 +114,3 @@ def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, ra
 
     return inferred_reference_length
 
-def make_new_ref_using_vcf(original_fasta, vcf_file, out_fasta):
-   in_parse = _refParser(original_fasta)
-   out_parse = _FastaWriter(out_fasta)
-
-   vcf_Reader = vcf.Reader(vcf_file)
-
-class Fasta_Char():
-    valid = {"use", "header", "write"}
-
-    def __init__(self, char, mode):
-        self.char = char
-
-        if mode not in Fasta_Char.valid:
-            raise ValueError("Must initialise with mode in {}".format(str(Fasta_Char.valid)))
-
-        if mode == "use":
-            self.use = True
-            self.header = False
-
-        elif mode == "header":
-            self.use = False
-            self.header = True
-
-        else:
-            self.use = False
-            self.header = False
-
-
-class _FastaWriter():
-    max_load = REF_READ_CHUNK_SIZE
-    def __init__(self, outfilename):
-        self.load = []
-        self.fhandle = open(outfilename, "w")
-
-    def commit(self, char):
-        self.load.append(char)
-        if len(self.load) > _FastaWriter.max_load:
-            self.fhandle.write("".join(self.load))
-            self.load = []
-
-    def close(self):
-        if len(self.load) > 0:
-            self.fhandle.write("".join(self.load))
-        self.fhandle.close()
-
-## Generator to parse fasta ref sequence in blocks.
-def _refParser(ref_fpath, chunk_size=REF_READ_CHUNK_SIZE):
-    header = False
-    with open(ref_fpath) as fhandle:
-        while True:
-            chars = fhandle.read(chunk_size)
-
-            if len(chars) == 0:
-                return
-
-            for char in chars:
-                if char == ">":
-                    header = True
-                    fasta_char = Fasta_Char(char, mode="header")
-
-                elif char == '\n':
-                    fasta_char = Fasta_Char(char, mode="write")
-                    if header:
-                        header = False
-
-                else:
-                    if header:
-                        fasta_char = Fasta_Char(char, mode="write")
-                    else:
-                        if char.upper() not in DNA:
-                            raise ValueError("Found an invalid character: {}".format(char))
-                        fasta_char = Fasta_Char(char, mode = "use")
-
-            yield fasta_char

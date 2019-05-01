@@ -19,6 +19,8 @@ def _generate_project_paths(gram_dir):
     paths = {
         'gram_dir': gram_dir,
 
+        'original_reference' : gram_path('original_reference.fasta'),
+
         'prg': gram_path('prg'),
         'encoded_prg': gram_path('encoded_prg'),
 
@@ -52,9 +54,9 @@ def generate_build_paths(args):
         log.debug('Creating gram directory:\n%s', paths['gram_dir'])
 
     if args.reference is not None:
-        paths.update({
-            'reference' : os.path.abspath(args.reference)
-        })
+        if os.path.exists(paths['original_reference']):
+            os.unlink(paths['original_reference'])
+        os.symlink(os.path.abspath(args.reference), paths['original_reference'])
 
     if args.vcf is not None:
         vcf_files = [vcf_file for arglist in args.vcf for vcf_file in arglist] # Flattens out list of lists.

@@ -1,7 +1,7 @@
 import unittest
 
 from . import common
-from .. import prg_regions_parser
+from ..utils import prg_regions_parser
 
 
 class TestDirectionalRegionRange(unittest.TestCase):
