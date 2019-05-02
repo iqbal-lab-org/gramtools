@@ -31,20 +31,20 @@ def make_new_ref_using_vcf(original_fasta, vcf_reader, out_fasta):
     commit_ref = False
 
     num_discordances = 0
-    total_ref_size = 0
+    chrom_sizes = []
 
     try:
         for fasta_char in in_parse:
             if fasta_char.header:
-                reference_index = -1
                 if not start:
                     out_parse.commit('\n', is_used = fasta_char.use)
+                    chrom_sizes.append(reference_index + 1)
                 else:
                     start = False
+                reference_index = -1
 
             elif fasta_char.use:
                 reference_index += 1
-                total_ref_size += 1
                 if reference_index == start_pos: # Commit the chosen ALT
                     inside_record = True
 
@@ -101,7 +101,9 @@ def make_new_ref_using_vcf(original_fasta, vcf_reader, out_fasta):
         out_parse.close()
         raise ValueError from exc
 
-    return total_ref_size, num_discordances, total_num_sites
+    chrom_sizes.append(reference_index + 1)
+
+    return chrom_sizes, num_discordances, total_num_sites
 
 
 

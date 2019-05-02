@@ -54,7 +54,8 @@ def generate_build_paths(args):
         log.debug('Creating gram directory:\n%s', paths['gram_dir'])
 
     if args.reference is not None:
-        if os.path.exists(paths['original_reference']):
+        if os.path.lexists(paths['original_reference']):
+            print(paths['original_reference'])
             os.unlink(paths['original_reference'])
         os.symlink(os.path.abspath(args.reference), paths['original_reference'])
 
@@ -138,8 +139,9 @@ def generate_quasimap_paths(args):
 
     # Make a reference to the gram_dir made in build. This will avoid downstream commands
     # to require a --gram_dir argument.
-    if not os.path.exists(all_paths['build_dir']):
-        os.symlink(all_paths['gram_dir'], all_paths['build_dir'], target_is_directory=True)
+    if os.path.lexists(all_paths['build_dir']):
+        os.unlink(all_paths['build_dir'])
+    os.symlink(all_paths['gram_dir'], all_paths['build_dir'], target_is_directory=True)
 
     if os.path.exists(all_paths['reads_dir']):
         log.warning("Erasing reads directory {} and its contents to avoid accumulation".format(all_paths['reads_dir']))

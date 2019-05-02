@@ -6,10 +6,11 @@ class _Sample:
 
 
 class _MockVcfRecord:
-    def __init__(self, POS, REF, ALT, samples=[]):
+    def __init__(self, POS, REF, ALT, samples=[], CHROM="Just_Another_Chromosome"):
         self.POS = POS
         self.REF = REF
         self.ALT = [vcf.model._Substitution(x) for x in ALT]
+        self.CHROM = CHROM
 
         if len(samples) == 0:
             self.samples = [_Sample(["1","1"])] # Default to recording a ALT call for a single sample.

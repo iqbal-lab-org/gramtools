@@ -18,16 +18,16 @@ class TestSecondaryRegions(unittest.TestCase):
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
 
-        secondary_sequence_length = 5
+        chrom_sizes = [7]
 
-        result = discover._flag_personalised_reference_regions(base_records, secondary_sequence_length)
+        result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
 
         expected = [
             discover._Region(base_POS = 1, inf_POS = 1, length = 1),
             discover._Region(base_POS = 2, inf_POS = 2, length = 1, vcf_record_REF = 'TAT', vcf_record_ALT = 'G'),
             discover._Region(base_POS = 5, inf_POS = 3, length = 3)
         ]
-        self.assertEqual(expected, result)
+        self.assertEqual(expected, list(result.values())[0])
 
 
     def test_AltLongerThanRef_CorrectRegion(self):
@@ -36,16 +36,16 @@ class TestSecondaryRegions(unittest.TestCase):
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['GCCAC'])
         ]
-        secondary_sequence_length = 9
+        chrom_sizes = [7]
 
-        result = discover._flag_personalised_reference_regions(base_records, secondary_sequence_length)
+        result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
 
         expected = [
             discover._Region(base_POS = 1, inf_POS = 1, length = 1),
             discover._Region(base_POS = 2, inf_POS = 2, length = 5, vcf_record_REF = 'TAT', vcf_record_ALT = 'GCCAC'),
             discover._Region(base_POS = 5, inf_POS = 7, length = 3)
         ]
-        self.assertEqual(expected, result)
+        self.assertEqual(expected, list(result.values())[0])
 
 
     def test_TwoRecords_CorrectRegions(self):
@@ -56,8 +56,9 @@ class TestSecondaryRegions(unittest.TestCase):
             _MockVcfRecord(POS = 6, REF = "G", ALT = ["TTT"])
         ]
 
-        secondary_reference_length = 11
-        result = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        chrom_sizes = [7]
+        result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
+        print(result)
 
         expected = [
             discover._Region(base_POS = 1, inf_POS = 1, length = 1),
@@ -67,7 +68,7 @@ class TestSecondaryRegions(unittest.TestCase):
             discover._Region(base_POS = 7, inf_POS = 11, length = 1)
         ]
 
-        self.assertEqual(expected, result)
+        self.assertEqual(expected, list(result.values())[0])
 
 
     def test_ThreeAdjacentRecords_CorrectRegions(self):
@@ -78,8 +79,8 @@ class TestSecondaryRegions(unittest.TestCase):
             _MockVcfRecord(POS=5, REF="C", ALT=['TCT']),
             _MockVcfRecord(POS=6, REF="G", ALT=['AA']),
         ]
-        secondary_reference_length = 12
-        result = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        chrom_sizes = [7]
+        result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
 
         expected = [
             discover._Region(base_POS = 1, inf_POS = 1, length = 1),
@@ -89,18 +90,54 @@ class TestSecondaryRegions(unittest.TestCase):
             discover._Region(base_POS = 7, inf_POS = 12, length = 1)
         ]
 
-        self.assertEqual(expected, result)
+        self.assertEqual(expected, list(result.values())[0])
+
+    def test_TwoRecords_TwoDifferentChroms(self):
+        # CHROM 1:
+        #   base sequence:      GAA ATTC CAA
+        #   secondary sequence: GAA A    CAA
+
+        # CHROM 2:
+        #   base sequence:      GCGCA A   CG
+        #   secondary sequence: GCGCA AAC CG
+
+        base_records = [
+            _MockVcfRecord(POS=4, REF="ATTC", ALT=['A'], CHROM="Chrom_1"),
+            _MockVcfRecord(POS=6, REF="A", ALT=['AAC'], CHROM="Chrom_2"),
+        ]
+
+        chrom_sizes = [10, 8]
+        result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
+
+        expected_Chrom_1 = [
+            discover._Region(base_POS = 1, inf_POS = 1, length = 3),
+            discover._Region(base_POS = 4, inf_POS = 4, length = 1, vcf_record_REF = "ATTC", vcf_record_ALT = 'A'),
+            discover._Region(base_POS = 8, inf_POS = 5, length = 3),
+        ]
+
+        expected_Chrom_2 = [
+            discover._Region(base_POS = 1, inf_POS = 1, length = 5),
+            discover._Region(base_POS = 6, inf_POS = 6, length = 3, vcf_record_REF = "A", vcf_record_ALT = 'AAC'),
+            discover._Region(base_POS = 7, inf_POS = 9, length = 2),
+        ]
+        expectations = {"Chrom_1": expected_Chrom_1, "Chrom_2": expected_Chrom_2}
+        for key in result:
+            self.assertEqual(expectations[key], result[key])
 
 
     def test_NoRecords(self):
+        """
+        We expect to fail here, not return a non variant region.
+        This is because imagining a vcf from `infer` has no records, then `build` would not have succeeded in
+        the first place, having not built a prg given no variants.
+        """
         # base sequence:      TTATCGG
         # secondary sequence: TTATCGG
-        secondary_reference_length = 7
+        chrom_sizes = []
         base_records = []
-        result = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        with self.assertRaises(ValueError):
+            result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
 
-        expected = [discover._Region(base_POS = 1, inf_POS = 1, length = 7)]
-        self.assertEqual(expected, result)
 
 
 class TestSearchRegions(unittest.TestCase):
@@ -121,7 +158,7 @@ class TestSearchRegions(unittest.TestCase):
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
 
-        secondary_sequence_length = 5
+        chrom_sizes = [7]
 
         secondary_regions = [
             discover._Region(base_POS = 1, inf_POS = 1, length = 1),
@@ -184,14 +221,14 @@ class TestRebaseVcfRecord(unittest.TestCase):
     def test_SingleSNPInNonSite(self):
         # base sequence:      T TAT CGG
         # secondary sequence: T G   CGG
-        secondary_reference_length = 5
+        chrom_sizes = [5]
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
-        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
 
         secondary_vcf_record = _MockVcfRecord(POS=3, REF='C', ALT=['G'])
-        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, list(secondary_regions.values())[0])
 
         result = _MockVcfRecord(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT)
         expected = _MockVcfRecord(POS = 5, REF = 'C', ALT = ['G'])
@@ -202,14 +239,14 @@ class TestRebaseVcfRecord(unittest.TestCase):
     def test_StartsAtNonSite_EndsAtSite(self):
         # base sequence:      T TAT CGG
         # secondary sequence: T G   CGG
-        secondary_reference_length = 5
+        chrom_sizes = [7]
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
-        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
 
         secondary_vcf_record = _MockVcfRecord(POS=1, REF='TG', ALT=['TAA'])
-        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, list(secondary_regions.values())[0])
 
         result = _MockVcfRecord(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT)
         expected = _MockVcfRecord(1, 'TTAT', ['TAA'])
@@ -226,15 +263,15 @@ class TestRebaseVcfRecord(unittest.TestCase):
         """
         # base sequ: T TAT CGG
         # secondary: T G   CGG
-        secondary_reference_length = 5
+        chrom_sizes = [7]
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G'])
         ]
 
         secondary_vcf_record = _MockVcfRecord(POS=1, REF='TGCG', ALT=['GGCT'])
 
-        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
-        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, list(secondary_regions.values())[0])
 
         result = _MockVcfRecord(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT)
         expected = _MockVcfRecord(POS = 1, REF = 'TTATCG', ALT = ['GGCT'])
@@ -250,7 +287,7 @@ class TestRebaseVcfRecord(unittest.TestCase):
         """
         # base sequ: T TAT CGG T     A
         # secondary: T G   CGG TCTGC A
-        secondary_reference_length = 8
+        chrom_sizes = [9]
         base_records = [
             _MockVcfRecord(POS=2, REF="TAT", ALT=['G']),
             _MockVcfRecord(POS=8, REF="T", ALT=['TCTGC'])
@@ -258,8 +295,8 @@ class TestRebaseVcfRecord(unittest.TestCase):
 
         secondary_vcf_record = _MockVcfRecord(POS=9, REF='G', ALT=['A'])
 
-        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
-        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, list(secondary_regions.values())[0])
 
         result = _MockVcfRecord(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT)
         expected = _MockVcfRecord(8,'T',['TCTAC'])
@@ -281,7 +318,7 @@ class TestRebaseVcfRecord(unittest.TestCase):
         # inferred reference: C   C GAT  CAA
 
 
-        secondary_reference_length = 8
+        chrom_sizes = [11]
         base_records = [
            _MockVcfRecord(POS=1, REF="CAA", ALT=['C']),
            _MockVcfRecord(POS=5, REF="GCTA", ALT=['GAT'])
@@ -290,8 +327,9 @@ class TestRebaseVcfRecord(unittest.TestCase):
         secondary_vcf_record = _MockVcfRecord(POS = 4, REF='ATC', ALT=['A'])
 
 
-        secondary_regions = discover._flag_personalised_reference_regions(base_records, secondary_reference_length)
-        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, secondary_regions)
+        secondary_regions = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
+        print(secondary_regions)
+        new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, list(secondary_regions.values())[0])
 
         result = _MockVcfRecord(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT)
         expected = _MockVcfRecord(POS = 5, REF = 'GCTAC', ALT = ['GA'])

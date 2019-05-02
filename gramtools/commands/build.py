@@ -216,7 +216,7 @@ def _handle_multi_vcf(command_paths):
     final_vcf_name = os.path.join(command_paths['gram_dir'], 'build.vcf')
 
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
-                                                             command_paths['reference'],
+                                                             command_paths['original_reference'],
                                                              tmp_vcf_name, max_alleles_per_cluster=5000)
     cluster.run()
 

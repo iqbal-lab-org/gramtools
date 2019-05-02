@@ -103,7 +103,7 @@ def run(args):
     log.info("Generating personalised fasta. Output at {}".format(_paths["inferred_fasta"]))
 
     inferred_vcf_records = vcf.Reader(open(_paths["inferred_vcf"]))
-    total_ref_size, num_discordances, total_num_sites = \
+    chrom_sizes, num_discordances, total_num_sites = \
         fasta_from_vcf.make_new_ref_using_vcf(_paths["original_reference"], inferred_vcf_records, _paths["inferred_fasta"])
 
     if num_discordances > 0:
@@ -114,7 +114,7 @@ def run(args):
                             num_recs = total_num_sites))
 
     with open(_paths["inferred_ref_size"], "w") as f:
-        f.write(str(total_ref_size))
+        f.write("\t".join([str(s) for s in chrom_sizes]))
 
     log.info('End process: infer')
 
