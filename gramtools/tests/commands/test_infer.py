@@ -40,7 +40,8 @@ class TestFastaFromVcf(unittest.TestCase):
             )
 
             fasta_from_vcf.make_new_ref_using_vcf(fp_in, iter(vcf_records), fp_out)
-            result = open(fp_out).read()
+            with open(fp_out) as _:
+                result = _.read()
 
         self.assertEqual(result, expected)
 
@@ -69,7 +70,8 @@ class TestFastaFromVcf(unittest.TestCase):
             )
 
             fasta_from_vcf.make_new_ref_using_vcf(fp_in, iter(vcf_records), fp_out)
-            result = open(fp_out).read()
+            with open(fp_out) as _:
+                result = _.read()
 
         self.assertEqual(result, expected)
 

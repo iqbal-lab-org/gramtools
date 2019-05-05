@@ -8,6 +8,7 @@
 import typing
 import bisect
 import logging
+import collections
 
 import vcf
 import cortex
@@ -52,9 +53,9 @@ def run(args):
 
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
     log.debug('Rebasing vcf')
-    rebased_vcf_records = _rebase_vcf(_paths["inferred_vcf"],
-                                      chrom_sizes,
-                                      _paths['cortex_vcf'])
+    rebased_vcf_records = _rebase_vcf(_paths,
+                                      chrom_sizes)
+
     if rebased_vcf_records is None:
         log.debug("Rebased VCF does not contain records")
         log.info('End process: discover')
@@ -86,9 +87,18 @@ def run(args):
 # * `new_reference` is the personalised reference; it is the original prg with inferred variant alleles instead.
 #
 # Thus what rebasing achieves is to express the variant calls in terms of the original prg coordinates.
-def _rebase_vcf(base_vcf_file_path,
-                personalised_reference_length: int,
-                personalised_vcf_file_path):
+def _rebase_vcf(_paths,
+                chrom_sizes,
+                check_records = True):
+    base_vcf_file_path = _paths["inferred_vcf"]
+    personalised_vcf_file_path = _paths["cortex_vcf"]
+
+    if check_records:
+        original_refs = load_multi_fasta(_paths["original_reference"])
+        inferred_refs = load_multi_fasta(_paths["inferred_fasta"])
+
+    var_unplaced_records = []
+    ori_unplaced_records = []
     try:
         # Load the variant calls with respect to the personalised reference.
         variant_call_records = _load_records(personalised_vcf_file_path)
@@ -97,18 +107,53 @@ def _rebase_vcf(base_vcf_file_path,
         return None
     base_records = _load_records(base_vcf_file_path)
 
+
     # Given a variant call position w.r.t the personalised reference, we will need to know how this position maps to the original prg.
-    flagged_personalised_regions = _flag_personalised_reference_regions(base_records, personalised_reference_length)
+    flagged_personalised_regions = _flag_personalised_reference_regions(base_records, chrom_sizes)
 
     new_vcf_records = []
     for vcf_record in variant_call_records:
         chrom_key = vcf_record.CHROM
+
+        # Check the variant call is properly placed
+        if check_records:
+            position = vcf_record.POS
+            inferred_sequence = inferred_refs[chrom_key]
+            if len(inferred_sequence) < position or \
+                vcf_record.REF != inferred_sequence[position - 1 : position - 1 + len(vcf_record.REF)]:
+                var_unplaced_records.append(str(vcf_record))
+                continue
+
         regions_list = flagged_personalised_regions.get(chrom_key, None)
         assert regions_list is not None, "Error: ref ID {} in vcf record {} is not present in vcf from infer {}".\
             format(chrom_key, vcf_record, base_vcf_file_path)
 
-        new_vcf_records.append(_rebase_vcf_record(vcf_record,regions_list))
+        new_record = _rebase_vcf_record(vcf_record,regions_list)
 
+        # Check the rebased record is properly placed
+        # Note that an error here can be due to the original vcf being inconsistent with the original fasta (at build)
+        # This thus ought to be checked then.
+        if check_records:
+            original_sequence = original_refs[chrom_key]
+            position = new_record.POS
+            ref_seq = original_sequence[position - 1 : position - 1 + len(vcf_record.REF)].upper()
+            if new_record.REF.upper() != ref_seq:
+                ori_unplaced_records.append(str(new_record))
+                continue
+
+        # It is possible that the var caller calls for reversing the decision made in `infer`
+        # In which case we get REF == ALT, and there is no point in writing out the record.
+        if not all([new_record.REF == alt for alt in new_record.ALT]):
+            new_vcf_records.append(new_record)
+
+    if len(var_unplaced_records) > 0:
+        log.warning("The following new variant records were skipped: {} \n"\
+                    "Reasons: POS is not a valid position in the inferred reference sequence,"\
+                    "or REF does not coincide with inferred reference sequence.".format("\t".join(var_unplaced_records)))
+
+    if len(ori_unplaced_records) > 0:
+        log.warning("The following records when rebased, were discordant with original reference: {} \n" \
+                    .format("\t".join(ori_unplaced_records)))
     return new_vcf_records
 
 
@@ -207,11 +252,15 @@ def _flag_personalised_reference_regions(base_records, chrom_sizes) -> _Regions_
 
         # Build non-variant region
         if vcf_record.POS > base_ref_pos:
-            non_var_region = _Region(base_POS=base_ref_pos, inf_POS=inf_ref_pos,
-                                     length=vcf_record.POS - base_ref_pos)
-            regions_list.append(non_var_region)
-            base_ref_pos += non_var_region.length
-            inf_ref_pos += non_var_region.length
+            region_length = vcf_record.POS - base_ref_pos
+            if len(regions_list) == 0 or regions_list[-1].is_site:
+                non_var_region = _Region(base_POS=base_ref_pos, inf_POS=inf_ref_pos,
+                                         length=region_length)
+                regions_list.append(non_var_region)
+            else: # We saw a site, but it was not used; so, we only need to merge this region with prev region.
+                regions_list[-1].length += region_length
+            base_ref_pos += region_length
+            inf_ref_pos += region_length
 
         # Build variant region
         # Note the following 'guarantee' from `infer`: the first element of GT is the single most likely haploid genotype call.
@@ -264,6 +313,7 @@ def _modify_vcf_record(vcf_record, **new_attributes):
 #  @param personalised_reference_regions a set of `_Regions` marking the personalised reference and its relationship to the prg reference.
 # The key idea is to progress through the REF sequence of the vcf_record to rebase, mapping it to the variant/non-variant space of the personalised reference.
 def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
+
     # Get index of region containing the start of the `vcf_record`.
     region_index = _find_start_region_index(vcf_record, personalised_reference_regions)
 
@@ -294,7 +344,6 @@ def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
 
     while journey_continues:
         region = personalised_reference_regions[region_index]
-
         # This is the key step. We check how much of the vcf_record REF (inferred reference) can be consumed by the current region.
         # If the current region can consume at least what is left of the vcf_record REF, loop ends.
         # NOTE that region.length is 'overloaded': if a non-var region, it is the fixed interval between var regions.
@@ -363,11 +412,33 @@ def _find_start_region_index(vcf_record, marked_regions):
 def _load_records(vcf_file_path):
     file_handle = open(vcf_file_path, 'r')
     vcf_reader = vcf.Reader(file_handle)
-    records = list(vcf_reader)
-    return records
+    all_vcf_records = list(vcf_reader)
+    return all_vcf_records
 
 
 ## Generator to always yield the first allele (REF) of a variant site.
 def _alwaysRef():
     while True:
         yield 0
+
+def load_multi_fasta(fasta_fname):
+    # Load the record fully in memory
+    with open(fasta_fname) as r:
+        records = collections.OrderedDict()
+        record = ""
+        new_recomb_name = ""
+
+        for line in r:
+            if line[0] == ">":
+                if new_recomb_name != "":
+                    records[new_recomb_name] = record
+                new_recomb_name = line[1:].strip().split()[0]
+                record = ""
+
+            else:
+                record += line.replace("\n","")
+
+        records[new_recomb_name] = record
+
+    return records
+

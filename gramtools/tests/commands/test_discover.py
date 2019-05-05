@@ -58,7 +58,6 @@ class TestSecondaryRegions(unittest.TestCase):
 
         chrom_sizes = [7]
         result = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
-        print(result)
 
         expected = [
             discover._Region(base_POS = 1, inf_POS = 1, length = 1),
@@ -328,7 +327,6 @@ class TestRebaseVcfRecord(unittest.TestCase):
 
 
         secondary_regions = discover._flag_personalised_reference_regions(base_records, chrom_sizes)
-        print(secondary_regions)
         new_vcf_record = discover._rebase_vcf_record(secondary_vcf_record, list(secondary_regions.values())[0])
 
         result = _MockVcfRecord(new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT)

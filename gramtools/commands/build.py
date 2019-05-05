@@ -69,6 +69,50 @@ def parse_args(common_parser, subparsers):
                         required=False)
 
 
+def run(args):
+    log.info('Start process: build')
+
+    start_time = str(time.time()).split('.')[0]
+
+    command_paths = paths.generate_build_paths(args)
+
+    if type(command_paths['vcf']) is list:  # Meaning: more than one vcf filepath provided at command line.
+        # Update the vcf path to a combined vcf from all those provided.
+        command_paths = _handle_multi_vcf(command_paths)
+
+    report = collections.OrderedDict()
+
+    if hasattr(args, 'prg') and args.prg is not None:
+        report = _skip_prg_construction(command_paths, report, args)
+    else:
+        report = _execute_command_generate_prg(command_paths, report, args)
+        paths.perl_script_file_cleanup(command_paths)
+
+    report = _execute_gramtools_cpp_build(command_paths, report, args)
+
+    log.debug('Computing sha256 hash of project paths')
+    command_hash_paths = common.hash_command_paths(command_paths)
+
+    log.debug('Saving command report:\n%s', command_paths['build_report'])
+    _report = collections.OrderedDict([
+        ('kmer_size', args.kmer_size),
+        ('max_read_length', args.max_read_length)
+    ])
+    report.update(_report)
+
+    report_file_path = command_paths['build_report']
+    _save_report(start_time,
+                 report,
+                 command_paths,
+                 command_hash_paths,
+                 report_file_path)
+
+    log.info('End process: build')
+
+    if report.get('return_value_is_0') is False:
+        exit(1)
+
+
 ## Checks prg file exists and copies it to gram directory.
 def _skip_prg_construction(build_paths, report, args):
     if report.get('return_value_is_0') is False:
@@ -220,7 +264,6 @@ def _handle_multi_vcf(command_paths):
                                                              tmp_vcf_name, max_alleles_per_cluster=5000)
     cluster.run()
 
-
     ## Rewrite header so that it better reflects the clustered vcf contents.
     ## This is needed in order to correctly merge multiple vcf from multi-sample pipeline.
     ## The headers output by vcf_clusterer are barebones, because it may get differently specified vcf's; here, we assume they are uniform.
@@ -231,66 +274,38 @@ def _handle_multi_vcf(command_paths):
     if os.path.basename(vcf_template_name) == os.path.basename(command_paths['perl_generated_vcf']):
         vcf_template_name = vcf_files[1]
 
-    print(vcf_template_name)
-
     with open(vcf_template_name) as vcf_template_file:
-        vcf_template = vcf.Reader(vcf_template_file) # We will take the headers from the first provided vcf file.
-        vcf_template.metadata['source'] = ["cluster_vcf_records module, version {}".format(cluster_vcf_records.__version__)]
+        vcf_template = vcf.Reader(vcf_template_file)  # We will take the headers from the first provided vcf file.
+        vcf_template.metadata['source'] = [
+            "cluster_vcf_records module, version {}".format(cluster_vcf_records.__version__)]
 
         with open(final_vcf_name, "w") as build_out:
             # We will take the headers from the template, and the records from the clusterer output.
             vcf_writer = vcf.Writer(build_out, vcf_template)
 
             with open(tmp_vcf_name) as record_container:
-            # And simply write out all records as is
-                vcf_records = vcf.Reader(record_container)
-                for record in vcf_records:
-                    vcf_writer.write_record(record)
+                # And simply write out all records as is
+                vcf_records = []
+                record_reader = vcf.Reader(record_container)
+                # We will ignore records which cannot be parsed by the vcf module.
+                rec = "Not_none"
+                while rec is not None:
+                    rec = get_next_valid_record(record_reader)
+                    if rec is not None:
+                        vcf_records.append(rec)
+
+            for record in vcf_records:
+                vcf_writer.write_record(record)
+
 
     os.remove(tmp_vcf_name)
     command_paths['vcf'] = final_vcf_name
     return command_paths
 
 
-def run(args):
-    log.info('Start process: build')
-
-    start_time = str(time.time()).split('.')[0]
-
-    command_paths = paths.generate_build_paths(args)
-
-    if type(command_paths['vcf']) is list: # Meaning: more than one vcf filepath provided at command line.
-        # Update the vcf path to a combined vcf from all those provided.
-        command_paths = _handle_multi_vcf(command_paths)
-
-    report = collections.OrderedDict()
-
-    if hasattr(args, 'prg') and args.prg is not None:
-        report = _skip_prg_construction(command_paths, report, args)
-    else:
-        report = _execute_command_generate_prg(command_paths, report, args)
-        paths.perl_script_file_cleanup(command_paths)
-
-    report = _execute_gramtools_cpp_build(command_paths, report, args)
-
-    log.debug('Computing sha256 hash of project paths')
-    command_hash_paths = common.hash_command_paths(command_paths)
-
-    log.debug('Saving command report:\n%s', command_paths['build_report'])
-    _report = collections.OrderedDict([
-        ('kmer_size', args.kmer_size),
-        ('max_read_length', args.max_read_length)
-    ])
-    report.update(_report)
-
-    report_file_path = command_paths['build_report']
-    _save_report(start_time,
-                 report,
-                 command_paths,
-                 command_hash_paths,
-                 report_file_path)
-
-    log.info('End process: build')
-
-    if report.get('return_value_is_0') is False:
-        exit(1)
+def get_next_valid_record(vcf_reader):
+    try:
+        next_record = next(vcf_reader, None)
+    except Exception:
+        next_record = get_next_valid_record(vcf_reader)
+    return next_record

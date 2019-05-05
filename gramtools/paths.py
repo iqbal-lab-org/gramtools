@@ -55,7 +55,6 @@ def generate_build_paths(args):
 
     if args.reference is not None:
         if os.path.lexists(paths['original_reference']):
-            print(paths['original_reference'])
             os.unlink(paths['original_reference'])
         os.symlink(os.path.abspath(args.reference), paths['original_reference'])
 
