@@ -49,7 +49,7 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
 
         // Get the map between allele Ids and counts.
         auto &site_coverage = coverage.grouped_allele_counts[site_coverage_index];
-        #pragma omp atomic
+        #pragma omp critical
         // Note: if the key does not already exists, creates a key value pair **and** initialises the value to 0.
         site_coverage[allele_ids] += 1;
     }
