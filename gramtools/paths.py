@@ -61,11 +61,9 @@ def generate_build_paths(args):
     if args.vcf is not None:
         vcf_files = [vcf_file for arglist in args.vcf for vcf_file in arglist] # Flattens out list of lists.
 
-        if len(vcf_files) == 1:
-            paths['vcf'] = os.path.abspath(vcf_files[0])
-        else:
-            # If more than one vcf file is provided, we will deal with all of them subsequently.
-            paths['vcf'] = vcf_files
+        # Right now, the path to the vcf is malformed; it is a list, to account for multiple input vcfs.
+        # We modify this to a single properly formed vcf subsequently.
+        paths['vcf'] = vcf_files
     return paths
 
 

@@ -76,9 +76,9 @@ def run(args):
 
     command_paths = paths.generate_build_paths(args)
 
-    if type(command_paths['vcf']) is list:  # Meaning: more than one vcf filepath provided at command line.
-        # Update the vcf path to a combined vcf from all those provided.
-        command_paths = _handle_multi_vcf(command_paths)
+    # Update the vcf path to a combined vcf from all those provided.
+    # We also do this if only a single one is provided, to deal with overlapping records.
+    command_paths = _cluster_vcf_records(command_paths)
 
     report = collections.OrderedDict()
 
@@ -251,54 +251,18 @@ def _save_report(start_time,
         json.dump(_report, fhandle, indent=4)
 
 
-## Combines multiple vcf files together using external python utility.
+## Combines records in one or more vcf files using external python utility.
 # Records where the REFs overlap are merged together and all possible haplotypes enumerated.
 # New path to 'vcf' is path to the combined vcf
-def _handle_multi_vcf(command_paths):
+def _cluster_vcf_records(command_paths):
     vcf_files = command_paths['vcf']
-    tmp_vcf_name = os.path.join(command_paths['gram_dir'], 'tmp.vcf')
     final_vcf_name = os.path.join(command_paths['gram_dir'], 'build.vcf')
 
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
                                                              command_paths['original_reference'],
-                                                             tmp_vcf_name, max_alleles_per_cluster=5000)
+                                                             final_vcf_name, max_alleles_per_cluster=5000)
     cluster.run()
 
-    ## Rewrite header so that it better reflects the clustered vcf contents.
-    ## This is needed in order to correctly merge multiple vcf from multi-sample pipeline.
-    ## The headers output by vcf_clusterer are barebones, because it may get differently specified vcf's; here, we assume they are uniform.
-    ## TODO: uniformity will NOT be guaranteed when the initial vcf is not in the same format as that produced by `discover`
-    vcf_template_name = vcf_files[0]
-
-    # In multi-sample case, we do not want the initial build vcf to be used as template
-    if os.path.basename(vcf_template_name) == os.path.basename(command_paths['perl_generated_vcf']):
-        vcf_template_name = vcf_files[1]
-
-    with open(vcf_template_name) as vcf_template_file:
-        vcf_template = vcf.Reader(vcf_template_file)  # We will take the headers from the first provided vcf file.
-        vcf_template.metadata['source'] = [
-            "cluster_vcf_records module, version {}".format(cluster_vcf_records.__version__)]
-
-        with open(final_vcf_name, "w") as build_out:
-            # We will take the headers from the template, and the records from the clusterer output.
-            vcf_writer = vcf.Writer(build_out, vcf_template)
-
-            with open(tmp_vcf_name) as record_container:
-                # And simply write out all records as is
-                vcf_records = []
-                record_reader = vcf.Reader(record_container)
-                # We will ignore records which cannot be parsed by the vcf module.
-                rec = "Not_none"
-                while rec is not None:
-                    rec = get_next_valid_record(record_reader)
-                    if rec is not None:
-                        vcf_records.append(rec)
-
-            for record in vcf_records:
-                vcf_writer.write_record(record)
-
-
-    os.remove(tmp_vcf_name)
     command_paths['vcf'] = final_vcf_name
     return command_paths
 
