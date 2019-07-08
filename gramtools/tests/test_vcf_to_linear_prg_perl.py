@@ -4,16 +4,20 @@ import subprocess
 import unittest
 
 this_file = os.path.abspath(__file__)
-vcf_to_linear_prg_pl = os.path.abspath(os.path.join(this_file, os.pardir,
-                                                    os.pardir, 'utils',
+perl_utility = os.path.abspath(os.path.join(this_file, os.pardir,
+                                            os.pardir, 'utils',
                                                     'vcf_to_linear_prg.pl'))
+python_utility = os.path.abspath(os.path.join(this_file, os.pardir,
+                                            os.pardir, 'utils',
+                                            'vcf_to_prg_string.py'))
 data_dir = os.path.abspath(os.path.join(this_file, os.pardir, 'data', 'vcf_to_linear_prg_perl'))
 
 
-class TestVcfToLinearPrgPerl(unittest.TestCase):
+class Test_VcfToPrgString(unittest.TestCase):
     def test_found_perl_script(self):
-        """Test that we found the script vcf_to_linear_prg.pl"""
-        self.assertTrue(os.path.exists(vcf_to_linear_prg_pl))
+        """Test that we found the conversion utilities"""
+        self.assertTrue(os.path.exists(perl_utility))
+        self.assertTrue(os.path.exists(python_utility))
 
     # Every test follows the same pattern: run the script and
     # check the output file is the same as the expected output
@@ -26,19 +30,35 @@ class TestVcfToLinearPrgPerl(unittest.TestCase):
         outfile = 'tmp.' + file_prefix + '.prg'
         if os.path.exists(outfile):
             os.unlink(outfile)
-        command = ' '.join([
-            'perl', vcf_to_linear_prg_pl,
+
+        # Test the perl utility
+        perl_command = ' '.join([
+            'perl', perl_utility,
             '--vcf', vcf_file,
             '--ref', ref_file,
             '--min_freq 0.01',
             '--outfile', outfile,
         ])
-        completed_process = subprocess.run(command, shell=True)
+        completed_process = subprocess.run(perl_command, shell=True)
         self.assertEqual(0, completed_process.returncode)
         self.assertTrue(filecmp.cmp(expected_prg, outfile, shallow=False))
         self.assertTrue(filecmp.cmp(expected_vcf, outfile + '.vcf', shallow=False))
         for suffix in ['', '.fa', '.mask_alleles', '.mask_sites', '.vcf']:
             os.unlink(outfile + suffix)
+
+        python_command = ' '.join([
+            'python3', python_utility,
+            vcf_file,
+            ref_file,
+            '--outfile', outfile,
+            '--mode', "legacy",
+        ])
+        completed_process = subprocess.run(python_command, shell=True)
+        self.assertEqual(0, completed_process.returncode)
+        self.assertTrue(filecmp.cmp(expected_prg, outfile, shallow=False))
+
+        os.unlink(outfile)
+
 
     def test_prg_with_no_variants(self):
         """Test make PRG when no variants in VCF"""
