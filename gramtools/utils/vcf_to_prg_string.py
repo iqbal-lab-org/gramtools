@@ -42,6 +42,14 @@ class _Template_Vcf_to_prg(object):
         for seq_record in SeqIO.parse(reference_file, "fasta"):
             self.ref_records[seq_record.id] = seq_record.seq
 
+    def _check_record_ref(self, chrom):
+        """
+        Make sure the vcf record refers to a valid ref sequence ID
+        """
+        ref_seq = self.ref_records.get(chrom, None)
+        if ref_seq is None:
+            raise ValueError(f"The ref ID {chrom} "
+                             "in vcf file {self.vcf_in} was not found in reference file {self.ref_in}")
 
     def _record_to_string(self, vcf_record, site_marker):
         """
@@ -67,14 +75,6 @@ class _Template_Vcf_to_prg(object):
         return record_string
 
 
-    def _check_record_ref(self, chrom):
-        """
-        Make sure the vcf record refers to a valid ref sequence ID
-        """
-        ref_seq = self.ref_records.get(chrom, None)
-        if ref_seq is None:
-            raise ValueError(f"The ref ID {chrom} "
-                             "in vcf file {self.vcf_in} was not found in reference file {self.ref_in}")
 
     def _get_invariant_portion(self, chrom, processed_pos, cur_pos):
         """
@@ -110,7 +110,7 @@ class _Template_Vcf_to_prg(object):
         return prev_chrom, processed_pos
 
 
-    def _maybe_add_preceding_invariant_sequence(self, chrom, cur_pos, processed_pos, record_REF):
+    def _maybe_add_preceding_invariant_sequence(self, chrom, cur_pos, processed_pos):
         """
         When we go to a new record, we may need to add invariant sequence preceding it to the prg_string.
         :return: Updated, or unchanged current position in chromo
@@ -118,9 +118,6 @@ class _Template_Vcf_to_prg(object):
         if cur_pos > processed_pos:
             #  Case: add invariant reference in between variant records
             self.prg_string += self._get_invariant_portion(chrom, processed_pos, cur_pos)
-            processed_pos = cur_pos + len(record_REF)
-
-        return processed_pos
 
     def _flush_prg_chunk(self):
         """
@@ -180,7 +177,7 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
         except Exception as e: # PyVCF raises this
             print(f'ERROR: Could not read vcf file {self.vcf_in} due to: "{e}".'
                   'Is the VCF properly formatted?')
-            exit(1)
+            raise
 
         while record != None:
             cur_pos = record.POS
@@ -194,10 +191,11 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
                 record = next(vcf_in, None)
                 continue
 
-            processed_pos = self._maybe_add_preceding_invariant_sequence(record.CHROM, cur_pos, processed_pos, record.REF)
-
+            self._maybe_add_preceding_invariant_sequence(record.CHROM, cur_pos, processed_pos)
 
             self.prg_string += self._record_to_string(record, cur_site_marker)
+            processed_pos = cur_pos + len(record.REF)
+
             cur_site_marker += 2
             self.num_sites += 1
 
