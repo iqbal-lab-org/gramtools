@@ -29,9 +29,7 @@ def _generate_project_paths(gram_dir):
 
         'fm_index': gram_path('fm_index'),
 
-        'perl_generated': gram_path('perl_generated'),
-        'perl_generated_vcf': gram_path('perl_generated.vcf'),
-        'perl_generated_fa': gram_path('perl_generated.fa'),
+        'prg_string': gram_path('prg'),
 
         'build_report': gram_path('build_report.json'),
 

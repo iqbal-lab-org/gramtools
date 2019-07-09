@@ -11,11 +11,11 @@ import subprocess
 import collections
 
 import cluster_vcf_records
-import vcf
 
 from .. import version
 from .. import common
 from .. import paths
+from ..utils import vcf_to_prg_string
 
 log = logging.getLogger('gramtools')
 
@@ -78,7 +78,7 @@ def run(args):
 
     # Update the vcf path to a combined vcf from all those provided.
     # We also do this if only a single one is provided, to deal with overlapping records.
-    command_paths = _cluster_vcf_records(command_paths)
+    command_paths['vcf'] = _cluster_vcf_records(command_paths)
 
     report = collections.OrderedDict()
 
@@ -86,7 +86,6 @@ def run(args):
         report = _skip_prg_construction(command_paths, report, args)
     else:
         report = _execute_command_generate_prg(command_paths, report, args)
-        paths.perl_script_file_cleanup(command_paths)
 
     report = _execute_gramtools_cpp_build(command_paths, report, args)
 
@@ -136,42 +135,49 @@ def _skip_prg_construction(build_paths, report, args):
     }
     return report
 
+def _count_vcf_record_lines(vcf_file_path):
+    num_recs = 0
+    with open(vcf_file_path) as f_in:
+        for line in f_in:
+            if line[0] != "#":
+                num_recs += 1
+    return num_recs
 
 ## Calls perl utility that converts a vcf and fasta reference into a linear prg.
 def _execute_command_generate_prg(build_paths, report, _):
-    if report.get('return_value_is_0') is False:
-        report['prg_build_report'] = {
-            'return_value_is_0': False
-        }
-        return report
+    log.debug(f'Running python utility for vcf to prg string conversion: {vcf_to_prg_string.__file__}')
+    vcf_in = build_paths['vcf']
 
-    command = [
-        'perl', common.prg_build_exec_fpath,
-        '--outfile', build_paths['perl_generated'],
-        '--vcf', build_paths['vcf'],
-        '--ref', build_paths['original_reference'],
-    ]
-    command_str = ' '.join(command)
-    log.debug('Executing command:\n\n%s\n', command_str)
+    success, error = "True", None
     timer_start = time.time()
+    try:
+        converter = vcf_to_prg_string.Vcf_to_prg(vcf_in, build_paths['original_reference'],
+                                                 build_paths['prg_string'], mode="legacy")
+        converter.make_prg()
+    except Exception as e:
+       success = "False"
+       error = e
 
-    current_working_directory = os.getcwd()
-    process_handle = subprocess.Popen(command,
-                                      cwd=current_working_directory,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-    process_result = common.handle_process_result(process_handle)
+    ## The converter does not produce a vcf
+    # Thus the input vcf needs to be 'clean': we need each vcf record to be converted
+    # to a variant site in the prg so that later on the genotyping process, which uses vcf, is possible.
+    num_recs_in_vcf = _count_vcf_record_lines(vcf_in)
+    assert num_recs_in_vcf == converter.num_sites, log.error(f"Mismatch between number of vcf records in {vcf_in}"
+                                                             f"({num_recs_in_vcf} and number of variant sites in"
+                                                             f"PRG string ({converter.num_sites}.\n"
+                                                             f"Possible source of error: vcf record clustering does not"
+                                                             f"produce non-overlapping records, or conversion utility"
+                                                             f" {vcf_to_prg_string.__file__} is broken.")
+
+
     timer_end = time.time()
-    log.debug('Finished executing command: %.3f seconds',
+    log.debug('Finished conversion: %.3f seconds',
               timer_end - timer_start)
 
-    command_result, entire_stdout = process_result
-
-    report['return_value_is_0'] = command_result
-    report['prg_build_report'] = collections.OrderedDict([
-        ('command', command_str),
-        ('return_value_is_0', command_result),
-        ('stdout', entire_stdout),
+    report['return_value_is_0'] = success
+    report['make_prg_string_report'] = collections.OrderedDict([
+        ('return_value_is_0', success),
+        ('error_message', error),
     ])
     return report
 
@@ -263,8 +269,7 @@ def _cluster_vcf_records(command_paths):
                                                              final_vcf_name, max_alleles_per_cluster=5000)
     cluster.run()
 
-    command_paths['vcf'] = final_vcf_name
-    return command_paths
+    return final_vcf_name
 
 
 def get_next_valid_record(vcf_reader):
