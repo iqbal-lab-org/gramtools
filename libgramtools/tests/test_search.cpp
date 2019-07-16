@@ -1,3 +1,20 @@
+/**
+ * @file
+ * Unit tests for vBWT backward searching.
+ * Terminology:
+ *  - A variant locus is where you find variant **markers**;
+ *  = pairs of site & allele markers.
+ *  - Search is assumed backwards; so saying we end in a site means the beginning (5' end)
+ *  of the read maps there.
+ *
+ * Test suites:
+ *  - NoVarSiteBSearch: checking regular backward searching, with no variant site markers.
+ *  - MarkerSearch: checking finding variant markers preceding bases in the PRG string
+ *  - VariantLocus_Path: checking search recovers right variant site/allele combinations.
+ *  - EndInLocus: checking when search ends inside variant locus.
+ *
+ *  - Search: 'generic' test that is not sub-classified [TODO]
+ */
 #include <cctype>
 
 #include "gtest/gtest.h"
@@ -184,39 +201,16 @@ i   F   BTW text  SA   suffix
 17  6   3   4     9      6 1 5 1 3 4 2 2 4 0
 18  6   2   0     7      6 3 6 1 5 1 3 4 2 2 4 0
 
-
-a sa interval: 1, 2
-sa_right_of_marker: 1
-marker_char: 5
-15, 15
-
-sa_right_of_marker: 2
-marker_char: 6
-17, 17
-
-
-c sa interval: 3, 7
-marker_index: 7
-marker_char: 5
-
-
-g sa interval: 8, 11
-marker_index: 11
-marker_char: 6
-
-
-t sa interval: 12, 14
-N/A
 */
 
 
-TEST(BaseNextSaInterval, GivenC_ProcessNextCharG_CorrectSaInterval) {
+TEST(NoVarSiteBSearch, GivenC_ProcessNextCharG_CorrectSaInterval) {
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
     Marker next_char = 3;
     SA_Index next_char_first_sa_index = 8;
-    SA_Interval current_sa_interval = {3, 7};
+    SA_Interval current_sa_interval = {3, 7}; // all C
 
     auto result = base_next_sa_interval(next_char,
                                         next_char_first_sa_index,
@@ -227,13 +221,14 @@ TEST(BaseNextSaInterval, GivenC_ProcessNextCharG_CorrectSaInterval) {
 }
 
 
-TEST(BaseNextSaInterval, GivenG_ProcessNextCharA_CorrectSaInterval) {
+TEST(NoVarSiteBSearch, GivenG_ProcessNextCharA_CorrectSaInterval) {
+    // Looking for 'ag' here
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
     Marker next_char = 1;
     SA_Index next_char_first_sa_index = 1;
-    SA_Interval current_sa_interval = {8, 11};
+    SA_Interval current_sa_interval = {8, 11}; // all G
 
     auto result = base_next_sa_interval(next_char,
                                         next_char_first_sa_index,
@@ -245,6 +240,7 @@ TEST(BaseNextSaInterval, GivenG_ProcessNextCharA_CorrectSaInterval) {
 
 
 TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
+    // Looking for 'gc' here
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
     // first char: a
@@ -329,7 +325,7 @@ TEST(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
+TEST(Search, CharAfterSiteEndAndAllele_ThreeDifferentSearchStates) {
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
     // first char: a
@@ -338,7 +334,7 @@ TEST(Search, CharAfterSiteEndAndAllele_FourDifferentSearchStates) {
     };
     const auto &markers_search_states = process_markers_search_state(initial_search_state,
                                                                      prg_info);
-    EXPECT_EQ(markers_search_states.size(), 4);
+    EXPECT_EQ(markers_search_states.size(), 3);
 }
 
 
@@ -453,7 +449,7 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectSaIndexes) {
         auto start_sa_index = search_state.sa_interval.first;
         result.insert(start_sa_index);
     }
-    std::unordered_set<uint64_t> expected = {15, 17, 18};
+    std::unordered_set<uint64_t> expected = {15, 17};
     EXPECT_EQ(result, expected);
 }
 
@@ -472,11 +468,11 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSingleCharSaIntervals) {
     std::vector<uint64_t> result;
     for (const auto &search_state: markers_search_states) {
         auto start_sa_index = search_state.sa_interval.first;
-        auto end_sa_index = search_state.sa_interval.first;
+        auto end_sa_index = search_state.sa_interval.second;
         auto num_chars_in_sa_interval = end_sa_index - start_sa_index + 1;
         result.push_back(num_chars_in_sa_interval);
     }
-    std::vector<uint64_t> expected = {1, 1, 1};
+    std::vector<uint64_t> expected = {2, 1};
     EXPECT_EQ(result, expected);
 }
 
@@ -496,9 +492,10 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectLastVaria
     for (const auto &search_state: markers_search_states)
         result.push_back(search_state.variant_site_path.front());
 
+    // We expect the following: one searchstate has two alleles, and thus the allele part is unspecified still
+    // The other is a singleton SearchState corresponding to the end of the site, which is alleles #3.
     std::vector<VariantLocus> expected = {
-            {5, 1},
-            {5, 2},
+            {5, ALLELE_UNKNOWN},
             {5, 3},
     };
     EXPECT_EQ(result, expected);
@@ -519,7 +516,7 @@ TEST(Search, CharAfterBoundaryEndMarker_ReturnedSearchStatesHaveCorrectVariantSi
     for (const auto &search_state: markers_search_states)
         result.push_back(search_state.variant_site_path.size()==1);
 
-    std::vector<bool> expected = {true, true, true};
+    std::vector<bool> expected = {true, true};
     EXPECT_EQ(result, expected);
 }
 
@@ -535,7 +532,7 @@ TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
 }
 
 
-TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(ExitASite, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -556,7 +553,7 @@ TEST(Search, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -577,7 +574,7 @@ TEST(Search, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST(Search, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -660,7 +657,7 @@ TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
 }
 
 
-TEST(Search, GivenRead_CorrectResultSaInterval) {
+TEST(SA_Interval, GivenRead_CorrectResultSaInterval) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -680,7 +677,7 @@ TEST(Search, GivenRead_CorrectResultSaInterval) {
 }
 
 
-TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
+TEST(VariantLocus_Path, GivenSearchEndingInAllele_CorrectVariantSitePath) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -702,7 +699,7 @@ TEST(Search, GivenReadStartingInAllele_CorrectVariantSitePath) {
 }
 
 
-TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
+TEST(VariantLocus_Path, GivenSearchStartingInAllele_CorrectVariantSitePath) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -724,7 +721,7 @@ TEST(Search, GivenReadEndingInAllele_CorrectVariantSitePath) {
 }
 
 
-TEST(Search, GivenReadCrossingAllele_CorrectVariantSitePath) {
+TEST(VariantLocus_Path, GivenSearchCrossingAllele_CorrectVariantSitePath) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -772,7 +769,7 @@ i	F	BWT	text   SA	suffix
 */
 
 
-TEST(Search, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
+TEST(VariantLocus_Path, GivenReadCrossingTwoAlleles_CorrectVariantSitePath) {
     auto prg_raw = "gct5c6g6t5ag7t8c7ct";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -866,8 +863,8 @@ TEST(Search, KmerCrossesVariantSite_ReadCoversCorrectPath) {
 }
 
 
-TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
-    auto prg_raw = "gct5c6g6t5ag7t8c7cta";
+TEST(EndInLocus, SearchStarts_andEnds_withinLoci) {
+    auto prg_raw = "gct5c6g6T5AG7T8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("agt");
@@ -889,6 +886,28 @@ TEST(Search, KmerEndsWithinAllele_ReadCoversCorrectPath) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(EndInLocus, SearchEnds_AtAlleleMarker) {
+    auto prg_raw = "gct5c6G6t5AG7T8c7cta";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Pattern kmer = encode_dna_bases("agt");
+    Patterns kmers = {kmer};
+    auto kmer_size = 3;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto read = encode_dna_bases("gagt");
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    const auto &search_state = search_states.front();
+    auto result = search_state.variant_site_path;
+    VariantSitePath expected = {
+            VariantLocus {5, 2},
+            VariantLocus {7, 1}
+    };
+    EXPECT_EQ(result, expected);
+}
 
 TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";

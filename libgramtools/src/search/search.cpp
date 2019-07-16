@@ -1,8 +1,6 @@
 #include <sdsl/suffix_arrays.hpp>
 #include "search/search.hpp"
 
-// Note: make sure this value can NEVER be an actual allele ID
-#define ALLELE_UNKNOWN 0
 
 using namespace gram;
 

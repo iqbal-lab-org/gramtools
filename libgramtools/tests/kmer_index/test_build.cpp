@@ -318,7 +318,7 @@ TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, ALLELE_UNKNOWN}
     };
     EXPECT_EQ(result, expected);
 }
@@ -354,6 +354,8 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("gtat");
     auto second_full_kmer = encode_dna_bases("ctat");
+    // Only writing 'c' as second kmer in list
+    // below means we will index 'ctat' because of prefix diffing.
     Patterns kmers = {
             encode_dna_bases("gtat"),
             encode_dna_bases("c"),
@@ -365,7 +367,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, ALLELE_UNKNOWN}
     };
     EXPECT_EQ(result, expected);
 
@@ -373,7 +375,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     search_state = search_states.front();
     result = search_state.variant_site_path;
     expected = {
-            VariantLocus {5, 2}
+            VariantLocus {5, ALLELE_UNKNOWN}
     };
     EXPECT_EQ(result, expected);
 }
