@@ -140,7 +140,7 @@ def _load_build_report(project_paths):
 
 
 def _check_build_success(build_report):
-    if not build_report['return_value_is_0']:
+    if not build_report['success']:
         log.error("Build was not completed successfully (see: build report)")
         exit(1)
 

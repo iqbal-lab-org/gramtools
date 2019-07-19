@@ -69,25 +69,64 @@ def parse_args(common_parser, subparsers):
                         required=False)
 
 
+def with_report(f):
+    """
+    Decorator to add logging and reporting to build procedures
+    """
+    def reportify(report, action, *args):
+        if report.get('success') is False:
+            report[action] = {
+                'success': False
+            }
+            return report
+
+        success, error, command, stdout = True, None, None, None
+        timer_start = time.time()
+
+        try:
+            original_result = f(report, action, *args)
+        except Exception as e:
+            success = False
+            error = str(e)
+            original_result = None
+        timer_end = time.time()
+
+        log.debug(f'Ran {action} in: {timer_end - timer_start} seconds')
+
+        report['success'] = success
+        action_report = collections.OrderedDict([
+        ('success', success),
+        ('error_message', error),
+            ('Run time', int(timer_end) - int(timer_start))
+        ])
+
+        # The condition below allows the called function to modify the report as well.
+        if action not in report:
+            report[action] = action_report
+        else:
+            report[action].update(action_report)
+
+        return original_result
+    return reportify
+
+
 def run(args):
     log.info('Start process: build')
-
     start_time = str(time.time()).split('.')[0]
 
     command_paths = paths.generate_build_paths(args)
+    report = collections.OrderedDict()
 
     # Update the vcf path to a combined vcf from all those provided.
     # We also do this if only a single one is provided, to deal with overlapping records.
-    command_paths['vcf'] = _cluster_vcf_records(command_paths)
-
-    report = collections.OrderedDict()
+    command_paths['vcf'] = _cluster_vcf_records(report, 'Vcf record clustering', command_paths)
 
     if hasattr(args, 'prg') and args.prg is not None:
-        report = _skip_prg_construction(command_paths, report, args)
+        _skip_prg_construction(report, 'Copy existing PRG string', command_paths, args)
     else:
-        report = _execute_command_generate_prg(command_paths, report, args)
+        _execute_command_generate_prg(report, 'Vcf to PRG string conversion', command_paths)
 
-    report = _execute_gramtools_cpp_build(command_paths, report, args)
+    report = _execute_gramtools_cpp_build(report, 'Gramtools Build', command_paths, args)
 
     log.debug('Computing sha256 hash of project paths')
     command_hash_paths = common.hash_command_paths(command_paths)
@@ -106,34 +145,12 @@ def run(args):
                  command_hash_paths,
                  report_file_path)
 
-    log.info('End process: build')
-
-    if report.get('return_value_is_0') is False:
+    if report["success"] is False:
+        log.error(f'Unsuccessful build. Process reported to {command_paths["build_report"]}')
         exit(1)
-
-
-## Checks prg file exists and copies it to gram directory.
-def _skip_prg_construction(build_paths, report, args):
-    if report.get('return_value_is_0') is False:
-        report['prg_build_report'] = {
-            'return_value_is_0': False
-        }
-        return report
-
-    if not os.path.isfile(args.prg):
-        log.error("PRG argument provided and file not found:\n%s", args.prg)
-        success = False
     else:
-        log.debug("PRG file provided, skipping construction")
-        log.debug("Copying PRG file into gram directory")
-        shutil.copyfile(args.prg, build_paths['prg'])
-        success = True
+        log.info(f'Success! Build process report in {command_paths["build_report"]}')
 
-    report['return_value_is_0'] = success
-    report['prg_build_report'] = {
-        'return_value_is_0': success
-    }
-    return report
 
 def _count_vcf_record_lines(vcf_file_path):
     num_recs = 0
@@ -143,20 +160,33 @@ def _count_vcf_record_lines(vcf_file_path):
                 num_recs += 1
     return num_recs
 
-## Calls perl utility that converts a vcf and fasta reference into a linear prg.
-def _execute_command_generate_prg(build_paths, report, _):
-    log.debug(f'Running python utility for vcf to prg string conversion: {vcf_to_prg_string.__file__}')
-    vcf_in = build_paths['vcf']
 
-    success, error = "True", None
-    timer_start = time.time()
-    try:
-        converter = vcf_to_prg_string.Vcf_to_prg(vcf_in, build_paths['original_reference'],
-                                                 build_paths['prg_string'], mode="legacy")
-        converter.make_prg()
-    except Exception as e:
-       success = "False"
-       error = e
+## Combines records in one or more vcf files using external python utility.
+# Records where the REFs overlap are merged together and all possible haplotypes enumerated.
+# New path to 'vcf' is path to the combined vcf
+@with_report
+def _cluster_vcf_records(report, action, command_paths):
+    vcf_files = command_paths['vcf']
+    final_vcf_name = os.path.join(command_paths['gram_dir'], 'build.vcf')
+    log.info(f"Running {action} on {str(vcf_files)}.")
+
+    cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
+                                                             command_paths['original_reference'],
+                                                             final_vcf_name, max_alleles_per_cluster=5000)
+    cluster.run()
+
+    return final_vcf_name
+
+
+## Calls utility that converts a vcf and fasta reference into a linear prg.
+@with_report
+def _execute_command_generate_prg(report, action, build_paths):
+    vcf_in = build_paths['vcf']
+    log.info(f"Running {action} on {vcf_in}")
+
+    converter = vcf_to_prg_string.Vcf_to_prg(vcf_in, build_paths['original_reference'],
+                                             build_paths['prg_string'], mode="legacy")
+    converter.make_prg()
 
     ## The converter does not produce a vcf
     # Thus the input vcf needs to be 'clean': we need each vcf record to be converted
@@ -169,26 +199,22 @@ def _execute_command_generate_prg(build_paths, report, _):
                                                              f"produce non-overlapping records, or conversion utility"
                                                              f" {vcf_to_prg_string.__file__} is broken.")
 
-
-    timer_end = time.time()
-    log.debug('Finished conversion: %.3f seconds',
-              timer_end - timer_start)
-
-    report['return_value_is_0'] = success
-    report['make_prg_string_report'] = collections.OrderedDict([
-        ('return_value_is_0', success),
-        ('error_message', error),
-    ])
-    return report
+## Checks prg file exists and copies it to gram directory.
+@with_report
+def _skip_prg_construction(report, action, build_paths, args):
+    if not os.path.isfile(args.prg):
+        error_message = f"PRG argument provided and file not found: {args.prg}"
+        log.error(error_message)
+        raise FileNotFoundError(error_message)
+    else:
+        log.debug("PRG file provided, skipping construction")
+        log.debug("Copying PRG file into gram directory")
+        shutil.copyfile(args.prg, build_paths['prg'])
 
 
 ## Executes `gram build` backend.
-def _execute_gramtools_cpp_build(build_paths, report, args):
-    if report.get('return_value_is_0') is False:
-        report['gramtools_cpp_build'] = {
-            'return_value_is_0': False
-        }
-        return report
+@with_report
+def _execute_gramtools_cpp_build(report, action, build_paths, args):
 
     command = [
         common.gramtools_exec_fpath,
@@ -222,10 +248,10 @@ def _execute_gramtools_cpp_build(build_paths, report, args):
     process_result = common.handle_process_result(process_handle)
     command_result, entire_stdout = process_result
 
-    report['return_value_is_0'] = command_result
-    report['gramtools_cpp_build'] = collections.OrderedDict([
+    # Add extra reporting
+    report[action] = collections.OrderedDict([
         ('command', command_str),
-        ('return_value_is_0', command_result),
+        ('success', command_result),
         ('stdout', entire_stdout),
     ])
     return report
@@ -255,21 +281,6 @@ def _save_report(start_time,
 
     with open(report_file_path, 'w') as fhandle:
         json.dump(_report, fhandle, indent=4)
-
-
-## Combines records in one or more vcf files using external python utility.
-# Records where the REFs overlap are merged together and all possible haplotypes enumerated.
-# New path to 'vcf' is path to the combined vcf
-def _cluster_vcf_records(command_paths):
-    vcf_files = command_paths['vcf']
-    final_vcf_name = os.path.join(command_paths['gram_dir'], 'build.vcf')
-
-    cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
-                                                             command_paths['original_reference'],
-                                                             final_vcf_name, max_alleles_per_cluster=5000)
-    cluster.run()
-
-    return final_vcf_name
 
 
 def get_next_valid_record(vcf_reader):

@@ -12,15 +12,20 @@ from .commands import infer
 from .commands import discover
 
 
-def _setup_logging(level):
+def _setup_logging(args):
     log = logging.getLogger('gramtools')
+    log.propagate = False # Do not pass to ancestor loggers
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
         '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     handler.setFormatter(formatter)
     log.addHandler(handler)
+
+    if hasattr(args, 'debug') and args.debug:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
     log.setLevel(level)
-    return log
 
 
 root_parser = argparse.ArgumentParser(prog='gramtools')
@@ -49,20 +54,10 @@ def _parse_args():
     return arguments
 
 
-def _get_log(args):
-    if hasattr(args, 'debug') and args.debug:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    _setup_logging(level)
-    log = logging.getLogger('gramtools')
-    return log
-
-
 def run():
     args = _parse_args()
-    _get_log(args)
 
+    _setup_logging(args)
     if args.version:
         report_json, _ = version.report()
         print(report_json)

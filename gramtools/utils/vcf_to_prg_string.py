@@ -163,7 +163,6 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
         Constructs the prg string.
         All you need as a user.
         """
-        print(f"Converting {self.vcf_in} to prg string...")
         cur_site_marker = 5
         processed_pos = 1  # 1-based
         prev_chrom = None
