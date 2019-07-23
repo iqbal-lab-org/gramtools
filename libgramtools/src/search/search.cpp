@@ -110,32 +110,27 @@ SearchStates gram::handle_allele_encapsulated_states(const SearchStates &search_
     return new_search_states;
 }
 
-/**
- * Situation: we have fully mapped a read to the PRG.
- * Some `SearchState`s may still have unknown allele ids. Here we set those.
- * Modifies the `SearchStates` in place.
- */
-void set_allele_ids(SearchStates &search_states,
+void gram::set_allele_ids(SearchStates &search_states,
                             const PRG_Info &prg_info) {
 
     for (auto &search_state: search_states) {
         // If the variant site path is empty, we cannot have an unknown allele id.
         if (!search_state.variant_site_path.empty() &&
             search_state.variant_site_path.front().second == ALLELE_UNKNOWN) {
-            bool first = true;
 
             for (int SA_pos = search_state.sa_interval.first; SA_pos <= search_state.sa_interval.second; SA_pos++) {
+                // Find out allele id
                 auto text_pos = prg_info.fm_index[SA_pos];
                 auto allele_id = prg_info.allele_mask[text_pos];
-                if (first) {  // Case: modify in place
-                    search_state.variant_site_path.front().second = allele_id;
-                    first = false;
-                }
-                else { // Case: make a new `SearchState` and add it in
-                    auto new_search_state = search_state;
-                    new_search_state.variant_site_path.front().second = allele_id;
+
+                auto new_search_state = search_state;
+                new_search_state.variant_site_path.front().second = allele_id;
+                new_search_state.sa_interval = SA_Interval{SA_pos, SA_pos};
+                
+                if (SA_pos != search_state.sa_interval.second){ // Case: add to the set of search states
                     search_states.emplace_back(new_search_state);
-                }
+                } 
+                else search_state = new_search_state; // Case: end of the iteration; modify the search state in place.
             }
         }
     }
@@ -174,7 +169,7 @@ SearchStates gram::search_read_backwards(const Pattern &read,
             break;
     }
 
-    if (!new_search_states.empty()) set_allele_ids(new_search_states, prg_info);
+    if (!new_search_states.empty()) gram::set_allele_ids(new_search_states, prg_info);
     new_search_states = handle_allele_encapsulated_states(new_search_states, prg_info);
     return new_search_states;
 }

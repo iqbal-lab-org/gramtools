@@ -33,6 +33,14 @@ namespace gram {
                                                    const PRG_Info &prg_info);
 
     /**
+     * Situation: we have fully mapped a read to the PRG.
+     * Some `SearchState`s may still have unknown allele ids. Here we set those.
+     * Modifies the `SearchStates` in place.
+     */
+        void set_allele_ids(SearchStates &search_states,
+                            const PRG_Info &prg_info);
+        
+    /**
      * Generates a list of `SearchState`s from a read and a kmer, which is 3'-most kmer in the read.
      * The kmer_index is queried to generate an initial set of `SearchState`s (precomputed at `build` stage) to start from.
      * @return SearchStates: a list of `SearchState`s, which at core are an SA interval and a path through the prg (marker-allele ID pairs)

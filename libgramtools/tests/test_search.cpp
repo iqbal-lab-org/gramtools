@@ -886,7 +886,7 @@ TEST(EndInLocus, SearchStarts_andEnds_withinLoci) {
     EXPECT_EQ(result, expected);
 }
 
-TEST(EndInLocus, SearchEnds_AtAlleleMarker) {
+TEST(EndInLocus, SearchEnds_AtOneAlleleMarker) {
     auto prg_raw = "gct5c6G6t5AG7T8c7cta";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -908,6 +908,51 @@ TEST(EndInLocus, SearchEnds_AtAlleleMarker) {
     };
     EXPECT_EQ(result, expected);
 }
+
+/*
+ * A case where we end the read mapping inside several alleles of the same site.
+ * We test expected behaviour along the way from kmer indexing to read mapping alleles concurrently
+ * to allele ID specification post mapping.
+ */
+TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
+    auto prg_raw = "gct5gC6aC6C6t5Cg";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    Pattern kmer = encode_dna_bases("c");
+    Patterns kmers = {kmer};
+    auto kmer_size = 1;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    // KMER INDEXING
+    // We expect five occurrences of 'C' at this stage, in a single SA interval
+    auto search_states = kmer_index.at(kmer);
+    EXPECT_EQ(search_states.size(), 1);
+    SA_Interval sa = search_states.front().sa_interval;
+    EXPECT_EQ(sa.second - sa.first + 1, 5);
+
+    // Next up, look for a C
+    Base pattern_char = 2;
+    search_states = process_read_char_search_states(pattern_char,
+                                                        search_states,
+                                                        prg_info);
+
+    // CONCURRENT ALLELE QUERYING
+    // We expect three occurrences of 'CC' at this stage, in a single SA interval - because
+    // the allele markers sort together in the SA. The allele IDs should be unspecified.
+    EXPECT_EQ(search_states.size(), 1);
+    EXPECT_EQ(search_states.front().variant_site_path.front().second, ALLELE_UNKNOWN);
+
+    // ALLELE ID SPECIFICATION
+    // This function gets called when we have finished mapping our read and we have unknown allele ids left.
+    gram::set_allele_ids(search_states, prg_info);
+    EXPECT_EQ(search_states.size(), 3);
+
+    for (const auto search_state: search_states){
+        SA_Interval sa = search_states.front().sa_interval;
+        EXPECT_EQ(sa.second - sa.first + 1, 1);
+    }
+}
+
 
 TEST(Search, KmerCrossesMultipleVariantSites_ReadCoversCorrectPath) {
     auto prg_raw = "gct5c6g6t5ag7t8c7cta";
