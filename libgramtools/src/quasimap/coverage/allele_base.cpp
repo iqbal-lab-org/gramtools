@@ -111,11 +111,14 @@ std::pair<uint64_t, uint64_t> gram::site_marker_prg_indexes(const uint64_t &site
 
 
 /**
- * For a given `SearchState`, record all base-level coverage.
- * The complexity of this function is here only to deal with reads that:
+ * A read may map to a set of variant sites in different ways (by traversing different alleles).
+ * Here we record base level coverage for one such traversal (ie a `SearchState`)
+ * The details of this function are here only to deal with reads that:
  * * Start inside an allele
  * * End inside an allele
- * Otherwise, we just increment all bases inside each traversed allele.
+ * If not, we increment all bases inside each traversed allele- but only once!
+ * @param sites_coverage_boundaries: hashes a `VariantLocus` to the last base in the allele with recorded coverage
+ * If this base is the last base of the allele, allows to not record coverage of an allele more than once.
  */
 void sa_index_allele_base_coverage(Coverage &coverage,
                                    SitesCoverageBoundaries &sites_coverage_boundaries,
@@ -158,6 +161,7 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         const auto &path_element = *path_it;
         auto site_marker = path_element.first;
 
+        // Case: consume invariant bases between two variant sites
         if (last_site_prg_start_end.first != 0) {
             site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
             read_bases_consumed += site_prg_start_end.first - last_site_prg_start_end.second - 1;
