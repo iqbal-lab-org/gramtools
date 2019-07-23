@@ -47,12 +47,16 @@ int main(int argc, const char *const *argv) {
 
 
 std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, const char *const *argv) {
-    po::options_description global("Global options");
+    std::string cmd;
+    po::options_description global("Gramtools! Global options");
     global.add_options()
-                  ("debug", "Turn on debug output")
-                  ("command", po::value<std::string>(), "command to execute")
-                  ("subargs", po::value<std::vector<std::string> >(), "Arguments for command");
+                  ("command", po::value<std::string>(&cmd), "command to execute: {build, quasimap}")
+                  ("subargs", po::value<std::vector<std::string> >(), "arguments to command")
+                  ("help", "Produce this help message")
+                ("debug", "Turn on debug output");
 
+    // We register all positional arguments after the command as 'subargs'
+    // which get forwarded to the command specific parser.
     po::positional_options_description pos;
     pos.add("command", 1)
        .add("subargs", -1);
@@ -63,11 +67,17 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
             po::command_line_parser(argc, argv)
                     .options(global)
                     .positional(pos)
-                    .allow_unregistered()
+                    .allow_unregistered() // Allows passing of subargs to command specific parser.
                     .run();
 
     po::store(parsed, vm);
-    std::string cmd = vm["command"].as<std::string>();
+
+    //Note: could use po::notify() and make 'command' required too- see command specific parsers.
+    if (vm.count("help") || !vm.count("command")) {
+        std::cout << global << std::endl;
+        exit(1);
+    }
+
 
     if (cmd == "build") {
         auto parameters = commands::build::parse_parameters(vm, parsed);
@@ -76,7 +86,10 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
         auto parameters = commands::quasimap::parse_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::quasimap);
     }
+    else {
+        std::cout << "Unrecognised command: " << cmd << std::endl;
+        std::cout << global << std::endl;
+        exit(1);
+    }
 
-    // unrecognised command
-    throw po::invalid_option_value(cmd);
 }

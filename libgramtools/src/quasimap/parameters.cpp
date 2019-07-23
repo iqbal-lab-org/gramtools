@@ -8,15 +8,20 @@ using namespace gram;
 
 Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
+    std::string gram_dirpath;
+    std::string run_directory;
+    uint32_t kmer_size;
+    std::vector<std::string> reads;
+
     po::options_description quasimap_description("quasimap options");
     quasimap_description.add_options()
-                                ("gram", po::value<std::string>(),
+                                ("gram", po::value<std::string>(&gram_dirpath)->required(),
                                  "gramtools directory")
-                                ("reads", po::value<std::vector<std::string>>()->multitoken(),
+                                ("reads", po::value<std::vector<std::string>>(&reads)->multitoken()->required(),
                                  "file containing reads (FASTA or FASTQ)")
-                                ("kmer-size", po::value<uint32_t>(),
+                                ("kmer-size", po::value<uint32_t>(&kmer_size)->required(),
                                  "kmer size used in constructing the kmer index")
-                                ("run-directory", po::value<std::string>(),
+                                ("run-directory", po::value<std::string>(&run_directory)->required(),
                                  "the directory where to store all quasimap output files")
                                 ("max-threads", po::value<uint32_t>()->default_value(1),
                                  "maximum number of threads used")
@@ -25,10 +30,16 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
 
     std::vector<std::string> opts = po::collect_unrecognized(parsed.options,
                                                              po::include_positional);
-    opts.erase(opts.begin());
-    po::store(po::command_line_parser(opts).options(quasimap_description).run(), vm);
-
-    std::string gram_dirpath = vm["gram"].as<std::string>();
+    if (opts.size() > 0) opts.erase(opts.begin()); // Takes out the command itself
+    try {
+        po::store(po::command_line_parser(opts).options(quasimap_description).run(), vm);
+        po::notify(vm);
+    }
+    catch(const std::exception &e){
+        std::cout << e.what() << std::endl;
+        std::cout << quasimap_description << std::endl;
+        exit(1);
+    }
 
     Parameters parameters = {};
     parameters.gram_dirpath = gram_dirpath;
@@ -43,10 +54,10 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.sa_intervals_fpath = full_path(gram_dirpath, "sa_intervals");
     parameters.paths_fpath = full_path(gram_dirpath, "paths");
 
-    parameters.kmers_size = vm["kmer-size"].as<uint32_t>();
-    parameters.reads_fpaths = vm["reads"].as<std::vector<std::string>>();
+    parameters.kmers_size = kmer_size;
+    parameters.reads_fpaths = reads;
 
-    std::string run_dirpath = vm["run-directory"].as<std::string>();
+    std::string run_dirpath = run_directory;
     parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
 
     parameters.allele_sum_coverage_fpath = full_path(run_dirpath, "allele_sum_coverage");

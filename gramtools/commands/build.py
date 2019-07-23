@@ -49,17 +49,18 @@ def parse_args(common_parser, subparsers):
                         default=5,
                         required=False)
 
-    parser.add_argument('--max-read-length',
-                        help='',
-                        type=int,
-                        default=150,
-                        required=False)
 
     # The current default behaviour is to extract only relevant kmers from prg.
     parser.add_argument('--all-kmers',
                         help='Whether or not all kmers of given size should be indexed.\n'
                              'When this flag is not used, only kmers overlapping variant sites in prg will be indexed.',
                         action='store_true',
+                        required=False)
+
+    parser.add_argument('--max-read-length',
+                        help='Used to determine which kmers overlap variant sites. Only needed if --all-kmers flag is off.',
+                        type=int,
+                        default=150,
                         required=False)
 
     parser.add_argument('--max-threads',
