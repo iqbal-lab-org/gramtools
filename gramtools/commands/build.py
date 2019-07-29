@@ -123,11 +123,11 @@ def run(args):
     command_paths['vcf'] = _cluster_vcf_records(report, 'Vcf record clustering', command_paths)
 
     if hasattr(args, 'prg') and args.prg is not None:
-        _skip_prg_construction(report, 'Copy existing PRG string', command_paths, args)
+        _skip_prg_construction(report, 'copy_existing_PRG_string', command_paths, args)
     else:
-        _execute_command_generate_prg(report, 'Vcf to PRG string conversion', command_paths)
+        _execute_command_generate_prg(report, 'vcf_to_PRG_string_conversion', command_paths)
 
-    report = _execute_gramtools_cpp_build(report, 'Gramtools Build', command_paths, args)
+    report = _execute_gramtools_cpp_build(report, 'gramtools_build', command_paths, args)
 
     log.debug('Computing sha256 hash of project paths')
     command_hash_paths = common.hash_command_paths(command_paths)

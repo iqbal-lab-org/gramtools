@@ -108,8 +108,8 @@ _package_data = {
 
 setuptools.setup(
     name='gramtools',
-    version='2.0.0',
-    description='Genome inference and variant calling with a reference graph of genetic variation.',
+    version='1.5.0',
+    description='Genome inference and variant calling with population reference graphs.',
     url='https://github.com/iqbal-lab-org/gramtools',
     long_description=readme,
     entry_points={
