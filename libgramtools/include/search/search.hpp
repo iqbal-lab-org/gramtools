@@ -12,7 +12,14 @@
 #ifndef GRAMTOOLS_SEARCH_HPP
 #define GRAMTOOLS_SEARCH_HPP
 
+
 namespace gram {
+
+    struct SiteBoundaryMarkerInfo {
+        bool is_start_boundary = false;
+        SA_Interval sa_interval;
+        Marker marker_char;
+    };
 
     /**
      * Potentially splits a search state based on whether it is encapsulated within an allele.
@@ -110,6 +117,14 @@ using SaIndexRightOfMarker = uint64_t;
     AlleleId get_allele_id(const SA_Index &allele_marker_sa_index,
                            const PRG_Info &prg_info);
 
+
+    /**
+     * Generates information about a site marker using the character after it in the prg and the marker site ID.
+     * Finds the marker's SA interval and whether it marks the start or the end of the variant site.
+     */
+    SiteBoundaryMarkerInfo site_boundary_marker_info(const Marker &marker_char,
+                                                     const SA_Index &sa_right_of_marker,
+                                                     const PRG_Info &prg_info);
     /**
     * Finds the whole SA interval associated with a given allele marker.
     * Remember: they are contiguous in the SA.

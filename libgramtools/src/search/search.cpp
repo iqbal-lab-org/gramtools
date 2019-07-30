@@ -289,49 +289,32 @@ SearchStates gram::process_markers_search_states(const SearchStates &old_search_
 }
 
 
-struct SiteBoundaryMarkerInfo {
-    bool is_start_boundary = false;
-    SA_Interval sa_interval;
-    Marker marker_char;
-};
 
-
-/**
- * Generates information about a site marker using the character after it in the prg and the marker site ID.
- * Finds the marker's SA interval and whether it marks the start or the end of the variant site.
- */
-SiteBoundaryMarkerInfo site_boundary_marker_info(const Marker &marker_char,
+SiteBoundaryMarkerInfo gram::site_boundary_marker_info(const Marker &marker_char,
                                                  const SA_Index &sa_right_of_marker,
                                                  const PRG_Info &prg_info) {
 
     // char2comp -> rank of ordered alphabet set
     auto alphabet_rank = prg_info.fm_index.char2comp[marker_char];
     auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
+    auto second_sa_index = first_sa_index + 1;
 
-    uint64_t marker_sa_index_offset;
-    //  TODO: how can sa_right_of_marker be 0? how can it be <0?
-    if (sa_right_of_marker <= 0)
-        marker_sa_index_offset = 0;
-    else
-        // The offset is calculated as it would be during a backward search, using BWT
-        // Note that the rank query is **non-inclusive** of arg1
-        marker_sa_index_offset = prg_info.fm_index.bwt.rank(sa_right_of_marker,
-                                                            marker_char);
-    // The marker is found by updating the SA interval as for a backward search
-    auto marker_sa_index = first_sa_index + marker_sa_index_offset;
+    auto first_text_index = prg_info.fm_index[first_sa_index];
+    auto second_text_index = prg_info.fm_index[second_sa_index];
 
-    // Get marker PRG index
-    const auto marker_text_idx = prg_info.fm_index[marker_sa_index];
+    // Make it such that first_sa_index is the sa_index of the site marker that occurs first in the PRG.
+    if (first_text_index > second_text_index) {
+        second_sa_index = first_sa_index;
+        first_sa_index += 1;
+    }
 
-    // Get other site marker PRG index
-    uint64_t other_marker_text_idx;
-    if (marker_sa_index == first_sa_index)
-        other_marker_text_idx = prg_info.fm_index[first_sa_index + 1];
-    else
-        other_marker_text_idx = prg_info.fm_index[first_sa_index];
+    // If the SA right of the marker is inside a variant site in the PRG string, then
+    // The marker it comes after is the start of the site.
+    const bool marker_is_boundary_start = prg_info.sites_mask[prg_info.fm_index[sa_right_of_marker]] != 0;
 
-    // If the marker of interest's position is lower than the other marker, the marker is at the start of the variant site.
-    const bool marker_is_boundary_start = marker_text_idx <= other_marker_text_idx;
+    auto marker_sa_index = second_sa_index;
+    if (marker_is_boundary_start) marker_sa_index = first_sa_index;
+
     return SiteBoundaryMarkerInfo{
             marker_is_boundary_start,
             SA_Interval{marker_sa_index, marker_sa_index},

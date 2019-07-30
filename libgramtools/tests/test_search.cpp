@@ -9,11 +9,12 @@
  *
  * Test suites:
  *  - NoVarSiteBSearch: checking regular backward searching, with no variant site markers.
- *  - MarkerSearch: checking finding variant markers preceding bases in the PRG string
+ *  - MarkerSearch: checking finding and positioning variant markers in the PRG string
+ *  - MarkerSAIntervals: Recovering SA Interval of variant markers.
  *  - VariantLocus_Path: checking search recovers right variant site/allele combinations.
  *  - EndInLocus: checking when search ends inside variant locus.
  *
- *  - Search: 'generic' test that is not sub-classified [TODO]
+ *  - Search: test that is not sub-classified [TODO]
  */
 #include <cctype>
 
@@ -239,8 +240,7 @@ TEST(NoVarSiteBSearch, GivenG_ProcessNextCharA_CorrectSaInterval) {
 }
 
 
-TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
-    // Looking for 'gc' here
+TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
     // first char: a
@@ -255,6 +255,31 @@ TEST(MarkerSearch, GivenCharA_ReturnTwoCorrectSearchResults) {
             {2, 6},
     };
     EXPECT_EQ(result, expected);
+
+    // Expect three: one for exiting the site; two for entering.
+    const auto &markers_search_states = process_markers_search_state(initial_search_state,
+                                                                     prg_info);
+    EXPECT_EQ(markers_search_states.size(), 3);
+}
+
+TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit){
+    auto prg_raw = "gcgct5C6g6a5Agtcct";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    const Marker marker_char = 5;
+
+    // TEST 1: char a at site exit point
+    SA_Index sa_right_of_marker = 1;
+
+    auto siteInfo = gram::site_boundary_marker_info(marker_char, sa_right_of_marker, prg_info);
+    EXPECT_EQ(false, siteInfo.is_start_boundary);
+    EXPECT_EQ(15, siteInfo.sa_interval.first);
+
+    // TEST 2: char c at site entry point
+    sa_right_of_marker = 7;
+    siteInfo = gram::site_boundary_marker_info(marker_char, sa_right_of_marker, prg_info);
+    EXPECT_EQ(true, siteInfo.is_start_boundary);
+    EXPECT_EQ(16, siteInfo.sa_interval.first);
 }
 
 
@@ -292,7 +317,7 @@ TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
+TEST(MarkerSearch, GivenCharG_NoMarkersToLeft){
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
     // first char: g
@@ -307,7 +332,7 @@ TEST(Search, SingleCharAllele_SiteStartBoundarySingleSearchState) {
 }
 
 
-TEST(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
+TEST(MarkerSearch, GivenCharC_GoToVarSiteStart) {
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
     // first char: c
@@ -325,20 +350,7 @@ TEST(Search, FirstAlleleSingleChar_CorrectSkipToSiteStartBoundaryMarker) {
 }
 
 
-TEST(Search, CharAfterSiteEndAndAllele_ThreeDifferentSearchStates) {
-    auto prg_raw = "gcgct5c6g6a5agtcct";
-    auto prg_info = generate_prg_info(prg_raw);
-    // first char: a
-    SearchState initial_search_state = {
-            SA_Interval {1, 2}
-    };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
-    EXPECT_EQ(markers_search_states.size(), 3);
-}
-
-
-TEST(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
+TEST(MarkerSAIntervals, BoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
     auto prg_raw = "gcgct5c6g6a5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
     Marker boundary_marker = 5;
@@ -349,7 +361,7 @@ TEST(Search, GivenBoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
 }
 
 
-TEST(Search, GivenBoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
+TEST(MarkerSAIntervals, BoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
     auto prg_raw = "aca5g6t5gcatt";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -375,7 +387,7 @@ i	F	BTW	text	SA	suffix
 10	9	3	9	    8	9 4 10 1 9 0
 11	10	4	0	    8	10 1 9 0
 */
-TEST(Search, GivenPrgWithNonContinuousAlphabet_CorrectAlleleMarkerEndBoundary) {
+TEST(MarkerSAIntervals, GivenPrgWithNonContinuousAlphabet_CorrectAlleleMarkerEndBoundary) {
     auto prg_raw = "7g8c7g9t10a9";
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -410,7 +422,7 @@ i	F	BWT	text	SA	suffix
  */
 
 
-TEST(Search, CharAfterBoundaryEndMarker_ReturnedCorrectMarkerChars) {
+TEST(MarkerSearch, AtSiteEnd_GetAllMarkerChars) {
     auto prg_raw = "gcgct5c6g6t5agtcct";
     auto prg_info = generate_prg_info(prg_raw);
 
