@@ -47,10 +47,9 @@ int main(int argc, const char *const *argv) {
 
 
 std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, const char *const *argv) {
-    std::string cmd;
     po::options_description global("Gramtools! Global options");
     global.add_options()
-                  ("command", po::value<std::string>(&cmd), "command to execute: {build, quasimap}")
+                  ("command", po::value<std::string>(), "command to execute: {build, quasimap}")
                   ("subargs", po::value<std::vector<std::string> >(), "arguments to command")
                   ("help", "Produce this help message")
                 ("debug", "Turn on debug output");
@@ -78,6 +77,7 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
         exit(1);
     }
 
+    std::string cmd = vm["command"].as<std::string>();
 
     if (cmd == "build") {
         auto parameters = commands::build::parse_parameters(vm, parsed);
