@@ -20,10 +20,10 @@
 
 #include "gtest/gtest.h"
 
+#include "src_common/generate_prg.hpp"
 #include "prg/prg.hpp"
 #include "kmer_index/build.hpp"
 #include "search/search.hpp"
-#include "test_utils.hpp"
 
 
 using namespace gram;

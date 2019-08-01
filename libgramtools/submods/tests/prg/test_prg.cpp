@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "../test_utils.hpp"
+#include "src_common/generate_prg.hpp"
 
 #include "prg/masks.hpp"
 

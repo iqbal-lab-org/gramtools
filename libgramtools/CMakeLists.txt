@@ -164,5 +164,7 @@ add_custom_command(TARGET gram POST_BUILD
 
 # tests
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(submods/tests)
 add_test(test_main test_main)
+
+add_subdirectory(submods/print_fm_index)

@@ -3,8 +3,7 @@
 
 #include "quasimap/coverage/grouped_allele_counts.hpp"
 #include "quasimap/coverage/common.hpp"
-#include "../../test_utils.hpp"
-
+#include "src_common/generate_prg.hpp"
 
 using namespace gram;
 

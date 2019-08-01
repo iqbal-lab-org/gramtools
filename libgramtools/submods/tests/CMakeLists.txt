@@ -26,11 +26,15 @@ set_target_properties(libgmock PROPERTIES
         "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
 
 set(INCLUDE
-        ${PROJECT_SOURCE_DIR}/libgramtools/include)
+        ${PROJECT_SOURCE_DIR}/libgramtools/include
+        ${PROJECT_SOURCE_DIR}/libgramtools/submods)
+
+file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/libgramtools/submods/src_common/*.cpp)
 
 add_executable(test_main
         main.cpp
 
+        ${SOURCES}
         test_search.cpp
         test_utils.cpp
 
@@ -62,7 +66,7 @@ set_target_properties(test_main
         CXX_STANDARD_REQUIRED ON)
 add_custom_command(TARGET test_main POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/tests/test_main
-        ${PROJECT_SOURCE_DIR}/libgramtools/tests)
+        ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/submods/tests/test_main
+        ${PROJECT_SOURCE_DIR}/libgramtools/submods/tests)
 
 add_test(NAME test_main COMMAND test_main)

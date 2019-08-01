@@ -2,7 +2,8 @@
 
 #include "gtest/gtest.h"
 
-#include "../../test_utils.hpp"
+
+#include "src_common/generate_prg.hpp"
 #include "quasimap/coverage/allele_base.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"

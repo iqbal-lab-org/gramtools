@@ -1,9 +1,7 @@
-#include "gtest/gtest.h"
-
 #include "common/utils.hpp"
 #include "prg/masks.hpp"
 #include "kmer_index/build.hpp"
-#include "test_utils.hpp"
+#include "generate_prg.hpp"
 
 
 using namespace gram;
@@ -43,12 +41,4 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
 
     prg_info.max_alphabet_num = get_max_alphabet_num(encoded_prg);
     return prg_info;
-}
-
-
-TEST(ReverseComplimentRead, GivenRead_ReverseComplimnetReadReturned) {
-    Pattern read = {1, 2, 1, 3, 4};
-    auto result = reverse_complement_read(read);
-    Pattern expected = {1, 2, 4, 3, 4};
-    EXPECT_EQ(result, expected);
 }
