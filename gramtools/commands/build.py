@@ -186,7 +186,7 @@ def _execute_command_generate_prg(report, action, build_paths):
     log.info(f"Running {action} on {vcf_in}")
 
     converter = vcf_to_prg_string.Vcf_to_prg(vcf_in, build_paths['original_reference'],
-                                             build_paths['prg_string'], mode="legacy")
+                                             build_paths['prg_string'], mode="normal")
     converter.make_prg()
 
     ## The converter does not produce a vcf

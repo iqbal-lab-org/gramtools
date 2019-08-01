@@ -26,26 +26,26 @@ TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {
 
 
 /*
-PRG: aca5g6t5gctc
-i	F	BWT	text	SA	suffix
-0	0	2	1	    12	  0
-1	1	0	2	    0	  1 2 1 5 3 6 4 5 3 2 4 2 0
-2	1	2	1	    2	  1 5 3 6 4 5 3 2 4 2 0
-3	2	4	5	    11	  2 0
-4	2	1	3	    1	  2 1 5 3 6 4 5 3 2 4 2 0
-5	2	3	6	    9	  2 4 2 0
-6	3	5	4	    8	  3 2 4 2 0
-7	3	5	5	    4	  3 6 4 5 3 2 4 2 0
-8	4	2	3	    10	  4 2 0
-9	4	6	2	    6	  4 5 3 2 4 2 0
-10	5	4	4	    7	  5 3 2 4 2 0
-11	5	1	2	    3	  5 3 6 4 5 3 2 4 2 0
-12	6	3	0	    5	  6 4 5 3 2 4 2 0
- */
+PRG: ACA5G6T6GCTC
+i	BWT	SA	text_suffix
+0	C	12
+1	0	0	A C A 5 G 6 T 6 G C T C
+2	C	2	A 5 G 6 T 6 G C T C
+3	T	11	C
+4	A	1	C A 5 G 6 T 6 G C T C
+5	G	9	C T C
+6	6	8	G C T C
+7	5	4	G 6 T 6 G C T C
+8	C	10	T C
+9	6	6	T 6 G C T C
+10	A	3	5 G 6 T 6 G C T C
+11	T	7	6 G C T C
+12	G	5	6 T 6 G C T C
+*/
 
 
 TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
-    const std::string prg_raw = "aca5g6t5gctc";
+    const std::string prg_raw = "aca5g6t6gctc";
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer = encode_dna_bases("atgct");
@@ -65,7 +65,7 @@ TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
 
 
 TEST(IndexKmers, KmerDoesNotCrossSite_CorrectSaInterval) {
-    const std::string prg_raw = "aca5g6t5gctc";
+    const std::string prg_raw = "aca5g6t6gctc";
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer = encode_dna_bases("gctc");
@@ -83,7 +83,7 @@ TEST(IndexKmers, KmerDoesNotCrossSite_CorrectSaInterval) {
 
 
 TEST(IndexKmers, KmerDoesNotCrossSite_CorrectVariantSitePath) {
-    const std::string prg_raw = "aca5g6t5gctc";
+    const std::string prg_raw = "aca5g6t6gctc";
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer = encode_dna_bases("gctc");
@@ -101,7 +101,7 @@ TEST(IndexKmers, KmerDoesNotCrossSite_CorrectVariantSitePath) {
 
 
 TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
-    const std::string prg_raw = "aca5g6t5gcatt";
+    const std::string prg_raw = "aca5g6t6gcatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer = encode_dna_bases("aggca");
@@ -121,7 +121,7 @@ TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
 
 
 TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
-    auto prg_raw = "aca5g6c5tatt";
+    auto prg_raw = "aca5g6c6tatt";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer_size = 5;
@@ -164,7 +164,7 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
 
 
 TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
-    auto prg_raw = "aca5g6c5tatt";
+    auto prg_raw = "aca5g6c6tatt";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer_size = 5;
@@ -196,7 +196,7 @@ TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
 
 
 TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
-    const std::string prg_raw = "aca5g6c5tatt";
+    const std::string prg_raw = "aca5g6c6tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 5;
@@ -224,7 +224,7 @@ TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
 
 
 TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
+    const std::string prg_raw = "aca5g6c6a6tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 5;
@@ -266,7 +266,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
 
 
 TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
+    const std::string prg_raw = "aca5g6c6a6tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 5;
@@ -303,7 +303,7 @@ TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
 
 
 TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
+    const std::string prg_raw = "aca5g6c6a6tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 4;
@@ -325,7 +325,7 @@ TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
 
 
 TEST(IndexKmers, KmerFromAlleleCenter_KmerEntryFoundNoVariantSitePath) {
-    const std::string prg_raw = "gct5cccc6g6t5ag";
+    const std::string prg_raw = "gct5cccc6g6t6ag";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 3;
@@ -348,7 +348,7 @@ TEST(IndexKmers, KmerFromAlleleCenter_KmerEntryFoundNoVariantSitePath) {
 
 
 TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
-    const std::string prg_raw = "aca5g6c6a5tatt";
+    const std::string prg_raw = "aca5g6c6a6tatt";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 4;
@@ -382,7 +382,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
 
 
 TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
-    const std::string prg_raw = "aca5g6c5t";
+    const std::string prg_raw = "aca5g6c6t";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 4;
@@ -404,7 +404,7 @@ TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
 
 
 TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
-    const std::string prg_raw = "aca5g6c5t";
+    const std::string prg_raw = "aca5g6c6t";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 4;
@@ -436,7 +436,7 @@ TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
 
 
 TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
-    const std::string prg_raw = "aca5g6c5tt7a8c7gg";
+    const std::string prg_raw = "aca5g6C6TT7A8c8gg";
     const auto prg_info = generate_prg_info(prg_raw);
 
     const int kmer_size = 4;
@@ -451,7 +451,7 @@ TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
     auto search_state = search_states.front();
     auto result = search_state.variant_site_path;
     VariantSitePath expected = {
-            VariantLocus {5, 2},
+            VariantLocus {5, ALLELE_UNKNOWN},
             VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
@@ -459,24 +459,25 @@ TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
 
 
 /*
-PRG: ttt5ta6t5acg
-i	F	BWT	text	SA	suffix
-0	0	3	4	    12	0
-1	1	5	4	    9	1 2 3 0
-2	1	4	4	    5	1 6 4 5 1 2 3 0
-3	2	1	5	    10	2 3 0
-4	3	2	4	    11	3 0
-5	4	5	1	    4	4 1 6 4 5 1 2 3 0
-6	4	0	6	    0	4 4 4 5 4 1 6 4 5 1 2 3 0
-7	4	4	4	    1	4 4 5 4 1 6 4 5 1 2 3 0
-8	4	6	5	    7	4 5 1 2 3 0
-9	4	4	1	    2	4 5 4 1 6 4 5 1 2 3 0
-10	5	4	2	    8	5 1 2 3 0
-11	5	4	3	    3	5 4 1 6 4 5 1 2 3 0
-12	6	1	0	    6	6 4 5 1 2 3 0
+PRG: TTT5TA6T6ACG
+i	BWT	SA	text_suffix
+0	G	12
+1	6	9	A C G
+2	T	5	A 6 T 6 A C G
+3	A	10	C G
+4	C	11	G
+5	5	4	T A 6 T 6 A C G
+6	0	0	T T T 5 T A 6 T 6 A C G
+7	T	1	T T 5 T A 6 T 6 A C G
+8	T	2	T 5 T A 6 T 6 A C G
+9	6	7	T 6 A C G
+10	T	3	5 T A 6 T 6 A C G
+11	T	8	6 A C G
+12	A	6	6 T 6 A C G
 */
+
 TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) {
-    auto prg_raw = "ttt5ta6t5acg";
+    auto prg_raw = "ttt5ta6t6acg";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer_size = 4;
@@ -510,7 +511,7 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
 
 TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
     //               |                               |
-    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc26cg27g28a28tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -530,7 +531,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
 
 TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleCharExtracted) {
     //                                                  |                          |
-    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc26cg27g28a28tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -550,7 +551,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleChar
 
 TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracted) {
     //                                                     |                        |
-    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc26cg27g28a28tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -570,7 +571,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracte
 
 TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
     //                                                                     |             |
-    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc26cg27g28a28tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     //                                                                    ^region end
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -591,7 +592,7 @@ TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
 
 TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
     //                                                                     |             |
-    auto prg_raw = "atggaacggct25cg26cc26tg26tc25cg27g28a27tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
+    auto prg_raw = "atggaacggct25cg26cc26tg26tc26cg27g28a28tccccgacgattccccgacgattccccgacgattccccgacgattccccgacgattccccgacgat";
     //                                                                     ^region end
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -612,7 +613,7 @@ TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
 
 TEST(IndexKmers, KmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
     //                 last site overlapping kmer end: |
-    auto prg_raw = "t25cg26cc26tg26tc25ctcacagacgattctcctgac";
+    auto prg_raw = "t25cg26cc26tg26tc26ctcacagacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -632,7 +633,7 @@ TEST(IndexKmers, KmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
 
 TEST(IndexKmers, KmerEndJustOutsideMaxReadSize_KmerNotFoundInIndex) {
     //                 last site overlapping kmer end: |
-    auto prg_raw = "t25cg26cc26tg26tc25ctcacagacgattctcctgac";
+    auto prg_raw = "t25cg26cc26tg26tc26ctcacagacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -652,7 +653,7 @@ TEST(IndexKmers, KmerEndJustOutsideMaxReadSize_KmerNotFoundInIndex) {
 
 TEST(IndexKmers, TwoSitesAndKmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
     //                  last base given max read size:   |
-    auto prg_raw = "t25cg26cc26tg26tc25ct27ca28ca27gacgattctcctgac";
+    auto prg_raw = "t25cg26cc26tg26tc26ct27ca28ca28gacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -672,7 +673,7 @@ TEST(IndexKmers, TwoSitesAndKmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) 
 
 TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFound) {
     //                  last base given max read size:   |
-    auto prg_raw = "t25cg26cc26tg26tc25ct27ca28ca27gacgattctcctgac";
+    auto prg_raw = "t25cg26cc26tg26tc26ct27ca28ca28gacgattctcctgac";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};

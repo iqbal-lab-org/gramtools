@@ -8,31 +8,31 @@ using namespace gram;
 
 
 /*
-PRG: aa5t6cagtagcagt5ta
-i	F	BTW	text	SA	suffix
-0	0	1	1	    18	0
-1	1	4	1	    17	1 0
-2	1	0	5	    0	1 1 5 4 6 2 1 3 4 1 3 2 1 3 4 5 4 1 0
-3	1	4	4	    9	1 3 2 1 3 4 5 4 1 0
-4	1	2	6	    6	1 3 4 1 3 2 1 3 4 5 4 1 0
-5	1	2	2	    12	1 3 4 5 4 1 0
-6	1	1	1	    1	1 5 4 6 2 1 3 4 1 3 2 1 3 4 5 4 1 0
-7	2	6	3	    5	2 1 3 4 1 3 2 1 3 4 5 4 1 0
-8	2	3	4	    11	2 1 3 4 5 4 1 0
-9	3	1	1	    10	3 2 1 3 4 5 4 1 0
-10	3	1	3	    7	3 4 1 3 2 1 3 4 5 4 1 0
-11	3	1	2	    13	3 4 5 4 1 0
-12	4	5	1	    16	4 1 0
-13	4	3	3	    8	4 1 3 2 1 3 4 5 4 1 0
-14	4	3	4	    14	4 5 4 1 0
-15	4	5	5	    3	4 6 2 1 3 4 1 3 2 1 3 4 5 4 1 0
-16	5	4	4	    15	5 4 1 0
-17	5	1	1	    2	5 4 6 2 1 3 4 1 3 2 1 3 4 5 4 1 0
-18	6	4	0	    4	6 2 1 3 4 1 3 2 1 3 4 5 4 1 0
+PRG: AA5T6CAGTAGCAGT6TA
+i	BWT	SA	text_suffix
+0	A	18
+1	T	17	A
+2	0	0	A A 5 T 6 C A G T A G C A G T 6 T A
+3	T	9	A G C A G T 6 T A
+4	C	6	A G T A G C A G T 6 T A
+5	C	12	A G T 6 T A
+6	A	1	A 5 T 6 C A G T A G C A G T 6 T A
+7	6	5	C A G T A G C A G T 6 T A
+8	G	11	C A G T 6 T A
+9	A	10	G C A G T 6 T A
+10	A	7	G T A G C A G T 6 T A
+11	A	13	G T 6 T A
+12	6	16	T A
+13	G	8	T A G C A G T 6 T A
+14	5	3	T 6 C A G T A G C A G T 6 T A
+15	G	14	T 6 T A
+16	A	2	5 T 6 C A G T A G C A G T 6 T A
+17	T	4	6 C A G T A G C A G T 6 T A
+18	T	15	6 T A
 */
 
 TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
-    auto prg_raw = "aa5t6cagtagcagt5ta";
+    auto prg_raw = "aa5t6cagtagcagt6ta";
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: cagt
@@ -52,7 +52,7 @@ TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
 
 
 TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
-    auto prg_raw = "aa5t6cagtagcagt5ta";
+    auto prg_raw = "aa5t6cagtagcagt6ta";
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: cagt
@@ -72,7 +72,7 @@ TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
 
 
 TEST(CheckAlleleEncapsulated, ReadOutsideOfSite_False) {
-    auto prg_raw = "aa5t6cagtagcagt5ta";
+    auto prg_raw = "aa5t6cagtagcagt6ta";
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: aa
@@ -90,7 +90,7 @@ TEST(CheckAlleleEncapsulated, ReadOutsideOfSite_False) {
 
 
 TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
-    auto prg_raw = "aa5t6cagtagcagt5ta";
+    auto prg_raw = "aa5t6cagtagcAgt6ta";
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: agtt
@@ -110,7 +110,7 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
 
 
 TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
-    auto prg_raw = "aa5t6cagtagcagt5ta";
+    auto prg_raw = "aa5t6cagtagcagt6ta";
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: aca

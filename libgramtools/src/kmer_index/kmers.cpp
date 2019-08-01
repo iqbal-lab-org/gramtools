@@ -7,7 +7,9 @@ std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg
     std::vector<PrgIndexRange> boundary_marker_indexes;
 
     using MarkerIndex = uint64_t;
-    std::unordered_map<Marker, MarkerIndex> start_indexes;
+    // Need maps in order to have numeric ordering.
+    std::map<Marker, MarkerIndex> site_start_indexes;
+    std::map<Marker, MarkerIndex> allele_last_indexes;
 
     // Loop over all markers (allele and site markers).
     // We don't loop through all indices of the prg to minimise calls to `encoded_prg`.
@@ -15,26 +17,26 @@ std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg
          marker_count <= prg_info.markers_mask_count_set_bits;
          ++marker_count) {
         auto marker_index = prg_info.prg_markers_select(marker_count);
-        uint64_t marker_char = prg_info.encoded_prg[marker_index];
+        auto marker_char = prg_info.encoded_prg[marker_index];
 
         auto marker_is_site_boundary = marker_char % 2 != 0;
-        // If we have an allele marker, keep going.
-        if (not marker_is_site_boundary)
-            continue;
-
-        auto start_index_memorized = start_indexes.find(marker_char) != start_indexes.end();
-        // If this is the first time we see a given site marker, mark it as the start, and keep going.
-        if (not start_index_memorized) {
-            start_indexes[marker_char] = marker_index;
+        // If we have an allele marker, update last allele pos, & keep going.
+        if (not marker_is_site_boundary){
+            allele_last_indexes[marker_char] = marker_index;
             continue;
         }
 
-        // #else: we are in a site marker, marking the end of a site in the prg.
-        auto start_index = start_indexes[marker_char];
-        auto &end_index = marker_index;
-        boundary_marker_indexes.emplace_back(PrgIndexRange{start_index, end_index});
+        // If we have a site marker, it is always the first time we see it.
+        site_start_indexes[marker_char] = marker_index;
+    }
 
-        start_indexes.erase(marker_char); // We will only ever see variant site marker twice, and we have, so erase it.
+
+    // Loop through all site markers seen, and extract the site start and end positions.
+    for (auto it = site_start_indexes.begin(); it != site_start_indexes.end(); ++it){
+       uint32_t site_marker = it->first;
+       auto start_index = it->second;
+       auto end_index = allele_last_indexes[site_marker + 1];
+       boundary_marker_indexes.emplace_back(PrgIndexRange{start_index, end_index});
     }
     return boundary_marker_indexes;
 }
@@ -42,38 +44,35 @@ std::vector<PrgIndexRange> gram::get_boundary_marker_indexes(const PRG_Info &prg
 
 uint64_t gram::find_site_end_boundary(const uint64_t &within_site_index,
                                       const PRG_Info &prg_info) {
-    auto last_prg_index = prg_info.encoded_prg.size() - 1;
+    uint64_t last_allele_index = 0;
     auto number_markers_before = prg_info.prg_markers_rank(within_site_index);
 
-    // Iterate through all markers from the one closest to the right of `within_site_index`
-    for (uint64_t marker_count = number_markers_before + 1;
+    // Process the first marker; if it is allele marker, record that.
+    auto first_marker_index = prg_info.prg_markers_select(number_markers_before + 1);
+    uint64_t first_marker_char = prg_info.encoded_prg[first_marker_index];
+    if (first_marker_char % 2 == 0)
+        last_allele_index = first_marker_index;
+
+    // Iterate through all markers from the one after the first one we've just looked at.
+    for (uint64_t marker_count = number_markers_before + 2;
          marker_count <= prg_info.markers_mask_count_set_bits;
          ++marker_count) {
 
         auto marker_index = prg_info.prg_markers_select(marker_count);
         uint64_t marker_char = prg_info.encoded_prg[marker_index];
 
-        // Guarantee we have a variant site marker; eliminate allele markers.
-        auto marker_is_boundary = marker_char % 2 != 0;
-        if (not marker_is_boundary)
+        auto is_allele_marker = marker_char % 2 == 0;
+        if (is_allele_marker) {
+            last_allele_index = marker_index;
             continue;
+        }
+        // Guarantee: we have a variant site marker
+        // So let's return the final allele marker. TODO: this does NOT cope with nesting.
 
-        // Return the marker if it is the last position of the prg, in which case it must
-        // an end boundary position.
-        auto char_is_last_in_prg = marker_index == last_prg_index;
-        if (char_is_last_in_prg)
-            return marker_index;
-
-        // The only case left to eliminate is site marker marking site start boundary.
-        // In which case the next position is an allele position.
-        auto next_char_within_allele = prg_info.allele_mask[marker_index + 1] != 0;
-        if (next_char_within_allele)
-            continue;
-
-        // All conditions met: we have a end boundary site marker index.
-        return marker_index;
+        return last_allele_index;
     }
-    return 0;
+    // We may have hit the very last variant (allele) marker of the PRG string. Let's return that.
+    return last_allele_index;
 }
 
 
@@ -124,7 +123,7 @@ Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
                                         const PRG_Info &prg_info) {
     // TODO: this is probably unnecessary, as the function is only called with an end boundary index?
     auto site_end_index = find_site_end_boundary(within_site_index, prg_info);
-    auto boundary_marker = prg_info.encoded_prg[site_end_index];
+    auto boundary_marker = prg_info.encoded_prg[site_end_index] - 1;
 
     int64_t current_index = (int64_t) site_end_index - 1;
     uint64_t current_char = 0;
@@ -186,10 +185,13 @@ enum class MarkerHandlerStatus {
 
 /**
  * Tests if the marker at `marker_index` is an allele marker.
- * If it is, does not add it to `inrange_sites`, just marks it as last marker seen.
+ * If it is end of variant site, we process the invariant bases in between two sites, and add the site to inrange sites.
+ * If it not end of site, only marks it as last marker seen.
  */
-MarkerHandlerStatus handle_allele_marker(KmerTraversalState &traversal_state,
+MarkerHandlerStatus handle_allele_marker(std::list<uint64_t> &inrange_sites,
+                                        KmerTraversalState &traversal_state,
                                          const uint64_t marker_index,
+                                         const uint64_t kmer_size,
                                          const PRG_Info &prg_info) {
     auto marker_char = prg_info.encoded_prg[marker_index];
 
@@ -197,6 +199,26 @@ MarkerHandlerStatus handle_allele_marker(KmerTraversalState &traversal_state,
     if (not at_allele_marker)
         return MarkerHandlerStatus::unhandled;
 
+    const auto &last_marker_index = traversal_state.last_marker_index;
+    const auto &last_marker_char = prg_info.encoded_prg[last_marker_index];
+    // If `last_marker_char` is a site marker, we have found an allele marker after seeing a site entry point:
+    // Thus we are at the end of a site (TODO: does not cope with nesting).
+    auto at_site_end = last_marker_char % 2 == 1;
+
+    if (at_site_end){
+        // Add the non-variant region between the two sites as processed characters.
+        traversal_state.total_intersite_size += last_marker_index
+                                                - marker_index
+                                                - 1;
+        auto marker_in_range = check_marker_in_kmer_range(traversal_state,
+                                                          kmer_size);
+        if (not marker_in_range)
+            return MarkerHandlerStatus::marker_not_in_range;
+
+        inrange_sites.push_front(marker_index);
+    }
+
+    // Everytime we hit an allele marker, we update last_marker_index.
     traversal_state.last_marker_index = marker_index;
     return MarkerHandlerStatus::handled;
 }
@@ -231,45 +253,6 @@ MarkerHandlerStatus handle_first_marker_seen(std::list<uint64_t> &inrange_sites,
     inrange_sites.push_front(marker_index);
     return MarkerHandlerStatus::handled;
 }
-
-/**
- * Tests whether `marker_index` is the end of a boundary marker,
- * when we have already added another different variant site to `inrange_sites`.
- */
-MarkerHandlerStatus handle_end_boundary_marker(std::list<uint64_t> &inrange_sites,
-                                               KmerTraversalState &traversal_state,
-                                               const uint64_t marker_index,
-                                               const uint64_t kmer_size,
-                                               const PRG_Info &prg_info) {
-    auto marker_char = prg_info.encoded_prg[marker_index];
-    auto at_boundary_marker = marker_char % 2 != 0;
-
-    const auto &last_marker_index = traversal_state.last_marker_index;
-    const auto &last_marker_char = prg_info.encoded_prg[last_marker_index];
-
-    // If `last_marker_char` is a variant site marker, it must be a site entry point.
-    // This is because when it is an exit point, we must first go through an allele marker,
-    // and that overwrites `last_marker_index` attribute.
-    auto last_marker_was_boundary = last_marker_char % 2 != 0;
-    auto at_boundary_end_marker = at_boundary_marker and last_marker_was_boundary;
-
-    if (not at_boundary_end_marker)
-        return MarkerHandlerStatus::unhandled;
-
-    // Add the non-variant region between the two sites as processed characters.
-    traversal_state.total_intersite_size += last_marker_index
-                                            - marker_index
-                                            - 1;
-    auto marker_in_range = check_marker_in_kmer_range(traversal_state,
-                                                      kmer_size);
-    if (not marker_in_range)
-        return MarkerHandlerStatus::marker_not_in_range;
-
-    inrange_sites.push_front(marker_index);
-    traversal_state.last_marker_index = marker_index;
-    return MarkerHandlerStatus::handled;
-}
-
 
 MarkerHandlerStatus handle_start_boundary_marker(std::list<uint64_t> &inrange_sites,
                                                  KmerTraversalState &traversal_state,
@@ -318,17 +301,11 @@ MarkerHandlerStatus find_site_end_indexes(std::list<uint64_t> &inrange_sites,
     if (result_handled(result))
         return result;
 
-    result = handle_allele_marker(traversal_state,
+    result = handle_allele_marker(inrange_sites,
+                                  traversal_state,
                                   marker_index,
+                                  kmer_size,
                                   prg_info);
-    if (result_handled(result))
-        return result;
-
-    result = handle_end_boundary_marker(inrange_sites,
-                                        traversal_state,
-                                        marker_index,
-                                        kmer_size,
-                                        prg_info);
     if (result_handled(result))
         return result;
 
@@ -336,7 +313,9 @@ MarkerHandlerStatus find_site_end_indexes(std::list<uint64_t> &inrange_sites,
     return result;
 }
 
-
+/**
+ * TODO: does NOT cope with nesting.
+ */
 bool index_is_site_end_boundary(const uint64_t index,
                                 const PRG_Info &prg_info) {
     auto at_last_prg_index = index == prg_info.encoded_prg.size() - 1;
@@ -457,7 +436,7 @@ std::vector<Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
 
 uint64_t gram::find_site_start_boundary(const uint64_t &end_boundary_index,
                                         const PRG_Info &prg_info) {
-    auto target_marker = prg_info.encoded_prg[end_boundary_index];
+    auto target_marker = prg_info.encoded_prg[end_boundary_index] - 1;
 
     uint64_t current_index = end_boundary_index;
     uint64_t current_marker = 0;

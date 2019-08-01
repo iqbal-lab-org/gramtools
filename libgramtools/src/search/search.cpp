@@ -290,44 +290,25 @@ SearchStates gram::process_markers_search_states(const SearchStates &old_search_
 
 
 
-SiteBoundaryMarkerInfo gram::site_boundary_marker_info(const Marker &marker_char,
-                                                 const SA_Index &sa_right_of_marker,
-                                                 const PRG_Info &prg_info) {
+bool gram::marker_is_site_end(const Marker &allele_marker,
+                              const SA_Index &sa_right_of_marker,
+                              const PRG_Info &prg_info) {
 
-    // char2comp -> rank of ordered alphabet set
-    auto alphabet_rank = prg_info.fm_index.char2comp[marker_char];
-    auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
-    auto second_sa_index = first_sa_index + 1;
+    auto text_index = prg_info.fm_index[sa_right_of_marker];
+    // Here is the rationale: if we are at a position just after the last allele of a variant site,
+    // Then the sites_mask's value at that position must be different from
+    // the allele's variant site number (which is itself - 1).
+    auto site_marker = allele_marker - 1;
+    const bool is_site_end = prg_info.sites_mask[text_index] != site_marker;
 
-    auto first_text_index = prg_info.fm_index[first_sa_index];
-    auto second_text_index = prg_info.fm_index[second_sa_index];
-
-    // Make it such that first_sa_index is the sa_index of the site marker that occurs first in the PRG.
-    if (first_text_index > second_text_index) {
-        second_sa_index = first_sa_index;
-        first_sa_index += 1;
-    }
-
-    // If the SA right of the marker is inside a variant site in the PRG string, then
-    // The marker it comes after is the start of the site.
-    const bool marker_is_boundary_start = prg_info.sites_mask[prg_info.fm_index[sa_right_of_marker]] != 0;
-
-    auto marker_sa_index = second_sa_index;
-    if (marker_is_boundary_start) marker_sa_index = first_sa_index;
-
-    return SiteBoundaryMarkerInfo{
-            marker_is_boundary_start,
-            SA_Interval{marker_sa_index, marker_sa_index},
-            marker_char
-    };
+    return is_site_end;
 }
 
 /**
  * Computes the full SA interval of a given allele marker.
  */
-SA_Interval gram::get_allele_marker_sa_interval(const Marker &site_marker_char,
+SA_Interval gram::get_allele_marker_sa_interval(const Marker &allele_marker_char,
                                                 const PRG_Info &prg_info) {
-    const auto allele_marker_char = site_marker_char + 1;
     const auto alphabet_rank = prg_info.fm_index.char2comp[allele_marker_char];
     const auto start_sa_index = prg_info.fm_index.C[alphabet_rank];
 
@@ -366,13 +347,15 @@ AlleleId gram::get_allele_id(const SA_Index &allele_marker_sa_index,
 /**
  * Given an allele (=even) marker SA interval, make one search state containing them all.
  * We will record the allele id later, if and when each allele gets out.
+ * @param current_search_state: gets passed so as to chain onto list of previously traversed VariantLoci
  */
-SearchState get_allele_search_state(const Marker &site_boundary_marker,
+SearchState get_allele_search_state(const Marker &allele_marker,
                                     const SA_Interval &allele_marker_sa_interval,
                                     const SearchState &current_search_state,
                                     const PRG_Info &prg_info) {
 
 
+    auto site_boundary_marker = allele_marker - 1;
     SearchState search_state = current_search_state;
     search_state.sa_interval.first = allele_marker_sa_interval.first;
     search_state.sa_interval.second = allele_marker_sa_interval.second;
@@ -384,28 +367,6 @@ SearchState get_allele_search_state(const Marker &site_boundary_marker,
 
     return search_state;
 }
-
-/**
- * Deals with the last allele in a variant site, which is terminated by a site (=odd) marker
- * A search state has to be created for this allele separately from the other allele search states (constructed in `get_allele_search_states`)
- */
-SearchState get_site_search_state(const AlleleId &final_allele_id,
-                                  const SiteBoundaryMarkerInfo &boundary_marker_info,
-                                  const SearchState &current_search_state,
-                                  const PRG_Info &prg_info) {
-    // Update the `SearchState` which hit the site marker with the site marker's exit point.
-    SearchState search_state = current_search_state;
-    search_state.sa_interval.first = boundary_marker_info.sa_interval.first;
-    search_state.sa_interval.second = boundary_marker_info.sa_interval.second;
-
-    search_state.variant_site_state
-            = SearchVariantSiteState::within_variant_site;
-
-    search_state.variant_site_path.push_front(VariantLocus{boundary_marker_info.marker_char, final_allele_id});
-
-    return search_state;
-}
-
 
 /**
  * Compute number of alleles in a site from the allele marker's full SA interval.
@@ -424,30 +385,21 @@ uint64_t get_number_of_alleles(const SA_Interval &allele_marker_sa_interval) {
  * The SA index of each allele's end gets added as a new SearchState.
  * Because a variant site end is found, the read needs to be able to map through all alleles of this site.
  */
-SearchStates entering_site_search_states(const SiteBoundaryMarkerInfo &boundary_marker_info,
+SearchState entering_site_search_states(const Marker &allele_marker,
                                          const SearchState &current_search_state,
                                          const PRG_Info &prg_info) {
 
     // Get full SA interval of the corresponding allele marker.
     auto allele_marker_sa_interval =
-            get_allele_marker_sa_interval(boundary_marker_info.marker_char,
+            get_allele_marker_sa_interval(allele_marker,
                                           prg_info);
     // Get one `SearchState` per allele in the site, with populated cache.
-    auto allele_search_state = get_allele_search_state(boundary_marker_info.marker_char,
+    auto allele_search_state = get_allele_search_state(allele_marker,
                                                        allele_marker_sa_interval,
                                                        current_search_state,
                                                        prg_info);
 
-    // One more SA interval needs to be added: that of the final allele in the site.
-    auto final_allele_id = get_number_of_alleles(
-            allele_marker_sa_interval); // Used for populating the `SearchState`'s cache.
-    auto site_search_state = get_site_search_state(final_allele_id,
-                                                   boundary_marker_info,
-                                                   current_search_state,
-                                                   prg_info);
-
-    SearchStates new_search_states{allele_search_state, site_search_state};
-    return new_search_states;
+    return allele_search_state;
 }
 
 /**
@@ -476,8 +428,7 @@ void update_variant_site_path(SearchState &affected_search_state,
         affected_search_state.variant_site_path.push_front(VariantLocus{boundary_marker_char, allele_id});
     } else { // Case: add the allele id to existing site/allele pair
         auto existing_id = affected_search_state.variant_site_path.front().second;
-        // The second case below is for the singleton search state allele initiated at the end of a variant site.
-        assert(existing_id == ALLELE_UNKNOWN || existing_id == allele_id);
+        assert(existing_id == ALLELE_UNKNOWN);
         affected_search_state.variant_site_path.front().second = allele_id;
     }
 }
@@ -486,59 +437,36 @@ void update_variant_site_path(SearchState &affected_search_state,
  * Deals with a read mapping leaving a variant site.
  * Create a new `SearchState` with SA interval the index of the site variant's entry point.
  */
-SearchState exiting_site_search_state(const SiteBoundaryMarkerInfo &boundary_marker_info,
+SearchState exiting_site_search_state(const Marker &marker,
+                                      const SA_Index &sa_right_of_marker,
                                       const SearchState &current_search_state,
                                       const PRG_Info &prg_info) {
+
     SearchState new_search_state = current_search_state;
 
-    auto allele_id = 1; // We are at site exit point mapping backwards, so at first allele of variant site.
-    update_variant_site_path(new_search_state, allele_id, boundary_marker_info.marker_char);
+    bool is_allele_marker = marker % 2 == 0;
+    AlleleId allele_id;
+    Marker site_marker;
+    if (is_allele_marker){
+        // Get allele ID, by
+        // querying the allele mask with the prg position of the character to the right of the allele marker.
+        auto internal_allele_text_index = prg_info.fm_index[sa_right_of_marker];
+        allele_id = (AlleleId) prg_info.allele_mask[internal_allele_text_index];
+        site_marker = marker - 1;
+    }
+    else {
+        allele_id = 1;
+        site_marker = marker;
+    }
 
-    new_search_state.sa_interval.first = boundary_marker_info.sa_interval.first;
-    new_search_state.sa_interval.second = boundary_marker_info.sa_interval.second;
+    update_variant_site_path(new_search_state, allele_id, site_marker);
+
+    auto alphabet_rank = prg_info.fm_index.char2comp[site_marker];
+    SA_Index site_index = prg_info.fm_index.C[alphabet_rank];
+
+    new_search_state.sa_interval = SA_Interval{site_index, site_index};
     new_search_state.variant_site_state
             = SearchVariantSiteState::outside_variant_site;
-
-    return new_search_state;
-}
-
-/**
- * Procedure for exiting a variant site due to having hit an allele marker.
- * Builds a size 1 SA interval corresponding to the entry point of the corresponding site marker.
- */
-SearchState process_allele_marker(const Marker &allele_marker_char,
-                                  const SA_Index &sa_right_of_marker,
-                                  const SearchState &current_search_state,
-                                  const PRG_Info &prg_info) {
-
-    //  end of allele found, skipping to variant site start boundary marker
-    const Marker &boundary_marker_char = allele_marker_char - 1;
-
-    auto alphabet_rank = prg_info.fm_index.char2comp[boundary_marker_char];
-    auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
-    auto second_sa_index = first_sa_index + 1; // Variant site markers are adjacent in the suffix array.
-
-    // Determine which SA index position marks the variant site entrance by comparing the prg indices.
-    SA_Index boundary_start_sa_index;
-    bool boundary_start_is_first_sa = prg_info.fm_index[first_sa_index]
-                                      < prg_info.fm_index[second_sa_index];
-    if (boundary_start_is_first_sa)
-        boundary_start_sa_index = first_sa_index;
-    else
-        boundary_start_sa_index = second_sa_index;
-
-    auto new_search_state = current_search_state;
-
-    // Get allele ID, by
-    // querying the allele mask with the prg position of the character to the right of the allele marker.
-    auto internal_allele_text_index = prg_info.fm_index[sa_right_of_marker];
-    auto allele_id = (AlleleId) prg_info.allele_mask[internal_allele_text_index];
-
-    update_variant_site_path(new_search_state, allele_id, boundary_marker_char);
-
-    new_search_state.sa_interval.first = boundary_start_sa_index;
-    new_search_state.sa_interval.second = boundary_start_sa_index;
-    new_search_state.variant_site_state = SearchVariantSiteState::outside_variant_site;
 
     return new_search_state;
 }
@@ -561,34 +489,33 @@ MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
 }
 
 /**
- * Generates new SearchStates from a variant site marker, based on whether it marks the start or the
- * end of the variant site.
+ * Generates new SearchStates from a variant allele marker, based on whether it marks
+ * end of the variant site or not.
  */
-SearchStates process_boundary_marker(const Marker &marker_char,
-                                     const SA_Index &sa_right_of_marker,
-                                     const SearchState &current_search_state,
-                                     const PRG_Info &prg_info) {
-    //  Have a look at the site boundary marker, and find if it marks the start or the end of the site.
-    auto boundary_marker_info = site_boundary_marker_info(marker_char,
-                                                          sa_right_of_marker,
-                                                          prg_info);
+SearchState enter_or_exit_site(const Marker &allele_marker,
+                                const SA_Index &sa_right_of_marker,
+                                const SearchState &current_search_state,
+                                const PRG_Info &prg_info) {
 
-    bool entering_variant_site = not boundary_marker_info.is_start_boundary;
+    SearchState new_search_state;
+    //  Have a look at the allele marker to find if it marks the end of the site or not.
+    bool entering_variant_site = marker_is_site_end(allele_marker,
+                                                    sa_right_of_marker,
+                                                    prg_info);
+
     if (entering_variant_site) {
-        auto new_search_states = entering_site_search_states(boundary_marker_info,
-                                                             current_search_state,
-                                                             prg_info);
-        return new_search_states;
+        new_search_state = entering_site_search_states(allele_marker,
+                                                       current_search_state,
+                                                       prg_info);
     }
 
-    // Case: exiting a variant site. A single SearchState, the SA index of the site entry point, is returned.
-    bool exiting_variant_site = boundary_marker_info.is_start_boundary;
-    if (exiting_variant_site) {
-        auto new_search_state = exiting_site_search_state(boundary_marker_info,
-                                                          current_search_state,
-                                                          prg_info);
-        return SearchStates{new_search_state};
+    else {
+        new_search_state = exiting_site_search_state(allele_marker,
+                                                     sa_right_of_marker,
+                                                     current_search_state,
+                                                     prg_info);
     }
+    return new_search_state;
 }
 
 
@@ -605,22 +532,22 @@ SearchStates gram::process_markers_search_state(const SearchState &current_searc
         const auto &sa_right_of_marker = marker.first;
         const auto &marker_char = marker.second;
 
-        const bool marker_is_site_boundary = marker_char % 2 == 1; // Test marker is odd.
+        const bool allele_marker = marker_char % 2 == 0; // Test marker is even.
 
-        //case: entering or exiting a variant site
-        if (marker_is_site_boundary) {
-            auto new_search_states = process_boundary_marker(marker_char,
-                                                             sa_right_of_marker,
-                                                             current_search_state,
-                                                             prg_info);
-            markers_search_states.splice(markers_search_states.end(), new_search_states);
+        //case: entering or exiting a variant site via allele marker
+        if (allele_marker) {
+            auto new_search_state = enter_or_exit_site(marker_char,
+                                                        sa_right_of_marker,
+                                                        current_search_state,
+                                                        prg_info);
+            markers_search_states.emplace_back(new_search_state);
         }
-            // case: the marker is an allele marker. We need to exit the variant site.
+            // case: the marker is a site marker; we exit the variant site.
         else {
-            auto new_search_state = process_allele_marker(marker_char,
-                                                          sa_right_of_marker,
-                                                          current_search_state,
-                                                          prg_info);
+            auto new_search_state = exiting_site_search_state(marker_char,
+                                                        sa_right_of_marker,
+                                                        current_search_state,
+                                                        prg_info);
             markers_search_states.emplace_back(new_search_state);
         }
     }

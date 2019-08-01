@@ -31,40 +31,35 @@ sdsl::int_vector<> gram::load_allele_mask(const Parameters &parameters) {
 
 sdsl::int_vector<> gram::generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::int_vector<> allele_mask(encoded_prg.size(), 0, 32);
-    uint32_t current_allele_id = 1;
-    bool within_variant_site = false;
+    uint32_t current_allele_id = 0;
+    uint64_t last_allele_position = 0;
 
     for (uint64_t i = 0; i < encoded_prg.size(); ++i) {
         const auto &prg_char = encoded_prg[i];
-        auto at_variant_site_boundary = prg_char > 4
-                                        and prg_char % 2 != 0;
-        auto entering_variant_site = at_variant_site_boundary
-                                     and not within_variant_site;
-        if (entering_variant_site){
-            within_variant_site = true;
+        bool markable = prg_char <= 4;
+
+        if (markable){
+            if (current_allele_id > 0) allele_mask[i] = current_allele_id;
+            continue;
+        }
+
+        // Implicitly, from here, we are dealing with a marker (prg_char > 4).
+        bool is_site_marker = prg_char %2 == 1;
+        if (is_site_marker){
             current_allele_id = 1;
+            if (last_allele_position > 0){ // Is this not the first site we are seeing?
+                // Reset to 0 those positions in between the last allele marker and the new variant site.
+                for (int pos = last_allele_position + 1; pos < i; ++pos) allele_mask[pos] = 0;
+            }
             continue;
         }
-
-        auto exiting_variant_site = at_variant_site_boundary
-                                     and within_variant_site;
-        if (exiting_variant_site){
-            within_variant_site = false;
-            continue;
-        }
-
-        auto within_allele = prg_char <= 4 and within_variant_site;
-        if (within_allele) {
-            allele_mask[i] = current_allele_id;
-            continue;
-        }
-
-        auto at_allele_marker = prg_char > 4 and prg_char % 2 == 0;
-        if (at_allele_marker) {
-            current_allele_id++;
-            continue;
+        else {
+            ++current_allele_id;
+            last_allele_position = i;
         }
     }
+    // Reset to 0 those positions in between the last allele marker and the end of the PRG string.
+    for (int pos = last_allele_position + 1; pos < encoded_prg.size(); ++pos) allele_mask[pos] = 0;
     sdsl::util::bit_compress(allele_mask);
     return allele_mask;
 }
@@ -79,33 +74,32 @@ sdsl::int_vector<> gram::load_sites_mask(const Parameters &parameters) {
 sdsl::int_vector<> gram::generate_sites_mask(const sdsl::int_vector<> &encoded_prg) {
     sdsl::int_vector<> sites_mask(encoded_prg.size(), 0, 32);
     Marker current_site_marker = 0;
-    bool within_variant_site = false;
+    uint64_t last_allele_position = 0;
 
     for (uint64_t i = 0; i < encoded_prg.size(); ++i) {
         const auto &prg_char = encoded_prg[i];
-        auto at_variant_site_boundary = prg_char > 4
-                                        and prg_char % 2 != 0;
-        auto entering_variant_site = at_variant_site_boundary
-                                     and not within_variant_site;
-        if (entering_variant_site){
-            within_variant_site = true;
+        bool markable = prg_char <= 4;
+
+        if (markable){
+            if (current_site_marker > 0) sites_mask[i] = current_site_marker;
+            continue;
+        }
+
+        // Implicitly, from here, we are dealing with a marker (prg_char > 4).
+        bool is_site_marker = prg_char %2 == 1;
+        if (is_site_marker){
             current_site_marker = prg_char;
+            if (last_allele_position > 0){ // Is this not the first site we are seeing?
+                // Reset to 0 those positions in between the last allele marker and the new variant site.
+                for (int pos = last_allele_position + 1; pos < i; ++pos) sites_mask[pos] = 0;
+            }
             continue;
         }
-
-        auto exiting_variant_site = at_variant_site_boundary
-                                    and within_variant_site;
-        if (exiting_variant_site){
-            within_variant_site = false;
-            continue;
-        }
-
-        auto within_allele = prg_char <= 4 and within_variant_site;
-        if (within_allele) {
-            sites_mask[i] = current_site_marker;
-            continue;
-        }
+        else {last_allele_position = i;}
     }
+    // Reset to 0 those positions in between the last allele marker and the end of the PRG string.
+    for (int pos = last_allele_position + 1; pos < encoded_prg.size(); ++pos) sites_mask[pos] = 0;
+
     sdsl::util::bit_compress(sites_mask);
     return sites_mask;
 }

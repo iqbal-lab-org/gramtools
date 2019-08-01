@@ -8,7 +8,7 @@ using namespace gram;
 
 
 TEST(GetBoundaryMarkerIndexes, TwoVariantSites_CorrectSiteStartEndIndexes) {
-    auto prg_raw = "aca5g6c5tt7a8c7gg";
+    auto prg_raw = "aca5g6c6tt7a8c8gg";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = get_boundary_marker_indexes(prg_info);
@@ -21,7 +21,7 @@ TEST(GetBoundaryMarkerIndexes, TwoVariantSites_CorrectSiteStartEndIndexes) {
 
 
 TEST(GetBoundaryMarkerIndexes, OneVariantSites_CorrectSiteStartEndIndexes) {
-    auto prg_raw = "acagctt7a8c7gg";
+    auto prg_raw = "acagctt7a8c8gg";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = get_boundary_marker_indexes(prg_info);
@@ -43,7 +43,7 @@ TEST(GetBoundaryMarkerIndexes, NoVariantSites_NoSiteIndexes) {
 
 
 TEST(GetKmerRegionRange, VariantSiteCloseToStart_CorrectKmerRegionEndIndexes) {
-    auto prg_raw = "t7a8c7acagctt";
+    auto prg_raw = "t7a8c8acagctt";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
@@ -57,7 +57,7 @@ TEST(GetKmerRegionRange, VariantSiteCloseToStart_CorrectKmerRegionEndIndexes) {
 
 
 TEST(GetKmerRegionRange, VariantSiteCloseToEnd_CorrectKmerRegionEndIndexes) {
-    auto prg_raw = "cagcttt7a8c7acg";
+    auto prg_raw = "cagcttt7a8c8acg";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
@@ -71,7 +71,7 @@ TEST(GetKmerRegionRange, VariantSiteCloseToEnd_CorrectKmerRegionEndIndexes) {
 
 
 TEST(GetKmerRegionRange, TwoVariantSites_FirstKmerRegionExtendedToBoundaryEndOfSecond) {
-    auto prg_raw = "tt5a6c5a7aa8cc7t";
+    auto prg_raw = "tt5a6c6a7aa8cc8t";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
@@ -86,7 +86,7 @@ TEST(GetKmerRegionRange, TwoVariantSites_FirstKmerRegionExtendedToBoundaryEndOfS
 
 
 TEST(GetKmerRegionRange, GivenMaxReadSizeOne_RangeEndAtSiteBoundaryEnd) {
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto end_site_marker_indexes = get_boundary_marker_indexes(prg_info);
@@ -102,7 +102,7 @@ TEST(GetKmerRegionRange, GivenMaxReadSizeOne_RangeEndAtSiteBoundaryEnd) {
 
 
 TEST(FindSiteEndBoundary, GivenAlleleIndex_ReturnSiteEndMarkerIndex) {
-    auto prg_raw = "t7a8c7acagctt";
+    auto prg_raw = "t7a8c8acagctt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 2;
@@ -114,7 +114,7 @@ TEST(FindSiteEndBoundary, GivenAlleleIndex_ReturnSiteEndMarkerIndex) {
 
 
 TEST(FindSiteEndBoundary, GivenAlleleIndexAndSiteEndingPrg_ReturnSiteEndMarkerIndex) {
-    auto prg_raw = "t7a8c7";
+    auto prg_raw = "t7a8c8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 2;
@@ -126,7 +126,7 @@ TEST(FindSiteEndBoundary, GivenAlleleIndexAndSiteEndingPrg_ReturnSiteEndMarkerIn
 
 
 TEST(FindSiteEndBoundary, GivenMultiCharAllele_ReturnSiteEndMarkerIndex) {
-    auto prg_raw = "t7a8cacag7acag";
+    auto prg_raw = "t7a8cacag8acag";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 5;
@@ -138,7 +138,7 @@ TEST(FindSiteEndBoundary, GivenMultiCharAllele_ReturnSiteEndMarkerIndex) {
 
 
 TEST(FindSiteEndBoundary, GivenAlleleMarkerIndex_ReturnSiteEndMarkerIndex) {
-    auto prg_raw = "t7a8cacag7acag";
+    auto prg_raw = "t7a8cacag8acag";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 3;
@@ -150,7 +150,7 @@ TEST(FindSiteEndBoundary, GivenAlleleMarkerIndex_ReturnSiteEndMarkerIndex) {
 
 
 TEST(FindSiteEndBoundary, GivenStartBoundaryMarkerIndex_ReturnEndBoundaryMarkerIndex) {
-    auto prg_raw = "t7a8cacag7acag";
+    auto prg_raw = "t7a8cacag8acag";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 1;
@@ -162,7 +162,7 @@ TEST(FindSiteEndBoundary, GivenStartBoundaryMarkerIndex_ReturnEndBoundaryMarkerI
 
 
 TEST(FindSiteEndBoundary, GivenSiteEndingAtPrgEnd_ReturnCorrectEndBoundaryMarkerIndex) {
-    auto prg_raw = "t7a8cacag7";
+    auto prg_raw = "t7a8cacag8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 1;
@@ -174,7 +174,7 @@ TEST(FindSiteEndBoundary, GivenSiteEndingAtPrgEnd_ReturnCorrectEndBoundaryMarker
 
 
 TEST(FindSiteEndBoundary, GivenEndBoundaryMarkerIndex_ReturnEndBoundaryMarkerIndex) {
-    auto prg_raw = "t7a8cacag7acag";
+    auto prg_raw = "t7a8cacag8acag";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 9;
@@ -186,7 +186,7 @@ TEST(FindSiteEndBoundary, GivenEndBoundaryMarkerIndex_ReturnEndBoundaryMarkerInd
 
 
 TEST(GetSiteOrderedAlleles, GivenSiteWithMultiCharAlleles_CorrectAllelesExtracted) {
-    auto prg_raw = "tt5ga6ct5a";
+    auto prg_raw = "tt5ga6ct6a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 2;
@@ -201,7 +201,7 @@ TEST(GetSiteOrderedAlleles, GivenSiteWithMultiCharAlleles_CorrectAllelesExtracte
 
 
 TEST(GetSiteOrderedAlleles, GivenBondaryEndMarkerIndex_CorrectAllelesExtracted) {
-    auto prg_raw = "tt5ga6ct5a";
+    auto prg_raw = "tt5ga6ct6a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 8;
@@ -216,7 +216,7 @@ TEST(GetSiteOrderedAlleles, GivenBondaryEndMarkerIndex_CorrectAllelesExtracted) 
 
 
 TEST(GetSiteOrderedAlleles, GivenSiteWithSingleCharAllele_CorrectAllelesExtracted) {
-    auto prg_raw = "tt5g6ct5a";
+    auto prg_raw = "tt5g6ct6a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 2;
@@ -231,7 +231,7 @@ TEST(GetSiteOrderedAlleles, GivenSiteWithSingleCharAllele_CorrectAllelesExtracte
 
 
 TEST(GetSiteOrderedAlleles, GivenSiteWithThreeAlleles_CorrectAllelesExtracted) {
-    auto prg_raw = "tt5g6ct6aaa5a";
+    auto prg_raw = "tt5g6ct6aaa6a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_site_index = 2;
@@ -261,7 +261,7 @@ TEST(InrangeLeftSites, NoSitesWithinRange_NoSiteEndIndexesReturned) {
 
 
 TEST(InrangeLeftSites, SiteOutsideKmerSize_NoSiteEndIndexesReturned) {
-    auto prg_raw = "t5g6a5act";
+    auto prg_raw = "t5g6a6act";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 8;
@@ -275,7 +275,7 @@ TEST(InrangeLeftSites, SiteOutsideKmerSize_NoSiteEndIndexesReturned) {
 
 
 TEST(InrangeLeftSites, SiteStartIndexAtBoundaryEnd_SiteRecognizeBoundaryIndexReturned) {
-    auto prg_raw = "t5g6a5act";
+    auto prg_raw = "t5g6a6act";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 5;
@@ -289,7 +289,7 @@ TEST(InrangeLeftSites, SiteStartIndexAtBoundaryEnd_SiteRecognizeBoundaryIndexRet
 
 
 TEST(InrangeLeftSites, SiteJustInsideKmerSize_SiteEndIndexReturned) {
-    auto prg_raw = "t5g6a5act";
+    auto prg_raw = "t5g6a6act";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 8;
@@ -303,7 +303,7 @@ TEST(InrangeLeftSites, SiteJustInsideKmerSize_SiteEndIndexReturned) {
 
 
 TEST(InrangeLeftSites, KmerExtendsToFirstSiteMarker_SiteEndIndexReturned) {
-    auto prg_raw = "t7g8a7act";
+    auto prg_raw = "t7g8a8act";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 8;
@@ -317,7 +317,7 @@ TEST(InrangeLeftSites, KmerExtendsToFirstSiteMarker_SiteEndIndexReturned) {
 
 
 TEST(InrangeLeftSites, KmerExtendsBeyondSite_SiteEndIndexReturned) {
-    auto prg_raw = "tgag7g8a7act";
+    auto prg_raw = "tgag7g8a8act";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 11;
@@ -331,7 +331,7 @@ TEST(InrangeLeftSites, KmerExtendsBeyondSite_SiteEndIndexReturned) {
 
 
 TEST(InrangeLeftSites, KmerCoversMultipleSites_SiteEndIndexesReturned) {
-    auto prg_raw = "ta5g6a5act7g8aa7act";
+    auto prg_raw = "ta5g6a6act7g8aa8act";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 18;
@@ -345,7 +345,7 @@ TEST(InrangeLeftSites, KmerCoversMultipleSites_SiteEndIndexesReturned) {
 
 
 TEST(InrangeLeftSites, KmerCoverageEndsBeforeFirstSite_OnlySecondSiteEndIndexReturned) {
-    auto prg_raw = "ta5g6a5ct7g8aa7ac";
+    auto prg_raw = "ta5g6a6ct7g8aa8ac";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 16;
@@ -359,7 +359,7 @@ TEST(InrangeLeftSites, KmerCoverageEndsBeforeFirstSite_OnlySecondSiteEndIndexRet
 
 
 TEST(InrangeLeftSites, KmerCoverageExtendsJustWithinFirstSite_SiteEndIndexesReturned) {
-    auto prg_raw = "ta5g6a5ct7g8aa7ac";
+    auto prg_raw = "ta5g6a6ct7g8aa8ac";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 16;
@@ -373,7 +373,7 @@ TEST(InrangeLeftSites, KmerCoverageExtendsJustWithinFirstSite_SiteEndIndexesRetu
 
 
 TEST(InrangeLeftSites, SecondSiteAlleleLengthsNotLimitKmerCoverage_BothSiteEndIndexesReturned) {
-    auto prg_raw = "ta5g6a5ct7gg8aa7ac";
+    auto prg_raw = "ta5g6a6ct7gg8aa8ac";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t outside_site_start_index = 17;
@@ -387,7 +387,7 @@ TEST(InrangeLeftSites, SecondSiteAlleleLengthsNotLimitKmerCoverage_BothSiteEndIn
 
 
 TEST(GetNonvariantRegion, GivenFirstSiteEndBoundaryIndex_ReturnRegionInclusiveRange) {
-    auto prg_raw = "ta5g6a5ct7gg8aa7ac";
+    auto prg_raw = "ta5g6a6ct7gg8aa8ac";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -399,7 +399,7 @@ TEST(GetNonvariantRegion, GivenFirstSiteEndBoundaryIndex_ReturnRegionInclusiveRa
 
 
 TEST(GetNonvariantRegion, GivenLastSiteEndBoundaryIndex_ReturnRegionInclusiveRange) {
-    auto prg_raw = "ta5g6a5ct7gg8aa7acc";
+    auto prg_raw = "ta5g6a6ct7gg8aa8acc";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 15;
@@ -411,7 +411,7 @@ TEST(GetNonvariantRegion, GivenLastSiteEndBoundaryIndex_ReturnRegionInclusiveRan
 
 
 TEST(GetNonvariantRegion, GivenSiteEndBoundaryIndexEndingPrg_ReturnZeroRange) {
-    auto prg_raw = "ta5g6a5";
+    auto prg_raw = "ta5g6a6";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -423,7 +423,7 @@ TEST(GetNonvariantRegion, GivenSiteEndBoundaryIndexEndingPrg_ReturnZeroRange) {
 
 
 TEST(GetNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_ReturnRegionInclusiveRange) {
-    auto prg_raw = "ta5g6a5a";
+    auto prg_raw = "ta5g6a6a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -435,7 +435,7 @@ TEST(GetNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_ReturnRegion
 
 
 TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforePrgEnd_CorrectNonvariantRegion) {
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -447,7 +447,7 @@ TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforePrgEnd_Correct
 
 
 TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_CorrectNonvariantRegion) {
-    auto prg_raw = "ta5g6a5a";
+    auto prg_raw = "ta5g6a6a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -459,7 +459,7 @@ TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_Cor
 
 
 TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforeSecondSite_CorrectNonvariantRegion) {
-    auto prg_raw = "ta5g6a5acg7gg8aa7";
+    auto prg_raw = "ta5g6a6acg7gg8aa8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -471,7 +471,7 @@ TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforeSecondSite_Cor
 
 
 TEST(ExtractRightNonvariantRegion, GivenSingleBaseNonvariantRegion_CorrectNonvariantRegion) {
-    auto prg_raw = "ta5g6a5g7gg8aa7";
+    auto prg_raw = "ta5g6a6g7gg8aa8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t site_end_boundary_index = 6;
@@ -537,7 +537,7 @@ TEST(GetReverseKmersFromRegion, NoVariantSite_FourCorrectReverseKmersFromPrgEnd)
 
 TEST(GetReverseKmersFromRegion, GivenKmerRegionRange_CorrectReverseKmers) {
     //                2   6   10
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     PrgIndexRange kmer_region_range = {0, 10};
@@ -561,7 +561,7 @@ TEST(GetReverseKmersFromRegion, GivenKmerRegionRange_CorrectReverseKmers) {
 
 TEST(GetReverseKmersFromRegion, GivenKmerRegion_CorrectReverseKmerFound) {
     // kmer:         |                         |
-    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -579,7 +579,7 @@ TEST(GetReverseKmersFromRegion, GivenKmerRegion_CorrectReverseKmerFound) {
 
 TEST(FindSiteStartBoundary, GivenSiteEndIndex_CorrectSiteStartIndex) {
     //                       9    15
-    auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
+    auto prg_raw = "ta5g6a6ga7gg8aa8cgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t end_boundary_index = 15;
@@ -592,7 +592,7 @@ TEST(FindSiteStartBoundary, GivenSiteEndIndex_CorrectSiteStartIndex) {
 
 TEST(GetKmerSizeRegionParts, TwoSitesInRange_CorrectRegionParts) {
     //                    6       15  18
-    auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
+    auto prg_raw = "ta5g6a6ga7gg8aa8cgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_range_end_index = 18;
@@ -615,7 +615,7 @@ TEST(GetKmerSizeRegionParts, TwoSitesInRange_CorrectRegionParts) {
 
 TEST(GetKmerSizeRegionParts, NonVariantTailAfterLastSite_TailIncludedAsRegionPart) {
     //                    6       15  18
-    auto prg_raw = "ta5g6a5ga7gg8aa7cgt";
+    auto prg_raw = "ta5g6a6ga7gg8aa8cgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_range_end_index = 8;
@@ -638,7 +638,7 @@ TEST(GetKmerSizeRegionParts, NonVariantTailAfterLastSite_TailIncludedAsRegionPar
 
 TEST(GetKmerSizeRegionParts, TwoSitesInRangeEndRegionAtSiteEnd_CorrectRegionParts) {
     //                    6       15
-    auto prg_raw = "ta5g6a5ga7gg8aa7";
+    auto prg_raw = "ta5g6a6ga7gg8aa8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_range_end_index = 15;
@@ -660,7 +660,7 @@ TEST(GetKmerSizeRegionParts, TwoSitesInRangeEndRegionAtSiteEnd_CorrectRegionPart
 
 TEST(GetKmerSizeRegionParts, TwoSitesInRangeSingleCharAfterSiteEnd_CorrectRegionParts) {
     //                    6        15
-    auto prg_raw = "ta5g6a5ga7gg8aa7a";
+    auto prg_raw = "ta5g6a6ga7gg8aa8a";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_range_end_index = 16;
@@ -883,7 +883,7 @@ TEST(GetPathReverseKmers, GivenPath_CorrectReverseKmerExtracted) {
 
 TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectReverseKmers) {
     //                2   6   10
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 10;
@@ -909,7 +909,7 @@ TEST(ExtractVariantReverseKmers, GivenInrangeSite_CorrectReverseKmers) {
 
 TEST(GetSitesReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
     //                2   6   10
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 10;
@@ -934,7 +934,7 @@ TEST(GetSitesReverseKmers, SingleSiteInRange_CorrectReverseKmers) {
 
 
 TEST(GetSitesReverseKmers, SiteStartsAtPrgStart_CorrectReverseKmers) {
-    auto prg_raw = "5g6a5acgt";
+    auto prg_raw = "5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 8;
@@ -955,7 +955,7 @@ TEST(GetSitesReverseKmers, SiteStartsAtPrgStart_CorrectReverseKmers) {
 
 
 TEST(GetSitesReverseKmers, SiteEndsAtPrgEnd_CorrectReverseKmers) {
-    auto prg_raw = "acgt5c6a5";
+    auto prg_raw = "acgt5c6a6";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 8;
@@ -976,7 +976,7 @@ TEST(GetSitesReverseKmers, SiteEndsAtPrgEnd_CorrectReverseKmers) {
 
 
 TEST(GetSitesReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) {
-    auto prg_raw = "acgt5cc6a5";
+    auto prg_raw = "acgt5cc6a6";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 9;
@@ -998,7 +998,7 @@ TEST(GetSitesReverseKmers, SingleSiteMultiCharAllele_CorrectReverseKmers) {
 
 
 TEST(GetSitesReverseKmers, TwoSitesNoCrossingKmers_CorrectReverseKmers) {
-    auto prg_raw = "gt5c6a5tt7g8a7";
+    auto prg_raw = "gt5c6a6tt7g8a8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 13;
@@ -1023,7 +1023,7 @@ TEST(GetSitesReverseKmers, TwoSitesNoCrossingKmers_CorrectReverseKmers) {
 
 
 TEST(GetSitesReverseKmers, TwoSitesWithCrossingKmers_CorrectReverseKmers) {
-    auto prg_raw = "5c6a5t7g8a7";
+    auto prg_raw = "5c6a6t7g8a8";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 10;
@@ -1044,7 +1044,7 @@ TEST(GetSitesReverseKmers, TwoSitesWithCrossingKmers_CorrectReverseKmers) {
 
 
 TEST(GetSitesReverseKmers, SingleSiteSingleKmerFromAllele_CorrectReverseKmer) {
-    auto prg_raw = "5c6atg5";
+    auto prg_raw = "5c6atg6";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 6;
@@ -1062,7 +1062,7 @@ TEST(GetSitesReverseKmers, SingleSiteSingleKmerFromAllele_CorrectReverseKmer) {
 
 
 TEST(GetSitesReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer) {
-    auto prg_raw = "5c6atgc5";
+    auto prg_raw = "5c6atgc6";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 6;
@@ -1082,7 +1082,7 @@ TEST(GetSitesReverseKmers, SingleSiteTwoKmersFromAllele_CorrectReverseKmer) {
 
 TEST(GetSitesReverseKmers, GivenInrangeSite_CorrectNewCurrentIndex) {
     //                2   6   10
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t current_index = 10;
@@ -1287,7 +1287,7 @@ TEST(GetPrefixDiffs, GivenMixOfOrderedKmers_CorrectPrefixDiffs) {
 
 
 TEST(GetAllReverseKmers, GivenOverkillMaxReadSize_AllPossibleKmersReturned) {
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1311,7 +1311,7 @@ TEST(GetAllReverseKmers, GivenOverkillMaxReadSize_AllPossibleKmersReturned) {
 
 
 TEST(GetAllReverseKmers, KmerPossibleAfterVariantSite_ReverseKmerIncludedInResult) {
-    auto prg_raw = "cta5g6a5acgt";
+    auto prg_raw = "cta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1336,7 +1336,7 @@ TEST(GetAllReverseKmers, KmerPossibleAfterVariantSite_ReverseKmerIncludedInResul
 
 
 TEST(GetAllReverseKmers, SecondVariantSiteEndsAtPrgEnd_CorrectReverseKmers) {
-    auto prg_raw = "cta5g6a5acgt7cc8t7";
+    auto prg_raw = "cta5g6a6acgt7cc8t8";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1367,7 +1367,7 @@ TEST(GetAllReverseKmers, SecondVariantSiteEndsAtPrgEnd_CorrectReverseKmers) {
  * but are stored in ordered fashion ({2,1,1,4,2} first).
  */
 TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
-    auto prg_raw = "cta5g6a5cgt7cc8t7";
+    auto prg_raw = "cta5g6a6cgt7cc8t8";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1394,7 +1394,7 @@ TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
 
 
 TEST(GetAllReverseKmers, TwoLeftMostKmersWithinRange_TwoLeftMostKmersIncluded) {
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1415,7 +1415,7 @@ TEST(GetAllReverseKmers, TwoLeftMostKmersWithinRange_TwoLeftMostKmersIncluded) {
 
 
 TEST(GetAllReverseKmers, MaxReadSizeLessThanKmerSize_AlleleKmersReturned) {
-    auto prg_raw = "ta5g6a5acgt";
+    auto prg_raw = "ta5g6a6acgt";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1441,7 +1441,7 @@ TEST(GetAllReverseKmers, MaxReadSizeLessThanKmerSize_AlleleKmersReturned) {
 
 TEST(GetAllReverseKmers, GivenPrg_CorrectReverseKmerFound) {
     //               |                         |
-    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1458,7 +1458,7 @@ TEST(GetAllReverseKmers, GivenPrg_CorrectReverseKmerFound) {
 
 TEST(GetAllReverseKmers, GivenPrgWithLongNonVariantTail_PreviouslyAbsentKmerFound) {
     // kmer          |                         |
-    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgattccccgacga";
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgattccccgacga";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1475,7 +1475,7 @@ TEST(GetAllReverseKmers, GivenPrgWithLongNonVariantTail_PreviouslyAbsentKmerFoun
 
 TEST(GetAllOrderedKmers, GivenPrg_CorrectForwardKmerFound) {
     //               |                         |
-    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};
@@ -1492,7 +1492,7 @@ TEST(GetAllOrderedKmers, GivenPrg_CorrectForwardKmerFound) {
 
 TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound) {
     //               |                         |
-    auto prg_raw = "atggaacggct5cg6cc6tg6tc5cg7g8a7tccccgacgat";
+    auto prg_raw = "atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat";
     auto prg_info = generate_prg_info(prg_raw);
 
     Parameters parameters = {};

@@ -8,7 +8,7 @@ using namespace gram;
 
 
 TEST(GetMaxAlphabetNum, GivenPrg_CorrectMaxAlphabetNum) {
-    auto prg_raw = "a5g6t5cccc11g12tttt11";
+    auto prg_raw = "a5g6t6cccc11g12tttt12";
     auto prg_info = generate_prg_info(prg_raw);
     auto result = get_max_alphabet_num(prg_info.encoded_prg);
     auto expected = 12;
@@ -17,7 +17,7 @@ TEST(GetMaxAlphabetNum, GivenPrg_CorrectMaxAlphabetNum) {
 
 
 TEST(GetMaxAlphabetNum, PrgWithVariantSite_LargestSiteMarkerAsMaxAlphabet) {
-    auto prg_raw = "a13g14t13tt";
+    auto prg_raw = "a13g14t14tt";
     auto prg_info = generate_prg_info(prg_raw);
     auto result = get_max_alphabet_num(prg_info.encoded_prg);
     uint64_t expected = 14;
@@ -35,7 +35,7 @@ TEST(GetMaxAlphabetNum, SingleCharPrg_CorrectBaseEncodingAsMaxAlphabet) {
 
 
 TEST(GenerateSitesMask, GivenMultiSitePrg_CorrectSitesMask) {
-    auto prg_raw = "a5g6t5cc11g12tt11";
+    auto prg_raw = "a5g6t6cc11g12tt12";
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = generate_sites_mask(prg_info.encoded_prg);
@@ -46,7 +46,7 @@ TEST(GenerateSitesMask, GivenMultiSitePrg_CorrectSitesMask) {
 
 
 TEST(GenerateSitesMask, SingleVariantSiteTwoAlleles_CorrectSitesMask) {
-    const std::string prg_raw = "a5g6t5c";
+    const std::string prg_raw = "a5g6t6c";
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_sites_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {
@@ -58,7 +58,7 @@ TEST(GenerateSitesMask, SingleVariantSiteTwoAlleles_CorrectSitesMask) {
 
 
 TEST(GenerateSitesMask, TwoVariantSites_CorrectSitesMask) {
-    const std::string prg_raw = "a5g6t5cc7g8tt8aa7";
+    const std::string prg_raw = "a5g6t6cc7g8tt8aa8";
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_sites_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {

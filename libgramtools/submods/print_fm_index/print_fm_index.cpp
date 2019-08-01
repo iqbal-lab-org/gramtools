@@ -13,8 +13,8 @@ std::string DNA_convert(const int arg){
    switch(arg){
        case 1: return "A";
        case 2: return "C";
-       case 3: return "T";
-       case 4: return "G";
+       case 3: return "G";
+       case 4: return "T";
        default: return std::to_string(arg);
    }
 }
