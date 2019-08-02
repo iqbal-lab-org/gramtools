@@ -37,7 +37,9 @@ int main(int argc, const char* argv[]){
     for (int i = 0; i < fm_index.size(); ++i){
         std::cout << i << "\t" << DNA_convert(fm_index.bwt[i]) << "\t" << fm_index[i] << "\t";
         for (auto j = fm_index[i]; j < fm_index.size(); ++j)
-            std::cout << prg_string[j] << " "; // Note: it is possible to use fm_index.text[j] too
+            // Note: we do not use the prg_string here, because it does not encode each variant marker as its own entity.
+            // TODO: find how to use prg_info.encoded_prg
+            std::cout << DNA_convert(fm_index.text[j]) << " ";
         std::cout << std::endl;
     }
     }
