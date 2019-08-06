@@ -73,6 +73,7 @@ def parse_args(common_parser, subparsers):
 def with_report(f):
     """
     Decorator to add logging and reporting to build procedures
+    To signal that something went wrong in decorated function call, that function needs to raise an Exception.
     """
     def reportify(report, action, *args):
         if report.get('success') is False:
@@ -120,14 +121,14 @@ def run(args):
 
     # Update the vcf path to a combined vcf from all those provided.
     # We also do this if only a single one is provided, to deal with overlapping records.
-    command_paths['vcf'] = _cluster_vcf_records(report, 'Vcf record clustering', command_paths)
+    command_paths['vcf'] = _cluster_vcf_records(report, 'vcf_record_clustering', command_paths)
 
     if hasattr(args, 'prg') and args.prg is not None:
         _skip_prg_construction(report, 'copy_existing_PRG_string', command_paths, args)
     else:
         _execute_command_generate_prg(report, 'vcf_to_PRG_string_conversion', command_paths)
 
-    report = _execute_gramtools_cpp_build(report, 'gramtools_build', command_paths, args)
+    _execute_gramtools_cpp_build(report, 'gramtools_build', command_paths, args)
 
     log.debug('Computing sha256 hash of project paths')
     command_hash_paths = common.hash_command_paths(command_paths)
@@ -252,10 +253,10 @@ def _execute_gramtools_cpp_build(report, action, build_paths, args):
     # Add extra reporting
     report[action] = collections.OrderedDict([
         ('command', command_str),
-        ('success', command_result),
         ('stdout', entire_stdout),
     ])
-    return report
+    if command_result == False:
+        raise Exception("Error running gramtools build.")
 
 
 def _save_report(start_time,
