@@ -34,8 +34,8 @@ def _build_backend(root_dir):
 
 def _test_backend(root_dir):
     cmake_dir = os.path.join(root_dir, 'cmake-build-debug')
-    test_runner = os.path.join(cmake_dir, 'libgramtools', 'tests', 'test_main')
-    test_dir = os.path.join(root_dir, 'libgramtools', 'tests')
+    test_runner = os.path.join(cmake_dir, 'libgramtools', 'submods', 'tests', 'test_main')
+    test_dir = os.path.join(root_dir, 'libgramtools', 'submods', 'tests')
 
     return_code = subprocess.call([test_runner], cwd=test_dir)
     if return_code != 0:
