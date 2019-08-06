@@ -7,6 +7,7 @@ import sys
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.test import test
+from gramtools.version import package_version
 
 
 with open('./README.md') as fhandle:
@@ -108,7 +109,7 @@ _package_data = {
 
 setuptools.setup(
     name='gramtools',
-    version='1.5.0',
+    version=f'{package_version.__version__}',
     description='Genome inference and variant calling with population reference graphs.',
     url='https://github.com/iqbal-lab-org/gramtools',
     long_description=readme,

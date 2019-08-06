@@ -3,7 +3,7 @@ cmake-build-debug
 .idea
 .cache
 __pycache__
-gramtools/version/version.py
+gramtools/version/commit_version.py
 *.egg-info
 *.pyc
 gramtools/lib

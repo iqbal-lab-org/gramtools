@@ -1,24 +1,21 @@
 import json
 import collections
-
-try:
-    from . import version
-    if not hasattr(version, 'last_git_commit_hash'):
-        raise ImportError
-except ImportError:
-    from . import fallback_version as version
+from . import package_version
 
 
 def report():
-    if version.truncated_git_commits == 'NA':
-        commits = []
-    else:
-        commits = version.truncated_git_commits.split('*****')[1:]
+    try:
+        from . import commit_version
+        commits = commit_version.truncated_git_commits.split('*****')[1:]
         commits = [x.strip() for x in commits]
+        last_commit_hash = commit_version.last_git_commit_hash
+    except ImportError:
+        commits = []
+        last_commit_hash = "NA"
 
     report_dict = collections.OrderedDict([
-        ('version_number', version.version_number),
-        ('last_git_commit_hash', version.last_git_commit_hash),
+        ('version_number', package_version.__version__),
+        ('last_git_commit_hash', last_commit_hash),
         ('truncated_git_commits', commits),
     ])
     report_json = json.dumps(report_dict, indent=4)
