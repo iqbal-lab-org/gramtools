@@ -7,7 +7,7 @@ Gramtools builds a directed acyclical graph (DAG) of genetic variation from a po
 
 ## Install
 ```
-pip3 install -vvv --process-dependency-links wheel git+https://github.com/iqbal-lab-org/gramtools
+pip3 install -vvv wheel git+https://github.com/iqbal-lab-org/gramtools
 ```
 <br>
 

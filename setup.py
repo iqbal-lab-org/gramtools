@@ -66,9 +66,7 @@ class _InstallCommand(install):
         pip3 install -vvv ./gramtools
     """
     def run(self):
-        _test_frontend(_root_dir)
         _build_backend(_root_dir)
-        _test_backend(_root_dir)
         install.run(self)
 
 
@@ -124,9 +122,6 @@ setuptools.setup(
         'pyvcf >= 0.6.8',
         'py-cortex-api >= 1.0',
         'cluster_vcf_records >= 0.9.2',
-    ],
-    dependency_links=[
-        'https://github.com/iqbal-lab-org/py-cortex-api/tarball/master#egg=py-cortex-api-1.0',
     ],
     test_suite='gramtools.tests',
     cmdclass={
