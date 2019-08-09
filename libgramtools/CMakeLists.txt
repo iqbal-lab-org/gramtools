@@ -43,64 +43,11 @@ set(EXTERN_LIBS
 
 link_directories(${EXTERNAL_LIBS_DIR})
 
-set(SOURCE_FILES
-        ${SOURCE}/common/utils.cpp
-        ${SOURCE}/common/timer_report.cpp
-        ${SOURCE}/common/read_stats.cpp
+file(GLOB_RECURSE SOURCE_FILES
+        ${SOURCE}/*.cpp)
 
-        ${SOURCE}/search/search.cpp
-        
-        ${SOURCE}/build/build.cpp
-        ${SOURCE}/build/parameters.cpp
-
-        ${SOURCE}/quasimap/quasimap.cpp
-        ${SOURCE}/quasimap/parameters.cpp
-        ${SOURCE}/quasimap/utils.cpp
-        ${SOURCE}/quasimap/coverage/common.cpp
-        ${SOURCE}/quasimap/coverage/allele_sum.cpp
-        ${SOURCE}/quasimap/coverage/allele_base.cpp
-        ${SOURCE}/quasimap/coverage/grouped_allele_counts.cpp
-
-        ${SOURCE}/kmer_index/kmers.cpp
-        ${SOURCE}/kmer_index/build.cpp
-        ${SOURCE}/kmer_index/load.cpp
-        ${SOURCE}/kmer_index/dump.cpp
-
-        ${SOURCE}/prg/prg.cpp
-        ${SOURCE}/prg/masks.cpp
-        ${SOURCE}/prg/dna_ranks.cpp
-        ${SOURCE}/prg/fm_index.cpp)
-
-set(INCLUDE_FILES
-        ${INCLUDE}/common/utils.hpp
-        ${INCLUDE}/common/timer_report.hpp
-        ${INCLUDE}/common/read_stats.hpp
-
-        ${INCLUDE}/search/search.hpp
-        ${INCLUDE}/search/search_types.hpp
-
-        ${INCLUDE}/build/build.hpp
-        ${INCLUDE}/build/parameters.hpp
-
-        ${INCLUDE}/quasimap/quasimap.hpp
-        ${INCLUDE}/quasimap/parameters.hpp
-        ${INCLUDE}/quasimap/utils.hpp
-        ${INCLUDE}/quasimap/coverage/common.hpp
-        ${INCLUDE}/quasimap/coverage/allele_sum.hpp
-        ${INCLUDE}/quasimap/coverage/allele_base.hpp
-        ${INCLUDE}/quasimap/coverage/grouped_allele_counts.hpp
-        ${INCLUDE}/quasimap/coverage/types.hpp
-
-        ${INCLUDE}/kmer_index/kmers.hpp
-        ${INCLUDE}/kmer_index/kmer_index_types.hpp
-        ${INCLUDE}/kmer_index/build.hpp
-        ${INCLUDE}/kmer_index/load.hpp
-        ${INCLUDE}/kmer_index/dump.hpp
-
-        ${INCLUDE}/prg/prg.hpp
-        ${INCLUDE}/prg/masks.hpp
-        ${INCLUDE}/prg/dna_ranks.hpp
-        ${INCLUDE}/prg/fm_index.hpp )
+file(GLOB_RECURSE INCLUDE_FILES
+        ${INCLUDE}/*.hpp)
 
 # libgramtools
 add_library(gramtools STATIC
