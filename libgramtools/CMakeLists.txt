@@ -4,6 +4,7 @@ execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/download)
 execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/protobuf.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
@@ -44,10 +45,12 @@ set(EXTERN_LIBS
 link_directories(${EXTERNAL_LIBS_DIR})
 
 file(GLOB_RECURSE SOURCE_FILES
-        ${SOURCE}/*.cpp)
+        ${SOURCE}/*.cpp
+        ${SOURCE}/../proto/*.cc)
 
 file(GLOB_RECURSE INCLUDE_FILES
-        ${INCLUDE}/*.hpp)
+        ${INCLUDE}/*.hpp
+        ${INCLUDE}/../proto/*.h)
 
 # libgramtools
 add_library(gramtools STATIC
@@ -71,6 +74,7 @@ add_dependencies(gramtools
         zlib
         htslib
         boost
+        protobuf
         py_git_version)
 add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
