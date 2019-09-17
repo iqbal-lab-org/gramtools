@@ -4,7 +4,6 @@ execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/download)
 execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/protobuf.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
@@ -74,7 +73,6 @@ add_dependencies(gramtools
         zlib
         htslib
         boost
-        protobuf
         py_git_version)
 add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory

@@ -29,28 +29,15 @@ set(INCLUDE
         ${PROJECT_SOURCE_DIR}/libgramtools/include
         ${PROJECT_SOURCE_DIR}/libgramtools/submods)
 
-file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/libgramtools/submods/src_common/*.cpp)
+file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/libgramtools/submods/tests/*.cpp)
+file(GLOB COMMON_SOURCES ${PROJECT_SOURCE_DIR}/libgramtools/submods/src_common/*.cpp)
 
 add_executable(test_main
         main.cpp
 
         ${SOURCES}
-        test_search.cpp
-        test_utils.cpp
+        ${COMMON_SOURCES} )
 
-        quasimap/coverage/test_common.cpp
-        quasimap/coverage/test_allele_sum.cpp
-        quasimap/coverage/test_allele_base.cpp
-        quasimap/coverage/test_grouped_allele_counts.cpp
-        quasimap/test_quasimap.cpp
-
-        kmer_index/test_kmers.cpp
-        kmer_index/test_build.cpp
-        kmer_index/test_load.cpp
-        kmer_index/test_dump.cpp
-
-        prg/test_prg.cpp
-        prg/test_masks.cpp)
 target_link_libraries(test_main
         gramtools
         libgmock
