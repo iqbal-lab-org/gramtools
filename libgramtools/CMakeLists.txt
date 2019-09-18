@@ -44,12 +44,10 @@ set(EXTERN_LIBS
 link_directories(${EXTERNAL_LIBS_DIR})
 
 file(GLOB_RECURSE SOURCE_FILES
-        ${SOURCE}/*.cpp
-        ${SOURCE}/../proto/*.cc)
+        ${SOURCE}/*.cpp)
 
 file(GLOB_RECURSE INCLUDE_FILES
-        ${INCLUDE}/*.hpp
-        ${INCLUDE}/../proto/*.h)
+        ${INCLUDE}/*.hpp)
 
 # libgramtools
 add_library(gramtools STATIC

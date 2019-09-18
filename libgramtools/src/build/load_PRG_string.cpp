@@ -1,5 +1,6 @@
 #include <build/load_PRG_string.hpp>
 
+
 PRG_String::PRG_String(std::string const& file_in){
     std::fstream input(file_in, std::ios::in | std::ios::binary);
     if (!input) throw std::ios::failure("PRG String file not found");
@@ -18,7 +19,7 @@ PRG_String::PRG_String(std::string const& file_in){
     output_file = file_in;
 }
 
-PRG_String::PRG_String(int_vec const& v_in){
+PRG_String::PRG_String(marker_vec const& v_in){
    my_PRG_string = std::move(v_in);
 };
 
@@ -28,13 +29,12 @@ void PRG_String::process(){
 
 void PRG_String::map_and_normalise_ends(){
     int pos = -1;
+    int v_size = my_PRG_string.size(); // Converts to signed
     Marker marker;
     std::set<Marker> seen_sites;
 
-    while (pos < my_PRG_string.size()) {
-        pos++;
-        marker = my_PRG_string[pos];
-        std::cout << marker;
+    while (pos < v_size) {
+        marker = my_PRG_string[++pos];
         if (marker <= 4) continue;
         if (marker % 2 == 1) {
             bool seen_before = seen_sites.find(marker) != seen_sites.end();

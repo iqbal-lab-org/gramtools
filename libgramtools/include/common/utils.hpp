@@ -35,6 +35,7 @@ namespace gram {
     template<typename T>
     using HashSet = std::unordered_set<T, boost::hash<T>>;
 
+
     using Base = uint8_t; /**< nucleotide represented as byte-sized integer */
     using Pattern = std::vector<Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
     using Patterns = std::vector<Pattern>;
@@ -42,7 +43,11 @@ namespace gram {
     using Marker = uint32_t ; /**< An integer >=5 describing a site or allele marker in the prg. */
     using AlleleId = uint32_t; /**< An integer describing which allele is referred to within a given variant site. */
 
+    using marker_vec = std::vector<Marker>;
+
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/
+    using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */
+
     using VariantSitePath = std::list<VariantLocus>; /**< A path through variant sites is a list of allele/site combinations. */
     using VariantSitePaths = std::list<VariantSitePath>;
 
@@ -61,9 +66,14 @@ namespace gram {
     Pattern encode_dna_bases(const GenomicRead &read_sequence);
 
     /**
-     * Integer encode (range: 1-4) a dna base character.
+     * Encode dna base as integer encode (range: 1-4)
      */
     Base encode_dna_base(const char &base_str);
+
+    /**
+     * Decode integer into dna base, as std::string.
+     */
+    std::string DNA_convert(const Base& base);
 
     std::string full_path(const std::string &gram_dirpath,
                           const std::string &file_name);

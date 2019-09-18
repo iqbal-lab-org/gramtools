@@ -1,0 +1,106 @@
+#include "build/coverage_graph.hpp"
+
+cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
+    this->prg_string = &prg_string;
+    make_root();
+    cur_Locus = std::make_pair(0, 0); // Meaning: there is currently no current Locus.
+}
+
+void cov_Graph_Builder::make_root() {
+   root = boost::make_shared<coverage_Node>(coverage_Node());
+   backWire = root;
+   cur_Node = boost::make_shared<coverage_Node>(coverage_Node());
+}
+
+void cov_Graph_Builder::process_marker(uint32_t const &pos) {
+    Marker m = prg_string->get_PRG_string()[pos];
+    marker_type t = find_marker_type(m);
+
+    switch(t){
+        case marker_type::sequence:
+            add_sequence(m);
+            break;
+        case marker_type::site_entry:
+            enter_site(m);
+            break;
+        case marker_type::allele_end:
+            end_allele(m);
+            break;
+        case marker_type::site_end:
+            exit_site(m);
+    }
+}
+
+marker_type cov_Graph_Builder::find_marker_type(Marker const &m) {
+    if (m <= 4) return marker_type::sequence; // Note: the `PRG_String` constructor code must make sure that m is > 0.
+
+    // After passing through `PRG_String` constructor code, the only time a marker is odd is when it signals a site entry.
+    if (m % 2 == 1) return marker_type::site_entry;
+
+    // Find if the marker is in the site exit map
+    auto& end_positions = prg_string->get_end_positions();
+    if (end_positions.find(m) == end_positions.end()) return marker_type::allele_end; // It is not.
+
+    return marker_type::site_end; // It is.
+}
+
+void cov_Graph_Builder::add_sequence(Marker const &m) {
+    std::string c = DNA_convert(m); // Note: implicit conversion of m from uint32_t to uint8_t; this is OK because 0 < m < 5.
+    cur_Node->add_sequence(c);
+    cur_pos++;
+}
+
+void cov_Graph_Builder::enter_site(Marker const &m) {
+
+    auto site_entry = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 0));
+    site_entry->mark_as_boundary();
+    wire(site_entry);
+
+    // Update the global pointers
+    cur_Node = boost::make_shared<coverage_Node>(coverage_Node());
+    backWire = site_entry;
+
+    // Make & register a new bubble
+    auto site_exit = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 0));
+    site_exit->mark_as_boundary();
+    bubble_map.insert(std::make_pair(site_entry,site_exit));
+    bubble_starts.insert(std::make_pair(m, site_entry));
+    bubble_ends.insert(std::make_pair(m, site_exit));
+
+    // Update the parent map & the current Locus
+    if (cur_Locus.first != 0) {
+        assert(par_map.find(m) == par_map.end()); // The marker should not be in there already
+        par_map.insert(std::make_pair(m, cur_Locus));
+    }
+    cur_Locus = std::make_pair(m, 1);
+}
+
+void cov_Graph_Builder::end_allele(Marker const &m) {
+    // Make sure we think we are at the right site
+    auto site_ID = m - 1;
+    assert(cur_Locus.first == site_ID);
+    auto& allele_ID = cur_Locus.second;
+
+    auto site_exit = bubble_ends.at(site_ID);
+    wire(site_exit);
+
+    // Update the exit's pos if it is smaller than this allele's
+    if (site_exit->get_pos() < cur_pos) site_exit->set_pos(cur_pos);
+
+    // Reset node and position to the site start node
+    auto site_entry = bubble_starts.at(site_ID);
+    backWire = site_entry;
+    cur_pos = site_entry->get_pos();
+
+    // Update to the next allele
+    allele_ID++; // increment allele ID.
+    cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, site_ID, allele_ID));
+}
+
+void cov_Graph_Builder::wire(covG_ptr const &target) {
+    if (cur_Node->has_sequence()){
+        backWire->add_edge(cur_Node);
+        cur_Node->add_edge(target);
+    }
+    else backWire->add_edge(target);
+}

@@ -45,6 +45,15 @@ Base gram::encode_dna_base(const char &base_str) {
     }
 }
 
+std::string DNA_convert(const Base& base){
+    switch(base){
+        case 1: return "A";
+        case 2: return "C";
+        case 3: return "G";
+        case 4: return "T";
+        default: throw std::out_of_range("The argument is not in [1,4]");
+    }
+}
 
 Pattern gram::encode_dna_bases(const std::string &dna_str) {
     Pattern pattern;

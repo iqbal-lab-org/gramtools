@@ -6,17 +6,14 @@
 #include <iostream>
 #include "src_common/generate_prg.hpp"
 
-/**
- * I want to output BWT and the full suffixes as nucleotides where relevant.
- */
-std::string DNA_convert(const int arg){
-   switch(arg){
-       case 1: return "A";
-       case 2: return "C";
-       case 3: return "G";
-       case 4: return "T";
-       default: return std::to_string(arg);
-   }
+std::string DNA_convert(const int& base){
+    switch(base){
+        case 1: return "A";
+        case 2: return "C";
+        case 3: return "G";
+        case 4: return "T";
+        default: throw std::out_of_range("The argument is not in [1,4]");
+    }
 }
 
 int main(int argc, const char* argv[]){
