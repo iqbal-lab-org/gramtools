@@ -31,6 +31,13 @@ TEST(PRG_Conversion, string_to_ints2){
     EXPECT_EQ(res, expected);
 }
 
+TEST(PRG_Conversion, string_to_ints3) {
+    std::string prg_string = "[A,AA,A[A,C]A]C[A,C]";
+    std::vector<Marker> expected = {5,1,6,1,1,6,1,7,1,8,2,8,1,6,2,9,1,10,2,10};
+    auto res = prg_string_to_ints(prg_string);
+    EXPECT_EQ(res, expected);
+}
+
 /**
  * Here I want to highlight that the initial site numbering gets lost by int to string conversion
  * if the initial site numbering does not obey: 'sites entered first have smaller site IDs'

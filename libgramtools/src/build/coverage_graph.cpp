@@ -8,32 +8,35 @@ coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
 }
 
 cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
-    this->prg_string = &prg_string;
+    linear_prg = prg_string.get_PRG_string();
+    end_positions = prg_string.get_end_positions();
     make_root();
     cur_Locus = std::make_pair(0, 0); // Meaning: there is currently no current Locus.
 }
 
 void cov_Graph_Builder::run() {
-    for(uint32_t i = 0; i < prg_string->get_PRG_string().size(); ++i) process_marker(i);
+    for(uint32_t i = 0; i < linear_prg.size(); ++i) process_marker(i);
     make_sink();
 }
 
 void cov_Graph_Builder::make_root() {
-   root = boost::make_shared<coverage_Node>(coverage_Node());
+    cur_pos = -1;
+   root = boost::make_shared<coverage_Node>(coverage_Node(cur_pos));
    backWire = root;
-   cur_Node = boost::make_shared<coverage_Node>(coverage_Node());
+   cur_pos++;
+   cur_Node = boost::make_shared<coverage_Node>(coverage_Node(cur_pos));
 }
 
 void cov_Graph_Builder::make_sink() {
-    auto sink = boost::make_shared<coverage_Node>(coverage_Node());
+    auto sink = boost::make_shared<coverage_Node>(coverage_Node(cur_pos + 1));
     wire(sink);
     cur_Node = nullptr;
     backWire = nullptr;
 }
 
 void cov_Graph_Builder::process_marker(uint32_t const &pos) {
-    Marker m = prg_string->get_PRG_string()[pos];
-    marker_type t = find_marker_type(m);
+    Marker m = linear_prg[pos];
+    marker_type t = find_marker_type(pos);
 
     switch(t){
         case marker_type::sequence:
@@ -50,17 +53,19 @@ void cov_Graph_Builder::process_marker(uint32_t const &pos) {
     }
 }
 
-marker_type cov_Graph_Builder::find_marker_type(Marker const &m) {
+marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
+    auto const& m = linear_prg[pos];
     if (m <= 4) return marker_type::sequence; // Note: the `PRG_String` constructor code must make sure that m is > 0.
 
     // After passing through `PRG_String` constructor code, the only time a marker is odd is when it signals a site entry.
     if (m % 2 == 1) return marker_type::site_entry;
 
-    // Find if the marker is in the site exit map
-    auto& end_positions = prg_string->get_end_positions();
-    if (end_positions.find(m) == end_positions.end()) return marker_type::allele_end; // It is not.
+    // Find if the allele marker, which must be in the map, is at the end position or not
+    auto& end_pos = end_positions.at(m);
+    assert(pos <= end_pos); // Sanity check: the allele marker must occur before, or at, the end position of the site
+    if (pos < end_pos) return marker_type::allele_end;
 
-    return marker_type::site_end; // It is.
+    return marker_type::site_end;
 }
 
 void cov_Graph_Builder::add_sequence(Marker const &m) {
@@ -76,7 +81,7 @@ void cov_Graph_Builder::enter_site(Marker const &m) {
     wire(site_entry);
 
     // Update the global pointers
-    cur_Node = boost::make_shared<coverage_Node>(coverage_Node());
+    cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 1));
     backWire = site_entry;
 
     // Make & register a new bubble
@@ -150,4 +155,10 @@ void cov_Graph_Builder::wire(covG_ptr const &target) {
         cur_Node->add_edge(target);
     }
     else backWire->add_edge(target);
+}
+
+bool operator>(const covG_ptr &lhs, const covG_ptr &rhs) {
+    if (lhs->pos == rhs->pos) {
+        return lhs.get() > rhs.get();
+    } else return lhs->pos > rhs->pos;
 }

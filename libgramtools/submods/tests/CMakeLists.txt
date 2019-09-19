@@ -30,11 +30,11 @@ set(INCLUDE
         ${PROJECT_SOURCE_DIR}/libgramtools/submods)
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/libgramtools/submods/tests/*.cpp)
-file(GLOB COMMON_SOURCES ${PROJECT_SOURCE_DIR}/libgramtools/submods/src_common/*.cpp)
+file(GLOB COMMON_SOURCES
+        ${PROJECT_SOURCE_DIR}/libgramtools/submods/src_common/*.cpp)
 
 add_executable(test_main
         main.cpp
-
         ${SOURCES}
         ${COMMON_SOURCES} )
 
