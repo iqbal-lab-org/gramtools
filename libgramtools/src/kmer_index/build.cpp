@@ -15,7 +15,7 @@ using namespace gram;
  * @see process_markers_search_states()
  * @see search_base_backwards()
  */
-CacheElement get_next_cache_element(const Base &base,
+CacheElement get_next_cache_element(const int_Base &base,
                                     const bool kmer_base_is_first_processed,
                                     const CacheElement &last_cache_element,
                                     const PRG_Info &prg_info) {
@@ -40,7 +40,7 @@ CacheElement get_next_cache_element(const Base &base,
  * Wrapper around `get_next_cache_element` to deal with first search of a base in the prg.
  * @see get_next_cache_element()
  */
-CacheElement get_initial_cache_element(const Base &base,
+CacheElement get_initial_cache_element(const int_Base &base,
                                        const PRG_Info &prg_info) {
     // Start with the full SA interval, over the whole PRG
     SearchState search_state = {

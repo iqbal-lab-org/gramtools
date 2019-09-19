@@ -14,7 +14,7 @@
 namespace gram {
     struct CacheElement {
         SearchStates search_states = {};
-        Base base = 0; /**< The next base added relative to the previous `CacheElement`.*/
+        int_Base base = 0; /**< The next base added relative to the previous `CacheElement`.*/
     };
     using KmerIndexCache = std::list<CacheElement>; /**< Stored previously computed `SearchStates` for re-use when indexing different kmers. */
 

@@ -883,7 +883,7 @@ TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
     EXPECT_EQ(sa.second - sa.first + 1, 5);
 
     // Next up, look for a C
-    Base pattern_char = 2;
+    int_Base pattern_char = 2;
     search_states = process_read_char_search_states(pattern_char,
                                                         search_states,
                                                         prg_info);

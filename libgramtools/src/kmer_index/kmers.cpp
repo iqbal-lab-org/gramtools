@@ -129,7 +129,7 @@ Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
     uint64_t current_char = 0;
 
     Patterns site_alleles;
-    std::vector<Base> allele;
+    std::vector<int_Base> allele;
 
     while (current_char != boundary_marker and current_index >= 0) {
         current_char = prg_info.encoded_prg[current_index--];
@@ -387,19 +387,19 @@ std::pair<uint64_t, uint64_t> gram::get_nonvariant_region(const uint64_t &site_e
 }
 
 
-std::vector<Base> gram::right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
-                                                          const PRG_Info &prg_info) {
+std::vector<int_Base> gram::right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
+                                                              const PRG_Info &prg_info) {
     auto nonvariant_range = get_nonvariant_region(site_end_boundary_index,
                                                   prg_info);
     auto start = nonvariant_range.first;
     auto end = nonvariant_range.second;
     auto region_size = end - start + 1;
 
-    std::vector<Base> nonvariant_region;
+    std::vector<int_Base> nonvariant_region;
     nonvariant_region.reserve(region_size);
 
     for (auto i = start; i <= end; ++i) {
-        auto base = (Base) prg_info.encoded_prg[i];
+        auto base = (int_Base) prg_info.encoded_prg[i];
         nonvariant_region.push_back(base);
     }
     return nonvariant_region;
@@ -410,10 +410,10 @@ std::vector<Base> gram::right_intersite_nonvariant_region(const uint64_t &site_e
  * Extract a simple kmer from the prg, storing it back to front.
  * Simple kmer means the kmer to index does not overlap a single variant site.
  */
-std::vector<Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
-                                              const uint64_t kmer_size,
-                                              const PRG_Info &prg_info) {
-    std::vector<Base> reverse_kmer;
+std::vector<int_Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
+                                                  const uint64_t kmer_size,
+                                                  const PRG_Info &prg_info) {
+    std::vector<int_Base> reverse_kmer;
     reverse_kmer.reserve(kmer_size);
 
     uint64_t kmer_start_index = 0;
@@ -425,7 +425,7 @@ std::vector<Base> extract_simple_reverse_kmer(const uint64_t kmer_end_index,
         return reverse_kmer;
 
     for (uint64_t i = kmer_end_index; i >= kmer_start_index; --i) {
-        auto base = (Base) prg_info.encoded_prg[i];
+        auto base = (int_Base) prg_info.encoded_prg[i];
         reverse_kmer.push_back(base);
         if (i == 0)
             break;
@@ -472,7 +472,7 @@ Pattern get_pre_site_part(const uint64_t site_end_boundary,
 
         for (int64_t i = first_site_start_boundary - 1;
              i >= end_index; --i) {
-            auto base = (Base) prg_info.encoded_prg[i];
+            auto base = (int_Base) prg_info.encoded_prg[i];
             if (base > 4) // We know that we cannot reach the next variant site; so just stop if encountered.
                 break;
             pre_site_part.push_back(base);
@@ -545,7 +545,7 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
         auto within_site = prg_info.allele_mask[index] > 0
                            or prg_info.prg_markers_mask[index] != 0;
         if (not within_site) {
-            auto base = (Base) prg_info.encoded_prg[index];
+            auto base = (int_Base) prg_info.encoded_prg[index];
             nonvariant_region.push_back(base);
 
             index++;
@@ -926,7 +926,7 @@ std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
         }
 
         bool prefix_found_flag = false;
-        std::list<Base> prefix_diff_list = {};
+        std::list<int_Base> prefix_diff_list = {};
 
 
         for (int64_t i = last_full_kmer.size() - 1; i >= 0; --i) {

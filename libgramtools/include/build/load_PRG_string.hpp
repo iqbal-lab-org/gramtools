@@ -1,3 +1,5 @@
+#ifndef PRG_STRING_HPP
+#define PRG_STRING_HPP
 #include <string>
 #include <set>
 #include <fstream>
@@ -61,3 +63,4 @@ private:
      */
     void map_and_normalise_ends();
 };
+#endif //COV_GRAPH_HPP

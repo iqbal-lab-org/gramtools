@@ -36,8 +36,8 @@ namespace gram {
     using HashSet = std::unordered_set<T, boost::hash<T>>;
 
 
-    using Base = uint8_t; /**< nucleotide represented as byte-sized integer */
-    using Pattern = std::vector<Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
+    using int_Base = uint8_t; /**< nucleotide represented as byte-sized integer */
+    using Pattern = std::vector<int_Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
     using Patterns = std::vector<Pattern>;
 
     using Marker = uint32_t ; /**< An integer >=5 describing a site or allele marker in the prg. */
@@ -66,14 +66,14 @@ namespace gram {
     Pattern encode_dna_bases(const GenomicRead &read_sequence);
 
     /**
-     * Encode dna base as integer encode (range: 1-4)
+     * Encode dna base as integer (range: 1-4)
      */
-    Base encode_dna_base(const char &base_str);
+    int_Base encode_dna_base(const char &base_str);
 
     /**
      * Decode integer into dna base, as std::string.
      */
-    std::string DNA_convert(const Base& base);
+    std::string decode_dna_base(const int_Base& base);
 
     std::string full_path(const std::string &gram_dirpath,
                           const std::string &file_name);

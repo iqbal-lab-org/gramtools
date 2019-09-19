@@ -1,3 +1,6 @@
+#ifndef COV_GRAPH_HPP
+#define COV_GRAPH_HPP
+
 #include "load_PRG_string.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -5,7 +8,6 @@
 
 using namespace gram;
 
-enum class marker_type{sequence, site_entry, allele_end, site_end};
 
 /**
  * The building blocks of a coverage graph
@@ -74,19 +76,26 @@ public:
     parental_map par_map;
 };
 
+enum class marker_type{sequence, site_entry, allele_end, site_end};
 /**
  * A class in charge of mechanics of building coverage graph
  * It is designed for DEVELOPER only
  *
  */
 class cov_Graph_Builder{
+public:
+    /*
+     * All that's needed to make and run the object
+     */
     cov_Graph_Builder(PRG_String const& prg_string);
+    void run();
 
     /*
      * functions
      */
-    void make_root();
-    void make_sink();
+    cov_Graph_Builder(){std::cerr << "The builder needs a PRG_String object as constructor parameter." ; exit(1);};
+    void make_root(); //* Start state: set up the globals such as `cur_Node` & `backWire`
+    void make_sink(); //* End state: final wiring & pointers to null
     /**
      * Function call dispatcher based on marker at position @param pos.
      * Called once per element in `PRG_String`.
@@ -98,13 +107,18 @@ class cov_Graph_Builder{
     void enter_site(Marker const& m);
     void end_allele(Marker const& m);
     void exit_site(Marker const& m);
-    void wire(covG_ptr const& target);
+    /**
+     * A convenience function for reaching the end of an allele: called by both
+     * `end_allele` & `exit_site`
+     */
+    covG_ptr reach_allele_end(Marker const& m);
+    void wire(covG_ptr const& target); // Build edges, 1 or 2, depending on whether `cur_Node` contains sequence.
 
     /*
      * variables & data structures
      */
     PRG_String const* prg_string; // Pointer to the constructor parameter
-    covG_ptr backWire;
+    covG_ptr backWire; // Pointer to the most recent node needing edge building
     covG_ptr cur_Node;
     uint32_t cur_pos; // For assigning position to nodes
     VariantLocus cur_Locus; // For building parental map
@@ -117,3 +131,5 @@ class cov_Graph_Builder{
     std::map<covG_ptr,covG_ptr, std::greater<covG_ptr> > bubble_map;
     parental_map par_map;
 };
+
+#endif //COV_GRAPH_HPP

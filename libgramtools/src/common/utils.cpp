@@ -22,7 +22,7 @@ std::string gram::full_path(const std::string &gram_dirpath,
 }
 
 
-Base gram::encode_dna_base(const char &base_str) {
+int_Base gram::encode_dna_base(const char &base_str) {
     switch (base_str) {
         case 'A':
         case 'a':
@@ -45,7 +45,7 @@ Base gram::encode_dna_base(const char &base_str) {
     }
 }
 
-std::string DNA_convert(const Base& base){
+std::string DNA_convert(const int_Base& base){
     switch(base){
         case 1: return "A";
         case 2: return "C";
@@ -58,7 +58,7 @@ std::string DNA_convert(const Base& base){
 Pattern gram::encode_dna_bases(const std::string &dna_str) {
     Pattern pattern;
     for (const auto &base_str: dna_str) {
-        Base encoded_base = encode_dna_base(base_str);
+        int_Base encoded_base = encode_dna_base(base_str);
         if (encoded_base == 0)
             return Pattern {};
         pattern.emplace_back(encoded_base);
@@ -70,7 +70,7 @@ Pattern gram::encode_dna_bases(const std::string &dna_str) {
 /**
  * Produce integer-encoded Watson-Crick base complement.
  */
-Base complement_encoded_base(const Base &encoded_base) {
+int_Base complement_encoded_base(const int_Base &encoded_base) {
     switch (encoded_base) {
         case 1:
             return 4;
@@ -103,7 +103,7 @@ Pattern gram::encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
     Pattern pattern;
     for (uint64_t i = 0; i < sequence_length; i++) {
-        Base encoded_base = encode_dna_base(read_sequence.seq[i]);
+        int_Base encoded_base = encode_dna_base(read_sequence.seq[i]);
         if (encoded_base == 0)
             return Pattern {};
         pattern.emplace_back(encoded_base);

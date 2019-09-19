@@ -159,7 +159,7 @@ SearchStates gram::search_read_backwards(const Pattern &read,
     SearchStates new_search_states = kmer_index_search_states;
 
     for (auto it = read_begin; it != read.rend(); ++it) { /// Iterates end to start of read
-        const Base &pattern_char = *it;
+        const int_Base &pattern_char = *it;
         new_search_states = process_read_char_search_states(pattern_char,
                                                             new_search_states,
                                                             prg_info);
@@ -178,7 +178,7 @@ SearchStates gram::search_read_backwards(const Pattern &read,
 /**
  * Backward search followed by check whether the extended searched pattern maps somewhere in the prg.
  */
-SearchState search_fm_index_base_backwards(const Base &pattern_char,
+SearchState search_fm_index_base_backwards(const int_Base &pattern_char,
                                            const uint64_t char_first_sa_index,
                                            const SearchState &search_state,
                                            const PRG_Info &prg_info) {
@@ -200,7 +200,7 @@ SearchState search_fm_index_base_backwards(const Base &pattern_char,
     return new_search_state;
 }
 
-SearchStates gram::process_read_char_search_states(const Base &pattern_char,
+SearchStates gram::process_read_char_search_states(const int_Base &pattern_char,
                                                    const SearchStates &old_search_states,
                                                    const PRG_Info &prg_info) {
     //  Before extending backward search with next character, check for variant markers in the current SA intervals
@@ -251,7 +251,7 @@ SA_Interval gram::base_next_sa_interval(const Marker &next_char,
     return SA_Interval{new_start, new_end};
 }
 
-SearchStates gram::search_base_backwards(const Base &pattern_char,
+SearchStates gram::search_base_backwards(const int_Base &pattern_char,
                                          const SearchStates &search_states,
                                          const PRG_Info &prg_info) {
     // Compute the first occurrence of `pattern_char` in the suffix array. Necessary for backward search.

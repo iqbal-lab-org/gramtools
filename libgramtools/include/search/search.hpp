@@ -62,7 +62,7 @@ namespace gram {
      * @param pattern_char the next character in the read to look for in the prg.
      * @param SearchStates a set of SearchState elements; each contains an SA interval.
      */
-    SearchStates search_base_backwards(const Base &pattern_char,
+    SearchStates search_base_backwards(const int_Base &pattern_char,
                                        const SearchStates &search_states,
                                        const PRG_Info &prg_info);
 using SaIndexRightOfMarker = uint64_t;
@@ -105,7 +105,7 @@ using SaIndexRightOfMarker = uint64_t;
      * First updates SA_intervals to search next based on variant marker presence.
      * Then executes regular backward search.
      */
-    SearchStates process_read_char_search_states(const Base &pattern_char,
+    SearchStates process_read_char_search_states(const int_Base &pattern_char,
                                                  const SearchStates &old_search_states,
                                                  const PRG_Info &prg_info);
 

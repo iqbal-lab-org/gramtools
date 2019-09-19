@@ -10,7 +10,7 @@ using namespace gram;
 /**
  * Generates a bit vector with bit set if the given DNA `base` is present at each index of the BWT.
  */
-sdsl::bit_vector generate_base_bwt_mask(const Base &base,
+sdsl::bit_vector generate_base_bwt_mask(const int_Base &base,
                                         const FM_Index &fm_index) {
     sdsl::bit_vector mask(fm_index.bwt.size(), 0);
     for (uint64_t i = 0; i < fm_index.bwt.size(); i++)

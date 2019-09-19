@@ -441,7 +441,7 @@ TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforePrgEnd_Correct
     uint64_t site_end_boundary_index = 6;
     auto result = right_intersite_nonvariant_region(site_end_boundary_index,
                                                     prg_info);
-    std::vector<Base> expected = {1, 2, 3, 4};
+    std::vector<int_Base> expected = {1, 2, 3, 4};
     EXPECT_EQ(result, expected);
 }
 
@@ -453,7 +453,7 @@ TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexJustBeforePrgEnd_Cor
     uint64_t site_end_boundary_index = 6;
     auto result = right_intersite_nonvariant_region(site_end_boundary_index,
                                                     prg_info);
-    std::vector<Base> expected = {1};
+    std::vector<int_Base> expected = {1};
     EXPECT_EQ(result, expected);
 }
 
@@ -465,7 +465,7 @@ TEST(ExtractRightNonvariantRegion, GivenSiteEndBoundaryIndexBeforeSecondSite_Cor
     uint64_t site_end_boundary_index = 6;
     auto result = right_intersite_nonvariant_region(site_end_boundary_index,
                                                     prg_info);
-    std::vector<Base> expected = {1, 2, 3};
+    std::vector<int_Base> expected = {1, 2, 3};
     EXPECT_EQ(result, expected);
 }
 
@@ -477,7 +477,7 @@ TEST(ExtractRightNonvariantRegion, GivenSingleBaseNonvariantRegion_CorrectNonvar
     uint64_t site_end_boundary_index = 6;
     auto result = right_intersite_nonvariant_region(site_end_boundary_index,
                                                     prg_info);
-    std::vector<Base> expected = {3};
+    std::vector<int_Base> expected = {3};
     EXPECT_EQ(result, expected);
 }
 
@@ -491,7 +491,7 @@ TEST(GetReverseKmersFromRegion, NoVariantSite_CorrectReverseKmers) {
     auto result = get_region_range_reverse_kmers(kmer_region_range,
                                                  kmer_size,
                                                  prg_info);
-    unordered_vector_set<std::vector<Base>> expected = {
+    unordered_vector_set<std::vector<int_Base>> expected = {
             {3, 3, 2},
             {3, 2, 3},
             {2, 3, 1},
@@ -509,7 +509,7 @@ TEST(GetReverseKmersFromRegion, KmerSizeKmerRangeStartsAtIndexZero_CorrectRevers
     auto result = get_region_range_reverse_kmers(kmer_region_range,
                                                  kmer_size,
                                                  prg_info);
-    unordered_vector_set<std::vector<Base>> expected = {
+    unordered_vector_set<std::vector<int_Base>> expected = {
             {3, 1, 4},
     };
     EXPECT_EQ(result, expected);
@@ -525,7 +525,7 @@ TEST(GetReverseKmersFromRegion, NoVariantSite_FourCorrectReverseKmersFromPrgEnd)
     auto result = get_region_range_reverse_kmers(kmer_region_range,
                                                  kmer_size,
                                                  prg_info);
-    unordered_vector_set<std::vector<Base>> expected = {
+    unordered_vector_set<std::vector<int_Base>> expected = {
             {1, 1, 3},
             {1, 3, 3},
             {3, 3, 2},
