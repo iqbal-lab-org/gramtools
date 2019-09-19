@@ -25,27 +25,22 @@ std::string gram::full_path(const std::string &gram_dirpath,
 int_Base gram::encode_dna_base(const char &base_str) {
     switch (base_str) {
         case 'A':
-        case 'a':
-            return 1;
+        case 'a': return 1;
 
         case 'C':
-        case 'c':
-            return 2;
+        case 'c': return 2;
 
         case 'G':
-        case 'g':
-            return 3;
+        case 'g': return 3;
 
         case 'T':
-        case 't':
-            return 4;
+        case 't': return 4;
 
-        default:
-            return 0;
+        default: return 0;
     }
 }
 
-std::string DNA_convert(const int_Base& base){
+std::string  gram::decode_dna_base(const int_Base& base){
     switch(base){
         case 1: return "A";
         case 2: return "C";
@@ -109,4 +104,83 @@ Pattern gram::encode_dna_bases(const GenomicRead &read_sequence) {
         pattern.emplace_back(encoded_base);
     }
     return pattern;
+}
+
+
+std::string gram::ints_to_prg_string(std::vector<Marker> const& int_vec){
+    std::string readable_string(int_vec.size(), '0');
+    std::unordered_map<int,int> last_allele_indices; // Will record where to close the sites.
+
+    int pos{-1};
+    for (auto& s : int_vec){
+        pos++;
+        if (s > 4){
+            if (s%2 == 1) readable_string[pos] = '[';
+            else{
+                readable_string[pos] = ',';
+                if (last_allele_indices.find(s) != last_allele_indices.end()){
+                    last_allele_indices.erase(s);
+                }
+                last_allele_indices.insert({s, pos});
+            }
+            continue;
+        }
+        // Implicit else: s <= 4
+        char base = decode_dna_base(s).c_str()[0];
+        readable_string[pos] = base;
+    }
+
+    // Close the sites
+    for (auto s : last_allele_indices){
+        auto pos = s.second;
+        readable_string[pos] = ']';
+    }
+    return readable_string;
+}
+
+std::vector<Marker> gram::prg_string_to_ints(std::string const& string_prg) {
+    std::stack<int> marker_stack;
+    int max_var_marker{3};
+    int char_count{0};
+
+    std::vector<Marker> encoded_prg(string_prg.size());
+    for (int i = 0; i<string_prg.size(); ++i){
+        const auto &c = string_prg[i];
+
+        switch(c) {
+            case '[' : {
+                max_var_marker += 2;
+                marker_stack.push(max_var_marker);
+                encoded_prg[char_count++] = max_var_marker;
+                break;
+            }
+
+            case ']' : {
+                assert(!marker_stack.empty());
+                encoded_prg[char_count++] = marker_stack.top() + 1;
+                marker_stack.pop();
+                break;
+            }
+
+            case ',' : {
+                assert(!marker_stack.empty());
+                encoded_prg[char_count++] = marker_stack.top() + 1;
+                break;
+            }
+
+            default : {
+                try {
+                    encoded_prg[char_count++] = encode_dna_base(c);
+                    break;
+                }
+                catch(std::exception& e){
+                    std::cerr << e.what();
+                    exit(1);
+                }
+            }
+        }
+    }
+
+    // BOOST_LOG_TRIVIAL(info) << "Number of sites produced: " << (max_var_marker -3 ) / 2;
+    return encoded_prg;
 }

@@ -5,6 +5,7 @@
 #include <list>
 #include <cstdint>
 #include <string>
+#include <stack>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -77,6 +78,15 @@ namespace gram {
 
     std::string full_path(const std::string &gram_dirpath,
                           const std::string &file_name);
+
+    std::string ints_to_prg_string(std::vector<Marker> const& int_vec); /**< Prg string as int vector, to readable string */
+    /**
+     * Convert a nested PRG string to int representation, with linear site numbering.
+     * CAUTION: the site numbering is based on the fixed order in which '[' chars are encountered
+     * String to int conversion might have lost the initial ordering.
+     */
+    std::vector<Marker> prg_string_to_ints(std::string const& string_prg);
+
 }
 
 #endif //GRAMTOOLS_UTILS_HPP
