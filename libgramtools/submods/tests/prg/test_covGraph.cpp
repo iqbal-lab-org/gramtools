@@ -115,6 +115,36 @@ TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
     EXPECT_EQ(res, expected);
 }
 
+// Test that the size of the nodes is correct
+TEST_F(cov_G_Builder_nested, NodeSizes) {
+    //"[A,AA,A[A,C]A]C[AC,C]G"
+    c.run();
+    auto const &rand_access = c.random_access;
+    // Note: these are UNIQUE nodes, so disregarding "," which point to bubble start node,
+    // and sequence continuation for more than 1 consecutive nucleotides.
+    std::vector<int> expected{
+        0, 1, 2, 1, 0, 1, 1, 0, 1, 0, 1, 0, 2, 1, 0, 1
+    };
+    std::vector<int> res(expected.size(), -1);
+    std::set<Marker> seen_entries; // For skipping bubble entry nodes
+    int pos = 0;
+    covG_ptr prev = nullptr; // For skipping consecutive nucleotides
+    for (auto const&s : rand_access) {
+        // Test for skipping site entry points
+        if (c.bubble_map.find(s.node) != c.bubble_map.end()){
+            if (seen_entries.find(s.node->get_site()) != seen_entries.end()) continue;
+            else seen_entries.insert(s.node->get_site());
+        }
+        if (s.node == prev) continue;
+        auto cov_space = s.node->get_coverage_space();
+        // There should be as much allocated per base coverage as there are characters in the sequence node
+        EXPECT_EQ(s.node->get_sequence_size(), cov_space);
+        res[pos++] = cov_space;
+        prev = s.node;
+    }
+    EXPECT_EQ(res,expected);
+}
+
 // Test that the node positions are correct
 TEST_F(cov_G_Builder_nested, SequencePositions) {
     //"[A,AA,A[A,C]A]C[AC,C]G"
@@ -133,8 +163,9 @@ TEST_F(cov_G_Builder_nested, SequencePositions) {
     EXPECT_EQ(res, expected);
 }
 
+
 // Test that bubble entry and exit points are correctly identified
-TEST_F(cov_G_Builder_nested, Bubbles){
+TEST_F(cov_G_Builder_nested, Bubble_Positions){
     //"[A,AA,A[A,C]A]C[AC,C]G
     using i_v = std::vector<int>; // Stores indexes into PRG string
     c.run();
@@ -175,7 +206,7 @@ protected:
     void SetUp() {
         // A nested string with adjacent variant markers
         // Namely due to: i)direct deletion and ii)double entry
-        std::string prg_string{"[A,]A[[G,A]A,C]"};
+        std::string prg_string{"[A,]A[[G,A]A,C,T]"};
         marker_vec v = prg_string_to_ints(prg_string);
         PRG_String p{v};
         p.process();
@@ -186,7 +217,7 @@ protected:
 };
 
 TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
-    //"[A,]A[[G,A]A,C]"
+    //"[A,]A[[G,A]A,C,T]"
     covG_ptr entry;
    entry = c.bubble_starts.at(5);
    EXPECT_EQ(entry, c.random_access[0].node); // Consistent site numbering, sanity check
@@ -200,3 +231,29 @@ TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
     // Expect direct edge between the site starting at index 5 and the site starting at index 6
     EXPECT_EQ(entry->get_edges()[0], expected_next_entry);
 };
+
+// Test for the number of sites, and that each "," character amounts to returning to the site entry point
+TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
+    //"[A,]A[[G,A]A,C,T]"
+
+    // Will record how many times each site entry node has been traversed
+    std::unordered_map<Marker, int> seen_entries;
+    std::unordered_map<Marker, int> expected{
+            {5, 1},
+            {7, 2},
+            {9, 1}
+    };
+
+    for (auto const &s : c.random_access) {
+        if (c.bubble_map.find(s.node) != c.bubble_map.end()) {
+            if (seen_entries.find(s.node->get_site()) != seen_entries.end()) {
+                // Case: at the entry node for the at least second time
+                seen_entries.at(s.node->get_site())++;
+            }
+            // Case: at the entry node for the first time
+            else seen_entries.insert({s.node->get_site(), 0});
+        }
+    }
+
+    EXPECT_EQ(seen_entries, expected);
+}

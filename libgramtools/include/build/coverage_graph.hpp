@@ -36,18 +36,22 @@ public:
     /*
      * Getters
      */
-    int get_pos() const { return pos; };
-    int get_sequence_size() const { return sequence.size(); };
-    Marker get_site() const { return site_ID ; };
-    Marker get_allele() const { return allele_ID ; };
-    std::vector<covG_ptr> const& get_edges() const{return next;};
+    int get_pos() const { return pos; }
+    int const get_sequence_size() const { return sequence.size(); }
+    int const get_coverage_space() const { return coverage.size() ;}
+    Marker get_site() const { return site_ID ; }
+    Marker get_allele() const { return allele_ID ; }
+    std::vector<covG_ptr> const& get_edges() const{return next;}
 
     /*
      * Setters
      */
     void set_pos(int pos) { this->pos = pos; };
 
-    void add_sequence(std::string const &new_seq) { sequence += new_seq; };
+    void add_sequence(std::string const &new_seq) {
+        sequence += new_seq;
+        coverage.emplace_back(0);
+    };
 
     void add_edge(covG_ptr const target) { next.emplace_back(target); };
 
@@ -60,7 +64,6 @@ private:
     seqPos pos;
     std::vector<uint64_t> coverage;
     bool is_site_boundary;
-    std::vector<covG_ptr> prev;
     std::vector<covG_ptr> next;
 };
 
