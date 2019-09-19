@@ -79,7 +79,7 @@ TEST_F(cov_G_Builder_nested, FindMarkerTypes){
    }
 }
 
-TEST_F(cov_G_Builder_nested, Bubbles_Sites_Positions){
+TEST_F(cov_G_Builder_nested, Bubbles_Positions){
     //"[A,AA,A[A,C]A]C[AC,C]G"
     c.run();
     // The positions are not INDICES in the PRG string; they are the positions in the multiple-sequence alignment

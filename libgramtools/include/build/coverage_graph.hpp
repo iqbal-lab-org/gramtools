@@ -37,6 +37,7 @@ public:
      * Getters
      */
     int get_pos() { return pos; };
+    int get_sequence_size(){ return sequence.size(); };
 
     /*
      * Setters
@@ -62,6 +63,11 @@ private:
 
 using covG_ptr = boost::shared_ptr<coverage_Node>;
 using marker_to_node = std::unordered_map<Marker, covG_ptr>;
+struct node_access{
+    covG_ptr node;
+    seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
+};
+using access_vec = std::vector<node_access>;
 
 /**
 * This class implements a DAG of `coverage_Node`s.
@@ -79,10 +85,21 @@ public:
 
     /** Maps the start of a local bubble, to its end.
      * Children nodes appear before parent nodes.
+     * Use : genotyping
      */
     std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
 
+    /**
+     * Maps a site ID to a Locus which is its immediate parent in the graph
+     * Only populated for bubbles nested inside another bubble
+     * Use : equivalence class coverage recording
+     */
     parental_map par_map;
+    /**
+     * A vector of the same size as the PRG string, giving access to the corresponding node in the graph.
+     * Use : per base coverage recording
+     */
+    access_vec random_access;
 };
 
 enum class marker_type {
@@ -149,6 +166,7 @@ public:
     covG_ptr root;
     std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
     parental_map par_map;
+    access_vec random_access;
 };
 
 #endif //COV_GRAPH_HPP

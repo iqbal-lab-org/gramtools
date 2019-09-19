@@ -5,10 +5,12 @@ coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
     root = built_graph.root;
     bubble_map = std::move(built_graph.bubble_map);
     par_map = std::move(built_graph.par_map);
+    random_access = std::move(built_graph.random_access);
 }
 
 cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
     linear_prg = prg_string.get_PRG_string();
+    random_access = access_vec(linear_prg.size(), node_access());
     end_positions = prg_string.get_end_positions();
     make_root();
     cur_Locus = std::make_pair(0, 0); // Meaning: there is currently no current Locus.
@@ -51,6 +53,12 @@ void cov_Graph_Builder::process_marker(uint32_t const &pos) {
         case marker_type::site_end:
             exit_site(m);
     }
+
+    // Set up random access
+    auto seq_size = cur_Node->get_sequence_size();
+    if (seq_size <= 1) // Will include all site entry and exit nodes, and sequence nodes with a single character
+        random_access[pos] = node_access{cur_Node, 0};
+    else random_access[pos] = node_access{cur_Node, seq_size - 1};
 }
 
 marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
