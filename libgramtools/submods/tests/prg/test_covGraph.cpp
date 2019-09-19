@@ -57,7 +57,6 @@ class cov_G_Builder_nested : public ::testing::Test {
 protected:
     void SetUp() {
         std::string prg_string{"[A,AA,A[A,C]A]C[AC,C]G"}; // A simple nested string
-        //idx:                    0    5     11     18
         marker_vec v = prg_string_to_ints(prg_string);
         PRG_String p{v};
         p.process();
@@ -66,8 +65,10 @@ protected:
     cov_Graph_Builder c;
 };
 
+// Test that marker typing is correct
 TEST_F(cov_G_Builder_nested, FindMarkerTypes){
-    //"[A,AA,A[A,C]A]C[AC,C]G"
+    //                       "[A,AA,A[A,C]A]C[AC,C]G"
+    //idx:                    0    5     11     18
     using mt = marker_type;
    marker_type res;
    std::array<int, 5> positions{0, 2, 4, 11, 13};
@@ -79,24 +80,8 @@ TEST_F(cov_G_Builder_nested, FindMarkerTypes){
    }
 }
 
-TEST_F(cov_G_Builder_nested, Bubbles_Positions){
-    //"[A,AA,A[A,C]A]C[AC,C]G"
-    c.run();
-    // The positions are not INDICES in the PRG string; they are the positions in the multiple-sequence alignment
-    // giving rise to it. Draw the graph of the PRG string and take the LONGEST allele positions to obtain them.
-    std::vector start_positions{0, 1, 4}; // Take the positions of the '[' in left to right order in PRG string
-    std::vector end_positions{3, 2, 6}; // To know these, take the ']' position corresponding to the '[' start position.
 
-    // The bubbles are in 'topological order': the highest start position is processed FIRST
-    // So we test the vector indices high to low
-    int bubble_number = start_positions.size() - 1;
-    for (auto& bubble : c.bubble_map){
-        EXPECT_EQ(bubble.first->get_pos(), start_positions[bubble_number]);
-        EXPECT_EQ(bubble.second->get_pos(), end_positions[bubble_number]);
-        bubble_number--;
-    }
-}
-
+// Test that the parental map is correct
 TEST_F(cov_G_Builder_nested, ParentalMap){
     //"[A,AA,A[A,C]A]C[AC,C]G"
     c.run();
@@ -106,3 +91,112 @@ TEST_F(cov_G_Builder_nested, ParentalMap){
     };
     EXPECT_EQ(c.par_map, expected);
 }
+
+// Test that the node site & allele IDs are correct
+TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
+    //"[A,AA,A[A,C]A]C[AC,C]G"
+    c.run();
+    auto const& rand_access = c.random_access;
+    std::vector<VariantLocus> expected{
+            {5, 0}, {5, 1}, {5, 0}, {5, 2}, {5, 2},
+            {5, 0}, {5, 3}, {7, 0}, {7, 1}, {7, 0},
+            {7, 2}, {7, 0}, {5, 3}, {5, 0}, {0, 0},
+            {9, 0}, {9, 1}, {9, 1}, {9, 0}, {9,2},
+            {9, 0}, {0, 0}
+    };
+    std::vector<VariantLocus> res{rand_access.size(), VariantLocus()};
+    int pos = 0;
+    for (auto const&s : rand_access){
+       res[pos].first = s.node->get_site();
+        res[pos].second = s.node->get_allele();
+        pos++;
+    }
+
+    EXPECT_EQ(res, expected);
+}
+
+// Test that the node positions are correct
+TEST_F(cov_G_Builder_nested, SequencePositions) {
+    //"[A,AA,A[A,C]A]C[AC,C]G"
+    c.run();
+    auto const &rand_access = c.random_access;
+    // The positions are not INDICES in the PRG string; they are the positions in the multiple-sequence alignment
+    // giving rise to it. Draw the graph of the PRG string and take the LONGEST allele positions to obtain them.
+    std::vector<seqPos> expected{
+            0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, // First site exit point here
+                2, 3, 3, 4, 4, 4, 4, 4, 6, 6 };
+    std::vector<seqPos> res(expected.size(), 0);
+    int pos = 0;
+    for (auto const &s : rand_access) {
+        res[pos++] = s.node->get_pos();
+    }
+    EXPECT_EQ(res, expected);
+}
+
+// Test that bubble entry and exit points are correctly identified
+TEST_F(cov_G_Builder_nested, Bubbles){
+    //"[A,AA,A[A,C]A]C[AC,C]G
+    using i_v = std::vector<int>; // Stores indexes into PRG string
+    c.run();
+    auto const &rand_access = c.random_access;
+    // Note: allele separators (",") point to the site entry node, so we expect them here
+    i_v expected_site_entry_points{
+       0, 2, 5, 7, 9, 15, 18 };
+    i_v expected_site_exit_points{
+            11, 13, 20 };
+    i_v res_entries, res_exits;
+
+    int pos = -1;
+    for (auto const &s : rand_access) {
+        pos++;
+        Marker site_ID = s.node->get_site();
+        try{
+            bool is_site_entry = c.bubble_starts.at(site_ID) == s.node;
+            bool is_site_exit = c.bubble_ends.at(site_ID) == s.node;
+            EXPECT_FALSE(is_site_entry & is_site_exit); // They should not both be true
+            if (is_site_entry){
+                EXPECT_TRUE(c.bubble_map.find(s.node) != c.bubble_map.end()); // The bubble is registered
+                res_entries.emplace_back(pos);
+            }
+            else if(is_site_exit) res_exits.emplace_back(pos);
+        }
+        catch(std::out_of_range) { // The node is not in any site; its site ID should be 0.
+            EXPECT_EQ(site_ID, 0);
+            continue;
+        }
+      }
+    EXPECT_EQ(res_entries, expected_site_entry_points);
+    EXPECT_EQ(res_exits, expected_site_exit_points);
+}
+
+
+class cov_G_Builder_nested_adjMarkers : public ::testing::Test {
+protected:
+    void SetUp() {
+        // A nested string with adjacent variant markers
+        // Namely due to: i)direct deletion and ii)double entry
+        std::string prg_string{"[A,]A[[G,A]A,C]"};
+        marker_vec v = prg_string_to_ints(prg_string);
+        PRG_String p{v};
+        p.process();
+        c = cov_Graph_Builder{p};
+        c.run();
+    }
+    cov_Graph_Builder c;
+};
+
+TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
+    //"[A,]A[[G,A]A,C]"
+    covG_ptr entry;
+   entry = c.bubble_starts.at(5);
+   EXPECT_EQ(entry, c.random_access[0].node); // Consistent site numbering, sanity check
+   auto& expected_exit = c.bubble_ends.at(5);
+   // Expect direct edge between the site starting at index 0 and its site end
+   EXPECT_EQ(entry->get_edges().back(), expected_exit);
+
+    entry = c.bubble_starts.at(7);
+    EXPECT_EQ(entry, c.random_access[5].node); // Consistent site numbering, sanity check
+    auto& expected_next_entry = c.bubble_starts.at(9);
+    // Expect direct edge between the site starting at index 5 and the site starting at index 6
+    EXPECT_EQ(entry->get_edges()[0], expected_next_entry);
+};

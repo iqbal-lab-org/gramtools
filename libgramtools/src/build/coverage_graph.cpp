@@ -55,10 +55,12 @@ void cov_Graph_Builder::process_marker(uint32_t const &pos) {
     }
 
     // Set up random access
-    auto seq_size = cur_Node->get_sequence_size();
+    covG_ptr target;
+    t == marker_type::sequence ? target = cur_Node : target = backWire;
+    auto seq_size = target->get_sequence_size();
     if (seq_size <= 1) // Will include all site entry and exit nodes, and sequence nodes with a single character
-        random_access[pos] = node_access{cur_Node, 0};
-    else random_access[pos] = node_access{cur_Node, seq_size - 1};
+        random_access[pos] = node_access{target, 0};
+    else random_access[pos] = node_access{target, seq_size - 1};
 }
 
 marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
@@ -126,20 +128,18 @@ void cov_Graph_Builder::exit_site(Marker const &m) {
     auto site_ID = m - 1;
     auto site_exit = reach_allele_end(m);
 
-    int allele_ID;
     // Update the current Locus
     try {
         cur_Locus = par_map.at(site_ID);
-        allele_ID = cur_Locus.second;
     }
-    catch(std::out_of_range&e){ // Means we were in a level 1 site; we will no longer be in a site
+    // Means we were in a level 1 site; we will no longer be in a site
+    catch(std::out_of_range&e){
         cur_Locus = std::make_pair(0,0);
-        allele_ID = 0;
     }
 
     backWire = site_exit;
     cur_pos = site_exit->get_pos(); // Take the largest allele pos as the new current pos.
-    cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, site_ID, allele_ID));
+    cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, cur_Locus.first, cur_Locus.second));
 }
 
 covG_ptr cov_Graph_Builder::reach_allele_end(Marker const& m){
