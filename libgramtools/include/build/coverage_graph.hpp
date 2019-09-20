@@ -5,12 +5,18 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <stack>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/unordered_map.hpp>
 
 using namespace gram;
 using seqPos = int32_t;
 
 /**
- * The building blocks of a coverage graph
+ * The building blocks of a `coverage_Graph`
  * Contain sequence, site & allele ID, coverage array
  */
 class coverage_Node {
@@ -30,6 +36,10 @@ public:
      * Equivalence in a set is defined using this, so we also test whether the pointers are the same objects.
      */
     friend bool operator>(const covG_ptr &lhs, const covG_ptr &rhs);
+
+    friend bool operator==(coverage_Node const& f, coverage_Node const& s);
+
+    friend std::ostream& operator<<(std::ostream& out, coverage_Node const& node);
 
     bool has_sequence() { return sequence.size() != 0; };
 
@@ -65,6 +75,19 @@ private:
     std::vector<uint64_t> coverage;
     bool is_site_boundary;
     std::vector<covG_ptr> next;
+
+    // Boost serialisation
+    friend class boost::serialization::access;
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version){
+        ar & sequence;
+        ar & site_ID;
+        ar & allele_ID;
+        ar & pos;
+        ar & coverage;
+        ar & is_site_boundary;
+        ar & next; // Array of shared pointers, needs custom includes
+    }
 };
 
 using covG_ptr = boost::shared_ptr<coverage_Node>;
@@ -72,6 +95,14 @@ using marker_to_node = std::unordered_map<Marker, covG_ptr>;
 struct node_access{
     covG_ptr node;
     seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
+private:
+    // Boost serialisation
+    friend class boost::serialization::access;
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version){
+       ar & node;
+       ar & offset;
+    }
 };
 using access_vec = std::vector<node_access>;
 
@@ -84,6 +115,7 @@ public:
 
     covG_ptr root;
 
+    coverage_Graph() = default;
     /**
      * Build a coverage graph from a PRG String int vector.
      */
@@ -106,6 +138,19 @@ public:
      * Use : per base coverage recording
      */
     access_vec random_access;
+
+    friend bool operator==(coverage_Graph const& f, coverage_Graph const& s);
+
+private:
+    // Boost serialisation
+    friend class boost::serialization::access;
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version){
+       ar & root;
+       ar & bubble_map;
+       ar & par_map;
+       ar & random_access;
+    }
 };
 
 enum class marker_type {

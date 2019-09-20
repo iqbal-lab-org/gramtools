@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "build/coverage_graph.hpp"
+#include <boost/filesystem.hpp>
 
 using namespace gram;
 
@@ -256,4 +257,33 @@ TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
     }
 
     EXPECT_EQ(seen_entries, expected);
+}
+
+// Make a coverage graph, serialise it to disk, reload into another coverage graph,
+// and test the two are equal (provided equality has been properly defined).
+TEST(coverage_Graph, Serialisation){
+    std::string prg_string{"[A,]A[[G,A]A,C,T]"};
+    marker_vec v = prg_string_to_ints(prg_string);
+    PRG_String p{v};
+    p.process();
+    coverage_Graph serialised_cov_G{p};
+
+    boost::filesystem::path path(boost::filesystem::current_path() / "test_data/tmp.ar");
+
+    // Dump to disk
+    {
+        std::ofstream ofs{path.generic_string()};
+        EXPECT_TRUE(ofs); // Can make this file
+        boost::archive::binary_oarchive oa{ofs};
+        oa << serialised_cov_G;
+    }
+    EXPECT_TRUE(boost::filesystem::exists(path)); // Have made this file
+
+    // Load from disk
+    coverage_Graph loaded_cov_G;
+    std::ifstream ifs{path.generic_string()};
+    boost::archive::binary_iarchive ia{ifs};
+    ia >> loaded_cov_G;
+
+    EXPECT_TRUE(serialised_cov_G == loaded_cov_G);
 }

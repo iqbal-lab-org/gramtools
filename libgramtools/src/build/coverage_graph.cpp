@@ -2,10 +2,22 @@
 
 coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
     auto built_graph = cov_Graph_Builder(vec_in);
+    built_graph.run();
     root = built_graph.root;
     bubble_map = std::move(built_graph.bubble_map);
     par_map = std::move(built_graph.par_map);
     random_access = std::move(built_graph.random_access);
+}
+
+bool operator==(coverage_Graph const& f, coverage_Graph const& s){
+    // Test that the random_access vectors are the same, by testing each node
+    if (f.random_access.size() != s.random_access.size()) return false;
+    for (int i = 0; i < f.random_access.size(); ++i){
+        bool same_node = (*(f.random_access[i].node) == *(s.random_access[i].node));
+        if (!same_node) return false;
+    }
+
+    return (f.par_map == s.par_map);
 }
 
 cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
@@ -169,4 +181,28 @@ bool operator>(const covG_ptr &lhs, const covG_ptr &rhs) {
     if (lhs->pos == rhs->pos) {
         return lhs.get() > rhs.get();
     } else return lhs->pos > rhs->pos;
+}
+
+bool operator==(coverage_Node const& f, coverage_Node const& s){
+    // Note: could test recursively by testing equality of edges (`next`)
+    return (
+            f.sequence == s.sequence &&
+            f.pos == s.pos &&
+            f.site_ID == s.site_ID &&
+            f.allele_ID == s.allele_ID &&
+            f.coverage == s.coverage &&
+            f.is_site_boundary == s.is_site_boundary
+    );
+}
+
+std::ostream& operator<<(std::ostream& out, coverage_Node const& node){
+   out << "Seq: " << node.sequence << std::endl;
+    out << "Pos: " << node.pos << std::endl;
+    out << "Site ID: " << node.site_ID << std::endl;
+    out << "Allele ID: " << node.allele_ID << std::endl;
+    out << "Cov: ";
+    for (auto &s : node.coverage) std::cout << s << " ";
+    std::cout << std::endl;
+    out << "Is a site boundary: " << node.is_site_boundary << std::endl;
+   return out;
 }
