@@ -37,6 +37,8 @@ public:
      */
     friend bool operator>(const covG_ptr &lhs, const covG_ptr &rhs);
 
+    friend bool compare_nodes(coverage_Node const& f, coverage_Node const& s);
+
     friend bool operator==(coverage_Node const& f, coverage_Node const& s);
 
     friend std::ostream& operator<<(std::ostream& out, coverage_Node const& node);

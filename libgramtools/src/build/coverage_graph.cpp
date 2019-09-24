@@ -184,7 +184,17 @@ bool operator>(const covG_ptr &lhs, const covG_ptr &rhs) {
 }
 
 bool operator==(coverage_Node const& f, coverage_Node const& s){
-    // Note: could test recursively by testing equality of edges (`next`)
+    bool same_nodes = compare_nodes(f,s); // Compare the nodes directly
+    if (!same_nodes || f.next.size() != s.next.size()) return false;
+    // And now compare the outgoing edges as well (but not recursively)
+    for (int i = 0; i < f.next.size(); ++i){
+        same_nodes = compare_nodes(*(f.next[i]), *(s.next[i]));
+        if (!same_nodes) return false;
+    }
+    return true;
+}
+
+bool compare_nodes(coverage_Node const& f, coverage_Node const& s){
     return (
             f.sequence == s.sequence &&
             f.pos == s.pos &&

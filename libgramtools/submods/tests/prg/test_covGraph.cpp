@@ -3,7 +3,7 @@
 #include <boost/filesystem.hpp>
 
 using namespace gram;
-
+auto const test_data_dir = boost::filesystem::path(__FILE__).parent_path().parent_path() / "test_data";
 
 /*
  * -----------------------
@@ -12,9 +12,27 @@ using namespace gram;
  */
 
 TEST(PRGString, Load_from_File){
-    std::string fin = "/home/brice/Desktop/git_repos/prg_string_construction/python_make_prg/test_data/twoSegregatingClasses.fasta.max_nest10.min_match7.bin";
-    PRG_String l = PRG_String(fin);
-    for (auto& s : l.get_PRG_string()) std::cout << s;
+    /*
+     * The tested file is the binary output of running `make_prg` on the following MSA:
+                             ">R1\n"
+                             "AAAAAAAAA\n"
+                             ">R2\n"
+                             "AATAAAAAA\n"
+                             ">R3\n"
+                             "AAAAATAAA\n"
+                             ">R4\n"
+                             "TTTTTTTTT\n"
+                             ">R5\n"
+                             "TTATTTTTT\n"
+                             ">R6\n"
+                             "TTTTTATTT\n";
+     */
+    boost::filesystem::path path(test_data_dir / "twoSegregatingClasses.fasta.max_nest10.min_match1.bin");
+    PRG_String l = PRG_String(path.generic_string());
+    l.process();
+    std::string expected{"[AA[A,T]AA[A,T]AAA,TT[A,T]TT[A,T]TTT]"};
+    auto res = ints_to_prg_string(l.get_PRG_string());
+    EXPECT_EQ(expected, res);
 }
 
 TEST(PRGString, Load_fromIntVector){
@@ -268,7 +286,7 @@ TEST(coverage_Graph, Serialisation){
     p.process();
     coverage_Graph serialised_cov_G{p};
 
-    boost::filesystem::path path(boost::filesystem::current_path() / "test_data/tmp.ar");
+    boost::filesystem::path path(test_data_dir / "tmp.ar");
 
     // Dump to disk
     {
