@@ -277,6 +277,15 @@ TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
     EXPECT_EQ(seen_entries, expected);
 }
 
+// Test that the parental map deals with adjacent markers
+TEST_F(cov_G_Builder_nested_adjMarkers, ParentalMap) {
+    //"[A,]A[[G,A]A,C,T]"
+    parental_map expected {
+            {7 , VariantLocus{5, 1} }
+    };
+    EXPECT_EQ(c.par_map, expected);
+}
+
 // Make a coverage graph, serialise it to disk, reload into another coverage graph,
 // and test the two are equal (provided equality has been properly defined).
 TEST(coverage_Graph, Serialisation){

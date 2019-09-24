@@ -92,11 +92,16 @@ private:
     }
 };
 
+/*
+ * Data structures
+ */
 using covG_ptr = boost::shared_ptr<coverage_Node>;
 using marker_to_node = std::unordered_map<Marker, covG_ptr>;
+
 struct node_access{
     covG_ptr node;
     seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
+    Marker target; // If the preceding character is a variant marker, gives what it is.
 private:
     // Boost serialisation
     friend class boost::serialization::access;
@@ -106,7 +111,13 @@ private:
        ar & offset;
     }
 };
+
+struct targeted_marker{
+    Marker ID;
+    Marker direct_deletion_allele; // 0 if not a direct deletion, the allele ID if it is.
+};
 using access_vec = std::vector<node_access>;
+using target_m = std::unordered_map<Marker, std::vector<targeted_marker>>;
 
 /**
 * This class implements a DAG of `coverage_Node`s.
@@ -141,6 +152,12 @@ public:
      */
     access_vec random_access;
 
+    /**
+     * Map from a variant marker to all variant markers it is directly linked to.
+     * Use: read mapping
+     */
+    target_m target_map;
+
     friend bool operator==(coverage_Graph const& f, coverage_Graph const& s);
 
 private:
@@ -171,7 +188,7 @@ public:
      */
     cov_Graph_Builder(PRG_String const &prg_string);
 
-    void run();
+    void run(); /** Actually builds the graph */
 
     /*
      * 'Internal' functions
@@ -181,8 +198,8 @@ public:
         ;
     };
 
-    void make_root(); //* Start state: set up the globals such as `cur_Node` & `backWire`
-    void make_sink(); //* End state: final wiring & pointers to null
+    void make_root(); /** Start state: set up the globals such as `cur_Node` & `backWire` */
+    void make_sink(); /** End state: final wiring & pointers to null */
     /**
      * Function call dispatcher based on marker at position @param pos.
      * Called once per element in `PRG_String`.
@@ -199,7 +216,21 @@ public:
      * `end_allele` & `exit_site`
      */
     covG_ptr reach_allele_end(Marker const &m);
-    void wire(covG_ptr const &target); // Build edges, 1 or 2, depending on whether `cur_Node` contains sequence.
+
+    void wire(covG_ptr const &target); /** Build 1 or 2 edges depending on whether `cur_Node` contains sequence. */
+
+    /**
+     * Makes the map of marker targets used during mapping
+     */
+    void map_targets();
+    void entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m);
+    void site_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID);
+    void allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID);
+    /**
+     * Site exit points can point to different variant markers (site start & end)
+     * Here we test for prior presence of the allele marker in the `target_map` and insert or update accordingly
+     */
+    void add_exit_target(Marker cur_m, targeted_marker& new_t_m);
 
     /*
      * variables & data structures
@@ -220,6 +251,7 @@ public:
     std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
     parental_map par_map;
     access_vec random_access;
+    target_m target_map;
 };
 
 #endif //COV_GRAPH_HPP

@@ -7,6 +7,7 @@ coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
     bubble_map = std::move(built_graph.bubble_map);
     par_map = std::move(built_graph.par_map);
     random_access = std::move(built_graph.random_access);
+    target_map = std::move(built_graph.target_map);
 }
 
 bool operator==(coverage_Graph const& f, coverage_Graph const& s){
@@ -71,8 +72,8 @@ void cov_Graph_Builder::process_marker(uint32_t const &pos) {
     t == marker_type::sequence ? target = cur_Node : target = backWire;
     auto seq_size = target->get_sequence_size();
     if (seq_size <= 1) // Will include all site entry and exit nodes, and sequence nodes with a single character
-        random_access[pos] = node_access{target, 0};
-    else random_access[pos] = node_access{target, seq_size - 1};
+        random_access[pos] = node_access{target, 0, 0};
+    else random_access[pos] = node_access{target, seq_size - 1, 0};
 }
 
 marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
@@ -176,6 +177,100 @@ void cov_Graph_Builder::wire(covG_ptr const &target) {
     }
     else backWire->add_edge(target);
 }
+
+void cov_Graph_Builder::map_targets(){
+   marker_type prev_t = marker_type::sequence;
+   Marker prev_m = 0;
+   marker_type cur_t;
+   Marker cur_m;
+   Marker cur_allele_ID = 0;
+
+   int pos = -1;
+   while (pos < linear_prg.size()){
+       pos++;
+       cur_m = linear_prg[pos];
+       cur_t = find_marker_type(pos);
+
+       switch(cur_t){
+           case marker_type::sequence:
+               if (prev_t != marker_type::sequence) random_access[pos].target = prev_m; // Adds a target for the sequence character
+               break;
+           case marker_type::site_entry:
+               cur_allele_ID = 1;
+               if (prev_t != marker_type::sequence) entry_targets(prev_t, prev_m, cur_m);
+               break;
+           case marker_type::site_end:
+               // This is not the true allele ID (as given by the parental map), but for
+               // our intents it is enough to set it to a null value
+               if (prev_t != marker_type::sequence) site_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
+               cur_allele_ID = 0;
+               break;
+           case marker_type::allele_end:
+               if (prev_t != marker_type::sequence) allele_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
+               cur_allele_ID++;
+               break;
+       }
+       prev_m = cur_m;
+       prev_t = cur_t;
+
+   }
+};
+
+void cov_Graph_Builder::entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m){
+    Marker inserted;
+    switch(prev_t){
+        case marker_type::site_entry: // Double entry
+        case marker_type::site_end: // End site goes straight to start site
+            inserted = prev_m;
+            break;
+        case marker_type::allele_end: // Double entry
+            inserted = prev_m - 1;
+        break;
+    }
+    auto new_vec = std::vector<targeted_marker>();
+    targeted_marker new_targeted_marker{inserted, 0};
+    new_vec.emplace_back(new_targeted_marker);
+    target_map.insert(std::make_pair(cur_m, new_vec));
+};
+
+void cov_Graph_Builder::site_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID){
+assert(prev_t != marker_type::site_entry); // Reject empty variant sites
+    targeted_marker new_targeted_marker{prev_m, 0};
+    switch(prev_t) {
+        case marker_type::site_end: // Double exit
+            add_exit_target(cur_m, new_targeted_marker);
+            break;
+        case marker_type::allele_end: // Direct deletion
+            new_targeted_marker.direct_deletion_allele = cur_allele_ID;
+            add_exit_target(cur_m, new_targeted_marker);
+            break;
+    }
+};
+
+void cov_Graph_Builder::allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID) {
+    targeted_marker new_targeted_marker{prev_m, 0};
+    switch(prev_t) {
+        case marker_type::site_end: // Double exit
+            add_exit_target(cur_m, new_targeted_marker);
+            break;
+        case marker_type::site_entry: // Direct deletion
+        case marker_type::allele_end: // Direct deletion
+            new_targeted_marker.ID--; // Switch to the site (odd) marker
+            new_targeted_marker.direct_deletion_allele = cur_allele_ID;
+            add_exit_target(cur_m, new_targeted_marker);
+            break;
+    }
+}
+
+void cov_Graph_Builder::add_exit_target(Marker cur_m, targeted_marker& new_t_m){
+    auto new_vec = std::vector<targeted_marker>();
+    new_vec.emplace_back(new_t_m);
+    if (target_map.find(cur_m) != target_map.end()){
+        target_map.at(cur_m).emplace_back(new_t_m);
+    }
+    else target_map.insert(std::make_pair(cur_m, new_vec));
+}
+
 
 bool operator>(const covG_ptr &lhs, const covG_ptr &rhs) {
     if (lhs->pos == rhs->pos) {
