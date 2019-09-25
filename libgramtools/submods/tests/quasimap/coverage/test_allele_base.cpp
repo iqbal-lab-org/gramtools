@@ -11,41 +11,41 @@
 
 using namespace gram;
 
-
 /*
-PRG: GCT5C6G6T6AG7T8C8CT
-i	BWT	SA	text_suffix
-0	T	19
-1	6	10	A G 7 T 8 C 8 C T
-2	8	17	C T
-3	G	1	C T 5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-4	5	4	C 6 G 6 T 6 A G 7 T 8 C 8 C T
-5	8	15	C 8 C T
-6	0	0	G C T 5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-7	6	6	G 6 T 6 A G 7 T 8 C 8 C T
-8	A	11	G 7 T 8 C 8 C T
-9	C	18	T
-10	C	2	T 5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-11	6	8	T 6 A G 7 T 8 C 8 C T
-12	7	13	T 8 C 8 C T
-13	T	3	5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-14	T	9	6 A G 7 T 8 C 8 C T
-15	C	5	6 G 6 T 6 A G 7 T 8 C 8 C T
-16	G	7	6 T 6 A G 7 T 8 C 8 C T
-17	G	12	7 T 8 C 8 C T
-18	C	16	8 C T
-19	T	14	8 C 8 C T
+PRG: GCT5C6AA6T6AG7T8C8CT
+        i	BWT	SA	text_suffix
+0	T	20	0
+1	6	6	A A 6 T 6 A G 7 T 8 C 8 C T 0
+2	6	11	A G 7 T 8 C 8 C T 0
+3	A	7	A 6 T 6 A G 7 T 8 C 8 C T 0
+4	8	18	C T 0
+5	G	1	C T 5 C 6 A A 6 T 6 A G 7 T 8 C 8 C T 0
+6	5	4	C 6 A A 6 T 6 A G 7 T 8 C 8 C T 0
+7	8	16	C 8 C T 0
+8	0	0	G C T 5 C 6 A A 6 T 6 A G 7 T 8 C 8 C T 0
+9	A	12	G 7 T 8 C 8 C T 0
+10	C	19	T 0
+11	C	2	T 5 C 6 A A 6 T 6 A G 7 T 8 C 8 C T 0
+12	6	9	T 6 A G 7 T 8 C 8 C T 0
+13	7	14	T 8 C 8 C T 0
+14	T	3	5 C 6 A A 6 T 6 A G 7 T 8 C 8 C T 0
+15	C	5	6 A A 6 T 6 A G 7 T 8 C 8 C T 0
+16	T	10	6 A G 7 T 8 C 8 C T 0
+17	A	8	6 T 6 A G 7 T 8 C 8 C T 0
+18	G	13	7 T 8 C 8 C T 0
+19	C	17	8 C T 0
+20	T	15	8 C 8 C T 0
 */
 
 TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8ct";
+    auto prg_raw = "gct5c6aa6t6ag7t8c8ct";
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
-    uint64_t read_length = 150;
+    uint64_t read_length = 6;
 
     SearchState search_state = {
-            SA_Interval{3, 3},
+            SA_Interval{11, 11},
             VariantSitePath{
                     VariantLocus{5, 2},
                     VariantLocus{7, 2},
@@ -56,12 +56,20 @@ TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
 
     auto &result = coverage.allele_base_coverage;
     SitesAlleleBaseCoverage expected = {
-            {{0}, {1}, {0}},
+            {{0}, {1, 1}, {0}},
             {{0}, {1}},
     };
     EXPECT_EQ(result, expected);
 }
 
+TEST(Site_Boundaries, Get_Start_Ends){
+    auto prg_raw = "gct5c6aa6t6ag7t8c8ct";
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto site_boundaries = gram::site_marker_prg_indexes(5,prg_info);
+    EXPECT_EQ(site_boundaries.first, 3);
+    EXPECT_EQ(site_boundaries.second, 10);
+}
 
 /*
 PRG: GCT5C6G6T6AG7T8CC8CT
