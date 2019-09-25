@@ -251,6 +251,46 @@ TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
     EXPECT_EQ(entry->get_edges()[0], expected_next_entry);
 };
 
+// Tests the target mapping is correct
+TEST_F(cov_G_Builder_nested_adjMarkers, targetEntries){
+    //"[A,]A[[G,A]A,C,T]"
+    /**
+     * First, check that nucleotide positions just after a marker target the correct marker
+     */
+   std::vector<Marker> expected_nt_targets = {
+           0, 5, 0, 0, 6, 0, 0, 9, 0, 10, 0, 10, 0, 8, 0, 8, 0
+   };
+
+   std::vector<Marker> result(expected_nt_targets.size(), 0);
+   int pos = -1;
+   for (auto& e : c.random_access){
+       pos++;
+       result[pos] = e.target;
+   }
+   EXPECT_EQ(result, expected_nt_targets);
+
+   /**
+    * Second, check that adjacent variant markers get correct entries in the target map
+    */
+    int num_to_add = 2;
+    std::vector<targeted_marker> v;
+    Marker seed;
+    target_m expected_map;
+    // First add in the direct deletion at pos 3
+    seed = 6;
+   v.emplace_back(targeted_marker{5, 2});
+   expected_map.insert(std::make_pair(seed, v));
+   v.clear();
+
+   // Second add the double start at pos 6
+   seed = 9;
+   v.emplace_back(targeted_marker{7,0});
+    expected_map.insert(std::make_pair(seed, v));
+    v.clear();
+
+    EXPECT_EQ(c.target_map, expected_map);
+}
+
 // Test for the number of sites, and that each "," character amounts to returning to the site entry point
 TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
     //"[A,]A[[G,A]A,C,T]"
@@ -281,7 +321,7 @@ TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
 TEST_F(cov_G_Builder_nested_adjMarkers, ParentalMap) {
     //"[A,]A[[G,A]A,C,T]"
     parental_map expected {
-            {7 , VariantLocus{5, 1} }
+            {9 , VariantLocus{7, 1} }
     };
     EXPECT_EQ(c.par_map, expected);
 }

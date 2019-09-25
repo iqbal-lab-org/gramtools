@@ -99,7 +99,7 @@ using covG_ptr = boost::shared_ptr<coverage_Node>;
 using marker_to_node = std::unordered_map<Marker, covG_ptr>;
 
 struct node_access{
-    covG_ptr node;
+    covG_ptr node; // The referred to node in the `coverage_Graph`
     seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
     Marker target; // If the preceding character is a variant marker, gives what it is.
 private:
@@ -109,13 +109,24 @@ private:
     void serialize(Archive& ar, const unsigned int version){
        ar & node;
        ar & offset;
+       ar & target;
     }
 };
 
 struct targeted_marker{
     Marker ID;
     Marker direct_deletion_allele; // 0 if not a direct deletion, the allele ID if it is.
+    friend bool operator==(targeted_marker const& f, targeted_marker const& s);
+private:
+    // Boost serialisation
+    friend class boost::serialization::access;
+    template <typename Archive>
+    void serialize(Archive& ar, const unsigned int version){
+        ar & ID;
+        ar & direct_deletion_allele;
+    }
 };
+
 using access_vec = std::vector<node_access>;
 using target_m = std::unordered_map<Marker, std::vector<targeted_marker>>;
 
@@ -169,6 +180,7 @@ private:
        ar & bubble_map;
        ar & par_map;
        ar & random_access;
+       ar & target_map;
     }
 };
 

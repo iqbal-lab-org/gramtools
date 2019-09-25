@@ -1,3 +1,4 @@
+#include <build/coverage_graph.hpp>
 #include "build/coverage_graph.hpp"
 
 coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
@@ -12,13 +13,19 @@ coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
 
 bool operator==(coverage_Graph const& f, coverage_Graph const& s){
     // Test that the random_access vectors are the same, by testing each node
+    node_access first;
+    node_access second;
     if (f.random_access.size() != s.random_access.size()) return false;
     for (int i = 0; i < f.random_access.size(); ++i){
-        bool same_node = (*(f.random_access[i].node) == *(s.random_access[i].node));
+        first = f.random_access[i];
+        second = s.random_access[i];
+        bool same_node = (*(first.node) == *(second.node));
         if (!same_node) return false;
+        if (first.offset != second.offset) return false;
+        if (first.target != second.target) return false;
     }
 
-    return (f.par_map == s.par_map);
+    return (f.par_map == s.par_map && f.target_map == s.target_map);
 }
 
 cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
@@ -32,6 +39,7 @@ cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
 void cov_Graph_Builder::run() {
     for(uint32_t i = 0; i < linear_prg.size(); ++i) process_marker(i);
     make_sink();
+    map_targets();
 }
 
 void cov_Graph_Builder::make_root() {
@@ -185,9 +193,8 @@ void cov_Graph_Builder::map_targets(){
    Marker cur_m;
    Marker cur_allele_ID = 0;
 
-   int pos = -1;
+   int pos = 0;
    while (pos < linear_prg.size()){
-       pos++;
        cur_m = linear_prg[pos];
        cur_t = find_marker_type(pos);
 
@@ -212,7 +219,7 @@ void cov_Graph_Builder::map_targets(){
        }
        prev_m = cur_m;
        prev_t = cur_t;
-
+       pos++;
    }
 };
 
@@ -241,7 +248,7 @@ assert(prev_t != marker_type::site_entry); // Reject empty variant sites
             add_exit_target(cur_m, new_targeted_marker);
             break;
         case marker_type::allele_end: // Direct deletion
-            new_targeted_marker.direct_deletion_allele = cur_allele_ID;
+            new_targeted_marker = targeted_marker{prev_m - 1, cur_allele_ID};
             add_exit_target(cur_m, new_targeted_marker);
             break;
     }
@@ -255,7 +262,7 @@ void cov_Graph_Builder::allele_exit_targets(marker_type prev_t, Marker prev_m, M
             break;
         case marker_type::site_entry: // Direct deletion
         case marker_type::allele_end: // Direct deletion
-            new_targeted_marker.ID--; // Switch to the site (odd) marker
+            new_targeted_marker.ID--; // Switch to targeting the site (odd) marker
             new_targeted_marker.direct_deletion_allele = cur_allele_ID;
             add_exit_target(cur_m, new_targeted_marker);
             break;
@@ -310,4 +317,8 @@ std::ostream& operator<<(std::ostream& out, coverage_Node const& node){
     std::cout << std::endl;
     out << "Is a site boundary: " << node.is_site_boundary << std::endl;
    return out;
+}
+
+bool operator==(targeted_marker const& f, targeted_marker const& s){
+    return f.ID == s.ID && f.direct_deletion_allele == s.direct_deletion_allele;
 }
