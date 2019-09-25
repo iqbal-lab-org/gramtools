@@ -4,6 +4,21 @@
 
 using namespace gram;
 
+marker_map gram::map_site_ends(sdsl::int_vector<> const& encoded_prg) {
+    marker_map last_allele_indices;
+    int pos{-1};
+    for (auto const& s : encoded_prg) {
+        pos++;
+        if (s <= 4) continue;
+            if (s % 2 == 1) continue;
+                if (last_allele_indices.find(s) != last_allele_indices.end()) {
+                    last_allele_indices.erase(s);
+                }
+                last_allele_indices.insert({s, pos});
+    }
+    return last_allele_indices;
+}
+
 uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
                             const Marker &dna_base,
                             const PRG_Info &prg_info) {
@@ -150,6 +165,7 @@ PRG_Info gram::load_prg_info(const Parameters &parameters) {
     PRG_Info prg_info = {};
 
     prg_info.encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
+    prg_info.last_allele_positions = map_site_ends(prg_info.encoded_prg);
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
 
     prg_info.fm_index = load_fm_index(parameters);

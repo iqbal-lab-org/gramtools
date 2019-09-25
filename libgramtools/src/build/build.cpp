@@ -27,6 +27,8 @@ void commands::build::run(const Parameters &parameters) {
               << prg_info.encoded_prg.size()
               << std::endl;
 
+    prg_info.last_allele_positions = map_site_ends(prg_info.encoded_prg);
+
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
     std::cout << "Maximum alphabet character: " << prg_info.max_alphabet_num << std::endl;
     if (prg_info.max_alphabet_num <= 4) { // No personalised reference to infer; exit

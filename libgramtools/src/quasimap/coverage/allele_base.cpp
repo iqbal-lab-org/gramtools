@@ -98,15 +98,13 @@ uint64_t gram::set_site_base_coverage(Coverage &coverage,
 std::pair<uint64_t, uint64_t> gram::site_marker_prg_indexes(const uint64_t &site_marker, const PRG_Info &prg_info) {
     auto alphabet_rank = prg_info.fm_index.char2comp[site_marker];
     auto first_sa_index = prg_info.fm_index.C[alphabet_rank];
-    auto second_sa_index = first_sa_index + 1;
 
     auto first_prg_index = prg_info.fm_index[first_sa_index];
-    auto second_prg_index = prg_info.fm_index[second_sa_index];
+    // Need to be sure we are dealing with a site marker so that we know we can look for its even counterpart in map
+    assert(site_marker % 2 == 1);
+    auto second_prg_index = prg_info.last_allele_positions.at(site_marker + 1);
 
-    if (first_prg_index < second_prg_index)
-        return std::make_pair(first_prg_index, second_prg_index);
-    else
-        return std::make_pair(second_prg_index, first_prg_index);
+    return std::make_pair(first_prg_index, second_prg_index);
 }
 
 
@@ -165,6 +163,9 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         if (last_site_prg_start_end.first != 0) {
             site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
             read_bases_consumed += site_prg_start_end.first - last_site_prg_start_end.second - 1;
+            if (read_bases_consumed > read_length) throw std::out_of_range(
+                    "ERROR:Consumed more bases than the read length."
+                    "Check that the site boundaries are properly detected.");
         }
         last_site_prg_start_end = site_prg_start_end;
 

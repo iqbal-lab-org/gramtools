@@ -19,12 +19,14 @@
 
 namespace gram {
 
+    using marker_map = std::unordered_map<Marker,int>;
     /**
      * The key data structure holding all of the information used for vBWT backward search.
      */
     struct PRG_Info {
         FM_Index fm_index; /**< FM_index as a `sdsl::csa_wt` from the `sdsl` library. @note Accessing this data structure ([]) accesses the suffix array. */
         sdsl::int_vector<> encoded_prg;
+        marker_map last_allele_positions;
 
         sdsl::int_vector<> sites_mask; /**< Stores the site number at each allele position. Variant markers and outside variant sites get 0.*/
         sdsl::int_vector<> allele_mask; /**< Stores the allele index at each allele position. Variant markers and outside variant sites get 0. */
@@ -45,6 +47,11 @@ namespace gram {
 
         uint64_t max_alphabet_num;
     };
+
+    /**
+     * Maps the end positions of sites, producing a map with keys being the even `Marker` for that site.
+     */
+    marker_map map_site_ends(sdsl::int_vector<> const& encoded_prg);
 
     /**
      * Performs a rank query on the BWT. given a `dna_base` and a `upper_index`.

@@ -19,6 +19,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
     PRG_Info prg_info;
     prg_info.fm_index = generate_fm_index(parameters);
     prg_info.encoded_prg = encoded_prg;
+    prg_info.last_allele_positions = map_site_ends(prg_info.encoded_prg);
     prg_info.sites_mask = generate_sites_mask(encoded_prg);
     prg_info.allele_mask = generate_allele_mask(encoded_prg);
 
