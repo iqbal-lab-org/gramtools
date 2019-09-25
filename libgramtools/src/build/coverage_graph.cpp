@@ -207,9 +207,11 @@ void cov_Graph_Builder::map_targets(){
                if (prev_t != marker_type::sequence) entry_targets(prev_t, prev_m, cur_m);
                break;
            case marker_type::site_end:
-               // This is not the true allele ID (as given by the parental map), but for
-               // our intents it is enough to set it to a null value
-               if (prev_t != marker_type::sequence) site_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
+               if (prev_t != marker_type::sequence)
+                   // Reject empty variant sites by prohibiting prev_t to be a site entry
+                   assert(prev_t != marker_type::site_entry);
+                   allele_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
+               // This is not guaranteed to be the true allele ID (as given by the parental map), but it is enough to set it 'null'
                cur_allele_ID = 0;
                break;
            case marker_type::allele_end:
@@ -240,21 +242,8 @@ void cov_Graph_Builder::entry_targets(marker_type prev_t, Marker prev_m, Marker 
     target_map.insert(std::make_pair(cur_m, new_vec));
 };
 
-void cov_Graph_Builder::site_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID){
-assert(prev_t != marker_type::site_entry); // Reject empty variant sites
-    targeted_marker new_targeted_marker{prev_m, 0};
-    switch(prev_t) {
-        case marker_type::site_end: // Double exit
-            add_exit_target(cur_m, new_targeted_marker);
-            break;
-        case marker_type::allele_end: // Direct deletion
-            new_targeted_marker = targeted_marker{prev_m - 1, cur_allele_ID};
-            add_exit_target(cur_m, new_targeted_marker);
-            break;
-    }
-};
-
 void cov_Graph_Builder::allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID) {
+
     targeted_marker new_targeted_marker{prev_m, 0};
     switch(prev_t) {
         case marker_type::site_end: // Double exit
@@ -262,8 +251,7 @@ void cov_Graph_Builder::allele_exit_targets(marker_type prev_t, Marker prev_m, M
             break;
         case marker_type::site_entry: // Direct deletion
         case marker_type::allele_end: // Direct deletion
-            new_targeted_marker.ID--; // Switch to targeting the site (odd) marker
-            new_targeted_marker.direct_deletion_allele = cur_allele_ID;
+            new_targeted_marker = targeted_marker{prev_m - 1, cur_allele_ID}; // Switch to targeting the site (odd) marker
             add_exit_target(cur_m, new_targeted_marker);
             break;
     }

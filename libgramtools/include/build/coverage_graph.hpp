@@ -1,10 +1,25 @@
+/**
+ * @file
+ * Defines the `coverage_Graph`, a graph data structure containing:
+ *  - Sequence nodes (`coverage_Node`). Each node has:
+ *      - Nucleotide sequence
+ *      - Outgoing edges (pointers) to other nodes
+ *      - Coverage array to store per base coverage for each node
+ *      - Site and allele ID
+ *      - A position which refers to that in the original Multiple Sequence Alignment
+ *  - A bubble map (`coverage_Graph::bubble_map`), used to order the variant sites for both coverage recording and
+ *      genotyping
+ *  - A parental map (`coverage_Graph::par_map`), used for recording grouped allele counts coverage
+ *  - A target map (`coverage_Graph::target_map), used to place new `gram::SearchState`s at variant sites during quasimap.
+ *  - A random access array (`coverage_Graph::random_access`) used to place a mapped instance in the graph for per base
+ *      coverage recording.
+ */
 #ifndef COV_GRAPH_HPP
 #define COV_GRAPH_HPP
 
 #include "load_PRG_string.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <stack>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -152,8 +167,8 @@ public:
     std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
 
     /**
-     * Maps a site ID to a Locus which is its immediate parent in the graph
-     * Only populated for bubbles nested inside another bubble
+     * Maps a site ID to a Locus which is its immediate parent in the graph.
+     * Only populated for bubbles nested inside another bubble.
      * Use : equivalence class coverage recording
      */
     parental_map par_map;
@@ -236,7 +251,6 @@ public:
      */
     void map_targets();
     void entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m);
-    void site_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID);
     void allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID);
     /**
      * Site exit points can point to different variant markers (site start & end)
