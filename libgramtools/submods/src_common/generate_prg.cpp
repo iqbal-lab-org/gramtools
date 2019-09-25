@@ -32,9 +32,7 @@ PRG_Info generate_prg_info(const std::string &prg_raw) {
 
     prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
 
-    generate_dna_bwt_masks(prg_info.fm_index, parameters);
-    prg_info.dna_bwt_masks = load_dna_bwt_masks(prg_info.fm_index,
-                                                parameters);
+    prg_info.dna_bwt_masks = generate_bwt_masks(prg_info.fm_index, parameters);
     prg_info.rank_bwt_a = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_a);
     prg_info.rank_bwt_c = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_c);
     prg_info.rank_bwt_g = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_g);

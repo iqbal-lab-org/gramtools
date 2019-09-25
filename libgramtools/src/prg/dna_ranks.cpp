@@ -10,12 +10,23 @@ using namespace gram;
 /**
  * Generates a bit vector with bit set if the given DNA `base` is present at each index of the BWT.
  */
-sdsl::bit_vector generate_base_bwt_mask(const int_Base &base,
-                                        const FM_Index &fm_index) {
-    sdsl::bit_vector mask(fm_index.bwt.size(), 0);
-    for (uint64_t i = 0; i < fm_index.bwt.size(); i++)
-        mask[i] = fm_index.bwt[i] == base;
-    return mask;
+void populate_dna_bwt_masks(FM_Index const& fm_index, DNA_BWT_Masks& d_m) {
+    for (uint64_t i = 0; i < fm_index.bwt.size(); i++){
+        switch(fm_index.bwt[i]){
+            case 1:
+                d_m.mask_a[i] = true;
+                break;
+            case 2:
+                d_m.mask_c[i] = true;
+                break;
+            case 3:
+                d_m.mask_g[i] = true;
+                break;
+            case 4:
+                d_m.mask_t[i] = true;
+                break;
+        }
+    }
 }
 
 /**
@@ -37,24 +48,32 @@ std::string bwt_mask_fname(const std::string &base_char,
     return full_path.string();
 }
 
-void gram::generate_dna_bwt_masks(const FM_Index &fm_index,
-                                  const Parameters &parameters) {
-    auto a_mask = generate_base_bwt_mask(1, fm_index);
-    auto c_mask = generate_base_bwt_mask(2, fm_index);
-    auto g_mask = generate_base_bwt_mask(3, fm_index);
-    auto t_mask = generate_base_bwt_mask(4, fm_index);
+DNA_BWT_Masks gram::generate_bwt_masks(FM_Index const& fm_index,
+                              const Parameters &parameters) {
+    auto bwt_size = fm_index.bwt.size();
+    DNA_BWT_Masks d_m;
+    // Set storage for the bit masks
+    d_m.mask_a = sdsl::bit_vector(bwt_size, 0);
+    d_m.mask_c = sdsl::bit_vector(bwt_size, 0);
+    d_m.mask_g = sdsl::bit_vector(bwt_size, 0);
+    d_m.mask_t = sdsl::bit_vector(bwt_size, 0);
+
+    populate_dna_bwt_masks(fm_index, d_m);
+
 
     auto fpath = bwt_mask_fname("a", parameters);
-    sdsl::store_to_file(a_mask, fpath);
+    sdsl::store_to_file(d_m.mask_a, fpath);
 
     fpath = bwt_mask_fname("c", parameters);
-    sdsl::store_to_file(c_mask, fpath);
+    sdsl::store_to_file(d_m.mask_c, fpath);
 
     fpath = bwt_mask_fname("g", parameters);
-    sdsl::store_to_file(g_mask, fpath);
+    sdsl::store_to_file(d_m.mask_g, fpath);
 
     fpath = bwt_mask_fname("t", parameters);
-    sdsl::store_to_file(t_mask, fpath);
+    sdsl::store_to_file(d_m.mask_t, fpath);
+
+    return d_m;
 }
 
 
@@ -69,7 +88,7 @@ sdsl::bit_vector load_base_bwt_mask(const std::string &base_char,
 
 DNA_BWT_Masks gram::load_dna_bwt_masks(const FM_Index &fm_index,
                                        const Parameters &parameters) {
-    DNA_BWT_Masks dna_bwt_masks = {};
+    DNA_BWT_Masks dna_bwt_masks;
     dna_bwt_masks.mask_a = load_base_bwt_mask("a", parameters);
     dna_bwt_masks.mask_c = load_base_bwt_mask("c", parameters);
     dna_bwt_masks.mask_g = load_base_bwt_mask("g", parameters);

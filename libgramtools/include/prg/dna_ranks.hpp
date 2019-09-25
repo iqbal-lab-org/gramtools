@@ -21,8 +21,8 @@ namespace gram {
     /**
      * Generate BWT bit vector masks for each of A,C,G and T in the BWT of the prg.
      */
-    void generate_dna_bwt_masks(const FM_Index &fm_index,
-                                const Parameters &parameters);
+    DNA_BWT_Masks generate_bwt_masks(FM_Index const& fm_index,
+                                           const Parameters &parameters);
 
     DNA_BWT_Masks load_dna_bwt_masks(const FM_Index &fm_index,
                                      const Parameters &parameters);
