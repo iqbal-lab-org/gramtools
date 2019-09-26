@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "build/coverage_graph.hpp"
+#include "prg/coverage_graph.hpp"
 #include <boost/filesystem.hpp>
 
 using namespace gram;
@@ -29,23 +29,14 @@ TEST(PRGString, Load_from_File){
      */
     boost::filesystem::path path(test_data_dir / "twoSegregatingClasses.fasta.max_nest10.min_match1.bin");
     PRG_String l = PRG_String(path.generic_string());
-    l.process();
     std::string expected{"[AA[A,T]AA[A,T]AAA,TT[A,T]TT[A,T]TTT]"};
     auto res = ints_to_prg_string(l.get_PRG_string());
     EXPECT_EQ(expected, res);
 }
 
-TEST(PRGString, Load_fromIntVector){
-   marker_vec t{5,1,6,2,5};
-    PRG_String l = PRG_String(t);
-    marker_vec expected{5,1,6,2,5};
-    EXPECT_EQ(expected, l.get_PRG_string());
-}
-
 TEST(PRGString, ExitPoint_ConvertOddToEven){
     marker_vec t{5,1,6,2,5};
     PRG_String l = PRG_String(t);
-    l.process();
     EXPECT_EQ(true, l.odd_site_end_found);
     // The vector should now have even site marker exit points
     marker_vec expected = {5,1,6,2,6};
@@ -55,7 +46,6 @@ TEST(PRGString, ExitPoint_ConvertOddToEven){
 TEST(PRGString, ExitPoint_MapPositions){
     marker_vec t{5,1,6,2,7,1,8,3,8,6}; // Ie: "[A,C[A,T]]"
     PRG_String l = PRG_String(t);
-    l.process();
     std::unordered_map<Marker,int> expected_end_positions{
             {6 ,9},
             {8, 8}
@@ -78,7 +68,6 @@ protected:
         std::string prg_string{"[A,AA,A[A,C]A]C[AC,C]G"}; // A simple nested string
         marker_vec v = prg_string_to_ints(prg_string);
         PRG_String p{v};
-        p.process();
         c = cov_Graph_Builder{p};
     }
     cov_Graph_Builder c;
@@ -103,7 +92,6 @@ TEST_F(cov_G_Builder_nested, FindMarkerTypes){
 // Test that the parental map is correct
 TEST_F(cov_G_Builder_nested, ParentalMap){
     //"[A,AA,A[A,C]A]C[AC,C]G"
-    c.run();
     // Expecting to find a single entry, for the single nested site, pointing to siteID 5 & alleleID 3.
     parental_map expected {
             {7 , VariantLocus{5, 3} }
@@ -114,7 +102,6 @@ TEST_F(cov_G_Builder_nested, ParentalMap){
 // Test that the node site & allele IDs are correct
 TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
     //"[A,AA,A[A,C]A]C[AC,C]G"
-    c.run();
     auto const& rand_access = c.random_access;
     std::vector<VariantLocus> expected{
             {5, 0}, {5, 1}, {5, 0}, {5, 2}, {5, 2},
@@ -137,7 +124,6 @@ TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
 // Test that the size of the nodes is correct
 TEST_F(cov_G_Builder_nested, NodeSizes) {
     //"[A,AA,A[A,C]A]C[AC,C]G"
-    c.run();
     auto const &rand_access = c.random_access;
     // Note: these are UNIQUE nodes, so disregarding "," which point to bubble start node,
     // and sequence continuation for more than 1 consecutive nucleotides.
@@ -167,7 +153,6 @@ TEST_F(cov_G_Builder_nested, NodeSizes) {
 // Test that the node positions are correct
 TEST_F(cov_G_Builder_nested, SequencePositions) {
     //"[A,AA,A[A,C]A]C[AC,C]G"
-    c.run();
     auto const &rand_access = c.random_access;
     // The positions are not INDICES in the PRG string; they are the positions in the multiple-sequence alignment
     // giving rise to it. Draw the graph of the PRG string and take the LONGEST allele positions to obtain them.
@@ -187,7 +172,6 @@ TEST_F(cov_G_Builder_nested, SequencePositions) {
 TEST_F(cov_G_Builder_nested, Bubble_Positions){
     //"[A,AA,A[A,C]A]C[AC,C]G
     using i_v = std::vector<int>; // Stores indexes into PRG string
-    c.run();
     auto const &rand_access = c.random_access;
     // Note: allele separators (",") point to the site entry node, so we expect them here
     i_v expected_site_entry_points{
@@ -228,9 +212,7 @@ protected:
         std::string prg_string{"[A,]A[[G,A]A,C,T]"};
         marker_vec v = prg_string_to_ints(prg_string);
         PRG_String p{v};
-        p.process();
         c = cov_Graph_Builder{p};
-        c.run();
     }
     cov_Graph_Builder c;
 };
@@ -332,7 +314,6 @@ TEST(coverage_Graph, Serialisation){
     std::string prg_string{"[A,]A[[G,A]A,C,T]"};
     marker_vec v = prg_string_to_ints(prg_string);
     PRG_String p{v};
-    p.process();
     coverage_Graph serialised_cov_G{p};
 
     boost::filesystem::path path(test_data_dir / "tmp.ar");

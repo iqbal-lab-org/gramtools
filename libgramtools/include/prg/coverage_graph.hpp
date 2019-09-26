@@ -113,6 +113,10 @@ private:
 using covG_ptr = boost::shared_ptr<coverage_Node>;
 using marker_to_node = std::unordered_map<Marker, covG_ptr>;
 
+enum class marker_type {
+    sequence, site_entry, allele_end, site_end
+};
+
 struct node_access{
     covG_ptr node; // The referred to node in the `coverage_Graph`
     seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
@@ -199,9 +203,6 @@ private:
     }
 };
 
-enum class marker_type {
-    sequence, site_entry, allele_end, site_end
-};
 
 /**
  * A class in charge of mechanics of building coverage graph
@@ -211,28 +212,32 @@ enum class marker_type {
 class cov_Graph_Builder {
 public:
     /*
-     * FOR USER: All that's needed to make and run the object is under here
+     * All that's needed to make the object is under here
      */
     cov_Graph_Builder(PRG_String const &prg_string);
 
-    void run(); /** Actually builds the graph */
 
-    /*
-     * 'Internal' functions
-     */
     cov_Graph_Builder() {
         //std::cout << "WARNING: The builder needs a PRG_String object as constructor parameter to work properly.";
         ;
     };
 
-    void make_root(); /** Start state: set up the globals such as `cur_Node` & `backWire` */
-    void make_sink(); /** End state: final wiring & pointers to null */
+    // These will get transferred to the coverage_Graph
+    covG_ptr root;
+    std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
+    parental_map par_map;
+    access_vec random_access;
+    target_m target_map;
+
+    void make_root(); /**< Start state: set up the globals such as `cur_Node` & `backWire` */
+    void make_sink(); /**< End state: final wiring & pointers to null */
     /**
      * Function call dispatcher based on marker at position @param pos.
      * Called once per element in `PRG_String`.
      * @param pos index into the `PRG_String`
      */
     void process_marker(uint32_t const &pos);
+    void setup_random_access(uint32_t const& pos);
     void add_sequence(Marker const &m);
     marker_type find_marker_type(uint32_t const& pos);
     void enter_site(Marker const &m);
@@ -271,13 +276,6 @@ public:
 
     marker_to_node bubble_starts;
     marker_to_node bubble_ends;
-
-    // These will get transferred to the coverage_Graph
-    covG_ptr root;
-    std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
-    parental_map par_map;
-    access_vec random_access;
-    target_m target_map;
 };
 
 #endif //COV_GRAPH_HPP

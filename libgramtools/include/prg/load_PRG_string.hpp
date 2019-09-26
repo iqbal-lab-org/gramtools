@@ -27,14 +27,6 @@ public:
     /*
      * Functions
      */
-
-    /**
-     * PRG string traversal:
-     * -first to figure out the site ends
-     * -second to get parental relationships
-     */
-    void process();
-
     void write();
 
     void set_output_file(std::string const &fname) { output_file = fname; };

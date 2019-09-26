@@ -1,4 +1,4 @@
-#include <build/load_PRG_string.hpp>
+#include <prg/load_PRG_string.hpp>
 
 
 PRG_String::PRG_String(std::string const& file_in){
@@ -17,14 +17,12 @@ PRG_String::PRG_String(std::string const& file_in){
         }
     };
     output_file = file_in;
+    map_and_normalise_ends();
 }
 
 PRG_String::PRG_String(marker_vec const& v_in){
    my_PRG_string = std::move(v_in);
-};
-
-void PRG_String::process(){
-    map_and_normalise_ends();
+   map_and_normalise_ends();
 };
 
 void PRG_String::map_and_normalise_ends(){

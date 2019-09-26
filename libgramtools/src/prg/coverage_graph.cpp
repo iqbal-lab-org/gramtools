@@ -1,9 +1,7 @@
-#include <build/coverage_graph.hpp>
-#include "build/coverage_graph.hpp"
+#include "prg/coverage_graph.hpp"
 
 coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
     auto built_graph = cov_Graph_Builder(vec_in);
-    built_graph.run();
     root = built_graph.root;
     bubble_map = std::move(built_graph.bubble_map);
     par_map = std::move(built_graph.par_map);
@@ -34,10 +32,11 @@ cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
     end_positions = prg_string.get_end_positions();
     make_root();
     cur_Locus = std::make_pair(0, 0); // Meaning: there is currently no current Locus.
-}
 
-void cov_Graph_Builder::run() {
-    for(uint32_t i = 0; i < linear_prg.size(); ++i) process_marker(i);
+    for(uint32_t i = 0; i < linear_prg.size(); ++i) {
+        process_marker(i);
+        setup_random_access(i);
+    }
     make_sink();
     map_targets();
 }
@@ -74,15 +73,18 @@ void cov_Graph_Builder::process_marker(uint32_t const &pos) {
         case marker_type::site_end:
             exit_site(m);
     }
+}
 
+void cov_Graph_Builder::setup_random_access(uint32_t const& pos){
+    marker_type t = find_marker_type(pos);
     // Set up random access
     covG_ptr target;
     t == marker_type::sequence ? target = cur_Node : target = backWire;
     auto seq_size = target->get_sequence_size();
     if (seq_size <= 1) // Will include all site entry and exit nodes, and sequence nodes with a single character
-        random_access[pos] = node_access{target, 0, 0};
+    random_access[pos] = node_access{target, 0, 0};
     else random_access[pos] = node_access{target, seq_size - 1, 0};
-}
+};
 
 marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
     auto const& m = linear_prg[pos];
