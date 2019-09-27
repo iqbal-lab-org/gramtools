@@ -25,7 +25,7 @@ namespace gram {
      * Generates an integer vector into the prg labelling indices within variant sites with the allele id.
      * Indices outside variant sites, and variant markers (alleles and sites) are marked as 0.
      */
-    sdsl::int_vector<> generate_allele_mask(const sdsl::int_vector<> &encoded_prg);
+    sdsl::int_vector<> generate_allele_mask(const marker_vec &encoded_prg);
 
     sdsl::int_vector<> load_sites_mask(const Parameters &parameters);
 
@@ -33,13 +33,13 @@ namespace gram {
      * Generates an integer vector into the prg of the site number at all indices within a site.
      * At variant markers (**both** allele and site) and outside variant sites, stores a 0.
      */
-    sdsl::int_vector<> generate_sites_mask(const sdsl::int_vector<> &encoded_prg);
+    sdsl::int_vector<> generate_sites_mask(const marker_vec &encoded_prg);
 
     /**
      * Bit vector for variant marker presence in the prg.
      * Variant marker is a site marker (odd integer) or allele marker (even integer).
      */
-    sdsl::bit_vector generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg);
+    sdsl::bit_vector generate_prg_markers_mask(const marker_vec &encoded_prg);
 
     /**
      * Bit vector for variant marker presence in the BWT of the prg.

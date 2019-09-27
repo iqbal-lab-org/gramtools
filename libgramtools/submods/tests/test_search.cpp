@@ -58,7 +58,7 @@ i	F	BTW	text	SA
 
 
 TEST(Search, SingleChar_CorrectSaIntervalReturned) {
-    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_raw = encode_prg("gcgctggagtgctgt");
     auto prg_info = generate_prg_info(prg_raw);
     auto pattern_char = encode_dna_base('g');
 
@@ -81,7 +81,7 @@ TEST(Search, SingleChar_CorrectSaIntervalReturned) {
 
 
 TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
-    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_raw = encode_prg("gcgctggagtgctgt");
     auto prg_info = generate_prg_info(prg_raw);
 
     SearchState initial_search_state = {
@@ -111,7 +111,7 @@ TEST(Search, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
 
 
 TEST(Search, SingleCharFreqOneInText_SingleSA) {
-    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_raw = encode_prg("gcgctggagtgctgt");
     auto prg_info = generate_prg_info(prg_raw);
     auto pattern_char = encode_dna_base('a');
 
@@ -134,7 +134,7 @@ TEST(Search, SingleCharFreqOneInText_SingleSA) {
 
 
 TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
-    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_raw = encode_prg("gcgctggagtgctgt");
     auto prg_info = generate_prg_info(prg_raw);
 
     SearchState initial_search_state = {
@@ -159,7 +159,7 @@ TEST(Search, TwoConsecutiveChars_SingleSaIntervalEntry) {
 
 
 TEST(Search, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
-    auto prg_raw = "gcgctggagtgctgt";
+    auto prg_raw = encode_prg("gcgctggagtgctgt");
     auto prg_info = generate_prg_info(prg_raw);
 
     SearchState initial_search_state = {
@@ -208,7 +208,7 @@ i	BWT	SA	text_suffix
 
 
 TEST(NoVarSiteBSearch, GivenC_ProcessNextCharG_CorrectSaInterval) {
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     Marker next_char = 3;
@@ -226,7 +226,7 @@ TEST(NoVarSiteBSearch, GivenC_ProcessNextCharG_CorrectSaInterval) {
 
 TEST(NoVarSiteBSearch, GivenG_ProcessNextCharA_CorrectSaInterval) {
     // Looking for 'ag' here
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     Marker next_char = 1;
@@ -243,7 +243,7 @@ TEST(NoVarSiteBSearch, GivenG_ProcessNextCharA_CorrectSaInterval) {
 
 
 TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: a
     SearchState initial_search_state = {
@@ -265,7 +265,7 @@ TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
 }
 
 TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit){
-    auto prg_raw = "gcgct5C6g6a6Agtcct";
+    auto prg_raw = encode_prg("gcgct5C6g6a6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     const Marker marker_char = 6;
@@ -285,7 +285,7 @@ TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit){
 
 
 TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: g
     SearchState initial_search_state = {
@@ -302,7 +302,7 @@ TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
 
 
 TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: g
     SearchState initial_search_state = {
@@ -319,7 +319,7 @@ TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
 
 
 TEST(MarkerSearch, GivenCharG_NoMarkersToLeft){
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: g
     SearchState initial_search_state = {
@@ -334,7 +334,7 @@ TEST(MarkerSearch, GivenCharG_NoMarkersToLeft){
 
 
 TEST(MarkerSearch, GivenCharC_GoToVarSiteStart) {
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: c
     SearchState initial_search_state = {
@@ -352,7 +352,7 @@ TEST(MarkerSearch, GivenCharC_GoToVarSiteStart) {
 
 
 TEST(MarkerSAIntervals, BoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
-    auto prg_raw = "gcgct5c6g6a6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     Marker allele_marker = 6;
 
@@ -363,7 +363,7 @@ TEST(MarkerSAIntervals, BoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval)
 
 
 TEST(MarkerSAIntervals, BoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
-    auto prg_raw = "aca5g6t6catt";
+    auto prg_raw = encode_prg("aca5g6t6catt");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = get_allele_marker_sa_interval(6, prg_info);
@@ -389,7 +389,7 @@ i	BWT	SA	text_suffix
 11	T	8	1 0 A 1
 */
 TEST(MarkerSAIntervals, GivenPrgWithNonContinuousAlphabet_CorrectAlleleMarkerEndBoundary) {
-    auto prg_raw = "7g8c8g9t10a10";
+    auto prg_raw = encode_prg("7g8c8g9t10a10");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = get_allele_marker_sa_interval(8, prg_info);
@@ -425,7 +425,7 @@ i	BWT	SA	text_suffix
 
 
 TEST(MarkerSearch, AtSiteEnd_GetAllMarkerChars) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
@@ -448,7 +448,7 @@ TEST(MarkerSearch, AtSiteEnd_GetAllMarkerChars) {
 
 
 TEST(MarkerSAIntervals, AtSiteExitPoint_NewSearchState_WithAllAlleles) {
-    auto prg_raw = "gcgct5c6g6t6Agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
@@ -467,7 +467,7 @@ TEST(MarkerSAIntervals, AtSiteExitPoint_NewSearchState_WithAllAlleles) {
 
 
 TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
-    auto prg_raw = "gcgct5c6g6t6Agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     // first char: a
@@ -491,7 +491,7 @@ TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
 
 
 TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t allele_marker_sa_index = 18;
@@ -503,7 +503,7 @@ TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
 
 
 TEST(ExitASite, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     // first char: t
@@ -525,7 +525,7 @@ TEST(ExitASite, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 
 
 TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     // first char: g
@@ -547,7 +547,7 @@ TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
 
 
 TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     // first char: c
@@ -593,7 +593,7 @@ i	BWT	SA	text_suffix
  */
 
 TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInResult) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     auto pattern_char = encode_dna_base('t');
 
@@ -618,7 +618,7 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
 
 
 TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("tagtaa");
@@ -633,7 +633,7 @@ TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
 
 
 TEST(SA_Interval, GivenRead_CorrectResultSaInterval) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("tagtcc");
@@ -653,7 +653,7 @@ TEST(SA_Interval, GivenRead_CorrectResultSaInterval) {
 
 
 TEST(VariantLocus_Path, GivenSearchEndingInAllele_CorrectVariantSitePath) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("tagtcc");
@@ -675,7 +675,7 @@ TEST(VariantLocus_Path, GivenSearchEndingInAllele_CorrectVariantSitePath) {
 
 
 TEST(VariantLocus_Path, GivenSearchStartingInAllele_CorrectVariantSitePath) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("cgctg");
@@ -697,7 +697,7 @@ TEST(VariantLocus_Path, GivenSearchStartingInAllele_CorrectVariantSitePath) {
 
 
 TEST(VariantLocus_Path, GivenSearchCrossingAllele_CorrectVariantSitePath) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("ctgag");
@@ -745,7 +745,7 @@ i	BWT	SA	text_suffix
 
 
 TEST(VariantLocus_Path, ReadCrossingTwoAlleles) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8ct";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8ct");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tct");
@@ -769,7 +769,7 @@ TEST(VariantLocus_Path, ReadCrossingTwoAlleles) {
 
 
 TEST(VarSiteBSearch, StartWithinAllele_MapToOtherAllele) {
-    auto prg_raw = "gct5c6g6t6ag7GAG8c8ct";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7GAG8c8ct");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("gag");
@@ -793,7 +793,7 @@ TEST(VarSiteBSearch, StartWithinAllele_MapToOtherAllele) {
 
 
 TEST(VarSiteBSearch, KmerImmediatelyAfterVariantSite) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("cta");
@@ -816,7 +816,7 @@ TEST(VarSiteBSearch, KmerImmediatelyAfterVariantSite) {
 
 
 TEST(VarSiteBSearch, KmerCrossesVariantSite) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("gccta");
@@ -839,7 +839,7 @@ TEST(VarSiteBSearch, KmerCrossesVariantSite) {
 
 
 TEST(EndInLocus, SearchStarts_andEnds_withinLoci) {
-    auto prg_raw = "gct5c6g6T6AG7T8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6T6AG7T8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("agt");
@@ -871,7 +871,7 @@ TEST(EndInLocus, SearchStarts_andEnds_withinLoci) {
  * to allele ID specification post mapping.
  */
 TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
-    auto prg_raw = "gct5gC6aC6C6t6Cg";
+    auto prg_raw = encode_prg("gct5gC6aC6C6t6Cg");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("c");
@@ -911,7 +911,7 @@ TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
 
 
 TEST(VarSiteBSearch, ReadCrossesTwoVarSites) {
-    auto prg_raw = "gct5c6g6T6AG7T8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6T6AG7T8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tagt");
@@ -935,7 +935,7 @@ TEST(VarSiteBSearch, ReadCrossesTwoVarSites) {
 
 
 TEST(StartEndInLocus, OneMappingEncapsulatedByAllele) {
-    auto prg_raw = "t5c6gCTTAGT6aa";
+    auto prg_raw = encode_prg("t5c6gCTTAGT6aa");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tagt");
@@ -959,7 +959,7 @@ TEST(StartEndInLocus, OneMappingEncapsulatedByAllele) {
 
 
 TEST(StartEndInLocus, TwoMappingsEncapsulatedByAllele_StateIsWithinVariantSite) {
-    auto prg_raw = "t5c6gcttagtacgcttagt6aa";
+    auto prg_raw = encode_prg("t5c6gcttagtacgcttagt6aa");
     auto prg_info = generate_prg_info(prg_raw);
 
     Pattern kmer = encode_dna_bases("tagt");
@@ -1001,7 +1001,7 @@ i	BWT	SA	text_suffix
 16	C	13	6 T A
 */
 TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectPathSet) {
-    auto prg_raw = "ac5t6cagtagtc6ta";
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
     auto prg_info = generate_prg_info(prg_raw);
     SearchStates search_states = {
             SearchState {
@@ -1024,7 +1024,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectP
 
 
 TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
-    auto prg_raw = "ac5t6cagtagtc6ta";
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
     auto prg_info = generate_prg_info(prg_raw);
     SearchStates search_states = {
             SearchState {
@@ -1052,7 +1052,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
 
 
 TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_CorrectPathSet) {
-    auto prg_raw = "ac5t6cagtagtc6ta";
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
     auto prg_info = generate_prg_info(prg_raw);
     SearchStates search_states = {
             SearchState {
@@ -1100,7 +1100,7 @@ i	BWT	SA	text_suffix
 
 
 TEST(HandleAlleleEncapsulatedStates, OutsideSite_NoPathSet) {
-    auto prg_raw = "gcgct5c6g6t6agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     SearchStates search_states = {
             SearchState {
@@ -1146,7 +1146,7 @@ i	BWT	SA	text_suffix
 */
 
 TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIntoTwoSearchStates) {
-    auto prg_raw = "Cagtaa5t6Cagtaggc6ta";
+    auto prg_raw = encode_prg("Cagtaa5t6Cagtaggc6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     SearchState search_state = {
@@ -1223,7 +1223,7 @@ i	BWT	SA	text_suffix
 43	T	37	8 G T G 8 G
 */
 TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSearchStates) {
-    auto prg_raw = "tcagtt5tcagtcag6atcagtttcag6ta7atcagt8gtg8g";
+    auto prg_raw = encode_prg("tcagtt5tcagtcag6atcagtttcag6ta7atcagt8gtg8g");
     auto prg_info = generate_prg_info(prg_raw);
 
     // All the C's
@@ -1285,7 +1285,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
 
 
 TEST(Search, ReadLeadsToPrgEdge_NoSearchStatesFound) {
-    auto prg_raw = "gcgct5c6g6t5agtcct";
+    auto prg_raw = encode_prg("gcgct5c6g6t5agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("agcgc");

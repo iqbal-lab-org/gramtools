@@ -7,19 +7,21 @@
 using namespace gram;
 
 
-PRG_Info generate_prg_info(const std::string &prg_raw) {
+PRG_Info generate_prg_info(const marker_vec &prg_raw) {
     Parameters parameters = {};
-    parameters.encoded_prg_fpath = "@encoded_prg_file_name";
+   parameters.encoded_prg_fpath = "@encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";
     parameters.gram_dirpath = "@gram_dir";
 
-    auto encoded_prg = encode_prg(prg_raw);
-    sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
+
+    PRG_String ps{prg_raw};
+    auto encoded_prg = ps.get_PRG_string();
+    sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath); // Needs to be in file for fm index construction
 
     PRG_Info prg_info;
     prg_info.fm_index = generate_fm_index(parameters);
     prg_info.encoded_prg = encoded_prg;
-    prg_info.last_allele_positions = map_site_ends(prg_info.encoded_prg);
+    prg_info.last_allele_positions = ps.get_end_positions();
     prg_info.sites_mask = generate_sites_mask(encoded_prg);
     prg_info.allele_mask = generate_allele_mask(encoded_prg);
 

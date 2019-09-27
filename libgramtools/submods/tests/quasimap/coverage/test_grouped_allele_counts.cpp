@@ -9,7 +9,7 @@ using namespace gram;
 
 
 TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
-    auto prg_raw = "gct5c6g6t5ac7cc8a7";
+    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
     auto prg_info = generate_prg_info(prg_raw);
     auto grouped_allele_counts = coverage::generate::grouped_allele_counts(prg_info);
 
@@ -20,7 +20,7 @@ TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
 
 
 TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
-    auto prg_raw = "gct5c6g6t5ac7cc8a7";
+    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -51,7 +51,7 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
 
 
 TEST(GroupedAlleleCount, GivenUnorderedSearchStates_CorrectlyOrderedCoverageAlleleIds) {
-    auto prg_raw = "gct5c6g6t5ac7cc8a7";
+    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -82,7 +82,7 @@ TEST(GroupedAlleleCount, GivenUnorderedSearchStates_CorrectlyOrderedCoverageAlle
 
 
 TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
-    auto prg_raw = "gct5c6g6t5ac7cc8a7";
+    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -105,7 +105,7 @@ TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
 
 
 TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
-    auto prg_raw = "gct5c6g6t5ac7cc8a7";
+    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 

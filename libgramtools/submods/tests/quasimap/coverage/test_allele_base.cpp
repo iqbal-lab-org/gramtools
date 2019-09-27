@@ -38,7 +38,7 @@ PRG: GCT5C6AA6T6AG7T8C8CT
 */
 
 TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
-    auto prg_raw = "gct5c6aa6t6ag7t8c8ct";
+    auto prg_raw = encode_prg("gct5c6aa6t6ag7t8c8ct");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -63,7 +63,7 @@ TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
 }
 
 TEST(Site_Boundaries, Get_Start_Ends){
-    auto prg_raw = "gct5c6aa6t6ag7t8c8ct";
+    auto prg_raw = encode_prg("gct5c6aa6t6ag7t8c8ct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto site_boundaries = gram::site_marker_prg_indexes(5,prg_info);
@@ -98,7 +98,7 @@ i	BWT	SA	text_suffix
 */
 
 TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBeforeSecondAlleleEnd) {
-    auto prg_raw = "gct5c6g6t6ag7t8cc8ct";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8cc8ct");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -124,7 +124,7 @@ TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBefo
 
 
 TEST(AlleleBaseCoverage, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_CorrectCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8cc8ct";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8cc8ct");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -150,7 +150,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_Corr
 
 
 TEST(AlleleBaseCoverage, GivenTwoSites_CorrectInterSiteBaseCount) {
-    auto prg_raw = "gct5c6g6t6ag7t8cc8ct";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8cc8ct");
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t first_site_marker = 5;
@@ -169,7 +169,7 @@ TEST(AlleleBaseCoverage, GivenTwoSites_CorrectInterSiteBaseCount) {
 
 
 TEST(SetSiteBaseCoverage, AlleleOffsetGreaterThanBasesToSet_CorrectBasesSet) {
-    auto prg_raw = "gct5c6agtaaatgcg6agt";
+    auto prg_raw = encode_prg("gct5c6agtaaatgcg6agt");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -212,7 +212,7 @@ i	BWT	SA	text_suffix
 */
 
 TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage) {
-    auto prg_raw = "ac5gg6aga6c";
+    auto prg_raw = encode_prg("ac5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -236,7 +236,7 @@ TEST(AlleleBaseCoverage, SaIntervalGreaterThanOne_CorrectCumulativeBaseCoverage)
 
 
 TEST(AlleleBaseCoverage, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCoverage) {
-    auto prg_raw = "ac5gg6aga6c";
+    auto prg_raw = encode_prg("ac5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -260,7 +260,7 @@ TEST(AlleleBaseCoverage, ReadStartsBeforeSiteCoversFirstAllele_CorrectBaseCovera
 
 
 TEST(AlleleBaseCoverage, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) {
-    auto prg_raw = "ac5gg6aga6c";
+    auto prg_raw = encode_prg("ac5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -284,7 +284,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinFirstAllele_OnlyLastAlleleBaseCovered) 
 
 
 TEST(AlleleBaseCoverage, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage) {
-    auto prg_raw = "ac5gg6aga6c";
+    auto prg_raw = encode_prg("ac5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -308,7 +308,7 @@ TEST(AlleleBaseCoverage, ReadStartsWithinSecondAllele_PartialAlleleBaseCoverage)
 
 
 TEST(AlleleBaseCoverage, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverageOfAllele) {
-    auto prg_raw = "ac5gg6aga6c";
+    auto prg_raw = encode_prg("ac5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -332,7 +332,7 @@ TEST(AlleleBaseCoverage, ReadStartsOutsideSiteEndsBeforeAlleleEnd_PartialCoverag
 
 
 TEST(AlleleBaseCoverage, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageStructure) {
-    auto prg_raw = "5gg6aga6c";
+    auto prg_raw = encode_prg("5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = coverage::generate::allele_base_structure(prg_info);
@@ -347,7 +347,7 @@ TEST(AlleleBaseCoverage, GivenSiteStartingAtPrgStart_CorrectAlleleBaseCoverageSt
 
 
 TEST(AlleleBaseCoverage, GivenOneVariantSite_CorrectAlleleBaseCoverageStructure) {
-    auto prg_raw = "ct5gg6aga6c";
+    auto prg_raw = encode_prg("ct5gg6aga6c");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = coverage::generate::allele_base_structure(prg_info);
@@ -362,7 +362,7 @@ TEST(AlleleBaseCoverage, GivenOneVariantSite_CorrectAlleleBaseCoverageStructure)
 
 
 TEST(AlleleBaseCoverage, GivenTwoVariantSites_CorrectAlleleBaseCoverageStructure) {
-    auto prg_raw = "ct5gg6aga6ccccc7a8ttt8";
+    auto prg_raw = encode_prg("ct5gg6aga6ccccc7a8ttt8");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto result = coverage::generate::allele_base_structure(prg_info);
@@ -419,7 +419,7 @@ TEST(AlleleBaseCoverage, GivenEmptyAlleleBaseCoverage_CorrectJsonDump) {
 
 
 TEST(AlleleStartOffsetIndex, GivenSecondAlleleBase_CorrectAlleleIndexOffset) {
-    auto prg_raw = "ct5gg6aaga5cc";
+    auto prg_raw = encode_prg("ct5gg6aaga5cc");
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_allele_prg_index = 7;
@@ -431,7 +431,7 @@ TEST(AlleleStartOffsetIndex, GivenSecondAlleleBase_CorrectAlleleIndexOffset) {
 
 
 TEST(AlleleStartOffsetIndex, GivenFirstAlleleBase_CorrectAlleleIndexOffset) {
-    auto prg_raw = "ct5gg6aaga5cc";
+    auto prg_raw = encode_prg("ct5gg6aaga5cc");
     auto prg_info = generate_prg_info(prg_raw);
 
     uint64_t within_allele_prg_index = 6;

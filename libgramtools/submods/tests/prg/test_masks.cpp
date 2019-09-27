@@ -8,7 +8,7 @@ using namespace gram;
 
 
 TEST(LoadAlleleMask, GivenComplexAlleleMask_SaveAndLoadFromFileCorrectly) {
-    auto prg_raw = "a5g6ttt6cc7aa8t8a";
+    auto prg_raw = encode_prg("a5g6ttt6cc7aa8t8a");
     auto prg_info = generate_prg_info(prg_raw);
     auto allele_mask = generate_allele_mask(prg_info.encoded_prg);
 
@@ -30,7 +30,7 @@ TEST(LoadAlleleMask, GivenComplexAlleleMask_SaveAndLoadFromFileCorrectly) {
 
 
 TEST(GenerateAlleleMask, GivenMultipleSitesAndAlleles_CorrectAlleleMask) {
-    auto prg_raw = "a5g6ttt6cc7aa8t8a";
+    auto prg_raw = encode_prg("a5g6ttt6cc7aa8t8a");
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_allele_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {
@@ -46,7 +46,7 @@ TEST(GenerateAlleleMask, GivenMultipleSitesAndAlleles_CorrectAlleleMask) {
 
 
 TEST(GenerateAlleleMask, SingleVariantSite_CorrectAlleleMask) {
-    const std::string prg_raw = "a5g6t6c";
+    const auto prg_raw = encode_prg("a5g6t6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_allele_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {
@@ -61,7 +61,7 @@ TEST(GenerateAlleleMask, SingleVariantSite_CorrectAlleleMask) {
 
 
 TEST(GenerateAlleleMask, SingleVariantSiteThreeAlleles_CorrectAlleleMask) {
-    const std::string prg_raw = "a5g6t6aa6c";
+    const auto prg_raw = encode_prg("a5g6t6aa6c");
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_allele_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {
@@ -77,7 +77,7 @@ TEST(GenerateAlleleMask, SingleVariantSiteThreeAlleles_CorrectAlleleMask) {
 
 
 TEST(GenerateAlleleMask, TwoVariantSites_CorrectAlleleMask) {
-    const std::string prg_raw = "a5g6t6cc7aa8g8a";
+    const auto prg_raw = encode_prg("a5g6t6cc7aa8g8a");
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_allele_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {
@@ -95,7 +95,7 @@ TEST(GenerateAlleleMask, TwoVariantSites_CorrectAlleleMask) {
 
 
 TEST(GenerateAlleleMask, DoubleDigitMarker_CorrectAlleleMask) {
-    const std::string prg_raw = "a13g14t14tt";
+    const auto prg_raw = encode_prg("a13g14t14tt");
     auto prg_info = generate_prg_info(prg_raw);
     auto result = generate_allele_mask(prg_info.encoded_prg);
     sdsl::int_vector<> expected = {
@@ -128,7 +128,7 @@ i	BWT	SA	text_suffix
 */
 
 TEST(GenerateBWTMask, rankQueries){
-    const std::string prg_raw = "aca5g6t6gctc";
+    const auto prg_raw = encode_prg("aca5g6t6gctc");
     auto prg_info = generate_prg_info(prg_raw);
     // The interval is all suffixes starting with 'T'
     int sa_start = 8;

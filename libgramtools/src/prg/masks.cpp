@@ -8,7 +8,7 @@
 using namespace gram;
 
 
-sdsl::bit_vector gram::generate_prg_markers_mask(const sdsl::int_vector<> &encoded_prg) {
+sdsl::bit_vector gram::generate_prg_markers_mask(const marker_vec &encoded_prg) {
     sdsl::bit_vector variants_markers_mask(encoded_prg.size(), 0);
     for (uint64_t i = 0; i < encoded_prg.size(); i++)
         variants_markers_mask[i] = encoded_prg[i] > 4;
@@ -29,7 +29,7 @@ sdsl::int_vector<> gram::load_allele_mask(const Parameters &parameters) {
     return allele_mask;
 }
 
-sdsl::int_vector<> gram::generate_allele_mask(const sdsl::int_vector<> &encoded_prg) {
+sdsl::int_vector<> gram::generate_allele_mask(const marker_vec &encoded_prg) {
     sdsl::int_vector<> allele_mask(encoded_prg.size(), 0, 32);
     uint32_t current_allele_id = 0;
     uint64_t last_allele_position = 0;
@@ -71,7 +71,7 @@ sdsl::int_vector<> gram::load_sites_mask(const Parameters &parameters) {
     return sites_mask;
 }
 
-sdsl::int_vector<> gram::generate_sites_mask(const sdsl::int_vector<> &encoded_prg) {
+sdsl::int_vector<> gram::generate_sites_mask(const marker_vec &encoded_prg) {
     sdsl::int_vector<> sites_mask(encoded_prg.size(), 0, 32);
     Marker current_site_marker = 0;
     uint64_t last_allele_position = 0;

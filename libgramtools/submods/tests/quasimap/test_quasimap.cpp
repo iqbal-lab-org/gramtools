@@ -22,7 +22,7 @@ TEST(Quasimap, GivenReadAndKmerSize_CorrectKmerReturned) {
 
 
 TEST(Quasimap, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6aG7t8C8CTA";
+    auto prg_raw = encode_prg("gct5c6g6t6aG7t8C8CTA");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -46,7 +46,7 @@ TEST(Quasimap, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -70,7 +70,7 @@ TEST(Quasimap, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -94,7 +94,7 @@ TEST(Quasimap, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -118,7 +118,7 @@ TEST(Quasimap, ReadCrossingMultipleVariantSitesEndingInAllele_CorrectAlleleCover
 
 
 TEST(Quasimap, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -142,7 +142,7 @@ TEST(Quasimap, NonMappingReadCrossingAllele_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -166,7 +166,7 @@ TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -190,7 +190,7 @@ TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -214,7 +214,7 @@ TEST(Quasimap, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
-    auto prg_raw = "tag5tc6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("tag5tc6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -238,7 +238,7 @@ TEST(Quasimap, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadEntierlyWithinAllele_CoverageRecorded) {
-    auto prg_raw = "gct5cccc6g6t6ag";
+    auto prg_raw = encode_prg("gct5cccc6g6t6ag");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -282,7 +282,7 @@ i	BWT	SA	text_suffix
 */
 
 TEST(Quasimap, ReadMapsWithinAllele_SumCoverageIsOne) {
-    auto prg_raw = "ac5t6cagtagtc6ta";
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -311,7 +311,7 @@ TEST(Quasimap, ReadMapsWithinAllele_SumCoverageIsOne) {
 
 
 TEST(Quasimap, ReadMapsTwiceWithinAllele_SumCoverageIsOne) {
-    auto prg_raw = "ac5t6cagtagttttgtagtc6ta";
+    auto prg_raw = encode_prg("ac5t6cagtagttttgtagtc6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -340,7 +340,7 @@ TEST(Quasimap, ReadMapsTwiceWithinAllele_SumCoverageIsOne) {
 
 
 TEST(Quasimap, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
-    auto prg_raw = "gtagtac5gtagtact6t6ta";
+    auto prg_raw = encode_prg("gtagtac5gtagtact6t6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -369,7 +369,7 @@ TEST(Quasimap, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
 
 
 TEST(Quasimap, ReadEndWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
-    auto prg_raw = "tac5gta6gtt6ta";
+    auto prg_raw = encode_prg("tac5gta6gtt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -398,7 +398,7 @@ TEST(Quasimap, ReadEndWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
 
 TEST(Quasimap, ReadStartWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
-    auto prg_raw = "c5ccc6agt6ccgt6taa";
+    auto prg_raw = encode_prg("c5ccc6agt6ccgt6taa");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -427,7 +427,7 @@ TEST(Quasimap, ReadStartWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
 
 TEST(Quasimap, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
-    auto prg_raw = "ac5gtagtact6t6gggtagt6ta";
+    auto prg_raw = encode_prg("ac5gtagtact6t6gggtagt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -456,7 +456,7 @@ TEST(Quasimap, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
 
 
 TEST(Quasimap, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -485,7 +485,7 @@ TEST(Quasimap, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -514,7 +514,7 @@ TEST(Quasimap, MappingTwoReadsIdenticalKmers_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -544,7 +544,7 @@ TEST(Quasimap, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
-    auto prg_raw = "gct5c6g6t6ag7t8c8cta";
+    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
@@ -576,7 +576,7 @@ TEST(Quasimap, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, MappingThreeReadsOneReadMappsTwice_CorrectAlleleCoverage) {
-    auto prg_raw = "gcac5t6g6c6ta7t8c8cta";
+    auto prg_raw = encode_prg("gcac5t6g6c6ta7t8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 

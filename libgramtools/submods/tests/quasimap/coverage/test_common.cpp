@@ -32,7 +32,7 @@ i	BWT	SA	text_suffix
 */
 
 TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
-    auto prg_raw = "aa5t6cagtagcagt6ta";
+    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: cagt
@@ -53,7 +53,7 @@ TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
 
 
 TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
-    auto prg_raw = "aa5t6cagtagcagt6ta";
+    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: cagt
@@ -74,7 +74,7 @@ TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
 
 
 TEST(CheckAlleleEncapsulated, ReadOutsideOfSite_False) {
-    auto prg_raw = "aa5t6cagtagcagt6ta";
+    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: aa
@@ -93,7 +93,7 @@ TEST(CheckAlleleEncapsulated, ReadOutsideOfSite_False) {
 
 
 TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
-    auto prg_raw = "aa5t6cagtagcAgt6ta";
+    auto prg_raw = encode_prg("aa5t6cagtagcAgt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: agtt
@@ -114,7 +114,7 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
 
 
 TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
-    auto prg_raw = "aa5t6cagtagcagt6ta";
+    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
     auto prg_info = generate_prg_info(prg_raw);
 
     // read: aca

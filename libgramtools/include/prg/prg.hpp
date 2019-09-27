@@ -12,6 +12,7 @@
 #include "common/utils.hpp"
 #include "dna_ranks.hpp"
 #include "fm_index.hpp"
+#include "prg/load_PRG_string.hpp"
 
 
 #ifndef GRAMTOOLS_PRG_HPP
@@ -25,7 +26,7 @@ namespace gram {
      */
     struct PRG_Info {
         FM_Index fm_index; /**< FM_index as a `sdsl::csa_wt` from the `sdsl` library. @note Accessing this data structure ([]) accesses the suffix array. */
-        sdsl::int_vector<> encoded_prg;
+        marker_vec encoded_prg;
         marker_map last_allele_positions;
 
         sdsl::int_vector<> sites_mask; /**< Stores the site number at each allele position. Variant markers and outside variant sites get 0.*/
@@ -66,15 +67,15 @@ namespace gram {
     /**
      * Finds largest integer in the (integer-encoded) prg.
      */
-    uint64_t get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg);
+    uint64_t get_max_alphabet_num(const marker_vec &encoded_prg);
 
     /**
      * Calls prg encoding routine and stores encoded prg to file.
      * @see parse_raw_prg_file()
      */
-    sdsl::int_vector<> generate_encoded_prg(const Parameters &parameters);
+    marker_vec generate_encoded_prg(const Parameters &parameters);
 
-    sdsl::int_vector<> parse_raw_prg_file(const std::string &prg_fpath);
+    marker_vec parse_raw_prg_file(const std::string &prg_fpath);
 
     /**
     * Read in file containing prg, as stream of characters.
@@ -85,14 +86,14 @@ namespace gram {
      * Convert prg as string of characters to vector of integers.
      * Nucleotides encoded as 1-4. Variant markers can make up several characters so are treated with a buffer.
      */
-    sdsl::int_vector<> encode_prg(const std::string &prg_raw);
+    marker_vec encode_prg(const std::string &prg_raw);
 
     /**
      * Write out marker digits to the encoded prg as a single integer.
      * @see concat_marker_digits()
      */
     void flush_marker_digits(std::vector<int> &marker_digits,
-                             sdsl::int_vector<> &encoded_prg,
+                             marker_vec &encoded_prg,
                              uint64_t &count_chars);
 
     /**

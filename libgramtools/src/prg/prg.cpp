@@ -4,21 +4,6 @@
 
 using namespace gram;
 
-marker_map gram::map_site_ends(sdsl::int_vector<> const& encoded_prg) {
-    marker_map last_allele_indices;
-    int pos{-1};
-    for (auto const& s : encoded_prg) {
-        pos++;
-        if (s <= 4) continue;
-            if (s % 2 == 1) continue;
-                if (last_allele_indices.find(s) != last_allele_indices.end()) {
-                    last_allele_indices.erase(s);
-                }
-                last_allele_indices.insert({s, pos});
-    }
-    return last_allele_indices;
-}
-
 uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
                             const Marker &dna_base,
                             const PRG_Info &prg_info) {
@@ -36,7 +21,7 @@ uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
     }
 }
 
-uint64_t gram::get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg) {
+uint64_t gram::get_max_alphabet_num(const marker_vec &encoded_prg) {
     uint64_t max_alphabet_num = 0;
     for (const uint64_t &x: encoded_prg) {
         if (x > max_alphabet_num)
@@ -46,14 +31,14 @@ uint64_t gram::get_max_alphabet_num(const sdsl::int_vector<> &encoded_prg) {
 }
 
 
-sdsl::int_vector<> gram::generate_encoded_prg(const Parameters &parameters) {
+marker_vec gram::generate_encoded_prg(const Parameters &parameters) {
     auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
     sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
     return encoded_prg;
 }
 
 
-sdsl::int_vector<> gram::parse_raw_prg_file(const std::string &prg_fpath) {
+marker_vec gram::parse_raw_prg_file(const std::string &prg_fpath) {
     const auto prg_raw = load_raw_prg(prg_fpath);
     auto encoded_prg = encode_prg(prg_raw);
     return encoded_prg;
@@ -80,8 +65,8 @@ std::string gram::load_raw_prg(const std::string &prg_fpath) {
     return prg;
 }
 
-sdsl::int_vector<> gram::encode_prg(const std::string &prg_raw) {
-    sdsl::int_vector<> encoded_prg(prg_raw.length(), 0, 32);
+marker_vec gram::encode_prg(const std::string &prg_raw) {
+    marker_vec encoded_prg(prg_raw.length(), 0);
 
     uint64_t count_chars = 0;
     // TODO: this should be possible without storing each individual digit
@@ -103,12 +88,11 @@ sdsl::int_vector<> gram::encode_prg(const std::string &prg_raw) {
     flush_marker_digits(marker_digits, encoded_prg, count_chars);
 
     encoded_prg.resize(count_chars);
-    sdsl::util::bit_compress(encoded_prg);
     return encoded_prg;
 }
 
 void gram::flush_marker_digits(std::vector<int> &marker_digits,
-                               sdsl::int_vector<> &encoded_prg,
+                               marker_vec &encoded_prg,
                                uint64_t &count_chars) {
     if (marker_digits.empty())
         return;
@@ -162,10 +146,11 @@ EncodeResult gram::encode_char(const char &c) {
 }
 
 PRG_Info gram::load_prg_info(const Parameters &parameters) {
-    PRG_Info prg_info = {};
+    PRG_Info prg_info;
 
-    prg_info.encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
-    prg_info.last_allele_positions = map_site_ends(prg_info.encoded_prg);
+    PRG_String ps{parameters.encoded_prg_fpath};
+    prg_info.encoded_prg = ps.get_PRG_string();
+    prg_info.last_allele_positions = ps.get_end_positions();
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
 
     prg_info.fm_index = load_fm_index(parameters);

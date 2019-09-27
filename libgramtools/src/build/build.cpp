@@ -2,6 +2,7 @@
 #include "common/timer_report.hpp"
 
 #include "prg/prg.hpp"
+#include "prg/load_PRG_string.hpp"
 #include "prg/masks.hpp"
 
 #include "kmer_index/build.hpp"
@@ -21,13 +22,14 @@ void commands::build::run(const Parameters &parameters) {
 
     std::cout << "Generating integer encoded PRG" << std::endl;
     timer.start("Encoded PRG");
-    prg_info.encoded_prg = generate_encoded_prg(parameters);
+    PRG_String ps{parameters.encoded_prg_fpath};
+    prg_info.encoded_prg = ps.get_PRG_string();
     timer.stop();
     std::cout << "Number of characters in integer encoded linear PRG: "
               << prg_info.encoded_prg.size()
               << std::endl;
 
-    prg_info.last_allele_positions = map_site_ends(prg_info.encoded_prg);
+    prg_info.last_allele_positions = ps.get_end_positions();
 
     prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
     std::cout << "Maximum alphabet character: " << prg_info.max_alphabet_num << std::endl;
