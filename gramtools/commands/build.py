@@ -188,7 +188,7 @@ def _execute_command_generate_prg(report, action, build_paths):
 
     converter = vcf_to_prg_string.Vcf_to_prg(vcf_in, build_paths['original_reference'],
                                              build_paths['prg_string'], mode="normal")
-    converter.make_prg()
+    converter._write_bytes()
 
     ## The converter does not produce a vcf
     # Thus the input vcf needs to be 'clean': we need each vcf record to be converted

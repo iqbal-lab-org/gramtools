@@ -51,7 +51,8 @@ class Utility_Tester(object):
         self.ref_file = os.path.join(data_dir, file_prefix + '.ref.fa')
         self.expected_prg = os.path.join(data_dir, file_prefix + '.prg')
         self.expected_vcf = os.path.join(data_dir, file_prefix + '.expect.vcf') # For perl util only
-        self.outfile = 'tmp.' + file_prefix + '.prg'
+        self.outfile_prefix = 'tmp.' + file_prefix
+        self.outfile = self.outfile_prefix + '.prg'
 
     def _run_perl_utility(self):
         if os.path.exists(self.outfile):
@@ -82,7 +83,7 @@ class Utility_Tester(object):
             'python3', python_utility,
             self.vcf_file,
             self.ref_file,
-            '--outfile', self.outfile,
+            '--outfile', self.outfile_prefix,
             '--mode', mode,
         ])
 
@@ -91,7 +92,8 @@ class Utility_Tester(object):
         return completed_process
 
     def _python_cleanup(self):
-        os.unlink(self.outfile)
+        os.unlink(self.outfile_prefix)
+        os.unlink(f'{self.outfile}')
 
 
 class Test_UtilityScriptsFunction(unittest.TestCase):
@@ -208,4 +210,3 @@ class Test_VcfFormatInputs(unittest.TestCase):
 
         with self.assertRaises(Exception):
             tester._run_python_utility(check=True)
-        tester._python_cleanup()

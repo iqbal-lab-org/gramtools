@@ -14,6 +14,30 @@ Behaviour:
     * (For a given CHROM,) Records with POS not strictly increasing are dropped.
 """
 
+def integer_encode_nucleotide(nucleotide):
+    if nucleotide == "A":
+        return 1
+    elif nucleotide == "C":
+        return 2
+    elif nucleotide == "G":
+        return 3
+    elif nucleotide == "T":
+        return 4
+    else:
+        raise ValueError("Did not receive a nucleotide ({A,C,G,T}")
+
+def nucleotide_decode_integer(integer):
+    if integer == 1:
+        return "A"
+    elif integer == 2:
+        return "C"
+    elif integer == 3:
+        return "G"
+    elif integer == 4:
+        return "T"
+    else:
+        return str(integer)
+
 import collections
 import vcf
 from Bio import SeqIO
@@ -24,9 +48,10 @@ class _Template_Vcf_to_prg(object):
     Not for users.
     """
     acceptable_modes = {"legacy", "normal"}
+    NUM_BYTES = 4 # Number of bytes for each serialised integer
 
     def __init__(self):
-        self.prg_string = ""
+        self.prg_vector = []
         self.ref_records = collections.OrderedDict()
         self.num_sites = 0
         self.processed_ref = set()  # A set of ref records with variation
@@ -51,28 +76,29 @@ class _Template_Vcf_to_prg(object):
             raise ValueError(f"The ref ID {chrom} "
                              "in vcf file {self.vcf_in} was not found in reference file {self.ref_in}")
 
-    def _record_to_string(self, vcf_record, site_marker):
+    def _record_to_prg_rep(self, vcf_record, site_marker):
         """
         Go from a vcf record to its prg string representation:
             * (legacy) site markers flank the variant site
             * (normal) site marker at start, allele marker everywhere else.
         """
-        record_string = str(site_marker)
+        prg_rep = [site_marker]
         allele_marker = site_marker + 1
-        alleles = [vcf_record.REF] + vcf_record.ALT
-
+        alleles = [[integer_encode_nucleotide(nt) for nt in vcf_record.REF]]
+        for alt_allele in vcf_record.ALT:
+            alleles.append([integer_encode_nucleotide(nt) for nt in str(alt_allele)])
         if self.mode == "normal":
             for allele in alleles:
-                record_string += f'{allele}{allele_marker}'
+                prg_rep.extend(allele + [allele_marker])
 
         elif self.mode == "legacy":
             for i,allele in enumerate(alleles):
                 if i < len(alleles) - 1:
-                    record_string += f'{allele}{allele_marker}'
+                    prg_rep.extend(allele + [allele_marker])
                 else:
-                    record_string += f'{allele}{site_marker}'
+                    prg_rep.extend(allele + [site_marker])
+        return prg_rep
 
-        return record_string
 
 
 
@@ -83,18 +109,21 @@ class _Template_Vcf_to_prg(object):
         """
         ref_seq = self.ref_records[chrom]
         invariant = str(ref_seq[processed_pos - 1: cur_pos - 1]).upper()
+        invariant = list(map(integer_encode_nucleotide, invariant)) # Convert to integers
         return invariant
 
 
     def _get_final_invariant(self, chrom, processed_pos):
-        invariant = ""
+        invariant = []
         ref_seq = self.ref_records[chrom]
         # The only case where we don't want to enter this is when the processed_pos has gone past the end of the ref record
         if len(ref_seq) >= processed_pos:
             invariant = ref_seq[processed_pos - 1:]
-        return str(invariant).upper()
 
-    def _maybe_flush_chrom_end(self, prev_chrom, cur_chrom, processed_pos):
+        invariant = list(map(integer_encode_nucleotide, invariant.upper())) # Convert to integers
+        return invariant
+
+    def _maybe_make_chrom_end(self, prev_chrom, cur_chrom, processed_pos):
         """
         When we change chromosome, we may need to add its invariant end to the prg_string.
         :return: Updated, or unchanged, chromo and current position in chromo.
@@ -102,7 +131,7 @@ class _Template_Vcf_to_prg(object):
         if cur_chrom != prev_chrom:
             # Case: deal with end of chromosome
             if prev_chrom is not None:
-                self.prg_string += self._get_final_invariant(prev_chrom, processed_pos)
+                self.prg_vector.extend(self._get_final_invariant(prev_chrom, processed_pos))
                 processed_pos = 1
             prev_chrom = cur_chrom
             self.processed_ref.add(cur_chrom)
@@ -117,26 +146,22 @@ class _Template_Vcf_to_prg(object):
         """
         if cur_pos > processed_pos:
             #  Case: add invariant reference in between variant records
-            self.prg_string += self._get_invariant_portion(chrom, processed_pos, cur_pos)
+            self.prg_vector += self._get_invariant_portion(chrom, processed_pos, cur_pos)
 
-    def _flush_prg_chunk(self):
-        """
-        Write part of the prg_string and empty it
-        """
-        self.f_out.write(self.prg_string)
-        self.prg_string = ""
 
-    def _write_ref_records_with_no_variants(self):
+    def _get_ref_records_with_no_variants(self):
         """
         Writes each record with no variants to the prg file
         """
+        ref_no_recs = []
         all_records = set(self.ref_records.keys())
         diff = all_records.difference(self.processed_ref)
         diff = [r for r in self.ref_records.keys() if r in diff] # Conserve the initial ordering.
         if len(diff) > 0:
             for id in diff:
-                seq = str(self.ref_records[id])
-                self.f_out.write(seq)
+                seq = [integer_encode_nucleotide(nt) for nt in self.ref_records[id]]
+                ref_no_recs.append(seq)
+        return ref_no_recs
 
 
 
@@ -154,14 +179,14 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
         self.vcf_in = vcf_file
         self.ref_in = reference_file
-        self.f_out = open(prg_output_file, "w")
+        self.f_out_prefix = prg_output_file
         self._parse_reference(reference_file) # Populates the ref_records
+        self._make_prg();
 
 
-    def make_prg(self):
+    def _make_prg(self):
         """
         Constructs the prg string.
-        All you need as a user.
         """
         cur_site_marker = 5
         processed_pos = 1  # 1-based
@@ -183,7 +208,7 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
             self._check_record_ref(record.CHROM)
 
-            prev_chrom, processed_pos = self._maybe_flush_chrom_end(prev_chrom, record.CHROM, processed_pos)
+            prev_chrom, processed_pos = self._maybe_make_chrom_end(prev_chrom, record.CHROM, processed_pos)
 
             # Skip records which are not sorted, or all others present at same position
             if cur_pos < processed_pos:
@@ -192,29 +217,37 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
             self._maybe_add_preceding_invariant_sequence(record.CHROM, cur_pos, processed_pos)
 
-            self.prg_string += self._record_to_string(record, cur_site_marker)
+            # Convert vcf record to its prg representation
+            self.prg_vector.extend(self._record_to_prg_rep(record, cur_site_marker))
             processed_pos = cur_pos + len(record.REF)
 
             cur_site_marker += 2
             self.num_sites += 1
 
-            if self.num_sites % 1000 == 0: # Flush out the prg string every 1000 records
-                # print(self.num_sites)
-                self._flush_prg_chunk()
-
             record = next(vcf_in, None)
 
         # End condition: might have some invariant reference left
         if prev_chrom is not None:
-            self.prg_string += self._get_final_invariant(prev_chrom, processed_pos)
-            self._flush_prg_chunk()
+            self.prg_vector.extend(self._get_final_invariant(prev_chrom, processed_pos))
 
-        self._write_ref_records_with_no_variants()
+        # End condition #2 : might have records with no variants
+        for rec in self._get_ref_records_with_no_variants():
+            self.prg_vector.extend(rec)
 
         f_in.close()
-        self.f_out.close()
 
+    def _write_bytes(self):
+        with open(f'{self.f_out_prefix}', "wb") as f_out:
+            for integer in self.prg_vector:
+                f_out.write(integer.to_bytes(self.NUM_BYTES, "big")) # Write in big endian
 
+    def _write_string(self):
+        # Construct it
+        prg_string = ""
+        for x in self.prg_vector:
+            prg_string += nucleotide_decode_integer(x)
+        with open(f'{self.f_out_prefix}.prg', "w") as f_out:
+            f_out.write(str(prg_string));
 
 
 # May run standalone
@@ -235,5 +268,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     converter = Vcf_to_prg(args.vcf, args.ref, args.outfile, args.mode)
-    converter.make_prg()
+    converter._write_bytes()
+    converter._write_string()
     print(f'num variant sites in prg: {converter.num_sites}')
