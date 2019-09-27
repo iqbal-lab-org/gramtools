@@ -41,6 +41,7 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
                                     VariantSitePath {
                                             VariantLocus {5, 1}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
@@ -48,6 +49,7 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
                                     VariantSitePath {
                                             VariantLocus {5, 2}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             }
                     }
@@ -81,6 +83,7 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
                                     VariantSitePath {
                                             VariantLocus {5, 1}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
@@ -89,6 +92,7 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
                                             VariantLocus {5, 2},
                                             VariantLocus {7, 3}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             }
                     }
@@ -123,6 +127,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                     VariantSitePath {
                                             VariantLocus {5, 1}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
@@ -130,6 +135,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                     VariantSitePath {
                                             VariantLocus {5, 2}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
@@ -137,6 +143,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                     VariantSitePath {
                                             VariantLocus {5, 2}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             }
                     }
@@ -146,6 +153,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {9, 10},
                                     VariantSitePath {},
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
@@ -154,6 +162,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                             VariantLocus {5, 2},
                                             VariantLocus {7, 2}
                                     },
+                                    VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
                             }
                     }

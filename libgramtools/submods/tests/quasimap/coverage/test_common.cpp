@@ -43,6 +43,7 @@ TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
             VariantSitePath {
                     VariantLocus {5, 2},
             },
+            VariantSitePath {},
             SearchVariantSiteState::within_variant_site
     };
 
@@ -63,6 +64,7 @@ TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
             VariantSitePath {
                     VariantLocus {5, 2},
             },
+            VariantSitePath {},
             SearchVariantSiteState::within_variant_site
     };
 
@@ -80,6 +82,7 @@ TEST(CheckAlleleEncapsulated, ReadOutsideOfSite_False) {
 
     SearchState search_state = {
             SA_Interval {2, 2},
+            VariantSitePath {},
             VariantSitePath {},
             SearchVariantSiteState::outside_variant_site
     };
@@ -101,6 +104,7 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
             VariantSitePath {
                     VariantLocus {5, 2},
             },
+            VariantSitePath {},
             SearchVariantSiteState::within_variant_site
     };
 
@@ -121,6 +125,7 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
             VariantSitePath {
                     VariantLocus {5, 2},
             },
+            VariantSitePath {},
             SearchVariantSiteState::outside_variant_site
     };
 

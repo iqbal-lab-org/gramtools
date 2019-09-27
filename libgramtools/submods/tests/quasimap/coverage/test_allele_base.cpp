@@ -47,8 +47,8 @@ TEST(AlleleBaseCoverage, ReadCoversTwoSites_CorrectAlleleBaseCoverage) {
     SearchState search_state = {
             SA_Interval{11, 11},
             VariantSitePath{
-                    VariantLocus{5, 2},
                     VariantLocus{7, 2},
+                    VariantLocus{5, 2}
             },
     };
     SearchStates search_states = {search_state};
@@ -107,8 +107,8 @@ TEST(AlleleBaseCoverage, ShortReadStartingOutsideSiteCoversTwoSites_FinishesBefo
     SearchState search_state = {
             SA_Interval{4, 4},
             VariantSitePath{
-                    VariantLocus{5, 2},
                     VariantLocus{7, 2},
+                    VariantLocus{5, 2},
             },
     };
     SearchStates search_states = {search_state};
@@ -133,8 +133,8 @@ TEST(AlleleBaseCoverage, ReadStartsWithinOneAlleleFinishesBeforeEndOfSecond_Corr
     SearchState search_state = {
             SA_Interval{12, 12},
             VariantSitePath{
-                    VariantLocus{5, 3},
                     VariantLocus{7, 2},
+                    VariantLocus{5, 3},
             },
     };
     SearchStates search_states = {search_state};

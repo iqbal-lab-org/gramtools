@@ -20,7 +20,7 @@ KmerIndexStats gram::calculate_stats(const KmerIndex &kmer_index) {
         stats.count_search_states += search_states.size();
 
         for (const auto &search_state: search_states)
-            stats.count_total_path_elements += search_state.variant_site_path.size() * 2;
+            stats.count_total_path_elements += search_state.traversed_path.size() * 2;
     }
     return stats;
 }
@@ -64,7 +64,7 @@ void gram::dump_kmers_stats(const KmerIndexStats &stats,
         const auto &search_states = kmer_index.at(kmer);
         kmers_stats[i++] = search_states.size();
         for (const auto &search_state: search_states)
-            kmers_stats[i++] = search_state.variant_site_path.size();
+            kmers_stats[i++] = search_state.traversed_path.size();
     }
 
     sdsl::util::bit_compress(kmers_stats);
@@ -114,7 +114,7 @@ void gram::dump_paths(const KmerIndexStats &stats,
 
         const auto &search_states = kmer_index.at(kmer);
         for (const auto &search_state: search_states) {
-            for (const auto &path_element: search_state.variant_site_path) {
+            for (const auto &path_element: search_state.traversed_path) {
                 paths[i++] = path_element.first;
                 paths[i++] = path_element.second;
             }

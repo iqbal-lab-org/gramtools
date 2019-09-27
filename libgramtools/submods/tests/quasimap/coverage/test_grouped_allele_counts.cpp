@@ -28,15 +28,15 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
+                            VariantLocus {7, 1},
                             VariantLocus {5, 1},
-                            VariantLocus {7, 1}
                     }
             },
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantLocus {5, 2},
                             VariantLocus {7, 1},
+                            VariantLocus {5, 2},
                     },
             },
     };
@@ -59,15 +59,15 @@ TEST(GroupedAlleleCount, GivenUnorderedSearchStates_CorrectlyOrderedCoverageAlle
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
+                            VariantLocus {7, 2},
                             VariantLocus {5, 3},
-                            VariantLocus {7, 2}
                     }
             },
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
-                            VariantLocus {5, 1},
                             VariantLocus {7, 1},
+                            VariantLocus {5, 1},
                     },
             },
     };
@@ -119,8 +119,8 @@ TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
+                            VariantLocus {7, 2},
                             VariantLocus {5, 1},
-                            VariantLocus {7, 2}
                     },
             },
     };
@@ -135,8 +135,8 @@ TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
+                            VariantLocus {7, 2},
                             VariantLocus {5, 1},
-                            VariantLocus {7, 2}
                     },
             },
     };

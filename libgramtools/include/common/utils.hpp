@@ -49,8 +49,8 @@ namespace gram {
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/
     using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */
 
-    using VariantSitePath = std::list<VariantLocus>; /**< A path through variant sites is a list of allele/site combinations. */
-    using VariantSitePaths = std::list<VariantSitePath>;
+    using VariantSitePath = std::vector<VariantLocus>; /**< A path through variant sites is a list of allele/site combinations. */
+    using VariantSitePaths = std::vector<VariantSitePath>;
 
     /** The suffix array (SA) holds the starting index of all (lexicographically sorted) cyclic permutations of the prg.
      * An `SA_Index` is an index into one such position.*/

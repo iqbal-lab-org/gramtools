@@ -479,7 +479,7 @@ TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
 
     std::vector<VariantLocus> result;
     for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.variant_site_path.front());
+        result.push_back(search_state.traversed_path.front());
 
     // We expect the following: one searchstate has two alleles, and thus the allele part is unspecified still
     // The other is a singleton SearchState corresponding to the end of the site, which is alleles #3.
@@ -517,6 +517,7 @@ TEST(ExitASite, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     SearchState expected = {
             SA_Interval {15, 15},
             VariantSitePath {VariantLocus{5,3}},
+            VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
     };
     EXPECT_EQ(result, expected);
@@ -538,6 +539,7 @@ TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     SearchState expected = {
             SA_Interval {15, 15},
             VariantSitePath {VariantLocus{5, 2}},
+            VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
     };
     EXPECT_EQ(result, expected);
@@ -559,6 +561,7 @@ TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     SearchState expected = {
             SA_Interval {15, 15},
             VariantSitePath {VariantLocus{5,1}},
+            VariantSitePath {},
             SearchVariantSiteState::outside_variant_site,
     };
     EXPECT_EQ(result, expected);
@@ -597,6 +600,7 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
     SearchState initial_search_state = {
             SA_Interval {10,10}, //Starting at char 'c' at index 6 in prg
             VariantSitePath {},
+            VariantSitePath {},
             SearchVariantSiteState::unknown,
     };
     SearchStates initial_search_states = {initial_search_state};
@@ -605,7 +609,7 @@ TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInRe
 
     EXPECT_EQ(final_search_states.size(), 1);
     auto search_state = final_search_states.front();
-    const auto &result = search_state.variant_site_path;
+    const auto &result = search_state.traversed_path;
     VariantSitePath expected = {
             VariantLocus {5, 2},
     };
@@ -662,7 +666,7 @@ TEST(VariantLocus_Path, GivenSearchEndingInAllele_CorrectVariantSitePath) {
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
             VariantLocus {5, 3}
     };
@@ -684,7 +688,7 @@ TEST(VariantLocus_Path, GivenSearchStartingInAllele_CorrectVariantSitePath) {
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
             VariantLocus {5, 2}
     };
@@ -706,7 +710,7 @@ TEST(VariantLocus_Path, GivenSearchCrossingAllele_CorrectVariantSitePath) {
     EXPECT_EQ(search_states.size(), 1);
 
     auto search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
             VariantLocus {5, 2}
     };
@@ -755,10 +759,10 @@ TEST(VariantLocus_Path, ReadCrossingTwoAlleles) {
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
+            VariantLocus {7, 1},
             VariantLocus {5, 1},
-            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -779,10 +783,10 @@ TEST(VarSiteBSearch, StartWithinAllele_MapToOtherAllele) {
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
+            VariantLocus {7, 1},
             VariantLocus {5, 1},
-            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -803,7 +807,7 @@ TEST(VarSiteBSearch, KmerImmediatelyAfterVariantSite) {
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
             VariantLocus {7, 2}
     };
@@ -826,7 +830,7 @@ TEST(VarSiteBSearch, KmerCrossesVariantSite) {
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
             VariantLocus {7, 2}
     };
@@ -849,11 +853,11 @@ TEST(EndInLocus, SearchStarts_andEnds_withinLoci) {
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
             //The Search_State ended with ALLELE_UNKNOWN, but then we specified the allele due to completely mapping the read
+            VariantLocus {7, 1},
             VariantLocus {5, 3},
-            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -892,7 +896,7 @@ TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
     // We expect three occurrences of 'CC' at this stage, in a single SA interval - because
     // the allele markers sort together in the SA. The allele IDs should be unspecified.
     EXPECT_EQ(search_states.size(), 1);
-    EXPECT_EQ(search_states.front().variant_site_path.front().second, ALLELE_UNKNOWN);
+    EXPECT_EQ(search_states.front().traversed_path.front().second, ALLELE_UNKNOWN);
 
     // ALLELE ID SPECIFICATION
     // This function gets called when we have finished mapping our read and we have unknown allele ids left.
@@ -921,10 +925,10 @@ TEST(VarSiteBSearch, ReadCrossesTwoVarSites) {
     EXPECT_EQ(search_states.size(), 1);
 
     const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_path;
+    auto result = search_state.traversed_path;
     VariantSitePath expected = {
+            VariantLocus {7, 1},
             VariantLocus {5, 3},
-            VariantLocus {7, 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -950,7 +954,7 @@ TEST(StartEndInLocus, OneMappingEncapsulatedByAllele) {
     EXPECT_EQ(result, expected);
 
     VariantLocus cov = {5, 2};
-    EXPECT_EQ(search_state.variant_site_path.front(), cov);
+    EXPECT_EQ(search_state.traversed_path.front(), cov);
 }
 
 
@@ -1011,6 +1015,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectP
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             }
     };
@@ -1027,6 +1032,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             }
     };
@@ -1037,6 +1043,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             }
     };
@@ -1059,6 +1066,7 @@ TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             }
     };
@@ -1103,6 +1111,7 @@ TEST(HandleAlleleEncapsulatedStates, OutsideSite_NoPathSet) {
     SearchStates expected = {
             SearchState {
                     SA_Interval {7, 7},
+                    VariantSitePath {},
                     VariantSitePath {},
                     SearchVariantSiteState::outside_variant_site
             }
@@ -1149,6 +1158,7 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
             SearchState {
                     SA_Interval {7, 7},
                     VariantSitePath {},
+                    VariantSitePath {},
                     SearchVariantSiteState::outside_variant_site
             },
             SearchState {
@@ -1156,6 +1166,7 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             }
     };
@@ -1227,6 +1238,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                     VariantSitePath {
                             VariantLocus {5, 1}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
@@ -1234,10 +1246,12 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
                     SA_Interval {12, 12},
+                    VariantSitePath {},
                     VariantSitePath {},
                     SearchVariantSiteState::outside_variant_site
             },
@@ -1246,6 +1260,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                     VariantSitePath {
                             VariantLocus {7, 1}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
@@ -1253,6 +1268,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                     VariantSitePath {
                             VariantLocus {5, 1}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             },
             SearchState {
@@ -1260,6 +1276,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                     VariantSitePath {
                             VariantLocus {5, 2}
                     },
+                    VariantSitePath {},
                     SearchVariantSiteState::within_variant_site
             }
     };

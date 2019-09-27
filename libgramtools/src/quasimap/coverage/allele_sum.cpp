@@ -41,7 +41,8 @@ void gram::coverage::record::allele_sum(Coverage &coverage,
     HashSet<VariantLocus> seen_sites;
 
     for (const auto &search_state: search_states) {
-        for (const auto &variant_site: search_state.variant_site_path) {
+        for (size_t i = search_state.traversed_path.size(); i-- > 0; ) {
+            auto const& variant_site = search_state.traversed_path[i];
             bool site_seen_previously = seen_sites.find(variant_site) != seen_sites.end();
             if (site_seen_previously)
                 continue;

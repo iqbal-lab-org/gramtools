@@ -17,7 +17,7 @@ using namespace gram;
 bool gram::check_allele_encapsulated(const SearchState &search_state,
                                      const uint64_t &read_length,
                                      const PRG_Info &prg_info) {
-    bool single_allele_path = search_state.variant_site_path.size() == 1;
+    bool single_allele_path = search_state.traversed_path.size() == 1;
     bool start_within_allele = search_state.variant_site_state
                                == SearchVariantSiteState::within_variant_site;
 
@@ -100,7 +100,7 @@ uint64_t gram::random_int_inclusive(const uint64_t &min,
 uint32_t gram::count_nonvariant_search_states(const SearchStates &search_states) {
     uint32_t count = 0;
     for (const auto &search_state: search_states) {
-        bool has_path = not search_state.variant_site_path.empty();
+        bool has_path = not search_state.traversed_path.empty();
         if (not has_path)
             ++count;
     }
@@ -110,7 +110,7 @@ uint32_t gram::count_nonvariant_search_states(const SearchStates &search_states)
 
 PathSites get_path_sites(const SearchState &search_state) {
     PathSites path_sites = {};
-    for (const auto &entry: search_state.variant_site_path) {
+    for (const auto &entry: search_state.traversed_path) {
         Marker site = entry.first;
         path_sites.push_back(site);
     }
@@ -121,7 +121,7 @@ PathSites get_path_sites(const SearchState &search_state) {
 std::set<PathSites> gram::get_unique_path_sites(const SearchStates &search_states) {
     std::set<PathSites> all_path_sites = {};
     for (const auto &search_state: search_states) {
-        bool has_path = not search_state.variant_site_path.empty();
+        bool has_path = not search_state.traversed_path.empty();
         if (not has_path)
             continue;
 

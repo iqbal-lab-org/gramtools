@@ -28,7 +28,7 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
     // Loop through all `SearchStates` and the variant/allele combinations in their `variant_site_path`.
     // Record which alleles are traversed for each site.
     for (const auto &search_state: search_states) {
-        for (const auto &variant_site: search_state.variant_site_path) {
+        for (const auto &variant_site: search_state.traversed_path) {
             auto site_marker = variant_site.first;
             auto allele_id = variant_site.second - 1;
             site_allele_group[site_marker].insert(allele_id);

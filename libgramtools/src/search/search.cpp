@@ -35,7 +35,7 @@ public:
 
 SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_state,
                                                     const PRG_Info &prg_info) {
-    bool has_path = not search_state.variant_site_path.empty();
+    bool has_path = not search_state.traversed_path.empty();
     assert(not has_path);
 
     SearchStates new_search_states = {};
@@ -55,6 +55,7 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
             cache.set(SearchState{
                     SA_Interval{sa_index, sa_index},
                     VariantSitePath{},
+                    VariantSitePath{},
                     SearchVariantSiteState::outside_variant_site
             });
             cache.flush(new_search_states);
@@ -68,13 +69,14 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
                     VariantSitePath{
                             VariantLocus{site_marker, allele_id}
                     },
+                    VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
             });
             continue;
         }
 
         VariantSitePath current_path = {VariantLocus{site_marker, allele_id}};
-        bool cache_has_same_path = current_path == cache.search_state.variant_site_path;
+        bool cache_has_same_path = current_path == cache.search_state.traversed_path;
         if (cache_has_same_path) {
             cache.update_sa_interval_max(sa_index);
             continue;
@@ -83,6 +85,7 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
             cache.set(SearchState{
                     SA_Interval{sa_index, sa_index},
                     current_path,
+                    VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
             });
         }
@@ -96,7 +99,7 @@ SearchStates gram::handle_allele_encapsulated_states(const SearchStates &search_
     SearchStates new_search_states = {};
 
     for (const auto &search_state: search_states) {
-        bool has_path = not search_state.variant_site_path.empty();
+        bool has_path = not search_state.traversed_path.empty();
         if (has_path) {
             new_search_states.emplace_back(search_state);
             continue;
@@ -115,8 +118,8 @@ void gram::set_allele_ids(SearchStates &search_states,
 
     for (auto &search_state: search_states) {
         // If the variant site path is empty, we cannot have an unknown allele id.
-        if (!search_state.variant_site_path.empty() &&
-            search_state.variant_site_path.front().second == ALLELE_UNKNOWN) {
+        if (!search_state.traversed_path.empty() &&
+            search_state.traversed_path.back().second == ALLELE_UNKNOWN) {
 
             for (int SA_pos = search_state.sa_interval.first; SA_pos <= search_state.sa_interval.second; SA_pos++) {
                 // Find out allele id
@@ -124,7 +127,7 @@ void gram::set_allele_ids(SearchStates &search_states,
                 auto allele_id = prg_info.allele_mask[text_pos];
 
                 auto new_search_state = search_state;
-                new_search_state.variant_site_path.front().second = allele_id;
+                new_search_state.traversed_path.back().second = allele_id;
                 new_search_state.sa_interval = SA_Interval{SA_pos, SA_pos};
                 
                 if (SA_pos != search_state.sa_interval.second){ // Case: add to the set of search states
@@ -363,22 +366,11 @@ SearchState get_allele_search_state(const Marker &allele_marker,
     search_state.variant_site_state
             = SearchVariantSiteState::within_variant_site;
 
-    search_state.variant_site_path.push_front(VariantLocus{site_boundary_marker, ALLELE_UNKNOWN});
+    search_state.traversed_path.push_back(VariantLocus{site_boundary_marker, ALLELE_UNKNOWN});
 
     return search_state;
 }
 
-/**
- * Compute number of alleles in a site from the allele marker's full SA interval.
- */
-uint64_t get_number_of_alleles(const SA_Interval &allele_marker_sa_interval) {
-    auto num_allele_markers = allele_marker_sa_interval.second
-                              - allele_marker_sa_interval.first
-                              + 1;
-    // The allele marker's full SA interval does not include the variant site exit point, which also marks the last allele's end point.
-    auto num_alleles = num_allele_markers + 1;
-    return num_alleles;
-}
 
 /**
  * Deals with a read mapping into a variant site's end point.
@@ -421,15 +413,14 @@ SearchState entering_site_search_states(const Marker &allele_marker,
  */
 void update_variant_site_path(SearchState &affected_search_state,
                               const uint64_t allele_id,
-                              const Marker marker_char) {
-    bool started_in_site = affected_search_state.variant_site_path.empty();
+                              const Marker site_ID) {
+    bool started_in_site = affected_search_state.traversed_path.empty();
     if (started_in_site) { // Case: make new site/allele pair
-        const auto boundary_marker_char = marker_char;
-        affected_search_state.variant_site_path.push_front(VariantLocus{boundary_marker_char, allele_id});
+        affected_search_state.traversed_path.push_back(VariantLocus{site_ID, allele_id});
     } else { // Case: add the allele id to existing site/allele pair
-        auto existing_id = affected_search_state.variant_site_path.front().second;
+        auto existing_id = affected_search_state.traversed_path.back().second;
         assert(existing_id == ALLELE_UNKNOWN);
-        affected_search_state.variant_site_path.front().second = allele_id;
+        affected_search_state.traversed_path.back().second = allele_id;
     }
 }
 
@@ -567,9 +558,9 @@ std::string gram::serialize_search_state(const SearchState &search_state) {
        << "]";
     ss << std::endl;
 
-    if (not search_state.variant_site_path.empty()) {
+    if (not search_state.traversed_path.empty()) {
         ss << "Variant site path [marker, allele id]: " << std::endl;
-        for (const auto &variant_site: search_state.variant_site_path) {
+        for (const auto &variant_site: search_state.traversed_path) {
             auto marker = variant_site.first;
 
             if (variant_site.second != 0) {
