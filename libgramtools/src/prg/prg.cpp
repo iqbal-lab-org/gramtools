@@ -31,11 +31,11 @@ uint64_t gram::get_max_alphabet_num(const marker_vec &encoded_prg) {
 }
 
 
-marker_vec gram::generate_encoded_prg(const Parameters &parameters) {
-    auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
-    sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
-    return encoded_prg;
-}
+//marker_vec gram::generate_encoded_prg(const Parameters &parameters) {
+//    auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
+//    sdsl::store_to_file(encoded_prg, parameters.encoded_prg_fpath);
+//    return encoded_prg;
+//}
 
 
 marker_vec gram::parse_raw_prg_file(const std::string &prg_fpath) {

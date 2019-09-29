@@ -34,6 +34,22 @@ TEST(PRGString, Load_from_File){
     EXPECT_EQ(expected, res);
 }
 
+TEST(PRGString, WriteToFile){
+    std::string fname{"@pstring_out"};
+    std::string prg_string{"A[A,C]T[GGG,G]C"};
+    marker_vec t = prg_string_to_ints(prg_string);
+    PRG_String l{t};
+    l.write(fname);
+
+    // Load it into another object
+    PRG_String l2{fname};
+    EXPECT_TRUE(l.get_PRG_string() == l2.get_PRG_string());
+    if (remove(fname.c_str()) != 0){
+        std::cerr << "Could not delete the built file " << fname;
+        exit(1);
+    }
+}
+
 TEST(PRGString, ExitPoint_ConvertOddToEven){
     marker_vec t{5,1,6,2,5};
     PRG_String l = PRG_String(t);

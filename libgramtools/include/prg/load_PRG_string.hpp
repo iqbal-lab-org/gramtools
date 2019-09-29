@@ -7,10 +7,14 @@
 #include <iostream>
 #include <assert.h>
 #include "common/utils.hpp"
+#include "common/parameters.hpp"
 
 
 using namespace gram;
 
+namespace gram{
+    enum class endianness{big, small};
+}
 
 class PRG_String {
 public:
@@ -27,7 +31,7 @@ public:
     /*
      * Functions
      */
-    void write();
+    void write(std::string const& fname, endianness = endianness::big);
 
     void set_output_file(std::string const &fname) { output_file = fname; };
 
@@ -39,6 +43,8 @@ public:
         for (auto &s : e.my_PRG_string) out << s;
         return out;
     }
+
+    friend bool operator==(PRG_String const& first, PRG_String const& second);
 
     /*
      * Variables

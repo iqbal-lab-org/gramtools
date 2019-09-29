@@ -15,6 +15,8 @@ namespace gram {
         quasimap
     };
 
+    // The number of bytes to use for each integer going on disk representing PRG string `Marker`s
+    constexpr uint8_t num_bytes_per_integer{4};
     /**
      * PRG file path parameters.
      * Used for either:
@@ -25,7 +27,6 @@ namespace gram {
      */
     struct Parameters {
         std::string gram_dirpath;
-        std::string linear_prg_fpath;
         std::string encoded_prg_fpath;
         std::string fm_index_fpath;
         std::string sites_mask_fpath;
