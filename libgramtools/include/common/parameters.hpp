@@ -29,6 +29,7 @@ namespace gram {
         std::string gram_dirpath;
         std::string encoded_prg_fpath;
         std::string fm_index_fpath;
+        std::string cov_graph_fpath;
         std::string sites_mask_fpath;
         std::string allele_mask_fpath;
         std::string sdsl_memory_log_fpath;

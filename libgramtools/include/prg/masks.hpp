@@ -10,7 +10,7 @@
 #include <sdsl/vectors.hpp>
 
 #include "common/parameters.hpp"
-#include "fm_index.hpp"
+#include "make_data_structures.hpp"
 #include "common/utils.hpp"
 
 

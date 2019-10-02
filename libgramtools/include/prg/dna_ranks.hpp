@@ -3,7 +3,7 @@
  * Functions for producing, storing and loading bit masks over the BWT of the prg.
  * A bit mask is a bit vector with a bit set if a given nucleotide base is present in the BWT, and unset otherwise.
  */
-#include "fm_index.hpp"
+#include "make_data_structures.hpp"
 
 
 #ifndef GRAMTOOLS_DNA_RANKS_HPP

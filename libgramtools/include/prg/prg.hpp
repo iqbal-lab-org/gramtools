@@ -3,6 +3,9 @@
  * Also defines routines manipulating or populating this data structure (eg for integer encoding a prg); see gram::commands::build
  * Also defines routine for loading a prg from disk: see load_prg_info().
  */
+#ifndef GRAMTOOLS_PRG_HPP
+#define GRAMTOOLS_PRG_HPP
+
 #include <cctype>
 #include <cstdlib>
 #include <vector>
@@ -11,12 +14,9 @@
 
 #include "common/utils.hpp"
 #include "dna_ranks.hpp"
-#include "fm_index.hpp"
+#include "prg/make_data_structures.hpp"
 #include "prg/load_PRG_string.hpp"
-
-
-#ifndef GRAMTOOLS_PRG_HPP
-#define GRAMTOOLS_PRG_HPP
+#include "prg/coverage_graph.hpp"
 
 namespace gram {
 
@@ -28,6 +28,8 @@ namespace gram {
         FM_Index fm_index; /**< FM_index as a `sdsl::csa_wt` from the `sdsl` library. @note Accessing this data structure ([]) accesses the suffix array. */
         marker_vec encoded_prg;
         marker_map last_allele_positions;
+        
+        coverage_Graph coverage_graph;
 
         sdsl::int_vector<> sites_mask; /**< Stores the site number at each allele position. Variant markers and outside variant sites get 0.*/
         sdsl::int_vector<> allele_mask; /**< Stores the allele index at each allele position. Variant markers and outside variant sites get 0. */

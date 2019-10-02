@@ -2,14 +2,16 @@
  * @file
  * Generates an FM-index of an encoded prg using the SDSL library.
  */
+
+#ifndef GRAMTOOLS_MK_DS_HPP
+#define GRAMTOOLS_MK_DS_HPP
+
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/wavelet_trees.hpp>
 
+#include <common/utils.hpp>
 #include "common/parameters.hpp"
-
-
-#ifndef GRAMTOOLS_PROCESS_PRG_HPP
-#define GRAMTOOLS_PROCESS_PRG_HPP
+#include "coverage_graph.hpp"
 
 
 namespace gram {
@@ -27,6 +29,7 @@ namespace gram {
      */
     FM_Index generate_fm_index(const Parameters &parameters);
 
+    coverage_Graph generate_cov_graph(const Parameters &parameters, PRG_String const &prg_string);
 }
 
-#endif //GRAMTOOLS_PROCESS_PRG_HPP
+#endif //GRAMTOOLS_MK_DS_HPP

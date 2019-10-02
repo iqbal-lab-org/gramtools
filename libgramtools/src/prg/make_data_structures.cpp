@@ -1,10 +1,4 @@
-#include <fstream>
-#include <cinttypes>
-#include <sdsl/suffix_arrays.hpp>
-#include <common/utils.hpp>
-
-#include "common/parameters.hpp"
-#include "prg/fm_index.hpp"
+#include "prg/make_data_structures.hpp"
 
 
 using namespace gram;
@@ -30,3 +24,15 @@ FM_Index gram::generate_fm_index(const Parameters &parameters) {
     sdsl::store_to_file(fm_index, parameters.fm_index_fpath);
     return fm_index;
 }
+
+coverage_Graph gram::generate_cov_graph(const Parameters &parameters, PRG_String const &prg_string){
+    coverage_Graph c_g{prg_string};
+
+    // Serialise the cov graph
+    std::ofstream ofs{parameters.cov_graph_fpath};
+    boost::archive::binary_oarchive oa{ofs};
+    oa << c_g;
+
+    return c_g;
+}
+

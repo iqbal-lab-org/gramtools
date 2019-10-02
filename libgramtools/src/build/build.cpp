@@ -1,13 +1,3 @@
-#include "common/parameters.hpp"
-#include "common/timer_report.hpp"
-
-#include "prg/prg.hpp"
-#include "prg/load_PRG_string.hpp"
-#include "prg/masks.hpp"
-
-#include "kmer_index/build.hpp"
-#include "kmer_index/dump.hpp"
-
 #include "build/build.hpp"
 
 
@@ -37,6 +27,12 @@ void commands::build::run(const Parameters &parameters) {
         std::cout << "No variant sites found.\nExiting 1" << std::endl;
         std::exit(1);
     }
+
+    std::cout << "Generate coverage graph" << std::endl;
+    timer.start("Generate Coverage Graph");
+    prg_info.coverage_graph = generate_cov_graph(parameters, ps);
+    timer.stop();
+
 
     std::cout << "Generating FM-Index" << std::endl;
     timer.start("Generate FM-Index");
