@@ -20,7 +20,9 @@ KmerIndexStats gram::calculate_stats(const KmerIndex &kmer_index) {
         stats.count_search_states += search_states.size();
 
         for (const auto &search_state: search_states)
-            stats.count_total_path_elements += search_state.traversed_path.size() * 2;
+            stats.count_total_path_elements +=
+                    2 * search_state.traversing_path.size() +
+                    2 * search_state.traversed_path.size();
     }
     return stats;
 }
@@ -28,7 +30,8 @@ KmerIndexStats gram::calculate_stats(const KmerIndex &kmer_index) {
 
 sdsl::int_vector<3> gram::dump_kmers(const KmerIndex &kmer_index,
                                      const Parameters &parameters) {
-    sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size); //Constructor parameter passed: total number of bases to store.
+    //Constructor parameter passed: total number of bases to store.
+    sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
     uint64_t i = 0;
 
     for (const auto &entry: kmer_index) {
@@ -50,6 +53,8 @@ void gram::dump_kmers_stats(const KmerIndexStats &stats,
                             const Parameters &parameters) {
     // Makes room for storing for each kmer: number of search states, path length, path length...
     const auto &count_distinct_paths = stats.count_search_states;
+    // For each kmer, we will write the number of search states it has,
+    // and for each of those, we will write the number of `VariantLocus` (loci)
     uint64_t count_memory_elements = stats.count_kmers + count_distinct_paths;
     sdsl::int_vector<> kmers_stats(count_memory_elements, 0, 32);
     uint64_t i = 0;
@@ -64,7 +69,9 @@ void gram::dump_kmers_stats(const KmerIndexStats &stats,
         const auto &search_states = kmer_index.at(kmer);
         kmers_stats[i++] = search_states.size();
         for (const auto &search_state: search_states)
-            kmers_stats[i++] = search_state.traversed_path.size();
+            kmers_stats[i++] =
+                    search_state.traversing_path.size() +
+                    search_state.traversed_path.size();
     }
 
     sdsl::util::bit_compress(kmers_stats);
@@ -115,6 +122,11 @@ void gram::dump_paths(const KmerIndexStats &stats,
         const auto &search_states = kmer_index.at(kmer);
         for (const auto &search_state: search_states) {
             for (const auto &path_element: search_state.traversed_path) {
+                paths[i++] = path_element.first;
+                paths[i++] = path_element.second;
+            }
+            for (const auto &path_element: search_state.traversing_path) {
+                assert(path_element.second == ALLELE_UNKNOWN);
                 paths[i++] = path_element.first;
                 paths[i++] = path_element.second;
             }

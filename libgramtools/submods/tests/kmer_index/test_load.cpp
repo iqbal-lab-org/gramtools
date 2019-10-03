@@ -21,7 +21,6 @@ TEST(DeserializeNextStats, GivenOneSearchStateWithThreePaths_CorrectlyIndexedKme
     EXPECT_EQ(result, expected);
 }
 
-
 TEST(DeserializeNextStats, GivenTwoSearchStateWithMultiplePaths_CorrectlyIndexedKmerStats) {
     sdsl::int_vector<> kmers_stats = {3, 1, 42, 7, 2, 11, 33};
     uint64_t stats_index = 0;
@@ -138,7 +137,7 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
     sdsl::store_to_file(all_kmers, parameters.kmers_fpath);
 
     parameters.kmers_stats_fpath = "@kmers_stats_fpath";
-    sdsl::int_vector<> kmers_stats = {2, 1, 2};
+    sdsl::int_vector<> kmers_stats = {2, 3, 2};
     sdsl::util::bit_compress(kmers_stats);
     sdsl::store_to_file(kmers_stats, parameters.kmers_stats_fpath);
 
@@ -148,7 +147,7 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
     sdsl::store_to_file(sa_intervals, parameters.sa_intervals_fpath);
 
     parameters.paths_fpath = "@paths_fpath";
-    sdsl::int_vector<> paths = {42, 43, 52, 53, 62, 63};
+    sdsl::int_vector<> paths = {45, 9, 43, 2, 41, ALLELE_UNKNOWN, 51, 3, 49, 3};
     sdsl::util::bit_compress(paths);
     sdsl::store_to_file(paths, parameters.paths_fpath);
 
@@ -160,14 +159,18 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
                             SearchState {
                                     SA_Interval {1, 1},
                                     VariantSitePath {
-                                            VariantLocus {42, 43}
+                                            VariantLocus {45, 9},
+                                            VariantLocus {43, 2}
+                                    },
+                                    VariantSitePath {
+                                        VariantLocus {41, ALLELE_UNKNOWN},
                                     }
                             },
                             SearchState {
                                     SA_Interval {2, 2},
                                     VariantSitePath {
-                                            VariantLocus {52, 53},
-                                            VariantLocus {62, 63}
+                                            VariantLocus {51, 3},
+                                            VariantLocus {49, 3}
                                     }
                             }
                     }

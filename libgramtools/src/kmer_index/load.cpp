@@ -118,7 +118,8 @@ void handle_path_element(SearchStates &search_states,
             paths_index += 2;
 
             VariantLocus site = {marker, allele_id};
-            search_state.traversed_path.emplace_back(site);
+            if (allele_id != ALLELE_UNKNOWN) search_state.traversed_path.emplace_back(site);
+            else search_state.traversing_path.emplace_back(site);
         }
     }
 }
