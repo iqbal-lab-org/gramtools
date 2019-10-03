@@ -166,7 +166,7 @@ TEST(Quasimap, ReadEndsInAllele_CorrectAlleleCoverage) {
 
 
 TEST(Quasimap, ReadStartsInAllele_CorrectAlleleCoverage) {
-    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
+    auto prg_raw = encode_prg("gct5c6g6T6AG7T8c8cta");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 

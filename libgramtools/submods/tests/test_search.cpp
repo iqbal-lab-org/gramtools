@@ -479,7 +479,7 @@ TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
 
     std::vector<VariantLocus> result;
     for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.traversed_path.front());
+        result.push_back(search_state.traversing_path.front());
 
     // We expect the following: one searchstate has two alleles, and thus the allele part is unspecified still
     // The other is a singleton SearchState corresponding to the end of the site, which is alleles #3.
@@ -896,7 +896,7 @@ TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
     // We expect three occurrences of 'CC' at this stage, in a single SA interval - because
     // the allele markers sort together in the SA. The allele IDs should be unspecified.
     EXPECT_EQ(search_states.size(), 1);
-    EXPECT_EQ(search_states.front().traversed_path.front().second, ALLELE_UNKNOWN);
+    EXPECT_EQ(search_states.front().traversing_path.back().second, ALLELE_UNKNOWN);
 
     // ALLELE ID SPECIFICATION
     // This function gets called when we have finished mapping our read and we have unknown allele ids left.

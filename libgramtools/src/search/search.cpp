@@ -118,18 +118,22 @@ void gram::set_allele_ids(SearchStates &search_states,
 
     for (auto &search_state: search_states) {
         // If the variant site path is empty, we cannot have an unknown allele id.
-        if (!search_state.traversed_path.empty() &&
-            search_state.traversed_path.back().second == ALLELE_UNKNOWN) {
+        if (!search_state.traversing_path.empty()) {
+
+            auto last = search_state.traversing_path.back();
+            search_state.traversing_path.pop_back();
+            assert(search_state.traversing_path.size() == 0);
 
             for (int SA_pos = search_state.sa_interval.first; SA_pos <= search_state.sa_interval.second; SA_pos++) {
+                auto new_search_state = search_state;
                 // Find out allele id
                 auto text_pos = prg_info.fm_index[SA_pos];
                 auto allele_id = prg_info.allele_mask[text_pos];
+                last.second = allele_id;
 
-                auto new_search_state = search_state;
-                new_search_state.traversed_path.back().second = allele_id;
+                new_search_state.traversed_path.emplace_back(last);
                 new_search_state.sa_interval = SA_Interval{SA_pos, SA_pos};
-                
+
                 if (SA_pos != search_state.sa_interval.second){ // Case: add to the set of search states
                     search_states.emplace_back(new_search_state);
                 } 
@@ -297,12 +301,12 @@ bool gram::marker_is_site_end(const Marker &allele_marker,
                               const SA_Index &sa_right_of_marker,
                               const PRG_Info &prg_info) {
 
-    auto text_index = prg_info.fm_index[sa_right_of_marker];
-    // Here is the rationale: if we are at a position just after the last allele of a variant site,
-    // Then the sites_mask's value at that position must be different from
-    // the allele's variant site number (which is itself - 1).
-    auto site_marker = allele_marker - 1;
-    const bool is_site_end = prg_info.sites_mask[text_index] != site_marker;
+    // Note: a possible alternative implementation is to use the fact that if the site ID of the
+    // text position at `sa_right_of_marker` != `allele_marker` - 1,
+    // then we are at the end of the site. (can use cov graph to find this site ID)
+    auto marker_index = prg_info.fm_index[sa_right_of_marker] - 1;
+    auto last_position = prg_info.last_allele_positions.at(allele_marker);
+    bool is_site_end = last_position == marker_index;
 
     return is_site_end;
 }
@@ -366,7 +370,7 @@ SearchState get_allele_search_state(const Marker &allele_marker,
     search_state.variant_site_state
             = SearchVariantSiteState::within_variant_site;
 
-    search_state.traversed_path.push_back(VariantLocus{site_boundary_marker, ALLELE_UNKNOWN});
+    search_state.traversing_path.push_back(VariantLocus{site_boundary_marker, ALLELE_UNKNOWN});
 
     return search_state;
 }
@@ -385,7 +389,7 @@ SearchState entering_site_search_states(const Marker &allele_marker,
     auto allele_marker_sa_interval =
             get_allele_marker_sa_interval(allele_marker,
                                           prg_info);
-    // Get one `SearchState` per allele in the site, with populated cache.
+    // Get one `SearchState` for the whole site, with populated cache.
     auto allele_search_state = get_allele_search_state(allele_marker,
                                                        allele_marker_sa_interval,
                                                        current_search_state,
@@ -414,13 +418,19 @@ SearchState entering_site_search_states(const Marker &allele_marker,
 void update_variant_site_path(SearchState &affected_search_state,
                               const uint64_t allele_id,
                               const Marker site_ID) {
-    bool started_in_site = affected_search_state.traversed_path.empty();
+    // Anytime you enter a site, it gets pushed to `traversing_path`
+    // If the latter is empty, we have not seen the site entry
+    bool started_in_site = affected_search_state.traversing_path.empty();
     if (started_in_site) { // Case: make new site/allele pair
         affected_search_state.traversed_path.push_back(VariantLocus{site_ID, allele_id});
     } else { // Case: add the allele id to existing site/allele pair
-        auto existing_id = affected_search_state.traversed_path.back().second;
-        assert(existing_id == ALLELE_UNKNOWN);
-        affected_search_state.traversed_path.back().second = allele_id;
+        auto existing_locus = affected_search_state.traversing_path.back();
+        // Make sure we're recording leaving the right site
+        assert(existing_locus.first == site_ID);
+        assert(existing_locus.second == ALLELE_UNKNOWN);
+        existing_locus.second = allele_id;
+        affected_search_state.traversed_path.push_back(existing_locus);
+        affected_search_state.traversing_path.pop_back();
     }
 }
 

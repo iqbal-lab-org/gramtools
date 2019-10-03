@@ -1,3 +1,8 @@
+/** @file
+ * You need to distinguish tests where:
+ *      - The kmer/read ends inside a variant site. Then the `traversing_path` contains latest entered site
+ *      - The kmer/read ends outside a variant site. Then the `traversed_path` contains latest entered site
+ */
 #include <cctype>
 
 #include "gtest/gtest.h"
@@ -319,7 +324,7 @@ TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
 
     auto search_states = kmer_index[first_full_kmer];
     auto search_state = search_states.front();
-    auto result = search_state.traversed_path;
+    auto result = search_state.traversing_path;
     VariantSitePath expected = {
             VariantLocus {5, ALLELE_UNKNOWN}
     };
@@ -368,7 +373,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
 
     auto search_states = kmer_index[first_full_kmer];
     auto search_state = search_states.front();
-    auto result = search_state.traversed_path;
+    auto result = search_state.traversing_path;
     VariantSitePath expected = {
             VariantLocus {5, ALLELE_UNKNOWN}
     };
@@ -376,7 +381,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
 
     search_states = kmer_index[second_full_kmer];
     search_state = search_states.front();
-    result = search_state.traversed_path;
+    result = search_state.traversing_path;
     expected = {
             VariantLocus {5, ALLELE_UNKNOWN}
     };
@@ -452,11 +457,11 @@ TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
 
     auto search_states = kmer_index[first_full_kmer];
     auto search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 1},
-            VariantLocus {5, ALLELE_UNKNOWN}
-    };
+    auto result = std::make_pair(search_state.traversed_path, search_state.traversing_path);
+    auto expected = std::make_pair(
+            std::vector{VariantLocus {7, 1} },
+            std::vector{ VariantLocus {5, ALLELE_UNKNOWN} }
+            );
     EXPECT_EQ(result, expected);
 }
 
