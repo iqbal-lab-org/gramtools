@@ -253,8 +253,8 @@ TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
     auto result = left_markers_search(initial_search_state,
                                       prg_info);
     MarkersSearchResults expected = {
-            {1, 6},
-            {2, 6},
+            {6, 0},
+            {5, 3},
     };
     EXPECT_EQ(result, expected);
 
@@ -295,7 +295,7 @@ TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
     auto result = left_markers_search(initial_search_state,
                                       prg_info);
     MarkersSearchResults expected = {
-            {11, 6},
+            {5, 2},
     };
     EXPECT_EQ(result, expected);
 }

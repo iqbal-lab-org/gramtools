@@ -50,7 +50,7 @@ i	BWT	SA	text_suffix
 
 
 TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
-    const auto prg_raw = encode_prg("aca5g6t6gctc");
+    const auto prg_raw = encode_prg("acA5g6T6GCTc");
     const auto prg_info = generate_prg_info(prg_raw);
 
     auto kmer = encode_dna_bases("atgct");
@@ -493,13 +493,14 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
     Patterns kmers = {kmer};
 
     auto result = index_kmers(kmers, kmer_size, prg_info);
+    // Note for the expectation: the markers get processed in reverse SA index ordering
     KmerIndex expected = {
             {kmer,
                     SearchStates {
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 1}
+                                            VariantLocus {5, 2}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -507,7 +508,7 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site

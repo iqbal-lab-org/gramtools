@@ -66,20 +66,25 @@ namespace gram {
                                        const SearchStates &search_states,
                                        const PRG_Info &prg_info);
 using SaIndexRightOfMarker = uint64_t;
-    using MarkersSearchResult = std::pair<SaIndexRightOfMarker, Marker>; /** SaIndexRightOfMarker is the SA index position of the character just right of the marker in the prg.*/
-    using MarkersSearchResults = std::vector<MarkersSearchResult>;
+    using MarkersSearchResults = std::vector<VariantLocus>;
+    using Locus_and_SearchState = std::pair<VariantLocus, SearchState>;
+    using Locus_and_SearchStates = std::vector<Locus_and_SearchState>;
 
     /**
      * This function finds all variant markers (site or allele) inside the BWT within a given SA interval.
      * Indeed, if a variant marker precedes an index position of the SA interval (as discovered using BWT),
      * the search states will need to be updated accordingly.
      *
-     * @return A vector of markers, which are pairs of SA index position and marker character.
-     * @note The SA index position is not that of the marker, but of the character to the right of it in the prg.
+     * @return A vector of `VariantLocus`
      */
     MarkersSearchResults left_markers_search(const SearchState &search_state,
                                              const PRG_Info &prg_info);
 
+    Locus_and_SearchState extend_targets_site_exit(VariantLocus const& target_locus, SearchState const& search_state,
+            PRG_Info const& prg_info);
+
+    Locus_and_SearchStates extend_targets_site_entry(VariantLocus const& target_locus, SearchState const& search_state,
+            PRG_Info const& prg_info);
     /**
      * Update the current SA interval to include the next character.
      * This is a backward search. SA interval is updated using rank queries on the bwt.

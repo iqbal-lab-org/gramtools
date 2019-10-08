@@ -120,7 +120,7 @@ enum class marker_type {
 struct node_access{
     covG_ptr node; // The referred to node in the `coverage_Graph`
     seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
-    Marker target; // If the preceding character is a variant marker, gives what it is.
+    VariantLocus target; // If the preceding character is a variant marker, gives what it is.
 private:
     // Boost serialisation
     friend class boost::serialization::access;
@@ -184,6 +184,9 @@ public:
 
     /**
      * Map from a variant marker to all variant markers it is directly linked to.
+     * Note the following convention: the target marker is even if it signals a site entry (in backward searching),
+     * and odd if it signals a site exit.
+     * Ie, all allele markers that are not the last one of a site get marked as site (odd) markers.
      * Use: read mapping
      */
     target_m target_map;

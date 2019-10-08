@@ -82,8 +82,8 @@ void cov_Graph_Builder::setup_random_access(uint32_t const& pos){
     t == marker_type::sequence ? target = cur_Node : target = backWire;
     auto seq_size = target->get_sequence_size();
     if (seq_size <= 1) // Will include all site entry and exit nodes, and sequence nodes with a single character
-    random_access[pos] = node_access{target, 0, 0};
-    else random_access[pos] = node_access{target, seq_size - 1, 0};
+    random_access[pos] = node_access{target, 0, VariantLocus{}};
+    else random_access[pos] = node_access{target, seq_size - 1, VariantLocus{}};
 };
 
 marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
@@ -202,7 +202,8 @@ void cov_Graph_Builder::map_targets(){
 
        switch(cur_t){
            case marker_type::sequence:
-               if (prev_t != marker_type::sequence) random_access[pos].target = prev_m; // Adds a target for the sequence character
+               if (prev_t != marker_type::sequence) random_access[pos].target =
+                       VariantLocus{prev_m, cur_allele_ID}; // Adds a target for the sequence character
                break;
            case marker_type::site_entry:
                cur_allele_ID = 1;
@@ -213,8 +214,9 @@ void cov_Graph_Builder::map_targets(){
                    // Reject empty variant sites by prohibiting prev_t to be a site entry
                    assert(prev_t != marker_type::site_entry);
                    allele_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
-               // This is not guaranteed to be the true allele ID (as given by the parental map), but it is enough to set it 'null'
-               cur_allele_ID = 0;
+               // Get the allele ID using the parental map
+               if (par_map.find(cur_m - 1) != par_map.end()) cur_allele_ID = par_map.at(cur_m - 1).second;
+               else cur_allele_ID = 0;
                break;
            case marker_type::allele_end:
                if (prev_t != marker_type::sequence) allele_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);

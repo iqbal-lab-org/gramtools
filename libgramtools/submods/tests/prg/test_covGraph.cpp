@@ -253,24 +253,29 @@ TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
 TEST_F(cov_G_Builder_nested_adjMarkers, targetEntries){
     //"[A,]A[[G,A]A,C,T]"
     /**
-     * First, check that nucleotide positions just after a marker target the correct marker
+     * First, check that nucleotide positions just after a marker target the site and allele markers
      */
-   std::vector<Marker> expected_nt_targets = {
+   std::vector<Marker> expected_site_targets = {
            0, 5, 0, 0, 6, 0, 0, 9, 0, 10, 0, 10, 0, 8, 0, 8, 0
    };
+    std::vector<Marker> expected_allele_targets = {
+            0, 1, 0, 0, 0, 0, 0, 1, 0, 2, 0, 1, 0, 2, 0, 3, 0
+    };
 
-   std::vector<Marker> result(expected_nt_targets.size(), 0);
+   std::vector<Marker> site_results(expected_site_targets.size(), 0);
+    std::vector<Marker> allele_results(expected_site_targets.size(), 0);
    int pos = -1;
    for (auto& e : c.random_access){
        pos++;
-       result[pos] = e.target;
+       site_results[pos] = e.target.first;
+       allele_results[pos] = e.target.second;
    }
-   EXPECT_EQ(result, expected_nt_targets);
+   EXPECT_EQ(site_results, expected_site_targets);
+    EXPECT_EQ(allele_results, expected_allele_targets);
 
    /**
     * Second, check that adjacent variant markers get correct entries in the target map
     */
-    int num_to_add = 2;
     std::vector<targeted_marker> v;
     Marker seed;
     target_m expected_map;
@@ -350,4 +355,22 @@ TEST(coverage_Graph, Serialisation){
     ia >> loaded_cov_G;
 
     EXPECT_TRUE(serialised_cov_G == loaded_cov_G);
+}
+
+TEST(Target_map, EvenIsEntry_OddIsExit){
+    std::string prg_string{"[A,[A,C,G]A,C]"};
+    marker_vec v = prg_string_to_ints(prg_string);
+    PRG_String p{v};
+    auto c = cov_Graph_Builder{p};
+
+    std::vector<targeted_marker> targets;
+    Marker seed;
+    target_m expected_map;
+    // First add in the direct deletion at pos 3
+    seed = 7;
+    targets.emplace_back(targeted_marker{5, 0});
+    expected_map.insert(std::make_pair(seed, targets));
+    targets.clear();
+
+    EXPECT_EQ(c.target_map, expected_map);
 }
