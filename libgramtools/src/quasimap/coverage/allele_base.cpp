@@ -101,7 +101,7 @@ std::pair<uint64_t, uint64_t> gram::site_marker_prg_indexes(const uint64_t &site
 
     auto first_prg_index = prg_info.fm_index[first_sa_index];
     // Need to be sure we are dealing with a site marker so that we know we can look for its even counterpart in map
-    assert(site_marker % 2 == 1);
+    assert(is_site_marker(site_marker));
     auto second_prg_index = prg_info.last_allele_positions.at(site_marker + 1);
 
     return std::make_pair(first_prg_index, second_prg_index);

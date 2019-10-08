@@ -13,6 +13,15 @@ namespace fs = boost::filesystem;
 using namespace gram;
 
 
+bool gram::is_site_marker(Marker const& variant_marker){
+    if (!variant_marker > 4) throw std::invalid_argument("The given marker is not a variant marker");
+    return variant_marker % 2 == 1;
+}
+
+bool gram::is_allele_marker(Marker const& variant_marker){
+    return !is_site_marker(variant_marker);
+}
+
 std::string gram::full_path(const std::string &gram_dirpath,
                       const std::string &file_name) {
     fs::path dir(gram_dirpath);

@@ -1,6 +1,9 @@
 /** @file
  * Defines a set of data structures and functions common to the backend.
  */
+#ifndef GRAMTOOLS_UTILS_HPP
+#define GRAMTOOLS_UTILS_HPP
+
 #include <vector>
 #include <list>
 #include <cstdint>
@@ -13,9 +16,6 @@
 
 #include "sequence_read/seqread.hpp"
 
-
-#ifndef GRAMTOOLS_UTILS_HPP
-#define GRAMTOOLS_UTILS_HPP
 
 namespace gram {
     template<typename SEQUENCE>
@@ -56,6 +56,16 @@ namespace gram {
      * An `SA_Index` is an index into one such position.*/
     using SA_Index = uint32_t;
     using SA_Interval = std::pair<SA_Index, SA_Index>; /**< A set of **contiguous** indices in the suffix array.*/
+
+    /**
+     * Unified definition of a site marker
+     */
+    bool is_site_marker(Marker const& variant_marker);
+
+    /**
+     * Unified definition of an allele marker
+     */
+    bool is_allele_marker(Marker const& variant_marker);
 
     /**
      * Produce the reverse complement of a `read`.

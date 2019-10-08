@@ -313,32 +313,28 @@ bool gram::marker_is_site_end(const Marker &allele_marker,
 
 /**
  * Computes the full SA interval of a given allele marker.
+ * Note that the way this is computed is robust to variant markers not being continuous:
+ *      eg, could have site with markers 5/6 & another with 9/10 without a site with 7/8.
+ *
+ * `sigma`: the alphabet size
+ * `char2comp`: maps a symbol of the alphabet to a positive integer in [0...sigma - 1]
+ * `comp2char`: the inverse mapping of above
  */
 SA_Interval gram::get_allele_marker_sa_interval(const Marker &allele_marker_char,
                                                 const PRG_Info &prg_info) {
     const auto alphabet_rank = prg_info.fm_index.char2comp[allele_marker_char];
     const auto start_sa_index = prg_info.fm_index.C[alphabet_rank];
 
-    const auto next_boundary_marker =
-            allele_marker_char + 1; // TODO: this assumes a continuous integer ordering of the site markers...
-
-    // sigma: is the size (=number of unique symbols) of the alphabet
-    const auto max_alphabet_char = prg_info.fm_index.comp2char[prg_info.fm_index.sigma - 1];
-
-    // Check the next variant site marker exists.
-    // `max_alphabet_char` is an allele marker and so cannot be equal to `next_boundary_marker` which is a site marker.
-    const bool next_boundary_marker_valid = next_boundary_marker < max_alphabet_char;
-
     SA_Index end_sa_index;
-    if (next_boundary_marker_valid) { //  Condition: the allele marker is not the largest existing allele marker number.
-        const auto next_boundary_marker_rank =
-                prg_info.fm_index.char2comp[next_boundary_marker];
-        const auto next_boundary_marker_start_sa_index =
-                prg_info.fm_index.C[next_boundary_marker_rank];
-        end_sa_index = next_boundary_marker_start_sa_index - 1;
-    } else { // If it does not exist, the last prg position is variant site exit point.
-        end_sa_index = prg_info.fm_index.size() - 1;
+    // Case: the current marker is not the last element of the alphabet.
+    if (alphabet_rank < prg_info.fm_index.sigma - 1){
+        // - 1 because we get positioned at the first position whose suffix starts with the next element in the alphabet
+        // and we want to exclude that because we work with inclusive rank queries in backward search.
+        end_sa_index = prg_info.fm_index.C[alphabet_rank + 1] - 1;
     }
+    // Case: it is the last element of the alphabet
+    else end_sa_index = prg_info.fm_index.size() - 1;
+
     return SA_Interval{start_sa_index, end_sa_index};
 }
 
@@ -471,7 +467,7 @@ MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
         VariantLocus target_locus = prg_info.coverage_graph.random_access[prg_index].target;
         // Convert the target to a site ID if it is an allele ID that points to the beginning of the site
         // (ie, it is not the last allele)
-        if (target_locus.first % 2 == 0){
+        if (is_allele_marker(target_locus.first)){
             if (prg_info.last_allele_positions.at(target_locus.first) !=
                     prg_index - 1) target_locus.first--;
         }
@@ -501,7 +497,7 @@ Locus_and_SearchState gram::extend_targets_site_exit(VariantLocus const& target_
         assert(target_markers.size() == 1); // A site entry point should not point to more than one other marker
         site_marker = target_markers.back().ID;
 
-        if (site_marker % 2 == 0) break; // We have an allele marker (site exit); this will get processed separately
+        if (is_allele_marker(site_marker)) break; // We have an allele marker (site exit); this will get processed separately
         else { // A double exit
            auto parent_site = prg_info.coverage_graph.par_map.at(prev_id);
            // The targeted double exit should be correspondingly well recorded in the parental map
@@ -535,7 +531,7 @@ Locus_and_SearchStates gram::extend_targets_site_entry(VariantLocus const& targe
 
     // Traverse each target in the map and add it as an extension
     for(auto& mapped_target : target_map.at(original_allele_marker)){
-        if (mapped_target.ID % 2 == 1){ // Case: direct deletion
+        if (is_site_marker(mapped_target.ID)){ // Case: direct deletion
            assert(mapped_target.direct_deletion_allele != 0);
             VariantLocus site_exit_locus{mapped_target.ID, mapped_target.direct_deletion_allele};
             // Add a fake traversing element that gets specified in the call to `extend_targets_site_exit`
@@ -579,7 +575,7 @@ SearchStates gram::process_markers_search_state(const SearchState &current_searc
         auto const& search_state = to_process_target.second;
 
         // Get the new search state
-        if (target_locus.first % 2 == 1) {
+        if (is_site_marker(target_locus.first)) {
             auto new_target = extend_targets_site_exit(target_locus, search_state, prg_info);
             extension_targets = Locus_and_SearchStates{new_target};
         }
@@ -594,7 +590,7 @@ SearchStates gram::process_markers_search_state(const SearchState &current_searc
             markers_search_states.push_back(new_target.second);
             auto const& site_ID = new_target.first.first;
             // Add the new target for processing if it is a site entry point (=even marker)
-            if (site_ID % 2 == 0 && site_ID != 0) to_process_targets.push_back(new_target);
+            if (is_allele_marker(site_ID) && site_ID != 0) to_process_targets.push_back(new_target);
         }
 
     }

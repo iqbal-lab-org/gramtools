@@ -37,7 +37,7 @@ void PRG_String::map_and_normalise_ends(){
             ++pos;
             continue;
         }
-        if (marker % 2 == 1) {
+        if (is_site_marker(marker)) {
             bool seen_before = seen_sites.find(marker) != seen_sites.end();
             if (seen_before) {
                 odd_site_end_found = true;
