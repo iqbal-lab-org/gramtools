@@ -2,7 +2,6 @@
 #include <fstream>
 #include <vector>
 
-#include "search/search.hpp"
 #include "quasimap/coverage/allele_base.hpp"
 
 

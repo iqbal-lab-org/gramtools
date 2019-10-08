@@ -1,14 +1,22 @@
 /** @file
  * Loads the data structures supporting vBWT search, and maps reads to the prg.
  */
-#include "parameters.hpp"
-#include "kmer_index/kmer_index_types.hpp"
-#include "quasimap/coverage/types.hpp"
-#include "common/read_stats.hpp"
-
 
 #ifndef GRAMTOOLS_QUASIMAP_HPP
 #define GRAMTOOLS_QUASIMAP_HPP
+
+#include "parameters.hpp"
+#include "sequence_read/seqread.hpp"
+
+#include "common/parameters.hpp"
+#include "common/utils.hpp"
+#include "common/read_stats.hpp"
+
+#include "coverage/types.hpp"
+#include "coverage/common.hpp"
+
+#include "search/BWT_search.hpp"
+#include "search/vBWT_jump.hpp"
 
 namespace gram {
 
@@ -58,6 +66,23 @@ namespace gram {
 
     Pattern get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read);
 
-}
+    /**
+     * Generates a list of `SearchState`s from a read and a kmer, which is 3'-most kmer in the read.
+     * The kmer_index is queried to generate an initial set of `SearchState`s (precomputed at `build` stage) to start from.
+     * @return SearchStates: a list of `SearchState`s, which at core are an SA interval and a path through the prg (marker-allele ID pairs)
+     */
+    SearchStates search_read_backwards(const Pattern &read,
+                                       const Pattern &kmer,
+                                       const KmerIndex &kmer_index,
+                                       const PRG_Info &prg_info);
 
+    /**
+    * **The key read mapping procedure**.
+    * First updates SA_intervals to search next based on variant marker presence.
+    * Then executes regular backward search.
+    */
+    SearchStates process_read_char_search_states(const int_Base &pattern_char,
+                                                 const SearchStates &old_search_states,
+                                                 const PRG_Info &prg_info);
+}
 #endif //GRAMTOOLS_QUASIMAP_HPP

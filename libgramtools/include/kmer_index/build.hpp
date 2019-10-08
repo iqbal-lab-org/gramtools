@@ -11,7 +11,7 @@
 #include "common/parameters.hpp"
 #include "prg/prg.hpp"
 #include "prg/make_data_structures.hpp"
-#include "search/search_types.hpp"
+#include "quasimap/search_types.hpp"
 #include "kmer_index_types.hpp"
 #include "kmers.hpp"
 

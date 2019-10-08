@@ -1,23 +1,8 @@
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <vector>
-#include <omp.h>
-
-#include "sequence_read/seqread.hpp"
-
-#include "common/timer_report.hpp"
-#include "common/parameters.hpp"
-#include "common/utils.hpp"
-#include "common/read_stats.hpp"
-
-#include "search/search.hpp"
-
-#include "quasimap/coverage/types.hpp"
-#include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
 #include "kmer_index/load.hpp"
+#include "common/timer_report.hpp"
 
+#include <omp.h>
 
 using namespace gram;
 
@@ -222,4 +207,55 @@ Pattern gram::get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read)
     auto kmer_start_it = read.begin() + read.size() - kmer_size;
     kmer.assign(kmer_start_it, read.end());
     return kmer;
+}
+
+SearchStates gram::search_read_backwards(const Pattern &read,
+                                         const Pattern &kmer,
+                                         const KmerIndex &kmer_index,
+                                         const PRG_Info &prg_info) {
+    // Test if kmer has been indexed
+    bool kmer_in_index = kmer_index.find(kmer) != kmer_index.end();
+    if (not kmer_in_index)
+        return SearchStates{};
+
+    // Test if kmer has been indexed, but has no search states in prg
+    auto kmer_index_search_states = kmer_index.at(kmer);
+    if (kmer_index_search_states.empty())
+        return kmer_index_search_states;
+
+
+    // Reverse iterator + skipping through indexed kmer in read
+    auto read_begin = read.rbegin();
+    std::advance(read_begin, kmer.size());
+
+    SearchStates new_search_states = kmer_index_search_states;
+
+    for (auto it = read_begin; it != read.rend(); ++it) { /// Iterates end to start of read
+        const int_Base &pattern_char = *it;
+        new_search_states = process_read_char_search_states(pattern_char,
+                                                            new_search_states,
+                                                            prg_info);
+        // Test if no mapping found upon character extension
+        auto read_not_mapped = new_search_states.empty();
+        if (read_not_mapped)
+            break;
+    }
+
+    if (!new_search_states.empty()) set_allele_ids(new_search_states, prg_info);
+    new_search_states = handle_allele_encapsulated_states(new_search_states, prg_info);
+    return new_search_states;
+}
+
+SearchStates gram::process_read_char_search_states(const int_Base &pattern_char,
+                                                   const SearchStates &old_search_states,
+                                                   const PRG_Info &prg_info) {
+    //  Before extending backward search with next character, check for variant markers in the current SA intervals
+    //  This is the v part of vBWT.
+    auto post_markers_search_states = process_markers_search_states(old_search_states,
+                                                                    prg_info);
+    //  Regular backward searching
+    auto new_search_states = search_base_backwards(pattern_char,
+                                                   post_markers_search_states,
+                                                   prg_info);
+    return new_search_states;
 }

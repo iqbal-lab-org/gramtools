@@ -27,7 +27,7 @@
 #include "src_common/generate_prg.hpp"
 #include "prg/prg.hpp"
 #include "kmer_index/build.hpp"
-#include "search/search.hpp"
+#include "quasimap/quasimap.hpp"
 
 
 using namespace gram;
@@ -264,23 +264,32 @@ TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
     EXPECT_EQ(markers_search_states.size(), 2);
 }
 
+// The convention is as follows: if the position marks a site exit, the marker will be a site marker,
+// and if it marks a site entry, the marker will be an allele marker.
 TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit){
     auto prg_raw = encode_prg("gcgct5C6g6a6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     const Marker marker_char = 6;
 
-    // TEST 1: char a at site exit point
-    SA_Index sa_right_of_marker = 1;
-    auto text_index = prg_info.fm_index[sa_right_of_marker];
+    // TEST 1: char a at site entry point
+    SearchState search_state = {
+            SA_Interval {1, 1}
+    };
 
-    auto isSiteEnd = gram::marker_is_site_end(marker_char, sa_right_of_marker, prg_info);
-    EXPECT_EQ(true, isSiteEnd);
+    auto result = left_markers_search(search_state,
+                                      prg_info);
 
-    // TEST 2: char c at site entry point
-    sa_right_of_marker = 7;
-    isSiteEnd = gram::marker_is_site_end(marker_char, sa_right_of_marker, prg_info);
-    EXPECT_EQ(false, isSiteEnd);
+    auto variant_marker = result[0].first;
+    EXPECT_TRUE(is_allele_marker(variant_marker));
+
+    // TEST 2: char c at site exit point
+    search_state = {
+            SA_Interval{7, 7}
+    };
+    result = left_markers_search(search_state, prg_info);
+    variant_marker = result[0].first;
+    EXPECT_TRUE(is_site_marker(variant_marker));
 }
 
 
@@ -486,18 +495,6 @@ TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
     std::vector<VariantLocus> expected = {
             {5, ALLELE_UNKNOWN},
     };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(Search, GivenAlleleMarkerSaIndex_ReturnAlleleId) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    uint64_t allele_marker_sa_index = 18;
-    auto result = get_allele_id(allele_marker_sa_index,
-                                prg_info);
-    auto expected = 2;
     EXPECT_EQ(result, expected);
 }
 

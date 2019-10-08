@@ -2,7 +2,6 @@
 #include <thread>
 #include <unordered_map>
 
-#include "search/search.hpp"
 #include "kmer_index/load.hpp"
 #include "kmer_index/dump.hpp"
 

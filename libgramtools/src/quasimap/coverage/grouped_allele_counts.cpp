@@ -1,8 +1,6 @@
 #include <fstream>
 #include <vector>
 
-#include "search/search.hpp"
-
 #include "quasimap/coverage/grouped_allele_counts.hpp"
 
 
