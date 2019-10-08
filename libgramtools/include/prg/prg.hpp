@@ -48,7 +48,7 @@ namespace gram {
         sdsl::rank_support_v<1> rank_bwt_g;
         sdsl::rank_support_v<1> rank_bwt_t;
 
-        uint64_t max_alphabet_num;
+        uint64_t num_variant_sites;
     };
 
     /**
@@ -65,11 +65,6 @@ namespace gram {
     uint64_t dna_bwt_rank(const uint64_t &upper_index,
                           const Marker &dna_base,
                           const PRG_Info &prg_info);
-
-    /**
-     * Finds largest integer in the (integer-encoded) prg.
-     */
-    uint64_t get_max_alphabet_num(const marker_vec &encoded_prg);
 
     /**
      * Calls prg encoding routine and stores encoded prg to file.

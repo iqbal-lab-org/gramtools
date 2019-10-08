@@ -366,7 +366,7 @@ TEST(Target_map, EvenIsEntry_OddIsExit){
     std::vector<targeted_marker> targets;
     Marker seed;
     target_m expected_map;
-    // First add in the direct deletion at pos 3
+
     seed = 7;
     targets.emplace_back(targeted_marker{5, 0});
     expected_map.insert(std::make_pair(seed, targets));

@@ -3,7 +3,6 @@
 
 #include "search/search.hpp"
 
-#include "quasimap/utils.hpp"
 #include "quasimap/coverage/grouped_allele_counts.hpp"
 
 
@@ -11,7 +10,7 @@ using namespace gram;
 
 
 SitesGroupedAlleleCounts coverage::generate::grouped_allele_counts(const PRG_Info &prg_info) {
-    uint64_t number_of_variant_sites = get_number_of_variant_sites(prg_info);
+    uint64_t number_of_variant_sites = prg_info.num_variant_sites;
     // Stores as many empty maps (associating allele IDs to mapped read counts) as there are variant sites in the prg.
     SitesGroupedAlleleCounts grouped_allele_counts(number_of_variant_sites);
     return grouped_allele_counts;

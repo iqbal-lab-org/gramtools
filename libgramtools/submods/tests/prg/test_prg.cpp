@@ -6,33 +6,30 @@
 
 using namespace gram;
 
-
-TEST(GetMaxAlphabetNum, GivenPrg_CorrectMaxAlphabetNum) {
-    auto prg_raw = encode_prg("a5g6t6cccc11g12tttt12");
-    auto prg_info = generate_prg_info(prg_raw);
-    auto result = get_max_alphabet_num(prg_info.encoded_prg);
-    auto expected = 12;
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GetMaxAlphabetNum, PrgWithVariantSite_LargestSiteMarkerAsMaxAlphabet) {
-    auto prg_raw = encode_prg("a13g14t14tt");
-    auto prg_info = generate_prg_info(prg_raw);
-    auto result = get_max_alphabet_num(prg_info.encoded_prg);
-    uint64_t expected = 14;
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GetMaxAlphabetNum, SingleCharPrg_CorrectBaseEncodingAsMaxAlphabet) {
+TEST(GetNumVarSites, NoSites) {
     auto prg_raw = encode_prg("c");
     auto prg_info = generate_prg_info(prg_raw);
-    auto result = get_max_alphabet_num(prg_info.encoded_prg);
-    uint64_t expected = 2;
+    auto result = prg_info.num_variant_sites;
+    uint64_t expected = 0;
     EXPECT_EQ(result, expected);
 }
 
+TEST(GetNumVarSites, UnNestedPrgString) {
+    auto prg_raw = encode_prg("a5g6t6cccc11g12tttt12");
+    auto prg_info = generate_prg_info(prg_raw);
+    auto result = prg_info.num_variant_sites;
+    auto expected = 2;
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GetNumVarSites, Nested_PrgString) {
+    auto prg_raw = prg_string_to_ints("[[A,C,G]A,T]T[,C][GA,CT]");
+    auto prg_info = generate_prg_info(prg_raw);
+    auto result = prg_info.num_variant_sites;
+    uint64_t expected = 4;
+    EXPECT_EQ(result, expected);
+}
 
 TEST(GenerateSitesMask, GivenMultiSitePrg_CorrectSitesMask) {
     auto prg_raw = encode_prg("a5g6t6cc11g12tt12");

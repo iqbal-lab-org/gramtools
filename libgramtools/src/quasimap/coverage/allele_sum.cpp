@@ -3,8 +3,6 @@
 #include <vector>
 
 #include "search/search.hpp"
-
-#include "quasimap/utils.hpp"
 #include "quasimap/coverage/allele_sum.hpp"
 
 
@@ -12,8 +10,8 @@ using namespace gram;
 
 
 AlleleSumCoverage gram::coverage::generate::allele_sum_structure(const PRG_Info &prg_info) {
-    uint64_t numer_of_variant_sites = get_number_of_variant_sites(prg_info);
-    AlleleSumCoverage allele_sum_coverage(numer_of_variant_sites);
+    uint64_t number_of_variant_sites = prg_info.num_variant_sites;
+    AlleleSumCoverage allele_sum_coverage(number_of_variant_sites);
 
     const auto min_boundary_marker = 5;
     bool last_char_was_zero = true;

@@ -21,9 +21,9 @@ void commands::build::run(const Parameters &parameters) {
 
     prg_info.last_allele_positions = ps.get_end_positions();
 
-    prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
-    std::cout << "Maximum alphabet character: " << prg_info.max_alphabet_num << std::endl;
-    if (prg_info.max_alphabet_num <= 4) { // No personalised reference to infer; exit
+    prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
+    std::cout << "Number of variant sites: " << prg_info.num_variant_sites << std::endl;
+    if (prg_info.num_variant_sites == 0) { // No personalised reference to infer; exit
         std::cout << "No variant sites found.\nExiting 1" << std::endl;
         std::exit(1);
     }

@@ -21,15 +21,6 @@ uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
     }
 }
 
-uint64_t gram::get_max_alphabet_num(const marker_vec &encoded_prg) {
-    uint64_t max_alphabet_num = 0;
-    for (const uint64_t &x: encoded_prg) {
-        if (x > max_alphabet_num)
-            max_alphabet_num = x;
-    }
-    return max_alphabet_num;
-}
-
 
 //marker_vec gram::generate_encoded_prg(const Parameters &parameters) {
 //    auto encoded_prg = parse_raw_prg_file(parameters.linear_prg_fpath);
@@ -151,7 +142,12 @@ PRG_Info gram::load_prg_info(const Parameters &parameters) {
     PRG_String ps{parameters.encoded_prg_fpath};
     prg_info.encoded_prg = ps.get_PRG_string();
     prg_info.last_allele_positions = ps.get_end_positions();
-    prg_info.max_alphabet_num = get_max_alphabet_num(prg_info.encoded_prg);
+
+    // Load coverage graph
+    std::ifstream ifs{parameters.cov_graph_fpath};
+    boost::archive::binary_iarchive ia{ifs};
+    ia >> prg_info.coverage_graph;
+    prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
 
     prg_info.fm_index = load_fm_index(parameters);
     prg_info.sites_mask = load_sites_mask(parameters);

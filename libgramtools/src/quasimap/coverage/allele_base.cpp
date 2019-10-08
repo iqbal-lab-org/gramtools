@@ -3,8 +3,6 @@
 #include <vector>
 
 #include "search/search.hpp"
-
-#include "quasimap/utils.hpp"
 #include "quasimap/coverage/allele_base.hpp"
 
 
@@ -12,7 +10,7 @@ using namespace gram;
 
 
 SitesAlleleBaseCoverage gram::coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
-    uint64_t number_of_variant_sites = get_number_of_variant_sites(prg_info);
+    uint64_t number_of_variant_sites = prg_info.num_variant_sites;
     SitesAlleleBaseCoverage allele_base_coverage(number_of_variant_sites);
 
     const auto min_boundary_marker = 5;

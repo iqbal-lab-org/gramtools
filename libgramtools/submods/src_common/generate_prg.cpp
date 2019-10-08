@@ -43,6 +43,6 @@ PRG_Info generate_prg_info(const marker_vec &prg_raw) {
     prg_info.rank_bwt_g = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_g);
     prg_info.rank_bwt_t = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_t);
 
-    prg_info.max_alphabet_num = get_max_alphabet_num(encoded_prg);
+    prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
     return prg_info;
 }
