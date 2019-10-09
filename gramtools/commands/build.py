@@ -169,7 +169,7 @@ def _count_vcf_record_lines(vcf_file_path):
 @with_report
 def _cluster_vcf_records(report, action, command_paths):
     vcf_files = command_paths['vcf']
-    final_vcf_name = os.path.join(command_paths['gram_dir'], 'build.vcf')
+    final_vcf_name = command_paths['built_vcf']
     log.info(f"Running {action} on {str(vcf_files)}.")
 
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(vcf_files,
@@ -188,6 +188,7 @@ def _execute_command_generate_prg(report, action, build_paths):
 
     converter = vcf_to_prg_string.Vcf_to_prg(vcf_in, build_paths['original_reference'],
                                              build_paths['prg_string'], mode="normal")
+    # print(converter.prg_vector)
     converter._write_bytes()
 
     ## The converter does not produce a vcf

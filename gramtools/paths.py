@@ -22,7 +22,6 @@ def _generate_project_paths(gram_dir):
         'original_reference' : gram_path('original_reference.fasta'),
 
         'prg': gram_path('prg'),
-        'encoded_prg': gram_path('encoded_prg'),
 
         'variant_site_mask': gram_path('variant_site_mask'),
         'allele_mask': gram_path('allele_mask'),
@@ -32,6 +31,7 @@ def _generate_project_paths(gram_dir):
         'prg_string': gram_path('prg'),
 
         'build_report': gram_path('build_report.json'),
+        'built_vcf' : gram_path('build.vcf')
 
     }
     return paths
@@ -100,9 +100,7 @@ def _generate_run_paths(run_dir):
 
     # Infer paths
     infer_path = path_fact(paths['infer_dir'])
-
     paths.update({
-
        'inferred_fasta' : infer_path('inferred.fasta'),
        'inferred_vcf' : infer_path('inferred.vcf'),
        'inferred_ref_size' : infer_path('inferred_ref_size'),

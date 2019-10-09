@@ -121,10 +121,10 @@ def run(args):
 
 ## From the vcf describing the original prg, write a new vcf containing the ALT allele inferred at each variant site.
 def _dump_vcf(genotypers, _paths, args):
-    if _paths['perl_generated_vcf'] is '' or _paths['perl_generated_vcf'] is None:
+    if _paths['built_vcf'] is '' or _paths['built_vcf'] is None:
         log.error('VCF file must be used as part of gramtools build command. Exiting.')
     
-    file_handle = open(_paths['perl_generated_vcf'], 'r')
+    file_handle = open(_paths['built_vcf'], 'r')
     vcf_reader = vcf.Reader(file_handle)
 
     # Genotyping information we will output
@@ -138,7 +138,8 @@ def _dump_vcf(genotypers, _paths, args):
     ## Update Metadata headers ##
     headers = collections.OrderedDict({
         'fileformat':'VCF4.2', # Some metadata lines, including fileformat, are expected to be 'singular', ie not a list
-        'source': ['gramtools, version {}, last commit {}'.format(version.version.version_number,version.version.last_git_commit_hash[:6])],
+        'source': ['gramtools, version {}, last commit {}'.format(version.package_version.__version__,
+                                                                  version.commit_version.last_git_commit_hash[:6])],
     })
 
     if vcf_reader.metadata.get('fileformat',None) is None:

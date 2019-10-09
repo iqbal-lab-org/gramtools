@@ -45,8 +45,10 @@ Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
     parameters.gram_dirpath = gram_dirpath;
     parameters.encoded_prg_fpath = full_path(gram_dirpath, "prg");
     parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
+    parameters.cov_graph_fpath = full_path(gram_dirpath, "cov_graph");
     parameters.sites_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
     parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
+
     parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
     parameters.kmers_fpath = full_path(gram_dirpath, "kmers");
     parameters.kmers_stats_fpath = full_path(gram_dirpath, "kmers_stats");

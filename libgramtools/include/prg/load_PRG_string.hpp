@@ -13,7 +13,7 @@
 using namespace gram;
 
 namespace gram{
-    enum class endianness{big, small};
+    enum class endianness{big, little};
 }
 
 class PRG_String {
@@ -24,7 +24,7 @@ public:
      * Read in PRG String from binary int vector
      * Reads byte per byte in BIG ENDIAN; the serialisor must write that way too.
      */
-    PRG_String(std::string const &file_in);
+    PRG_String(std::string const &file_in, endianness en = endianness::little);
 
     PRG_String(marker_vec const &v_in);
 

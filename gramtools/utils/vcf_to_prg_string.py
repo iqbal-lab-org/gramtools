@@ -237,9 +237,15 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
         f_in.close()
 
     def _write_bytes(self):
+        """
+        Write an integer
+        By default, writes an **unsigned integer**
+        Endianness: big or little
+        :return:
+        """
         with open(f'{self.f_out_prefix}', "wb") as f_out:
             for integer in self.prg_vector:
-                f_out.write(integer.to_bytes(self.NUM_BYTES, "big")) # Write in big endian
+                f_out.write(integer.to_bytes(self.NUM_BYTES, "little"))
 
     def _write_string(self):
         # Construct it

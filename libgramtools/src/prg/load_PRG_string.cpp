@@ -1,19 +1,30 @@
 #include <prg/load_PRG_string.hpp>
 
 
-PRG_String::PRG_String(std::string const& file_in){
+PRG_String::PRG_String(std::string const& file_in, endianness en){
     std::fstream input(file_in, std::ios::in | std::ios::binary);
     if (!input) throw std::ios::failure("PRG String file not found");
     else {
-        int32_t c;
-        char buffer[gram::num_bytes_per_integer];
+        uint32_t c{0};
+        uint8_t buffer[gram::num_bytes_per_integer]; // Note, use uint8_t and not char which is signed
+        size_t byte_pos;
         while (true){
-            input.read(buffer, 4); // Read 4 bytes in one go
+            input.read((char*) &buffer, gram::num_bytes_per_integer); // Read byte by byte
             if (input.eof()) break;
-            // Place the bytes in the int32, assuming BIG ENDIAN
-            c = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
+
+            if (en == endianness::big){
+                c = (uint32_t)buffer[0] << 24 | (uint32_t)buffer[1] << 16
+                    | (uint32_t)buffer[2] << 8 | (uint32_t)buffer[3];
+            }
+            else {
+                c = (uint32_t)buffer[0] | (uint32_t)buffer[1] << 8
+                    | (uint32_t)buffer[2] << 16 | (uint32_t)buffer[3] << 24;
+            }
+
+            if (input.eof()) break;
             assert(c >= 1);
             my_PRG_string.push_back(c);
+            c = 0;
         }
     };
     output_file = file_in;
