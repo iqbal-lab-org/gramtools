@@ -265,6 +265,7 @@ class _SingleUpdater(_VcfUpdater):
         sample = vcf.model._Call(site = vcf_record, sample = self.sample_name, data=self.CallData(GT=genotype, DP=depth, COV=cov_string, GT_CONF=gt_conf))
         vcf_record.samples = [sample]  # Removes pre-existing genotype calls if there were any.
         vcf_record.FORMAT = self.FORMAT
+        vcf_record.INFO = []
 
         self.allele_indexes.append(most_likely_single_allele)
 

@@ -18,7 +18,7 @@ PRG_Info generate_prg_info(const marker_vec &prg_raw) {
     PRG_String ps{prg_raw};
     auto encoded_prg = ps.get_PRG_string();
     // Write the int vector to disk so that it can be read by sdsl for building fm index
-    ps.write(parameters.encoded_prg_fpath, endianness::small);
+    ps.write(parameters.encoded_prg_fpath, endianness::little);
 
     PRG_Info prg_info;
     prg_info.encoded_prg = encoded_prg;

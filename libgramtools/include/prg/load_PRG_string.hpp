@@ -22,7 +22,7 @@ public:
 
     /**
      * Read in PRG String from binary int vector
-     * Reads byte per byte in BIG ENDIAN; the serialisor must write that way too.
+     * Reads byte per byte in specified endianness; the serialisor must write that way too.
      */
     PRG_String(std::string const &file_in, endianness en = endianness::little);
 
@@ -31,7 +31,7 @@ public:
     /*
      * Functions
      */
-    void write(std::string const& fname, endianness = endianness::big);
+    void write(std::string const& fname, endianness = endianness::little);
 
     void set_output_file(std::string const &fname) { output_file = fname; };
 
