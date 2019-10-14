@@ -17,6 +17,12 @@ TEST(PRG_Conversion, string_to_ints1){
     EXPECT_EQ(res, expected);
 }
 
+
+TEST(PRG_Conversion, StringWithInvalidCharPassed_ProgramExits){
+    std::string prg_string = "5A5";
+    ASSERT_DEATH(prg_string_to_ints(prg_string),  ".*not a nucleotide*.");
+}
+
 TEST(PRG_Conversion, ints_to_string){
     std::vector<Marker> int_vec = {5,1,6,2,7,1,8,4,8,6};
     std::string expected = "[A,C[A,T]]";

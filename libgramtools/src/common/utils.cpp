@@ -55,7 +55,7 @@ std::string  gram::decode_dna_base(const int_Base& base){
         case 2: return "C";
         case 3: return "G";
         case 4: return "T";
-        default: throw std::out_of_range("The argument is not in [1,4]");
+        default: std::cerr << "Error: the argument " << base << " is not in [1,4]"; exit(1);
     }
 }
 
@@ -148,6 +148,7 @@ std::string gram::ints_to_prg_string(std::vector<Marker> const& int_vec){
 }
 
 std::vector<Marker> gram::prg_string_to_ints(std::string const& string_prg) {
+    int_Base base;
     std::stack<int> marker_stack;
     int max_var_marker{3};
     int char_count{0};
@@ -178,17 +179,16 @@ std::vector<Marker> gram::prg_string_to_ints(std::string const& string_prg) {
             }
 
             default : {
-                try {
+                    base = encode_dna_base(c);
+                    if (base == 0){
+                        std::cerr << "Error: the argument " << c << " is not a nucleotide char";
+                        exit(1);
+                    }
                     encoded_prg[char_count++] = encode_dna_base(c);
                     break;
                 }
-                catch(std::exception& e){
-                    std::cerr << e.what();
-                    exit(1);
-                }
             }
         }
-    }
 
     // BOOST_LOG_TRIVIAL(info) << "Number of sites produced: " << (max_var_marker -3 ) / 2;
     return encoded_prg;
