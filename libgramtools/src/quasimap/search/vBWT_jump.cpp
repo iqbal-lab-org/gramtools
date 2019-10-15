@@ -1,14 +1,14 @@
 #include "quasimap/search/vBWT_jump.hpp"
 
 SA_Interval gram::get_allele_marker_sa_interval(const Marker &allele_marker_char,
-                                          const PRG_Info &prg_info) {
+                                                const PRG_Info &prg_info) {
     const auto alphabet_rank = prg_info.fm_index.char2comp[allele_marker_char];
     const auto start_sa_index = prg_info.fm_index.C[alphabet_rank];
 
     SA_Index end_sa_index;
     // Case: the current marker is not the last element of the alphabet.
-    if (alphabet_rank < prg_info.fm_index.sigma - 1){
-        // - 1 because we get positioned at the first position whose suffix starts with the next element in the alphabet
+    if (alphabet_rank < prg_info.fm_index.sigma - 1) {
+        // Below: use - 1 because we get positioned at the first position whose suffix starts with the next element in the alphabet
         // and we want to exclude that because we work with inclusive rank queries in backward search.
         end_sa_index = prg_info.fm_index.C[alphabet_rank + 1] - 1;
     }
@@ -76,11 +76,10 @@ SearchState entering_site_search_state(const Marker &allele_marker,
  *
  *
  * @note ABOUT kmer index serialisation
- * Note first that when we enter a var site, we set the `SearchVariantSiteState` enum to 'within_variant'.
- * Now kmer index serialisation is lossy: we lose the `SearchVariantSiteState` if it is set: ie
+ * When we enter a var site, we set the `SearchVariantSiteState` enum to 'within_variant'.
+ * Kmer index serialisation is lossy: we lose the `SearchVariantSiteState` if it is set: ie
  * when re-loading the index, it goes to `unknown`.
- * Thus we may have mapped into a site, and reached the kmer end, and serialised that to disk.
- * And thus we cannot use this enum to ascertain if we have previously entered the site.
+ * Thus we should not rely on this enum to * ascertain if we have previously entered the site.
  */
 void update_variant_site_path(SearchState &affected_search_state,
                               const uint64_t allele_id,
@@ -105,7 +104,8 @@ void update_variant_site_path(SearchState &affected_search_state,
  * Deals with a read mapping leaving a variant site.
  * Create a new `SearchState` with SA interval the index of the site variant's entry point.
  */
-SearchState exiting_site_search_state(const VariantLocus &locus, const SearchState &current_search_state,
+SearchState exiting_site_search_state(const VariantLocus &locus,
+                                      const SearchState &current_search_state,
                                       const PRG_Info &prg_info) {
 
     SearchState new_search_state = current_search_state;
@@ -125,71 +125,6 @@ SearchState exiting_site_search_state(const VariantLocus &locus, const SearchSta
     return new_search_state;
 }
 
-
-SearchStates gram::process_markers_search_states(const SearchStates &old_search_states,
-                                                 const PRG_Info &prg_info) {
-    SearchStates new_search_states = old_search_states;
-    SearchStates all_markers_new_search_states;
-    for (const auto &search_state: old_search_states) {
-        auto markers_search_states = process_markers_search_state(search_state, prg_info);
-        all_markers_new_search_states.splice(all_markers_new_search_states.end(),
-                                             markers_search_states);
-    }
-    new_search_states.splice(new_search_states.end(),
-                             all_markers_new_search_states);
-    return new_search_states;
-}
-
-
-SearchStates gram::process_markers_search_state(const SearchState &current_search_state,
-                                                const PRG_Info &prg_info) {
-    // A vector of the `VariantLocus`s that need to be processed
-    auto marker_targets = left_markers_search(current_search_state,
-                                              prg_info);
-    if (marker_targets.empty())
-        return SearchStates{};
-
-    target_m const& target_map = prg_info.coverage_graph.target_map;
-    SearchStates markers_search_states = {};
-    Locus_and_SearchStates extension_targets;
-    Locus_and_SearchStates to_process_targets;
-
-    // Add the current search state to the locus for extension of the `SearchState`
-    for (auto& marker_target : marker_targets) to_process_targets.push_back({marker_target, current_search_state});
-
-    // In the loop we must respect the following contract:
-    // - Each new target has a search state that needs to be committed
-    // - A locus is deemed processed, and is thus not processed again, if it is a site exit point
-    while (!to_process_targets.empty()) {
-        auto const to_process_target = to_process_targets.back();
-        to_process_targets.pop_back();
-        auto const& target_locus = to_process_target.first;
-        auto const& search_state = to_process_target.second;
-
-        // Get the new search state
-        if (is_site_marker(target_locus.first)) {
-            auto new_target = extend_targets_site_exit(target_locus, search_state, prg_info);
-            extension_targets = Locus_and_SearchStates{new_target};
-        }
-
-        else {
-            extension_targets = extend_targets_site_entry(target_locus, search_state, prg_info);
-        }
-
-        // Commit the new target search states
-        // and the Loci if they are non site
-        for (auto& new_target : extension_targets){
-            markers_search_states.push_back(new_target.second);
-            auto const& site_ID = new_target.first.first;
-            // Add the new target for processing if it is a site entry point (=even marker)
-            if (is_allele_marker(site_ID) && site_ID != 0) to_process_targets.push_back(new_target);
-        }
-
-    }
-    return markers_search_states;
-}
-
-
 MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
                                                const PRG_Info &prg_info) {
     MarkersSearchResults markers_search_results;
@@ -203,9 +138,10 @@ MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
         VariantLocus target_locus = prg_info.coverage_graph.random_access[prg_index].target;
         // Convert the target to a site ID if it is an allele ID that points to the beginning of the site
         // (ie, it is not the last allele)
-        if (is_allele_marker(target_locus.first)){
+        if (is_allele_marker(target_locus.first)) {
             if (prg_info.last_allele_positions.at(target_locus.first) !=
-                prg_index - 1) target_locus.first--;
+                prg_index - 1)
+                target_locus.first--;
         }
         markers_search_results.push_back(target_locus);
     }
@@ -213,73 +149,146 @@ MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
     return markers_search_results;
 }
 
-Locus_and_SearchState gram::extend_targets_site_exit(VariantLocus const& target_locus, SearchState const& search_state,
-                                                     PRG_Info const& prg_info){
-    // Make copies that we will modify
-    auto new_locus = target_locus;
-    auto& site_marker = new_locus.first;
-    auto& allele_id = new_locus.second;
-    auto new_search_state = search_state;
-
-    auto& target_map = prg_info.coverage_graph.target_map;
-    auto prev_id = site_marker;
-    while(true){
-        // update the SearchState.
-        new_search_state = exiting_site_search_state(new_locus, new_search_state, prg_info);
-
-        if (target_map.find(site_marker) == target_map.end()) break; // Nothing to do: no adjacent markers
-        // update the VariantLocus.
-        auto target_markers = target_map.at(site_marker);
-        assert(target_markers.size() == 1); // A site entry point should not point to more than one other marker
-        site_marker = target_markers.back().ID;
-
-        if (is_allele_marker(site_marker)) break; // We have an allele marker (site exit); this will get processed separately
-        else { // A double exit
-            auto parent_site = prg_info.coverage_graph.par_map.at(prev_id);
-            // The targeted double exit should be correspondingly well recorded in the parental map
-            assert(parent_site.first == site_marker);
-            allele_id = parent_site.second;
-            prev_id = site_marker;
-        }
+SearchStates gram::process_markers_search_states(const SearchStates &old_search_states,
+                                                 const PRG_Info &prg_info) {
+    SearchStates new_search_states = old_search_states;
+    SearchStates all_markers_new_search_states;
+    for (const auto &search_state: old_search_states) {
+        auto markers_search_states = search_state_vBWT_jumps(search_state, prg_info);
+        all_markers_new_search_states.splice(all_markers_new_search_states.end(),
+                                             markers_search_states);
     }
-
-    return std::make_pair(new_locus, new_search_state);
+    new_search_states.splice(new_search_states.end(),
+                             all_markers_new_search_states);
+    return new_search_states;
 }
 
-Locus_and_SearchStates gram::extend_targets_site_entry(VariantLocus const& target_locus, SearchState const& search_state,
-                                                       PRG_Info const& prg_info){
-    // First, simply get a new search state and flag the argument locus as being 'done with'
-    auto new_locus = target_locus;
-    auto& variant_marker = new_locus.first;
-    auto& allele_id = new_locus.second;
 
-    auto original_allele_marker = variant_marker;
-    variant_marker = 1; // A dummy value guaranteeing the target will not be processed again in the calling loop.
+SearchStates gram::search_state_vBWT_jumps(const SearchState &current_search_state,
+                                           const PRG_Info &prg_info) {
+    // A vector of the `VariantLocus`s that need to be processed
+    auto marker_targets = left_markers_search(current_search_state,
+                                              prg_info);
+    if (marker_targets.empty())
+        return SearchStates{};
+
+    target_m const &target_map = prg_info.coverage_graph.target_map;
+    SearchStates markers_search_states = {};
+    Locus_and_SearchStates extension_targets;
+    Locus_and_SearchStates to_process_targets;
+
+    // Add the current search state to each locus; each will be extended independently
+    for (auto &marker_target : marker_targets) to_process_targets.push_back({marker_target, current_search_state});
+
+    // In the loop we must respect the following contract:
+    // - Each new target has a search state that says if it needs to be committed
+    // - A locus is deemed processed, and is thus not processed again, if it is a site exit point
+    while (!to_process_targets.empty()) {
+        auto const to_process_target = to_process_targets.back();
+        to_process_targets.pop_back();
+        auto const &target_locus = to_process_target.locus;
+        auto const &search_state = to_process_target.search_state;
+
+        // Get the new targets
+        if (is_site_marker(target_locus.first)) {
+            auto new_target = extend_targets_site_exit(target_locus, search_state, prg_info);
+            extension_targets = Locus_and_SearchStates{new_target};
+        } else {
+            extension_targets = extend_targets_site_entry(target_locus, search_state, prg_info);
+        }
+
+        // Commit the new target search states and loci
+        for (auto &new_target : extension_targets) {
+            // Does the target need to be backward searched?
+            if (new_target.commit_me) markers_search_states.push_back(new_target.search_state);
+
+            // Does the target need to be processed further due to adjacent variant markers?
+            auto const &site_ID = new_target.locus.first;
+            if (site_ID != 0) to_process_targets.push_back(new_target);
+        }
+    }
+    return markers_search_states;
+}
+
+
+
+Locus_and_SearchState gram::extend_targets_site_exit(VariantLocus const &target_locus, SearchState const &search_state,
+                                                     PRG_Info const &prg_info) {
+
+    VariantLocus next_target = target_locus;
+    auto site_marker = next_target.first;
+    bool commit_me{true};
+    auto &target_map = prg_info.coverage_graph.target_map;
+
+    // update the SearchState.
+    auto new_search_state = exiting_site_search_state(target_locus, search_state, prg_info);
+    // Signal we do not want to process the locus further, by default.
+    next_target = VariantLocus{0,0};
+
+    while (target_map.find(site_marker) != target_map.end()) {
+
+        auto target_markers = target_map.at(site_marker);
+        assert(target_markers.size() == 1); // A site entry point should not point to more than one other marker
+
+        // Make new_locus point to the next site marker that needs a vBWT jump
+        auto next_site_marker = target_markers.back().ID;
+
+        if (is_allele_marker(next_site_marker)){ // An exit followed by an entry
+            next_target = VariantLocus{next_site_marker, 0};
+            commit_me = false; // There will be no sequence to extend into, so we will not extend this SearchState
+            break;  // The site entry will get processed separately by the calling function
+        }
+        else { // A double exit
+            // Sanity check: the targeted double exit should be correspondingly well recorded in the parental map
+            auto parent_site = prg_info.coverage_graph.par_map.at(site_marker);
+            assert(parent_site.first == next_site_marker);
+
+            // update the SearchState.
+            auto allele_id = parent_site.second;
+            new_search_state = exiting_site_search_state(VariantLocus{next_site_marker, allele_id},
+                                                            new_search_state, prg_info);
+            site_marker = next_site_marker;
+        }
+    }
+    return Locus_and_SearchState{next_target, new_search_state, commit_me};
+}
+
+Locus_and_SearchStates
+gram::extend_targets_site_entry(VariantLocus const &target_locus, SearchState const &search_state,
+                                PRG_Info const &prg_info) {
     Locus_and_SearchStates extensions;
+    VariantLocus next_target;
+
+    auto variant_marker = target_locus.first;
+
+    // First, simply ready the search state for mapping into the site, and flag the locus as being 'done with'
     auto new_search_state = entering_site_search_state(target_locus.first, search_state, prg_info);
-    extensions.push_back({new_locus, new_search_state});
+    next_target = VariantLocus{0,0};
+    extensions.push_back({next_target, new_search_state, true});
 
     // Now look for extensions
-    auto& target_map = prg_info.coverage_graph.target_map;
-    bool has_targets = target_map.find(original_allele_marker) != target_map.end();
+    auto &target_map = prg_info.coverage_graph.target_map;
+    bool has_targets = target_map.find(variant_marker) != target_map.end();
 
     if (!has_targets) return extensions;
 
     // Traverse each target in the map and add it as an extension
-    for(auto& mapped_target : target_map.at(original_allele_marker)){
-        if (is_site_marker(mapped_target.ID)){ // Case: direct deletion
+    for (auto &mapped_target : target_map.at(variant_marker)) {
+        if (is_site_marker(mapped_target.ID)) { // Case: direct deletion
             assert(mapped_target.direct_deletion_allele != 0);
             VariantLocus site_exit_locus{mapped_target.ID, mapped_target.direct_deletion_allele};
-            // Add a fake traversing element that gets specified in the call to `extend_targets_site_exit`
+
+            // Add a traversing element for the direct deletion whose allele ID will later get specified,
+            // Even though we know the allele ID right here.
+            // This maintains compatibility with mapping occurring without adjacent markers.
             auto direct_deletion_search_state = new_search_state;
             direct_deletion_search_state.traversing_path.push_back(VariantLocus{mapped_target.ID, ALLELE_UNKNOWN});
-            auto extended_target = extend_targets_site_exit(site_exit_locus, new_search_state, prg_info);
-            extensions.push_back(extended_target);
-        }
 
-        else { // Case : double entry
+            extensions.push_back({site_exit_locus, direct_deletion_search_state, false});
+
+        } else { // Case : double entry
             VariantLocus site_entry_locus{mapped_target.ID, ALLELE_UNKNOWN};
-            extensions.push_back({site_entry_locus, new_search_state});
+            extensions.push_back({site_entry_locus, new_search_state, false});
         }
     }
     return extensions;

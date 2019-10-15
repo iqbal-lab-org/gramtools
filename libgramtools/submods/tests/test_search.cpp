@@ -259,8 +259,8 @@ TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
     EXPECT_EQ(result, expected);
 
     // Expect three: one for exiting the site; two for entering.
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     EXPECT_EQ(markers_search_states.size(), 2);
 }
 
@@ -317,8 +317,8 @@ TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
     SearchState initial_search_state = {
             SA_Interval {8, 11}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     const auto &first_markers_search_state = markers_search_states.front();
 
     const auto &result = first_markers_search_state.sa_interval;
@@ -334,8 +334,8 @@ TEST(MarkerSearch, GivenCharG_NoMarkersToLeft){
     SearchState initial_search_state = {
             SA_Interval {8, 11}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     const auto &result = markers_search_states.size();
     auto expected = 1;
     EXPECT_EQ(result, expected);
@@ -349,8 +349,8 @@ TEST(MarkerSearch, GivenCharC_GoToVarSiteStart) {
     SearchState initial_search_state = {
             SA_Interval {3, 7}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     const auto &first_markers_search_state = markers_search_states.front();
 
     EXPECT_EQ(markers_search_states.size(), 1);
@@ -441,8 +441,8 @@ TEST(MarkerSearch, AtSiteEnd_GetAllMarkerChars) {
     SearchState initial_search_state = {
             SA_Interval {1, 1}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
 
     std::unordered_set<uint64_t> result;
     for (const auto &search_state: markers_search_states) {
@@ -464,8 +464,8 @@ TEST(MarkerSAIntervals, AtSiteExitPoint_NewSearchState_WithAllAlleles) {
     SearchState initial_search_state = {
             SA_Interval {1, 1}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     EXPECT_EQ(markers_search_states.size(), 1);
 
     const auto first = markers_search_states.front();
@@ -483,8 +483,8 @@ TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
     SearchState initial_search_state = {
             SA_Interval {1, 1}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
 
     std::vector<VariantLocus> result;
     for (const auto &search_state: markers_search_states)
@@ -507,8 +507,8 @@ TEST(ExitASite, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     SearchState initial_search_state = {
             SA_Interval {11, 14}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     EXPECT_EQ(markers_search_states.size(), 1);
     auto result = markers_search_states.front();
     SearchState expected = {
@@ -529,8 +529,8 @@ TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     SearchState initial_search_state = {
             SA_Interval {7, 10}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     EXPECT_EQ(markers_search_states.size(), 1);
     auto result = markers_search_states.front();
     SearchState expected = {
@@ -551,8 +551,8 @@ TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     SearchState initial_search_state = {
             SA_Interval {2, 6}
     };
-    const auto &markers_search_states = process_markers_search_state(initial_search_state,
-                                                                     prg_info);
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
     EXPECT_EQ(markers_search_states.size(), 1);
     auto result = markers_search_states.front();
     SearchState expected = {
