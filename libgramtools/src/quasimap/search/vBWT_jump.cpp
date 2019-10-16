@@ -9,7 +9,7 @@ SA_Interval gram::get_allele_marker_sa_interval(const Marker &allele_marker_char
     // Case: the current marker is not the last element of the alphabet.
     if (alphabet_rank < prg_info.fm_index.sigma - 1) {
         // Below: use - 1 because we get positioned at the first position whose suffix starts with the next element in the alphabet
-        // and we want to exclude that because we work with inclusive rank queries in backward search.
+        // note: the rank query itself is exclusive, so at backward search time this will get +1 again.
         end_sa_index = prg_info.fm_index.C[alphabet_rank + 1] - 1;
     }
         // Case: it is the last element of the alphabet
@@ -66,14 +66,9 @@ SearchState entering_site_search_state(const Marker &allele_marker,
 }
 
 /**
- * Add to the variant path taken, either i)the site and allele marker or ii)the allele marker only
- *
- * Note first that whenever we enter a variant site, we commit a site marker and an (invalid) allele marker to the
- * created search state.
- *
- * So if the variant site path is empty, we have not done this; ie, we started mapping inside the site: case i).
- * If it is not empty, we started mapping outside, so we update the allele id only.
- *
+ * Add to the variant path taken the site and allele markers
+ * They can be present at the back of the `traversing_path` in which case we appropriately set the allele_id
+ * and move the marker to the `traversed_path`
  *
  * @note ABOUT kmer index serialisation
  * When we enter a var site, we set the `SearchVariantSiteState` enum to 'within_variant'.
@@ -85,7 +80,7 @@ void update_variant_site_path(SearchState &affected_search_state,
                               const uint64_t allele_id,
                               const Marker site_ID) {
     // Anytime you enter a site, it gets pushed to `traversing_path`
-    // If the latter is empty, we have not seen the site entry
+    // If the latter is empty, we have not seen the site entry (ie, we started mapping inside site)
     bool started_in_site = affected_search_state.traversing_path.empty();
     if (started_in_site) { // Case: make new site/allele pair
         affected_search_state.traversed_path.push_back(VariantLocus{site_ID, allele_id});

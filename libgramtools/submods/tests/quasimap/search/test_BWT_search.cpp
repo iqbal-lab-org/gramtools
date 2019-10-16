@@ -1,3 +1,11 @@
+/**
+ * @file
+ * Unit tests for regular backward searching.
+ *
+ * Test suites:
+ *  - NoVarPrg: backward searching on Prg with no variant sites.
+ *  - VarPrg: backward searching on non-nested Prg with variant sites.
+ */
 #include "gtest/gtest.h"
 #include "src_common/generate_prg.hpp"
 #include "prg/prg.hpp"
@@ -175,13 +183,14 @@ i	BWT	SA	text_suffix
 18	C	7	6 G 6 A 6 A G T C C T
 */
 
-TEST(NoVarSiteBSearch, GivenC_ProcessNextCharG_CorrectSaInterval) {
+TEST(VarPrg, oneBaseExtensionGC_CorrectSaInterval) {
+    // Looking for 'GC' here
 auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
 auto prg_info = generate_prg_info(prg_raw);
 
 Marker next_char = 3;
-SA_Index next_char_first_sa_index = 8;
-SA_Interval current_sa_interval = {3, 7}; // all C
+SA_Index next_char_first_sa_index = 8; // Where the first 'G' lies
+SA_Interval current_sa_interval = {3, 7}; // start at 'C'
 
 auto result = base_next_sa_interval(next_char,
                                     next_char_first_sa_index,
@@ -192,7 +201,7 @@ EXPECT_EQ(result, expected);
 }
 
 
-TEST(NoVarSiteBSearch, GivenG_ProcessNextCharA_CorrectSaInterval) {
+TEST(VarPrg, oneBaseExtensionAG_CorrectSaInterval) {
 // Looking for 'ag' here
 auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
 auto prg_info = generate_prg_info(prg_raw);
@@ -210,7 +219,7 @@ EXPECT_EQ(result, expected);
 }
 
 
-TEST(Search, ReadLeadsToPrgEdge_NoSearchStatesFound) {
+TEST(VarPrg, ReadLeadsToPrgEdge_NoSearchStatesFound) {
     auto prg_raw = encode_prg("gcgct5c6g6t5agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 

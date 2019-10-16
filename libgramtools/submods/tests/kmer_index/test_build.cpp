@@ -721,3 +721,4 @@ TEST(IndexKmers, GivenTwoSerializedKmers_CorrectlyExtrctedKmers) {
     };
     EXPECT_EQ(result, expected);
 }
+

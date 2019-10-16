@@ -4,11 +4,10 @@
  * Terminology:
  *  - A variant locus is where you find variant **markers**;
  *  = pairs of site & allele markers.
- *  - Search is assumed backwards; so saying we end in a site means the beginning (5' end)
- *  of the read maps there.
+ *  - A site 'entry' (resp. 'exit') is the 3' (resp. 5') part
+ *  of a site in the linear PRG; because we are mapping backwards.
  *
  * Test suites:
- *  - NoVarSiteBSearch: checking regular backward searching, with no variant site markers.
  *  - VarSiteBSearch: backward searching with var site markers.
  *
  *  - MarkerSearch: checking finding and positioning variant markers in the PRG string
@@ -124,7 +123,7 @@ TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
 }
 
 
-TEST(Search, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
+TEST(MarkerJump, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
     auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: g
@@ -156,7 +155,7 @@ TEST(MarkerSearch, GivenCharG_NoMarkersToLeft){
 }
 
 
-TEST(MarkerSearch, GivenCharC_GoToVarSiteStart) {
+TEST(MarkerSearch, GivenCharC_JumptoSiteStart) {
     auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: c
@@ -174,7 +173,7 @@ TEST(MarkerSearch, GivenCharC_GoToVarSiteStart) {
 }
 
 
-TEST(MarkerSAIntervals, BoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval) {
+TEST(MarkerSAIntervals, AlleleMarkerAnd3Alleles_correctSAInterval) {
     auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     Marker allele_marker = 6;
@@ -185,7 +184,7 @@ TEST(MarkerSAIntervals, BoundaryMarkerAndThreeAlleles_GetAlleleMarkerSaInterval)
 }
 
 
-TEST(MarkerSAIntervals, BoundaryMarkerAndTwoAlleles_GetAlleleMarkerSaInterval) {
+TEST(MarkerSAIntervals,  AlleleMarkerAnd2Alleles_correctSAInterval) {
     auto prg_raw = encode_prg("aca5g6t6catt");
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -247,7 +246,7 @@ i	BWT	SA	text_suffix
  */
 
 
-TEST(MarkerSearch, AtSiteEnd_GetAllMarkerChars) {
+TEST(MarkerSearch, AtSiteEntry_JumpTargetAlleles) {
     auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -258,38 +257,23 @@ TEST(MarkerSearch, AtSiteEnd_GetAllMarkerChars) {
     const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
                                                                 prg_info);
 
-    std::unordered_set<uint64_t> result;
-    for (const auto &search_state: markers_search_states) {
-        auto sa_index = search_state.sa_interval.first;
-        auto text_index = prg_info.fm_index[sa_index];
-        auto marker_char = prg_info.fm_index.text[text_index];
-        result.insert(marker_char);
+    EXPECT_EQ(markers_search_states.size(), 1);
+
+    std::vector<Marker> result;
+    auto ss = markers_search_states.front().sa_interval;
+    SA_Interval expected_sa{16,18};
+    EXPECT_EQ(ss, expected_sa);
+
+    for (int i = ss.first; i<=ss.second;i++){
+        auto index = prg_info.fm_index[i];
+       result.push_back(prg_info.encoded_prg[index]);
     }
-    std::unordered_set<uint64_t> expected = {6};
+    std::vector<Marker> expected = {6, 6, 6};
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(MarkerSAIntervals, AtSiteExitPoint_NewSearchState_WithAllAlleles) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // first char: a
-    SearchState initial_search_state = {
-            SA_Interval {1, 1}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    EXPECT_EQ(markers_search_states.size(), 1);
-
-    const auto first = markers_search_states.front();
-    auto sa_interval = first.sa_interval;
-    SA_Interval expected = SA_Interval{16,18};
-    EXPECT_EQ(sa_interval, expected);
-}
-
-
-TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
+TEST(VariantLocus_Path, AtSiteEntry_VariantPathOfAllAlleles) {
     auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -304,8 +288,6 @@ TEST(VariantLocus_Path, AtSiteExitPoint_VariantPathOfAllAlleles) {
     for (const auto &search_state: markers_search_states)
         result.push_back(search_state.traversing_path.front());
 
-    // We expect the following: one searchstate has two alleles, and thus the allele part is unspecified still
-    // The other is a singleton SearchState corresponding to the end of the site, which is alleles #3.
     std::vector<VariantLocus> expected = {
             {5, ALLELE_UNKNOWN},
     };
@@ -376,348 +358,6 @@ TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
             SearchVariantSiteState::outside_variant_site,
     };
     EXPECT_EQ(result, expected);
-}
-
-
-/*
-PRG: GCGCT5C6G6T6AGTCCT
-i	BWT	SA	text_suffix
-0	T	18
-1	6	12	A G T C C T
-2	T	15	C C T
-3	G	1	C G C T 5 C 6 G 6 T 6 A G T C C T
-4	C	16	C T
-5	G	3	C T 5 C 6 G 6 T 6 A G T C C T
-6	5	6	C 6 G 6 T 6 A G T C C T
-7	0	0	G C G C T 5 C 6 G 6 T 6 A G T C C T
-8	C	2	G C T 5 C 6 G 6 T 6 A G T C C T
-9	A	13	G T C C T
-10	6	8	G 6 T 6 A G T C C T
-11	C	17	T
-12	G	14	T C C T
-13	C	4	T 5 C 6 G 6 T 6 A G T C C T
-14	6	10	T 6 A G T C C T
-15	T	5	5 C 6 G 6 T 6 A G T C C T
-16	T	11	6 A G T C C T
-17	C	7	6 G 6 T 6 A G T C C T
-18	G	9	6 T 6 A G T C C T
- */
-
-TEST(Search, InitialStateWithPopulatedVariantSitePath_CorrectVariantSitePathInResult) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    auto pattern_char = encode_dna_base('t');
-
-    SearchState initial_search_state = {
-            SA_Interval {10,10}, //Starting at char 'c' at index 6 in prg
-            VariantSitePath {},
-            VariantSitePath {},
-            SearchVariantSiteState::unknown,
-    };
-    SearchStates initial_search_states = {initial_search_state};
-
-    auto final_search_states=process_read_char_search_states(pattern_char,initial_search_states,prg_info);
-
-    EXPECT_EQ(final_search_states.size(), 1);
-    auto search_state = final_search_states.front();
-    const auto &result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {5, 2},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(Search, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto read = encode_dna_bases("tagtaa");
-    Pattern kmer = encode_dna_bases("gtaa");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 0);
-}
-
-
-TEST(SA_Interval, GivenRead_CorrectResultSaInterval) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto read = encode_dna_bases("tagtcc");
-    Pattern kmer = encode_dna_bases("gtcc");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    ASSERT_EQ(search_states.size(), 1);
-
-    auto search_state = search_states.front();
-    auto result = search_state.sa_interval;
-    SA_Interval expected = {14, 14};
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VariantLocus_Path, GivenSearchEndingInAllele_CorrectVariantSitePath) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto read = encode_dna_bases("tagtcc");
-    Pattern kmer = encode_dna_bases("gtcc");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    auto search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {5, 3}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VariantLocus_Path, GivenSearchStartingInAllele_CorrectVariantSitePath) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto read = encode_dna_bases("cgctg");
-    Pattern kmer = encode_dna_bases("gctg");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    auto search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VariantLocus_Path, GivenSearchCrossingAllele_CorrectVariantSitePath) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto read = encode_dna_bases("ctgag");
-    Pattern kmer = encode_dna_bases("tgag");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    auto search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {5, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-/*
-PRG: GCT5C6G6T6AG7T8C8CT
-i	BWT	SA	text_suffix
-0	T	19
-1	6	10	A G 7 T 8 C 8 C T
-2	8	17	C T
-3	G	1	C T 5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-4	5	4	C 6 G 6 T 6 A G 7 T 8 C 8 C T
-5	8	15	C 8 C T
-6	0	0	G C T 5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-7	6	6	G 6 T 6 A G 7 T 8 C 8 C T
-8	A	11	G 7 T 8 C 8 C T
-9	C	18	T
-10	C	2	T 5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-11	6	8	T 6 A G 7 T 8 C 8 C T
-12	7	13	T 8 C 8 C T
-13	T	3	5 C 6 G 6 T 6 A G 7 T 8 C 8 C T
-14	T	9	6 A G 7 T 8 C 8 C T
-15	C	5	6 G 6 T 6 A G 7 T 8 C 8 C T
-16	G	7	6 T 6 A G 7 T 8 C 8 C T
-17	G	12	7 T 8 C 8 C T
-18	C	16	8 C T
-19	T	14	8 C 8 C T
-*/
-
-
-TEST(VariantLocus_Path, ReadCrossingTwoAlleles) {
-    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8ct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("tct");
-    Patterns kmers = {kmer};
-    auto kmer_size = 3;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("cagtct");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 1},
-            VariantLocus {5, 1},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VarSiteBSearch, StartWithinAllele_MapToOtherAllele) {
-    auto prg_raw = encode_prg("gct5c6g6t6ag7GAG8c8ct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("gag");
-    Patterns kmers = {kmer};
-    auto kmer_size = 3;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("caggag");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 1},
-            VariantLocus {5, 1},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VarSiteBSearch, KmerImmediatelyAfterVariantSite) {
-    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("cta");
-    Patterns kmers = {kmer};
-    auto kmer_size = 3;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("gccta");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VarSiteBSearch, KmerCrossesVariantSite) {
-    auto prg_raw = encode_prg("gct5c6g6t6ag7t8c8cta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("gccta");
-    Patterns kmers = {kmer};
-    auto kmer_size = 5;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("agccta");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 2}
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(EndInLocus, SearchStarts_andEnds_withinLoci) {
-    auto prg_raw = encode_prg("gct5c6g6T6AG7T8c8cta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("agt");
-    Patterns kmers = {kmer};
-    auto kmer_size = 3;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("tagt");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            //The Search_State ended with ALLELE_UNKNOWN, but then we specified the allele due to completely mapping the read
-            VariantLocus {7, 1},
-            VariantLocus {5, 3},
-    };
-    EXPECT_EQ(result, expected);
-
-    EXPECT_EQ(search_state.sa_interval.second - search_state.sa_interval.first + 1, 1);
-}
-
-
-/*
- * A case where we end the read mapping inside several alleles of the same site.
- * We test expected behaviour along the way from kmer indexing to read mapping alleles concurrently
- * to allele ID specification post mapping.
- */
-TEST(EndInLocus, SearchEnds_AtConcurrentAlleles) {
-    auto prg_raw = encode_prg("gct5gC6aC6C6t6Cg");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("c");
-    Patterns kmers = {kmer};
-    auto kmer_size = 1;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    // KMER INDEXING
-    // We expect five occurrences of 'C' at this stage, in a single SA interval
-    auto search_states = kmer_index.at(kmer);
-    EXPECT_EQ(search_states.size(), 1);
-    SA_Interval sa = search_states.front().sa_interval;
-    EXPECT_EQ(sa.second - sa.first + 1, 5);
-
-    // Next up, look for a C
-    int_Base pattern_char = 2;
-    search_states = process_read_char_search_states(pattern_char,
-                                                        search_states,
-                                                        prg_info);
-
-    // CONCURRENT ALLELE QUERYING
-    // We expect three occurrences of 'CC' at this stage, in a single SA interval - because
-    // the allele markers sort together in the SA. The allele IDs should be unspecified.
-    EXPECT_EQ(search_states.size(), 1);
-    EXPECT_EQ(search_states.front().traversing_path.back().second, ALLELE_UNKNOWN);
-
-    // ALLELE ID SPECIFICATION
-    // This function gets called when we have finished mapping our read and we have unknown allele ids left.
-    gram::set_allele_ids(search_states, prg_info);
-    EXPECT_EQ(search_states.size(), 3);
-
-    for (const auto search_state: search_states){
-        SA_Interval sa = search_states.front().sa_interval;
-        EXPECT_EQ(sa.second - sa.first + 1, 1);
-    }
 }
 
 
