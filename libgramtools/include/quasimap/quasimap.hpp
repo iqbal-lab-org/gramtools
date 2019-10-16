@@ -17,6 +17,7 @@
 
 #include "search/BWT_search.hpp"
 #include "search/vBWT_jump.hpp"
+#include "search/encapsulated_search.hpp"
 
 namespace gram {
 
