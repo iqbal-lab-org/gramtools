@@ -41,6 +41,16 @@ namespace gram {
                                                const PRG_Info &prg_info);
 
     /**
+     * This function finds all variant markers (site or allele) inside the BWT within a given SA interval.
+     * Indeed, if a variant marker precedes an index position of the SA interval,
+     * the search states will need to be updated accordingly.
+     *
+     * @return A vector of `VariantLocus`
+     */
+    MarkersSearchResults left_markers_search(const SearchState &search_state,
+                                             const PRG_Info &prg_info);
+
+    /**
      * For a given `SearchState`, add new `SearchState`s if there are variant markers preceding any position in the
      * SA interval.
      *
@@ -55,15 +65,6 @@ namespace gram {
     SearchStates search_state_vBWT_jumps(const SearchState &current_search_state,
                                          const PRG_Info &prg_info);
 
-    /**
-     * This function finds all variant markers (site or allele) inside the BWT within a given SA interval.
-     * Indeed, if a variant marker precedes an index position of the SA interval,
-     * the search states will need to be updated accordingly.
-     *
-     * @return A vector of `VariantLocus`
-     */
-    MarkersSearchResults left_markers_search(const SearchState &search_state,
-                                             const PRG_Info &prg_info);
 
     /**
      * We are leaving a site.

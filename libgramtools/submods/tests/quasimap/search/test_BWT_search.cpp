@@ -1,0 +1,225 @@
+#include "gtest/gtest.h"
+#include "src_common/generate_prg.hpp"
+#include "prg/prg.hpp"
+#include "quasimap/quasimap.hpp"
+
+/*
+PRG: gcgctggagtgctgt
+F -> first char of SA
+
+i	F	BTW	text	SA
+0	0	4	g	0
+1	1	3	c	1 3 4 3 2 4 3 4 0
+2	2	3	g	2 3 2 4 3 3 1 3 4 3 2 4 3 4 0
+3	2	3	c	2 4 3 3 1 3 4 3 2 4 3 4 0
+4	2	3	t	2 4 3 4 0
+5	3	3	g	3 1 3 4 3 2 4 3 4 0
+6	3	0	g	3 2 3 2 4 3 3 1 3 4 3 2 4 3 4 0
+7	3	2	a	3 2 4 3 3 1 3 4 3 2 4 3 4 0
+8	3	4	g	3 2 4 3 4 0
+9	3	4	t	3 3 1 3 4 3 2 4 3 4 0
+10	3	4	g	3 4 0
+11	3	1	c	3 4 3 2 4 3 4 0
+12	4	3	t	4 0
+13	4	3	g	4 3 2 4 3 4 0
+14	4	2	t	4 3 3 1 3 4 3 2 4 3 4 0
+15	4	2	0	4 3 4 0
+*/
+
+TEST(noVarPrg, SingleChar_CorrectSaIntervalReturned) {
+auto prg_raw = encode_prg("gcgctggagtgctgt");
+auto prg_info = generate_prg_info(prg_raw);
+auto pattern_char = encode_dna_base('g');
+
+SearchState initial_search_state = {
+        SA_Interval {0, prg_info.fm_index.size() - 1}
+};
+SearchStates search_states = {initial_search_state};
+
+auto result = search_base_backwards(pattern_char,
+                                    search_states,
+                                    prg_info);
+SearchStates expected = {
+        SearchState {
+                SA_Interval {5, 11},
+                VariantSitePath {}
+        }
+};
+EXPECT_EQ(result, expected);
+}
+
+
+TEST(noVarPrg, TwoConsecutiveChars_CorrectFinalSaIntervalReturned) {
+auto prg_raw = encode_prg("gcgctggagtgctgt");
+auto prg_info = generate_prg_info(prg_raw);
+
+SearchState initial_search_state = {
+        SA_Interval {0, prg_info.fm_index.size() - 1}
+};
+SearchStates initial_search_states = {initial_search_state};
+
+auto first_char = encode_dna_base('g');
+auto first_search_states = search_base_backwards(first_char,
+                                                 initial_search_states,
+                                                 prg_info);
+
+auto second_char = encode_dna_base('t');
+auto second_search_states = search_base_backwards(second_char,
+                                                  first_search_states,
+                                                  prg_info);
+
+const auto &result = second_search_states;
+SearchStates expected = {
+        SearchState {
+                SA_Interval {13, 15},
+                VariantSitePath {}
+        }
+};
+EXPECT_EQ(result, expected);
+}
+
+
+TEST(noVarPrg, SingleCharFreqOneInText_SingleSA) {
+auto prg_raw = encode_prg("gcgctggagtgctgt");
+auto prg_info = generate_prg_info(prg_raw);
+auto pattern_char = encode_dna_base('a');
+
+SearchState initial_search_state = {
+        SA_Interval {0, prg_info.fm_index.size() - 1}
+};
+SearchStates search_states = {initial_search_state};
+
+auto result = search_base_backwards(pattern_char,
+                                    search_states,
+                                    prg_info);
+SearchStates expected = {
+        SearchState {
+                SA_Interval {1, 1},
+                VariantSitePath {}
+        }
+};
+EXPECT_EQ(result, expected);
+}
+
+
+TEST(noVarPrg, TwoConsecutiveChars_SingleSaIntervalEntry) {
+auto prg_raw = encode_prg("gcgctggagtgctgt");
+auto prg_info = generate_prg_info(prg_raw);
+
+SearchState initial_search_state = {
+        SA_Interval {0, prg_info.fm_index.size() - 1}
+};
+SearchStates initial_search_states = {initial_search_state};
+
+auto first_char = encode_dna_base('a');
+auto first_search_states = search_base_backwards(first_char,
+                                                 initial_search_states,
+                                                 prg_info);
+
+auto second_char = encode_dna_base('g');
+auto second_search_states = search_base_backwards(second_char,
+                                                  first_search_states,
+                                                  prg_info);
+
+const auto &result = second_search_states.front().sa_interval;
+SA_Interval expected{5, 5};
+EXPECT_EQ(result, expected);
+}
+
+
+TEST(noVarPrg, TwoConsecutiveCharsNoValidSaInterval_NoSearchStatesReturned) {
+auto prg_raw = encode_prg("gcgctggagtgctgt");
+auto prg_info = generate_prg_info(prg_raw);
+
+SearchState initial_search_state = {
+        SA_Interval {0, prg_info.fm_index.size() - 1}
+};
+SearchStates initial_search_states = {initial_search_state};
+
+auto first_char = encode_dna_base('a');
+auto first_search_states = search_base_backwards(first_char,
+                                                 initial_search_states,
+                                                 prg_info);
+
+auto second_char = encode_dna_base('c');
+const auto &result = search_base_backwards(second_char,
+                                           first_search_states,
+                                           prg_info);
+
+SearchStates expected = {};
+EXPECT_EQ(result, expected);
+}
+
+
+/*
+PRG: GCGCT5C6G6A6AGTCCT
+i	BWT	SA	text_suffix
+0	G	18
+1	6	12	A G T C C T
+2	6	10	A 6 A G T C C T
+3	G	15	C C T
+4	T	1	C G C T 5 C 6 G 6 A 6 A G T C C T
+5	C	16	C T
+6	T	3	C T 5 C 6 G 6 A 6 A G T C C T
+7	5	6	C 6 G 6 A 6 A G T C C T
+8	0	0	G C G C T 5 C 6 G 6 A 6 A G T C C T
+9	C	2	G C T 5 C 6 G 6 A 6 A G T C C T
+10	A	13	G T C C T
+11	6	8	G 6 A 6 A G T C C T
+12	C	17	T
+13	T	14	T C C T
+14	C	4	T 5 C 6 G 6 A 6 A G T C C T
+15	G	5	5 C 6 G 6 A 6 A G T C C T
+16	A	11	6 A G T C C T
+17	T	9	6 A 6 A G T C C T
+18	C	7	6 G 6 A 6 A G T C C T
+*/
+
+TEST(NoVarSiteBSearch, GivenC_ProcessNextCharG_CorrectSaInterval) {
+auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+auto prg_info = generate_prg_info(prg_raw);
+
+Marker next_char = 3;
+SA_Index next_char_first_sa_index = 8;
+SA_Interval current_sa_interval = {3, 7}; // all C
+
+auto result = base_next_sa_interval(next_char,
+                                    next_char_first_sa_index,
+                                    current_sa_interval,
+                                    prg_info);
+SA_Interval expected = {8, 9};
+EXPECT_EQ(result, expected);
+}
+
+
+TEST(NoVarSiteBSearch, GivenG_ProcessNextCharA_CorrectSaInterval) {
+// Looking for 'ag' here
+auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+auto prg_info = generate_prg_info(prg_raw);
+
+Marker next_char = 1;
+SA_Index next_char_first_sa_index = 1;
+SA_Interval current_sa_interval = {8, 11}; // all G
+
+auto result = base_next_sa_interval(next_char,
+                                    next_char_first_sa_index,
+                                    current_sa_interval,
+                                    prg_info);
+SA_Interval expected = {1, 1};
+EXPECT_EQ(result, expected);
+}
+
+
+TEST(Search, ReadLeadsToPrgEdge_NoSearchStatesFound) {
+    auto prg_raw = encode_prg("gcgct5c6g6t5agtcct");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto read = encode_dna_bases("agcgc");
+    Pattern kmer = encode_dna_bases("gcgc");
+    Patterns kmers = {kmer};
+    auto kmer_size = 4;
+    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
+
+    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
+    ASSERT_TRUE(search_states.empty());
+}
