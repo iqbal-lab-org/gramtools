@@ -24,76 +24,77 @@ i	BWT	SA	text_suffix
 16	C	13	6 T A
 */
 TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectPathSet) {
-auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
-auto prg_info = generate_prg_info(prg_raw);
-SearchStates search_states = {
-        SearchState {
-                SA_Interval {8, 8}
-        }
-};
-auto result = handle_allele_encapsulated_states(search_states, prg_info);
-SearchStates expected = {
-        SearchState {
-                SA_Interval {8, 8},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        }
-};
-EXPECT_EQ(result, expected);
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState{
+                    SA_Interval{8, 8}
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{8, 8},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
 
 
 TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
-auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
-auto prg_info = generate_prg_info(prg_raw);
-SearchStates search_states = {
-        SearchState {
-                SA_Interval {8, 8},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        }
-};
-auto result = handle_allele_encapsulated_states(search_states, prg_info);
-SearchStates expected = {
-        SearchState {
-                SA_Interval {8, 8},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        }
-};
-EXPECT_EQ(result, expected);
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState{
+                    SA_Interval{8, 8},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{8, 8},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
 
 
 TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_CorrectPathSet) {
-auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
-auto prg_info = generate_prg_info(prg_raw);
-SearchStates search_states = {
-        SearchState {
-                SA_Interval {3, 4}
-        }
-};
-auto result = handle_allele_encapsulated_states(search_states, prg_info);
-SearchStates expected = {
-        SearchState {
-                SA_Interval {3, 4},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        }
-};
-EXPECT_EQ(result, expected);
+    auto prg_raw = encode_prg("ac5t6cagtagtc6ta");
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState{
+                    SA_Interval{3, 4} // interval of all 'ag'
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    // Both mappings are encapsulated in same site & allele, so have a size 2 SA interval.
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{3, 4},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
 
 
@@ -123,23 +124,23 @@ i	BWT	SA	text_suffix
 
 
 TEST(HandleAlleleEncapsulatedStates, OutsideSite_NoPathSet) {
-auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-auto prg_info = generate_prg_info(prg_raw);
-SearchStates search_states = {
-        SearchState {
-                SA_Interval {7, 7}
-        }
-};
-auto result = handle_allele_encapsulated_states(search_states, prg_info);
-SearchStates expected = {
-        SearchState {
-                SA_Interval {7, 7},
-                VariantSitePath {},
-                VariantSitePath {},
-                SearchVariantSiteState::outside_variant_site
-        }
-};
-EXPECT_EQ(result, expected);
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
+    auto prg_info = generate_prg_info(prg_raw);
+    SearchStates search_states = {
+            SearchState{
+                    SA_Interval{7, 7}
+            }
+    };
+    auto result = handle_allele_encapsulated_states(search_states, prg_info);
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{7, 7},
+                    VariantSitePath{},
+                    VariantSitePath{},
+                    SearchVariantSiteState::outside_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
 
 /*
@@ -169,31 +170,31 @@ i	BWT	SA	text_suffix
 */
 
 TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIntoTwoSearchStates) {
-auto prg_raw = encode_prg("Cagtaa5t6Cagtaggc6ta");
-auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = encode_prg("Cagtaa5t6Cagtaggc6ta");
+    auto prg_info = generate_prg_info(prg_raw);
 
-SearchState search_state = {
-        SA_Interval {7, 8}
+    SearchState search_state = {
+            SA_Interval{7, 8}
 
-};
-auto result = handle_allele_encapsulated_state(search_state, prg_info);
-SearchStates expected = {
-        SearchState {
-                SA_Interval {7, 7},
-                VariantSitePath {},
-                VariantSitePath {},
-                SearchVariantSiteState::outside_variant_site
-        },
-        SearchState {
-                SA_Interval {8, 8},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        }
-};
-EXPECT_EQ(result, expected);
+    };
+    auto result = handle_allele_encapsulated_state(search_state, prg_info);
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{7, 7},
+                    VariantSitePath{},
+                    VariantSitePath{},
+                    SearchVariantSiteState::outside_variant_site
+            },
+            SearchState{
+                    SA_Interval{8, 8},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
 
 
@@ -246,64 +247,64 @@ i	BWT	SA	text_suffix
 43	T	37	8 G T G 8 G
 */
 TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSearchStates) {
-auto prg_raw = encode_prg("tcagtt5tcagtcag6atcagtttcag6ta7atcagt8gtg8g");
-auto prg_info = generate_prg_info(prg_raw);
+    auto prg_raw = encode_prg("tcagtt5tcagtcag6atcagtttcag6ta7atcagt8gtg8g");
+    auto prg_info = generate_prg_info(prg_raw);
 
 // All the C's
-SearchState search_state = {
-        SA_Interval {10, 15}
+    SearchState search_state = {
+            SA_Interval{10, 15}
 
-};
-auto result = handle_allele_encapsulated_state(search_state, prg_info);
-SearchStates expected = {
-        SearchState {
-                SA_Interval {10, 10},
-                VariantSitePath {
-                        VariantLocus {5, 1}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        },
-        SearchState {
-                SA_Interval {11, 11},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        },
-        SearchState {
-                SA_Interval {12, 12},
-                VariantSitePath {},
-                VariantSitePath {},
-                SearchVariantSiteState::outside_variant_site
-        },
-        SearchState {
-                SA_Interval {13, 13},
-                VariantSitePath {
-                        VariantLocus {7, 1}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        },
-        SearchState {
-                SA_Interval {14, 14},
-                VariantSitePath {
-                        VariantLocus {5, 1}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        },
-        SearchState {
-                SA_Interval {15, 15},
-                VariantSitePath {
-                        VariantLocus {5, 2}
-                },
-                VariantSitePath {},
-                SearchVariantSiteState::within_variant_site
-        }
-};
-EXPECT_EQ(result, expected);
+    };
+    auto result = handle_allele_encapsulated_state(search_state, prg_info);
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{10, 10},
+                    VariantSitePath{
+                            VariantLocus{5, 1}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState{
+                    SA_Interval{11, 11},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState{
+                    SA_Interval{12, 12},
+                    VariantSitePath{},
+                    VariantSitePath{},
+                    SearchVariantSiteState::outside_variant_site
+            },
+            SearchState{
+                    SA_Interval{13, 13},
+                    VariantSitePath{
+                            VariantLocus{7, 1}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState{
+                    SA_Interval{14, 14},
+                    VariantSitePath{
+                            VariantLocus{5, 1}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            },
+            SearchState{
+                    SA_Interval{15, 15},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
 }
 
 

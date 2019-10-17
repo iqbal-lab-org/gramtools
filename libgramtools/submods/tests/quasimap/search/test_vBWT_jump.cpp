@@ -8,16 +8,11 @@
  *  of a site in the linear PRG; because we are mapping backwards.
  *
  * Test suites:
- *  - VarSiteBSearch: backward searching with var site markers.
- *
  *  - MarkerSearch: checking finding and positioning variant markers in the PRG string
  *  - MarkerSAIntervals: Recovering SA Interval of variant markers.
  *
+ *  - SearchStateJump: vBWT jumping producing correct new `SearchState`s
  *  - VariantLocus_Path: checking search recovers right variant site/allele combinations.
- *  - EndInLocus: checking when search ends inside variant locus.
- *  - StartEndInLocus: search starts and end inside VariantLocus.
- *
- *  - Search: test that is not sub-classified [TODO]
  */
 #include <cctype>
 
@@ -83,8 +78,6 @@ TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit){
     auto prg_raw = encode_prg("gcgct5C6g6a6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
-    const Marker marker_char = 6;
-
     // TEST 1: char a at site entry point
     SearchState search_state = {
             SA_Interval {1, 1}
@@ -123,7 +116,7 @@ TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
 }
 
 
-TEST(MarkerJump, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
+TEST(SearchStateJump, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
     auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
     // first char: g
@@ -245,35 +238,7 @@ i	BWT	SA	text_suffix
 
  */
 
-
-TEST(MarkerSearch, AtSiteEntry_JumpTargetAlleles) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // first char: a
-    SearchState initial_search_state = {
-            SA_Interval {1, 1}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-
-    EXPECT_EQ(markers_search_states.size(), 1);
-
-    std::vector<Marker> result;
-    auto ss = markers_search_states.front().sa_interval;
-    SA_Interval expected_sa{16,18};
-    EXPECT_EQ(ss, expected_sa);
-
-    for (int i = ss.first; i<=ss.second;i++){
-        auto index = prg_info.fm_index[i];
-       result.push_back(prg_info.encoded_prg[index]);
-    }
-    std::vector<Marker> expected = {6, 6, 6};
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(VariantLocus_Path, AtSiteEntry_VariantPathOfAllAlleles) {
+TEST(SearchStateJump, AtSiteEntry_CorrectSearchStateJump) {
     auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -284,40 +249,23 @@ TEST(VariantLocus_Path, AtSiteEntry_VariantPathOfAllAlleles) {
     const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
                                                                 prg_info);
 
-    std::vector<VariantLocus> result;
-    for (const auto &search_state: markers_search_states)
-        result.push_back(search_state.traversing_path.front());
-
-    std::vector<VariantLocus> expected = {
-            {5, ALLELE_UNKNOWN},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(ExitASite, ThirdAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // first char: t
-    SearchState initial_search_state = {
-            SA_Interval {11, 14}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
     EXPECT_EQ(markers_search_states.size(), 1);
-    auto result = markers_search_states.front();
-    SearchState expected = {
-            SA_Interval {15, 15},
-            VariantSitePath {VariantLocus{5,3}},
-            VariantSitePath {},
-            SearchVariantSiteState::outside_variant_site,
+
+    SearchStates expected = {
+            SearchState{
+                SA_Interval {16, 18},
+                VariantSitePath {},
+                VariantSitePath { VariantLocus{ 5, ALLELE_UNKNOWN }},
+                SearchVariantSiteState::within_variant_site
+            }
     };
-    EXPECT_EQ(result, expected);
+
+    EXPECT_EQ(markers_search_states, expected);
 }
 
 
-TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+
+TEST(SearchStateJump, Allele2SiteExit_CorrectSearchStateJump) {
     auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -327,19 +275,19 @@ TEST(ExitASite, SecondAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     };
     const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
                                                                 prg_info);
-    EXPECT_EQ(markers_search_states.size(), 1);
-    auto result = markers_search_states.front();
-    SearchState expected = {
-            SA_Interval {15, 15},
-            VariantSitePath {VariantLocus{5, 2}},
-            VariantSitePath {},
-            SearchVariantSiteState::outside_variant_site,
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{15, 15},
+                    VariantSitePath{VariantLocus{5, 2}},
+                    VariantSitePath{},
+                    SearchVariantSiteState::outside_variant_site,
+            }
     };
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(markers_search_states, expected);
 }
 
 
-TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
+TEST(SearchStateJump, Allele1SiteExit_CorrectSearchStateJump) {
     auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
@@ -349,84 +297,13 @@ TEST(ExitASite, FirstAlleleSingleChar_SkipToSiteStartBoundaryMarker) {
     };
     const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
                                                                 prg_info);
-    EXPECT_EQ(markers_search_states.size(), 1);
-    auto result = markers_search_states.front();
-    SearchState expected = {
-            SA_Interval {15, 15},
-            VariantSitePath {VariantLocus{5,1}},
-            VariantSitePath {},
-            SearchVariantSiteState::outside_variant_site,
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{15, 15},
+                    VariantSitePath{VariantLocus{5, 1}},
+                    VariantSitePath{},
+                    SearchVariantSiteState::outside_variant_site,
+            }
     };
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(markers_search_states, expected);
 }
-
-
-TEST(VarSiteBSearch, ReadCrossesTwoVarSites) {
-    auto prg_raw = encode_prg("gct5c6g6T6AG7T8c8cta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("tagt");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("cttagt");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 1},
-            VariantLocus {5, 3},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(StartEndInLocus, OneMappingEncapsulatedByAllele) {
-    auto prg_raw = encode_prg("t5c6gCTTAGT6aa");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("tagt");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("cttagt");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_state;
-    SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
-    EXPECT_EQ(result, expected);
-
-    VariantLocus cov = {5, 2};
-    EXPECT_EQ(search_state.traversed_path.front(), cov);
-}
-
-
-TEST(StartEndInLocus, TwoMappingsEncapsulatedByAllele_StateIsWithinVariantSite) {
-    auto prg_raw = encode_prg("t5c6gcttagtacgcttagt6aa");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    Pattern kmer = encode_dna_bases("tagt");
-    Patterns kmers = {kmer};
-    auto kmer_size = 4;
-    auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
-
-    auto read = encode_dna_bases("cttagt");
-
-    auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-    EXPECT_EQ(search_states.size(), 1);
-
-    const auto &search_state = search_states.front();
-    auto result = search_state.variant_site_state;
-    SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
-    EXPECT_EQ(result, expected);
-}
-
-

@@ -1,4 +1,8 @@
-#include <cctype>
+/**
+ * @file
+ * Test high-level quasimapping routine: searching for full kmers or full reads
+ * The tested outputs are recorded `Coverage`s and `SearchState` internals (SA intervals, `VariantLocus` paths)
+ */
 
 #include "gtest/gtest.h"
 
@@ -673,5 +677,47 @@ TEST(MultiStepQuasimap, RunIndexingExtensionIdSpecification_CorrectOutputs) {
     }
     std::set<AlleleId> expected{1,2,3};
     EXPECT_EQ(ids, expected);
+}
+
+TEST(ReadQuasimap, OneMappingEncapsulatedByAllele) {
+    Pattern kmer = encode_dna_bases("tagt");
+    Patterns kmers = {kmer};
+    prg_setup setup;
+    setup.setup("t5c6gCTTAGT6aa", kmers);
+
+
+    auto read = encode_dna_bases("cttagt");
+    auto search_states = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
+    EXPECT_EQ(search_states.size(), 1);
+
+    auto result = search_states.front().variant_site_state;
+    SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
+    EXPECT_EQ(result, expected);
+
+    VariantLocus cov = {5, 2};
+    EXPECT_EQ(search_states.front().traversed_path.front(), cov);
+}
+
+TEST(ReadQuasimap, StartAndEndInSite_CorrectSearchStates) {
+    Pattern kmer = encode_dna_bases("tagt");
+    Patterns kmers = {kmer};
+    prg_setup setup;
+    setup.setup("t5c6gcttagtacgcttagt6aa", kmers);
+
+    auto read = encode_dna_bases("cttagt");
+    auto result = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
+
+    SearchStates expected = {
+            SearchState{
+                    SA_Interval{7, 8},
+                    VariantSitePath{
+                            VariantLocus{5, 2}
+                    },
+                    VariantSitePath{},
+                    SearchVariantSiteState::within_variant_site
+            }
+    };
+
+    EXPECT_EQ(result, expected);
 }
 

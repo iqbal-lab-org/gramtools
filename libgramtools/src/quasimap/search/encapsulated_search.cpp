@@ -59,6 +59,7 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
         }
 
         //  else: read is completely encapsulated within allele
+
         if (cache.empty) {
             cache.set(SearchState{
                     SA_Interval{sa_index, sa_index},
@@ -71,6 +72,8 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
             continue;
         }
 
+        // cache is not empty: if the current SearchState goes through same site and allele,
+        // lengthen the SA interval of cached SearchState
         VariantSitePath current_path = {VariantLocus{site_marker, allele_id}};
         bool cache_has_same_path = current_path == cache.search_state.traversed_path;
         if (cache_has_same_path) {
