@@ -2,6 +2,7 @@
  * @file
  * Test high-level quasimapping routine: searching for full kmers or full reads
  * The tested outputs are recorded `Coverage`s and `SearchState` internals (SA intervals, `VariantLocus` paths)
+ *
  */
 
 #include "gtest/gtest.h"
@@ -25,10 +26,21 @@ public:
     explicit prg_setup() {};
     void setup(std::string raw_prg,
             Patterns kmers){
-        size_t kmer_size = kmers.front().size();
-       for (auto const& kmer : kmers) assert(kmer_size == kmer.size());
-
        auto encoded_prg = encode_prg(raw_prg);
+       internal_setup(encoded_prg, kmers);
+    }
+
+    void setup_nested(std::string raw_prg,
+               Patterns kmers){
+        auto encoded_prg = prg_string_to_ints(raw_prg);
+        internal_setup(encoded_prg, kmers);
+    }
+
+private:
+    void internal_setup(marker_vec encoded_prg, Patterns kmers){
+        size_t kmer_size = kmers.front().size();
+        for (auto const& kmer : kmers) assert(kmer_size == kmer.size());
+
         prg_info = generate_prg_info(encoded_prg);
         // TODO: the calls to rank_support setup in `generate_prg_info` do not set up the rank support properly
         //  when leaving this scope.
@@ -721,3 +733,84 @@ TEST(ReadQuasimap, StartAndEndInSite_CorrectSearchStates) {
     EXPECT_EQ(result, expected);
 }
 
+
+TEST(ReadQuasimap_Nested, MapIntoAndOutOfNestedSite_CorrectSearchStates) {
+    Pattern kmer = encode_dna_bases("ac");
+    Patterns kmers = {kmer};
+    prg_setup setup;
+    setup.setup_nested("a[c,g[ct,t]a]c", kmers);
+
+    auto read = encode_dna_bases("agtac");
+    auto result = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
+
+    SearchStates expected = {
+            SearchState{
+                SA_Interval{1, 1},
+                VariantSitePath{
+                    VariantLocus{7, 2},
+                    VariantLocus{5, 2}
+                },
+                VariantSitePath{},
+                SearchVariantSiteState::outside_variant_site
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+/*
+PRG: T[A[C,G][C,G],]T
+i	BWT	SA	text_suffix
+0	T	16	0
+1	5	2	A 7 C 8 G 8 9 C 10 G 10 6 6 T 0
+2	7	4	C 8 G 8 9 C 10 G 10 6 6 T 0
+3	9	9	C 10 G 10 6 6 T 0
+4	8	6	G 8 9 C 10 G 10 6 6 T 0
+5	10	11	G 10 6 6 T 0
+6	6	15	T 0
+7	0	0	T 5 A 7 C 8 G 8 9 C 10 G 10 6 6 T 0
+8	T	1	5 A 7 C 8 G 8 9 C 10 G 10 6 6 T 0
+9	6	14	6 T 0
+10	10	13	6 6 T 0
+11	A	3	7 C 8 G 8 9 C 10 G 10 6 6 T 0
+12	C	5	8 G 8 9 C 10 G 10 6 6 T 0
+13	G	7	8 9 C 10 G 10 6 6 T 0
+14	8	8	9 C 10 G 10 6 6 T 0
+15	C	10	10 G 10 6 6 T 0
+16	G	12	10 6 6 T 0
+*/
+TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
+    Pattern kmer = encode_dna_bases("t");
+    Patterns kmers = {kmer};
+    prg_setup setup;
+    setup.setup_nested("t[a[c,g][c,g],]t", kmers);
+
+    auto read = encode_dna_bases("tt");
+    auto result_direct_deletion = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
+
+    SearchStates expected_direct_deletion = {
+            SearchState{
+                SA_Interval{7, 7},
+                VariantSitePath{VariantLocus{5, 2}},
+                VariantSitePath{},
+                SearchVariantSiteState::outside_variant_site
+            }
+    };
+    EXPECT_EQ(result_direct_deletion, expected_direct_deletion);
+
+    auto read2 = encode_dna_bases("tacct");
+    auto result_exit_entry = search_read_backwards(read2, kmer, setup.kmer_index, setup.prg_info);
+
+    SearchStates expected_exit_entry = {
+           SearchState{
+               SA_Interval{7, 7},
+               VariantSitePath{
+                   VariantLocus{9, 1},
+                   VariantLocus{7, 1},
+                   VariantLocus{5, 1}
+               },
+               VariantSitePath{},
+               SearchVariantSiteState::outside_variant_site
+           }
+    };
+    EXPECT_EQ(result_exit_entry, expected_exit_entry);
+}

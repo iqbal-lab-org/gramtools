@@ -11,7 +11,6 @@ PRG_Info generate_prg_info(const marker_vec &prg_raw) {
     Parameters parameters = {};
    parameters.encoded_prg_fpath = "encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";
-    parameters.cov_graph_fpath = "@cov_graph";
     parameters.gram_dirpath = "@gram_dir";
 
 
@@ -23,7 +22,7 @@ PRG_Info generate_prg_info(const marker_vec &prg_raw) {
     PRG_Info prg_info;
     prg_info.encoded_prg = encoded_prg;
     prg_info.fm_index = generate_fm_index(parameters);
-    prg_info.coverage_graph = generate_cov_graph(parameters, ps);
+    prg_info.coverage_graph = coverage_Graph{ps};
     prg_info.last_allele_positions = ps.get_end_positions();
     prg_info.sites_mask = generate_sites_mask(encoded_prg);
     prg_info.allele_mask = generate_allele_mask(encoded_prg);

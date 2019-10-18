@@ -10,9 +10,10 @@
  * Test suites:
  *  - MarkerSearch: checking finding and positioning variant markers in the PRG string
  *  - MarkerSAIntervals: Recovering SA Interval of variant markers.
+ *  - VariantLocus_Path: checking search recovers right variant site/allele combinations.
  *
  *  - SearchStateJump: vBWT jumping producing correct new `SearchState`s
- *  - VariantLocus_Path: checking search recovers right variant site/allele combinations.
+ *  - SearchStateJump_Nested: same as above, on nested PRG strings
  */
 #include <cctype>
 
@@ -305,5 +306,172 @@ TEST(SearchStateJump, Allele1SiteExit_CorrectSearchStateJump) {
                     SearchVariantSiteState::outside_variant_site,
             }
     };
+    EXPECT_EQ(markers_search_states, expected);
+}
+
+/**********************/
+/* Nested PRG Strings */
+/**********************/
+/*
+PRG: [AC,[C,G]]T
+i	BWT	SA	text_suffix
+0	T	11	0
+1	5	1	A C 6 7 C 8 G 8 6 T 0
+2	A	2	C 6 7 C 8 G 8 6 T 0
+3	7	5	C 8 G 8 6 T 0
+4	8	7	G 8 6 T 0
+5	6	10	T 0
+6	0	0	5 A C 6 7 C 8 G 8 6 T 0
+7	8	9	6 T 0
+8	C	3	6 7 C 8 G 8 6 T 0
+9	6	4	7 C 8 G 8 6 T 0
+10	C	6	8 G 8 6 T 0
+11	G	8	8 6 T 0
+*/
+
+TEST(SearchStateJump_Nested, DoubleExit_CorrectSearchStateJump){
+    auto prg = prg_string_to_ints("[AC,[C,G]]T");
+    auto prg_info = generate_prg_info(prg);
+
+    // first char: c at index 5 in PRG
+    SearchState initial_search_state = {
+            SA_Interval {3, 3}
+    };
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
+
+    SearchStates expected = {
+            SearchState{
+                SA_Interval{6, 6},
+                VariantSitePath {
+                    VariantLocus {7, 1},
+                    VariantLocus {5, 2}
+                },
+                VariantSitePath{},
+                SearchVariantSiteState::outside_variant_site
+            }
+    };
+    EXPECT_EQ(markers_search_states, expected);
+}
+
+TEST(SearchStateJump_Nested, DoubleEntry_CorrectSearchStateJump) {
+    auto prg = prg_string_to_ints("[AC,[C,G]]T");
+    auto prg_info = generate_prg_info(prg);
+
+    // first char: t
+    SearchState initial_search_state = {
+            SA_Interval{5, 5}
+    };
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
+
+    SearchStates expected = {
+            SearchState{
+                SA_Interval{7, 8},
+                VariantSitePath{},
+                VariantSitePath {
+                    VariantLocus{5, ALLELE_UNKNOWN}
+                },
+                SearchVariantSiteState::within_variant_site
+            },
+            SearchState{
+                SA_Interval{10, 11},
+                VariantSitePath{},
+                VariantSitePath{
+                    VariantLocus{7, ALLELE_UNKNOWN}
+                },
+                SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(markers_search_states, expected);
+}
+
+/*
+PRG: [C,G][C,G]
+i	BWT	SA	text_suffix
+0	8	10	0
+1	5	1	C 6 G 6 7 C 8 G 8 0
+2	7	6	C 8 G 8 0
+3	6	3	G 6 7 C 8 G 8 0
+4	8	8	G 8 0
+5	0	0	5 C 6 G 6 7 C 8 G 8 0
+6	C	2	6 G 6 7 C 8 G 8 0
+7	G	4	6 7 C 8 G 8 0
+8	6	5	7 C 8 G 8 0
+9	G	9	8 0
+10	C	7	8 G 8 0
+ */
+TEST(SearchStateJump_Nested, ExitToEntry_CorrectSearchStateJump) {
+    auto prg = prg_string_to_ints("[C,G][C,G]");
+    auto prg_info = generate_prg_info(prg);
+
+    // first char: c at index 6 in PRG
+    SearchState initial_search_state = {
+            SA_Interval{2, 2}
+    };
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
+
+    SearchStates expected = {
+            SearchState{
+                SA_Interval{6, 7},
+                VariantSitePath{
+                    VariantLocus{7, 1}
+                },
+                VariantSitePath{
+                    VariantLocus{5, ALLELE_UNKNOWN}
+                },
+                SearchVariantSiteState::within_variant_site
+            }
+    };
+    EXPECT_EQ(markers_search_states, expected);
+}
+
+/*
+PRG: A[C,,G]T
+i	BWT	SA	text_suffix
+0	T	8	0
+1	0	0	A 5 C 6 6 G 6 T 0
+2	5	2	C 6 6 G 6 T 0
+3	6	5	G 6 T 0
+4	6	7	T 0
+5	A	1	5 C 6 6 G 6 T 0
+6	6	4	6 G 6 T 0
+7	G	6	6 T 0
+8	C	3	6 6 G 6 T 0
+*/
+
+TEST(SearchStateJump_Nested, DirectDeletion_CorrectSearchStateJump) {
+    auto prg = prg_string_to_ints("A[C,,G]T");
+    auto prg_info = generate_prg_info(prg);
+
+    // first char: T
+    // We expect to skip past the direct deletion
+    SearchState initial_search_state = {
+            SA_Interval{4, 4}
+    };
+    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
+                                                                prg_info);
+
+    SearchStates expected = {
+            SearchState{
+               SA_Interval{6, 8},
+               VariantSitePath{},
+               VariantSitePath{
+                   VariantLocus{5, ALLELE_UNKNOWN}
+               },
+               SearchVariantSiteState::within_variant_site
+            },
+
+            SearchState{
+                SA_Interval{5, 5},
+                VariantSitePath{
+                    VariantLocus{5, 2}
+                },
+                VariantSitePath{},
+                SearchVariantSiteState::outside_variant_site
+            }
+    };
+
     EXPECT_EQ(markers_search_states, expected);
 }

@@ -272,14 +272,7 @@ gram::extend_targets_site_entry(VariantLocus const &target_locus, SearchState co
         if (is_site_marker(mapped_target.ID)) { // Case: direct deletion
             assert(mapped_target.direct_deletion_allele != 0);
             VariantLocus site_exit_locus{mapped_target.ID, mapped_target.direct_deletion_allele};
-
-            // Add a traversing element for the direct deletion whose allele ID will later get specified,
-            // Even though we know the allele ID right here.
-            // This maintains compatibility with mapping occurring without adjacent markers.
-            auto direct_deletion_search_state = new_search_state;
-            direct_deletion_search_state.traversing_path.push_back(VariantLocus{mapped_target.ID, ALLELE_UNKNOWN});
-
-            extensions.push_back({site_exit_locus, direct_deletion_search_state, false});
+            extensions.push_back({site_exit_locus, new_search_state, false});
 
         } else { // Case : double entry
             VariantLocus site_entry_locus{mapped_target.ID, ALLELE_UNKNOWN};
