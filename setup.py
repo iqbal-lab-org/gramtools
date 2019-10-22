@@ -24,7 +24,7 @@ def _build_backend(root_dir):
     except FileNotFoundError:
         pass
     os.mkdir(cmake_dir)
-    subprocess.call('CC=gcc CXX=g++ cmake ..', cwd=cmake_dir, shell=True)
+    subprocess.call('CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS ..', cwd=cmake_dir, shell=True)
 
     return_code = subprocess.call(['make'], cwd=cmake_dir)
     if return_code != 0:

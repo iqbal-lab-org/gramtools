@@ -12,7 +12,11 @@ add_dependencies(htslib zlib)
 add_custom_target(py_git_version
         COMMAND make -C ${PROJECT_SOURCE_DIR}/gramtools/version)
 
-set(CMAKE_CXX_FLAGS "-std=c++17 -march=native -lpthread -lrt -lm -llzma -msse4.2 -fopenmp -ftrapv -g -O3")
+# add a RELEASE_WITH_ASSERTS build type. Use via `cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS`
+# Note: this variable name NEEDS TO BE UPPERCASE (but not in cmake call)
+set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lpthread -lrt -lm -llzma -fopenmp -ftrapv")
 
 set(EXTERNAL_LIBS_DIR
         ${CMAKE_CURRENT_BINARY_DIR}/lib)
