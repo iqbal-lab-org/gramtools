@@ -1,7 +1,4 @@
-#include <unordered_set>
-
 #include <boost/random.hpp>
-#include <boost/generator_iterator.hpp>
 #include <boost/nondet_random.hpp>
 
 #include "quasimap/coverage/allele_sum.hpp"
@@ -96,43 +93,61 @@ uint64_t gram::random_int_inclusive(const uint64_t &min,
     return (uint64_t) generate_random_number();
 }
 
+/**
+ * A `SearchState` has a path if either its traversed_path or its traversing_path is non empty
+ */
+bool search_state_has_path(SearchState const& search_state){
+    bool has_path = not search_state.traversed_path.empty();
+    has_path = has_path || not search_state.traversing_path.empty();
+    return has_path;
+}
 
 uint32_t gram::count_nonvariant_search_states(const SearchStates &search_states) {
     uint32_t count = 0;
     for (const auto &search_state: search_states) {
-        bool has_path = not search_state.traversed_path.empty();
+        bool has_path =  search_state_has_path(search_state);
         if (not has_path)
             ++count;
     }
     return count;
 }
 
-
-PathSites get_path_sites(const SearchState &search_state) {
-    PathSites path_sites = {};
-    for (const auto &entry: search_state.traversed_path) {
+void add_path_sites(SitePath& site_path, VariantSitePath const& copy_from){
+    for (auto const& entry: copy_from){
         Marker site = entry.first;
-        path_sites.push_back(site);
+        if (site_path.find(site) != site_path.end()){
+            throw std::logic_error(
+                     "Trying to add site marker to site path but it was there already.\n "
+                     "Site is marked as being traversed twice by the searchstate."
+            );
+        }
+        site_path.insert(site);
     }
-    return path_sites;
+}
+
+SitePath gram::get_path_sites(const SearchState &search_state) {
+    SitePath site_path = {};
+    add_path_sites(site_path, search_state.traversing_path);
+    add_path_sites(site_path, search_state.traversed_path);
+    return site_path;
 }
 
 
-std::set<PathSites> gram::get_unique_path_sites(const SearchStates &search_states) {
-    std::set<PathSites> all_path_sites = {};
+uniqueSitePaths gram::get_unique_site_paths(const SearchStates &search_states) {
+    uniqueSitePaths all_path_sites;
     for (const auto &search_state: search_states) {
-        bool has_path = not search_state.traversed_path.empty();
+        bool has_path =  search_state_has_path(search_state);
         if (not has_path)
             continue;
 
-        auto path_sites = get_path_sites(search_state);
-        all_path_sites.insert(path_sites);
+        auto site_path = get_path_sites(search_state);
+        all_path_sites[site_path].push_back(search_state);
     }
     return all_path_sites;
 }
 
 
-SearchStates gram::filter_for_path_sites(const PathSites &target_path_sites,
+SearchStates gram::filter_for_path_sites(const SitePath &target_path_sites,
                                          const SearchStates &search_states) {
     SearchStates new_search_states = {};
     for (const auto &search_state: search_states) {
@@ -164,7 +179,7 @@ SearchStates selection(const SearchStates &search_states,
                        const uint32_t &random_seed) {
     uint64_t nonvariant_count = count_nonvariant_search_states(search_states);
     // Extract the unique path sites: vectors of site IDs traversed.
-    auto path_sites = get_unique_path_sites(search_states);
+    auto path_sites = get_unique_site_paths(search_states);
 
     uint64_t count_total_options = nonvariant_count + path_sites.size();
     if (count_total_options == 0)
@@ -176,11 +191,11 @@ SearchStates selection(const SearchStates &search_states,
     if (selected_no_path)
         return SearchStates{};
 
-    // We have selected a variant path. Now select one of them.
+    // We have selected a variant path.
     uint64_t paths_sites_offset = selected_option - nonvariant_count - 1;
     auto it = path_sites.begin();
     std::advance(it, paths_sites_offset);
-    auto selected_path_sites = *it; // a single vector of site IDs (sites path)
+    auto selected_path_sites = it->first; // a single vector of site IDs (sites path)
 
     // Filter all given search states for the single randomly selected vector of site_id (site path).
     // Allele IDs are not considered at this point.

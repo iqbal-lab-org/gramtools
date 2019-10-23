@@ -53,11 +53,14 @@ namespace gram {
 
     uint32_t count_nonvariant_search_states(const SearchStates &search_states);
 
-    using PathSites = std::vector<Marker>;
+    using SitePath = std::set<Marker>;
+    using uniqueSitePaths = std::map<SitePath, SearchStates>;
 
-    std::set<PathSites> get_unique_path_sites(const SearchStates &search_states);
+    SitePath get_path_sites(const SearchState &search_state);
 
-    SearchStates filter_for_path_sites(const PathSites &target_path_sites,
+    uniqueSitePaths get_unique_site_paths(const SearchStates &search_states);
+
+    SearchStates filter_for_path_sites(const SitePath &target_path_sites,
                                        const SearchStates &search_states);
 
 }

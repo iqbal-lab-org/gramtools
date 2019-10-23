@@ -6,6 +6,13 @@
 
 using namespace gram;
 
+std::set<SitePath> get_site_path_only(uniqueSitePaths const& map){
+    std::set<SitePath> site_path;
+    for (auto const& e : map){
+        site_path.insert(e.first);
+    }
+    return site_path;
+}
 
 /*
 PRG: AA5T6CAGTAGCAGT6TA
@@ -170,6 +177,19 @@ TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(GetSitePath, SameSiteMoreThanOnceInSearchState_ThrowsError){
+    SearchState search_state = SearchState{
+        SA_Interval{},
+        VariantSitePath{
+            VariantLocus{5, 2}
+        },
+        VariantSitePath{
+            VariantLocus{5, ALLELE_UNKNOWN}
+        }
+    };
+
+    EXPECT_THROW(get_path_sites(search_state), std::logic_error);
+}
 
 TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
     SearchStates search_states = {
@@ -189,10 +209,11 @@ TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
             }
 
     };
-    auto result = get_unique_path_sites(search_states);
-    std::set<PathSites> expected = {
-            PathSites {5, 7},
-            PathSites {9, 11}
+    auto result_map = get_unique_site_paths(search_states);
+    auto result = get_site_path_only(result_map);
+    std::set<SitePath> expected = {
+            SitePath {5, 7},
+            SitePath {9, 11}
     };
     EXPECT_EQ(result, expected);
 }
@@ -216,9 +237,10 @@ TEST(GetUniquePathSites, TwoIdenticalPaths_SinglePathInSet) {
             }
 
     };
-    auto result = get_unique_path_sites(search_states);
-    std::set<PathSites> expected = {
-            PathSites {9, 11}
+    auto result_map = get_unique_site_paths(search_states);
+    auto result = get_site_path_only(result_map);
+    std::set<SitePath> expected = {
+            SitePath {9, 11}
     };
     EXPECT_EQ(result, expected);
 }
@@ -246,9 +268,10 @@ TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) 
             }
 
     };
-    auto result = get_unique_path_sites(search_states);
-    std::set<PathSites> expected = {
-            PathSites {9, 11}
+    auto result_map = get_unique_site_paths(search_states);
+    auto result = get_site_path_only(result_map);
+    std::set<SitePath> expected = {
+            SitePath {9, 11}
     };
     EXPECT_EQ(result, expected);
 }
@@ -270,9 +293,8 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectSingleSearchState)
                             VariantLocus {11, 5},
                     }
             }
-
     };
-    PathSites target_path = {9, 11};
+    SitePath target_path = {9, 11};
     auto result = filter_for_path_sites(target_path, search_states);
     SearchStates expected = {
             SearchState {
@@ -306,7 +328,7 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectEmptySearchStates)
             }
 
     };
-    PathSites target_path = {13, 15};
+    SitePath target_path = {13, 15};
     auto result = filter_for_path_sites(target_path, search_states);
     SearchStates expected = {};
     EXPECT_EQ(result, expected);

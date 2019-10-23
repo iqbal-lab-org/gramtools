@@ -25,6 +25,8 @@ set_target_properties(libgmock PROPERTIES
         "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
         "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/libgramtools/include/gtest)
+
 set(INCLUDE
         ${PROJECT_SOURCE_DIR}/libgramtools/include
         ${PROJECT_SOURCE_DIR}/libgramtools/submods)
