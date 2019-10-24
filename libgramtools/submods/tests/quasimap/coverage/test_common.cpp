@@ -277,7 +277,7 @@ TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) 
 }
 
 
-TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectSingleSearchState) {
+TEST(GetUniquePathSites, TwoSearchStatesSameSitePaths_CorrectUniquePathMap) {
     SearchStates search_states = {
             SearchState {
                     SA_Interval {1, 2},
@@ -289,29 +289,21 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectSingleSearchState)
             SearchState {
                     SA_Interval {3, 4},
                     VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
+                            VariantLocus {5, 3},
+                            VariantLocus {7, 2},
                     }
             }
     };
-    SitePath target_path = {9, 11};
-    auto result = filter_for_path_sites(target_path, search_states);
-    SearchStates expected = {
-            SearchState {
-                    SA_Interval {3, 4},
-                    VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
-                    }
-            }
 
-    };
+    uniqueSitePaths expected;
+    expected.insert(std::make_pair(SitePath{5, 7}, search_states));
+    auto result = get_unique_site_paths(search_states);
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectEmptySearchStates) {
-    SearchStates search_states = {
+TEST(GetUniquePathSites, SearchStatesWithSameAndDifferentSitePaths_CorrectUniquePathMap) {
+    SearchStates same_search_states = {
             SearchState {
                     SA_Interval {1, 2},
                     VariantSitePath {
@@ -319,17 +311,33 @@ TEST(FilterForPathSites, TwoSearchStatesDifferentPaths_CorrectEmptySearchStates)
                             VariantLocus {7, 2},
                     }
             },
+
             SearchState {
-                    SA_Interval {3, 4},
+                    SA_Interval {5, 12},
                     VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
+                            VariantLocus {5, 3},
+                            VariantLocus {7, 5},
                     }
             }
-
     };
-    SitePath target_path = {13, 15};
-    auto result = filter_for_path_sites(target_path, search_states);
-    SearchStates expected = {};
+
+    SearchStates different_search_state = {
+            SearchState {
+                SA_Interval {3, 4},
+                VariantSitePath {
+                    VariantLocus {9, 3},
+                    VariantLocus {11, 5},
+                    }
+            }
+    };
+    uniqueSitePaths expected;
+    expected.insert(std::make_pair(SitePath{5, 7}, same_search_states));
+    expected.insert(std::make_pair(SitePath{9, 11}, different_search_state));
+
+    SearchStates all_search_states;
+    all_search_states.insert(all_search_states.end(), same_search_states.begin(), same_search_states.end());
+    all_search_states.emplace_back(different_search_state.front());
+    auto result = get_unique_site_paths(all_search_states);
+
     EXPECT_EQ(result, expected);
 }

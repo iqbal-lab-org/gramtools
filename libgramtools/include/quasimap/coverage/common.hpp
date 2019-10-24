@@ -60,9 +60,6 @@ namespace gram {
 
     uniqueSitePaths get_unique_site_paths(const SearchStates &search_states);
 
-    SearchStates filter_for_path_sites(const SitePath &target_path_sites,
-                                       const SearchStates &search_states);
-
 }
 
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP

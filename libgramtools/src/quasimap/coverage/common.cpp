@@ -147,19 +147,6 @@ uniqueSitePaths gram::get_unique_site_paths(const SearchStates &search_states) {
 }
 
 
-SearchStates gram::filter_for_path_sites(const SitePath &target_path_sites,
-                                         const SearchStates &search_states) {
-    SearchStates new_search_states = {};
-    for (const auto &search_state: search_states) {
-        auto path_sites = get_path_sites(search_state);
-        bool has_taget_path = path_sites == target_path_sites;
-        if (has_taget_path)
-            new_search_states.emplace_back(search_state);
-    }
-    return new_search_states;
-}
-
-
 /**
  * Random uniform selection of one mapped path in the prg.
  * What gets selected is either:
@@ -200,7 +187,7 @@ SearchStates selection(const SearchStates &search_states,
     // Filter all given search states for the single randomly selected vector of site_id (site path).
     // Allele IDs are not considered at this point.
     // Mapping instance interactions within sites are considered later (in grouped allele coverage).
-    auto selected_search_states = filter_for_path_sites(selected_path_sites, search_states);
+    auto selected_search_states = it->second;
     if (selected_search_states.size() > 1)
         return selected_search_states;
 
