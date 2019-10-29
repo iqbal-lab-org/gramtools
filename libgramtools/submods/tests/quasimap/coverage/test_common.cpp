@@ -341,3 +341,128 @@ TEST(GetUniquePathSites, SearchStatesWithSameAndDifferentSitePaths_CorrectUnique
 
     EXPECT_EQ(result, expected);
 }
+
+class LocusFinder_minimal : public ::testing::Test{
+protected:
+    void SetUp(){
+        parental_map p{
+                {9, VariantLocus{7, 1}} ,
+                {7, VariantLocus{5, 3}}
+        };
+        coverage_Graph c;
+        c.par_map = p;
+        prg_info.coverage_graph = c;
+    }
+    LocusFinder l{};
+    PRG_Info prg_info;
+};
+
+TEST_F(LocusFinder_minimal, assignNestedLocus_correctDispatching){
+
+    // First addition
+    VariantLocus test{9, 3};
+    l.assign_nested_locus(test, &prg_info);
+    SitePath expected_base_sites{5};
+    EXPECT_EQ(l.base_sites, expected_base_sites);
+
+    SitePath expected_used_sites{5, 7, 9};
+    EXPECT_EQ(l.used_sites, expected_used_sites);
+
+    uniqueLoci expected_unique_loci{
+        VariantLocus{5,3},
+        VariantLocus{7,1},
+        VariantLocus{9,3}
+    };
+    EXPECT_EQ(l.unique_loci, expected_unique_loci);
+
+    //Second addition: nothing should change
+    VariantLocus test2{9, 2};
+    l.assign_nested_locus(test2, &prg_info);
+    EXPECT_EQ(l.base_sites, expected_base_sites);
+    EXPECT_EQ(l.used_sites, expected_used_sites);
+    EXPECT_EQ(l.unique_loci, expected_unique_loci);
+}
+
+TEST_F(LocusFinder_minimal, assignTraversedLoci_correctDispatching){
+    SearchState test{
+        SA_Interval{2,2},
+        VariantSitePath{
+            VariantLocus{11, 1},
+            VariantLocus{9, 3}
+        }
+    };
+
+    l.assign_traversed_loci(test, &prg_info);
+    SitePath expected_base_sites{5, 11};
+    EXPECT_EQ(l.base_sites, expected_base_sites);
+
+    uniqueLoci expected_unique_loci{
+            VariantLocus{5,3},
+            VariantLocus{7,1},
+            VariantLocus{9,3},
+            VariantLocus{11, 1}
+    };
+    EXPECT_EQ(l.unique_loci, expected_unique_loci);
+}
+
+
+/*
+PRG: A[[G[AC,TC],A]C,T]T
+i	BWT	SA	text_suffix
+0	T	19	0
+1	9	5	A C 10 T C 10 8 A 8 C 6 T 6 T 0
+2	0	0	A 5 7 G 9 A C 10 T C 10 8 A 8 C 6 T 6 T 0
+3	8	12	A 8 C 6 T 6 T 0
+4	8	14	C 6 T 6 T 0
+5	A	6	C 10 T C 10 8 A 8 C 6 T 6 T 0
+6	T	9	C 10 8 A 8 C 6 T 6 T 0
+7	7	3	G 9 A C 10 T C 10 8 A 8 C 6 T 6 T 0
+8	6	18	T 0
+9	10	8	T C 10 8 A 8 C 6 T 6 T 0
+10	6	16	T 6 T 0
+11	A	1	5 7 G 9 A C 10 T C 10 8 A 8 C 6 T 6 T 0
+12	T	17	6 T 0
+13	C	15	6 T 6 T 0
+14	5	2	7 G 9 A C 10 T C 10 8 A 8 C 6 T 6 T 0
+15	10	11	8 A 8 C 6 T 6 T 0
+16	A	13	8 C 6 T 6 T 0
+17	G	4	9 A C 10 T C 10 8 A 8 C 6 T 6 T 0
+18	C	7	10 T C 10 8 A 8 C 6 T 6 T 0
+19	C	10	10 8 A 8 C 6 T 6 T 0 */
+
+// Here we make a full fm index and coverage graph
+class LocusFinder_full : public ::testing::Test{
+protected:
+    void SetUp(){
+       std::string raw_prg = "A[[G[AC,TC],A]C,T]T";
+        marker_vec v = prg_string_to_ints(raw_prg);
+        prg_info = generate_prg_info(v);
+    }
+    LocusFinder l;
+    PRG_Info prg_info;
+};
+
+TEST_F(LocusFinder_full, assignTraversedLociWithAllUnknownLoci_correctDispatching){
+    // Pretense is we've mapped the read "CCT"
+    SearchState test{
+            SA_Interval{5,6},
+            VariantSitePath{},
+            VariantSitePath{
+                    VariantLocus{5, ALLELE_UNKNOWN},
+                    VariantLocus{7,  ALLELE_UNKNOWN},
+                    VariantLocus{9,  ALLELE_UNKNOWN}
+            }
+    };
+    l.assign_traversing_loci(test, &prg_info);
+
+    SitePath expected_base_sites{5};
+    EXPECT_EQ(l.base_sites, expected_base_sites);
+
+    uniqueLoci expected_unique_loci{
+            VariantLocus{5,1},
+            VariantLocus{7,1},
+            VariantLocus{9,1},
+            VariantLocus{9,2}
+    };
+    EXPECT_EQ(l.unique_loci, expected_unique_loci);
+}
