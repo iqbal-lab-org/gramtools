@@ -39,6 +39,74 @@ namespace gram {
         }
     }
 
+
+    using SitePath = std::set<Marker>;
+    using uniqueLoci = std::set<VariantLocus>;
+
+    struct coverage_struct{
+        SearchState search_state;
+        uniqueLoci all_unique_loci;
+    };
+    using new_uniqueSitePaths = std::map<SitePath, std::vector<coverage_struct>>;
+    using uniqueSitePaths = std::map<SitePath, SearchStates>;
+
+    using info_ptr = PRG_Info const* const;
+
+    /**
+     * Class whose purpose it is to find the set of (nested) Loci supported by a `SearchState`
+     */
+    class LocusFinder{
+    public:
+
+        LocusFinder() : search_state(), prg_info() {};
+
+        LocusFinder(SearchState const search_state, info_ptr prg_info);
+
+        /**
+         * Takes a (potentially nested) `VariantLocus` and registers it as well as all sites it is nested
+         * within, up to a base site.
+         */
+        void assign_nested_locus(VariantLocus const& var_loc, info_ptr info_ptr);
+
+        /**
+         * This function works on the premise that all `VariantLocus` in the `traversing_path`
+         * are in the same nested bubble.
+         */
+        void assign_traversing_loci(SearchState const& search_state, info_ptr prg_info);
+        void assign_traversing_loci(){ assign_traversing_loci(this->search_state, this->prg_info);}
+
+        void assign_traversed_loci(SearchState const& search_state, info_ptr prg_info);
+        void assign_traversed_loci(){assign_traversed_loci(this->search_state, this->prg_info);}
+
+        SitePath base_sites; /**< 'Level 0' nesting sites; they form the basis for `SearchState` selection */
+        SitePath used_sites; /**< For remembering which sites have already been processed */
+        uniqueLoci unique_loci; /**< For grouped allele counts coverage recording */
+    private:
+        SearchState const search_state;
+        info_ptr prg_info;
+    };
+
+    class MappingInstanceSelector{
+    public:
+        SearchStates navigational_search_states; /**< for recording per base coverage*/
+        uniqueLoci equivalence_class_loci; /**< for recording grouped allele count coverage*/
+
+        //MappingInstanceSelector(){throw std::logic_error("MappingInstanceSelector must be constructed"
+         //                                                " with Search States")};
+        MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info)
+            : input_search_states(search_states), prg_info(prg_info)
+            {};
+
+        // uniqueSitePaths get_unique_site_paths(const SearchStates &search_states){};
+    private:
+        SearchStates const input_search_states;
+        info_ptr prg_info;
+        uniqueSitePaths usps;
+    };
+
+    SitePath get_path_sites(const SearchState &search_state);
+    uniqueSitePaths get_unique_site_paths(const SearchStates &search_states);
+
     bool check_allele_encapsulated(const SearchState &search_state,
                                    const uint64_t &read_length,
                                    const PRG_Info &prg_info);
@@ -53,12 +121,7 @@ namespace gram {
 
     uint32_t count_nonvariant_search_states(const SearchStates &search_states);
 
-    using SitePath = std::set<Marker>;
-    using uniqueSitePaths = std::map<SitePath, SearchStates>;
 
-    SitePath get_path_sites(const SearchState &search_state);
-
-    uniqueSitePaths get_unique_site_paths(const SearchStates &search_states);
 
 }
 

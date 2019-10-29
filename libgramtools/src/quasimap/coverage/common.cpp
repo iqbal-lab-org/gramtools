@@ -10,6 +10,67 @@
 
 using namespace gram;
 
+/**
+ * A `SearchState` has a path if either its traversed_path or its traversing_path is non empty
+ */
+bool search_state_has_path(SearchState const& search_state){
+    bool has_path = not search_state.traversed_path.empty();
+    has_path = has_path || not search_state.traversing_path.empty();
+    return has_path;
+}
+
+LocusFinder::LocusFinder(SearchState const search_state, info_ptr prg_info)
+: search_state(search_state), prg_info(prg_info){
+    assign_traversing_loci();
+    assign_traversed_loci();
+}
+
+void LocusFinder::assign_nested_locus(VariantLocus const& var_loc, info_ptr info_ptr){
+    auto& par_map = info_ptr->coverage_graph.par_map;
+    VariantLocus cur_locus = var_loc;
+    Marker& cur_marker = cur_locus.first;
+   while(true){
+      if (used_sites.find(cur_marker) != used_sites.end()) break;
+      used_sites.insert(cur_marker);
+      unique_loci.insert(cur_locus);
+
+      if (par_map.find(cur_marker) == par_map.end()){
+          base_sites.insert(cur_marker); // Add non-nested site marker
+          break;
+      }
+      cur_locus = par_map.at(cur_marker);
+   }
+   return;
+}
+
+void LocusFinder::assign_traversing_loci(SearchState const& search_state, info_ptr prg_info){
+    if (search_state.traversing_path.size() == 0) return;
+    auto r = search_state.traversing_path.rbegin();
+    Marker parent_seed = r->first;
+    assert(r->second == ALLELE_UNKNOWN);
+
+    VariantLocus new_locus;
+    // Assign the currently traversed alleles
+    for (int i = search_state.sa_interval.first; i <= search_state.sa_interval.second; ++i){
+      auto prg_pos =  prg_info->fm_index[i];
+      auto& node_access = prg_info->coverage_graph.random_access[prg_pos];
+      auto allele_id = node_access.node->get_allele();
+
+      new_locus = VariantLocus{parent_seed, allele_id};
+      unique_loci.insert(new_locus);
+    }
+
+    assign_nested_locus(new_locus, prg_info);
+
+    // TODO: add a check that entries in parent map correspond to entrie in traversin_locus vector
+    // auto r = search_state.traversing_path.rbegin();
+}
+
+void LocusFinder::assign_traversed_loci(SearchState const& search_state, info_ptr prg_info){
+    for (auto const & var_locus : search_state.traversed_path){
+        assign_nested_locus(var_locus, prg_info);
+    }
+}
 
 bool gram::check_allele_encapsulated(const SearchState &search_state,
                                      const uint64_t &read_length,
@@ -93,14 +154,6 @@ uint64_t gram::random_int_inclusive(const uint64_t &min,
     return (uint64_t) generate_random_number();
 }
 
-/**
- * A `SearchState` has a path if either its traversed_path or its traversing_path is non empty
- */
-bool search_state_has_path(SearchState const& search_state){
-    bool has_path = not search_state.traversed_path.empty();
-    has_path = has_path || not search_state.traversing_path.empty();
-    return has_path;
-}
 
 uint32_t gram::count_nonvariant_search_states(const SearchStates &search_states) {
     uint32_t count = 0;
