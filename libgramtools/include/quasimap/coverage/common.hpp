@@ -58,7 +58,7 @@ namespace gram {
     class LocusFinder{
     public:
 
-        LocusFinder() : search_state(), prg_info() {};
+        LocusFinder() : search_state(), prg_info(nullptr) {};
 
         LocusFinder(SearchState const search_state, info_ptr prg_info);
 
@@ -91,17 +91,18 @@ namespace gram {
         SearchStates navigational_search_states; /**< for recording per base coverage*/
         uniqueLoci equivalence_class_loci; /**< for recording grouped allele count coverage*/
 
-        //MappingInstanceSelector(){throw std::logic_error("MappingInstanceSelector must be constructed"
-         //                                                " with Search States")};
+        MappingInstanceSelector() : input_search_states(), usps(), prg_info(nullptr){};
+
         MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info)
-            : input_search_states(search_states), prg_info(prg_info)
+            : input_search_states(search_states), usps(), prg_info(prg_info)
             {};
 
+        void add_searchstate(SearchState const& ss);
         // uniqueSitePaths get_unique_site_paths(const SearchStates &search_states){};
     private:
         SearchStates const input_search_states;
         info_ptr prg_info;
-        uniqueSitePaths usps;
+        new_uniqueSitePaths usps;
     };
 
     SitePath get_path_sites(const SearchState &search_state);

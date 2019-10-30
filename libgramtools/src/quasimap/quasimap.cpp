@@ -2,6 +2,9 @@
 #include "kmer_index/load.hpp"
 #include "common/timer_report.hpp"
 
+#include "quasimap/search/BWT_search.hpp"
+#include "quasimap/search/vBWT_jump.hpp"
+
 #include <omp.h>
 
 using namespace gram;

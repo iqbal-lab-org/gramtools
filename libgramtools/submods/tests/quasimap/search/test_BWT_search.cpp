@@ -10,7 +10,9 @@
 #include "gtest/gtest.h"
 #include "src_common/generate_prg.hpp"
 #include "prg/prg.hpp"
+#include "quasimap/search/BWT_search.hpp"
 #include "quasimap/quasimap.hpp"
+#include "kmer_index/build.hpp"
 
 /*
 PRG: gcgctggagtgctgt

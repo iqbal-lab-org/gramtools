@@ -430,8 +430,15 @@ i	BWT	SA	text_suffix
 18	C	7	10 T C 10 8 A 8 C 6 T 6 T 0
 19	C	10	10 8 A 8 C 6 T 6 T 0 */
 
-// Here we make a full fm index and coverage graph
 class LocusFinder_full : public ::testing::Test{
+/**
+ * Here we make a full fm index and coverage graph
+ * Disclaimer: the tests are strongly coupled to, and thus require correctness of:
+ *      i) Coverage graph (parent_map; random_access to nodes)
+ *      ii) FM Index construction
+ * We could [TODO] decouple and write/mock those ourselves.
+ */
+//
 protected:
     void SetUp(){
        std::string raw_prg = "A[[G[AC,TC],A]C,T]T";
@@ -442,7 +449,7 @@ protected:
     PRG_Info prg_info;
 };
 
-TEST_F(LocusFinder_full, assignTraversedLociWithAllUnknownLoci_correctDispatching){
+TEST_F(LocusFinder_full, assignTraversingLociWithAllUnknownLoci_correctDispatching){
     // Pretense is we've mapped the read "CCT"
     SearchState test{
             SA_Interval{5,6},
@@ -466,3 +473,47 @@ TEST_F(LocusFinder_full, assignTraversedLociWithAllUnknownLoci_correctDispatchin
     };
     EXPECT_EQ(l.unique_loci, expected_unique_loci);
 }
+
+TEST_F(LocusFinder_full, assignTraversedLociWithOneTraversedLocus_correctDispatching) {
+    // Pretense is we've mapped the read "GACC"
+    SearchState test{
+            SA_Interval{7,7},
+            VariantSitePath{VariantLocus{9, 1}},
+            VariantSitePath{
+                    VariantLocus{7,  ALLELE_UNKNOWN},
+            }
+    };
+
+    l.assign_traversing_loci(test, &prg_info);
+    SitePath expected_base_sites{5};
+    EXPECT_EQ(l.base_sites, expected_base_sites);
+
+    uniqueLoci expected_unique_loci{
+            VariantLocus{5,1},
+            VariantLocus{7,1},
+    };
+    EXPECT_EQ(l.unique_loci, expected_unique_loci);
+}
+
+TEST_F(LocusFinder_full, constructLocusFinder_assignAllLociForSearchState_correctDispatching) {
+    // Pretense is we've mapped the read "GACC"
+    SearchState test{
+            SA_Interval{7, 7},
+            VariantSitePath{VariantLocus{9, 1}},
+            VariantSitePath{
+                    VariantLocus{7, ALLELE_UNKNOWN},
+            }
+    };
+    LocusFinder l2{test, &prg_info};
+
+    SitePath expected_base_sites{5};
+    EXPECT_EQ(l2.base_sites, expected_base_sites);
+
+    uniqueLoci expected_unique_loci{
+            VariantLocus{5,1},
+            VariantLocus{7,1},
+            VariantLocus{9,1},
+    };
+    EXPECT_EQ(l2.unique_loci, expected_unique_loci);
+}
+

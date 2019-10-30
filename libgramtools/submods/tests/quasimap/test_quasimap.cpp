@@ -12,7 +12,7 @@
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
 #include "common/utils.hpp"
-
+#include "quasimap/search/BWT_search.hpp"
 
 using namespace gram;
 

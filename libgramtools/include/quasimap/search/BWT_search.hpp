@@ -9,7 +9,6 @@
 #define GRAMTOOLS_SEARCH_HPP
 
 #include "common/utils.hpp"
-#include "kmer_index/kmer_index_types.hpp"
 #include "quasimap/search_types.hpp"
 
 

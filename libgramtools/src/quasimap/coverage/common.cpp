@@ -72,6 +72,13 @@ void LocusFinder::assign_traversed_loci(SearchState const& search_state, info_pt
     }
 }
 
+void MappingInstanceSelector::add_searchstate(SearchState const& ss){
+    LocusFinder l{ss, prg_info};
+    coverage_struct c{ss, l.unique_loci};
+    usps[l.base_sites].push_back(c);
+}
+
+
 bool gram::check_allele_encapsulated(const SearchState &search_state,
                                      const uint64_t &read_length,
                                      const PRG_Info &prg_info) {
