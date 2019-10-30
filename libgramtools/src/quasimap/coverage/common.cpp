@@ -19,6 +19,24 @@ bool search_state_has_path(SearchState const& search_state){
     return has_path;
 }
 
+RandomInclusiveInt::RandomInclusiveInt(uint32_t const& random_seed){
+    if (random_seed == 0){
+        boost::random_device seed_generator;
+        this->random_seed = seed_generator();
+    }
+    else this->random_seed = random_seed;
+}
+
+
+uint32_t RandomInclusiveInt::generate(uint32_t min, uint32_t max){
+    boost::mt19937 random_number_generator(random_seed);
+
+    boost::uniform_int<> range(min, max);
+    using Generator = boost::variate_generator<boost::mt19937, boost::uniform_int<>>;
+    Generator generate_random_number(random_number_generator, range);
+    return generate_random_number();
+};
+
 LocusFinder::LocusFinder(SearchState const search_state, info_ptr prg_info)
 : search_state(search_state), prg_info(prg_info){
     assign_traversing_loci();
@@ -71,6 +89,12 @@ void LocusFinder::assign_traversed_loci(SearchState const& search_state, info_pt
         assign_nested_locus(var_locus, prg_info);
     }
 }
+
+MappingInstanceSelector::MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info, rand_ptr rand_generator)
+    : input_search_states(search_states), usps(), prg_info(prg_info), rand_generator(rand_generator)
+{
+    add_searchstates();
+};
 
 void MappingInstanceSelector::add_searchstate(SearchState const& ss){
     LocusFinder l{ss, prg_info};

@@ -4,6 +4,7 @@
 
 #include "quasimap/search/BWT_search.hpp"
 #include "quasimap/search/vBWT_jump.hpp"
+#include "quasimap/coverage/common.hpp"
 
 #include <omp.h>
 

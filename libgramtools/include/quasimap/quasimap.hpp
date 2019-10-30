@@ -13,9 +13,7 @@
 #include "common/read_stats.hpp"
 
 #include "kmer_index/kmer_index_types.hpp"
-
 #include "coverage/types.hpp"
-#include "coverage/common.hpp"
 
 #include "search/encapsulated_search.hpp"
 

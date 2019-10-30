@@ -141,18 +141,20 @@ TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
 }
 
 
-TEST(RrandomIntInclusive, RandomCall_MinBoundaryReturned) {
-    uint64_t random_seed = 48;
-    uint64_t result = random_int_inclusive(1, 10, random_seed);
-    uint64_t expected = 1;
+TEST(RandomInclusiveInt, RandomCall_MinBoundaryReturned) {
+    uint32_t random_seed = 48;
+    RandomInclusiveInt r{random_seed};
+    uint32_t result = r.generate(1, 10);
+    uint32_t expected = 1;
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(RrandomIntInclusive, RandomCall_MaxBoundaryReturned) {
-    uint64_t random_seed = 56;
-    uint64_t result = random_int_inclusive(1, 10, random_seed);
-    uint64_t expected = 10;
+TEST(RandomInclusiveInt, RandomCall_MaxBoundaryReturned) {
+    uint32_t random_seed = 56;
+    RandomInclusiveInt r{random_seed};
+    uint32_t result = r.generate(1, 10);
+    uint32_t expected = 10;
     EXPECT_EQ(result, expected);
 }
 

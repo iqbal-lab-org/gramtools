@@ -40,6 +40,24 @@ namespace gram {
     }
 
 
+    /**
+     * Abstract base class used for mocking in unit tests
+     */
+    class RandomGenerator{
+    protected:
+        virtual uint32_t generate(uint32_t min, uint32_t max) = 0;
+    };
+
+    class RandomInclusiveInt : public RandomGenerator{
+    public:
+        RandomInclusiveInt() = default;
+        RandomInclusiveInt(uint32_t const& random_seed = 0);
+
+        uint32_t generate(uint32_t min, uint32_t max) override;
+    private:
+        uint32_t random_seed;
+    };
+
     using SitePath = std::set<Marker>;
     using uniqueLoci = std::set<VariantLocus>;
 
@@ -48,6 +66,7 @@ namespace gram {
     using uniqueSitePaths = std::map<SitePath, SearchStates>;
 
     using info_ptr = PRG_Info const* const;
+    using rand_ptr = RandomGenerator const* const;
 
     /**
      * Class whose purpose it is to find the set of (nested) Loci supported by a `SearchState`
@@ -89,12 +108,11 @@ namespace gram {
         uniqueLoci equivalence_class_loci; /**< for recording grouped allele count coverage*/
         new_uniqueSitePaths usps; /**< For storing all the information prior to selection*/
 
+        // Constructors
         MappingInstanceSelector() = default;
-        MappingInstanceSelector(info_ptr prg_info) : input_search_states(), usps(), prg_info(prg_info){};
-
-        MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info)
-            : input_search_states(search_states), usps(), prg_info(prg_info)
-            {};
+        MappingInstanceSelector(info_ptr prg_info) : input_search_states(), usps(),
+            prg_info(prg_info), rand_generator(nullptr){};
+        MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info, rand_ptr rand_generator);
 
         void add_searchstate(SearchState const& ss);
 
@@ -104,6 +122,7 @@ namespace gram {
     private:
         SearchStates const input_search_states;
         info_ptr prg_info;
+        rand_ptr rand_generator;
     };
 
     SitePath get_path_sites(const SearchState &search_state);
