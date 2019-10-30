@@ -74,10 +74,18 @@ void LocusFinder::assign_traversed_loci(SearchState const& search_state, info_pt
 
 void MappingInstanceSelector::add_searchstate(SearchState const& ss){
     LocusFinder l{ss, prg_info};
-    coverage_struct c{ss, l.unique_loci};
-    usps[l.base_sites].push_back(c);
+    // Create or retrieve the coverage information
+    auto& cov_info = usps[l.base_sites];
+    // Merge each locus to the existing coverage information
+    for (auto& locus : l.unique_loci) cov_info.second.insert(locus);
+    cov_info.first.push_back(ss);
 }
 
+void MappingInstanceSelector::add_searchstates(SearchStates const& all_ss){
+    for (auto const& ss : all_ss){
+        add_searchstate(ss);
+    }
+}
 
 bool gram::check_allele_encapsulated(const SearchState &search_state,
                                      const uint64_t &read_length,

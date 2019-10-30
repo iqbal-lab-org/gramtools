@@ -517,3 +517,71 @@ TEST_F(LocusFinder_full, constructLocusFinder_assignAllLociForSearchState_correc
     EXPECT_EQ(l2.unique_loci, expected_unique_loci);
 }
 
+class MappingInstanceSelector_addSearchStates : public ::testing::Test{
+protected:
+    // In this example we pretend we have mapped "TAA" to the graph.
+    // Note: the allele encapsulated mapping handling has separated a single SearchState into three.
+    // The SA_Intervals are dummies.
+    void SetUp(){
+        std::string prg_raw{"[CG[TAA,T],TAA]TA[TAA,ATA]"};
+        coverage_Graph c;
+        parental_map par_map{
+                {7 , VariantLocus{5, 1}}
+        };
+        c.par_map = par_map;
+
+        prg_info.coverage_graph = c;
+    };
+    PRG_Info prg_info;
+    SearchState s1{
+            SA_Interval{1, 1},
+            VariantSitePath{VariantLocus{7, 1}}
+    };
+
+    SearchState s2{
+            SA_Interval{1, 1},
+            VariantSitePath{VariantLocus{5, 2}}
+    };
+    SearchState s3{
+            SA_Interval{1, 1},
+            VariantSitePath{VariantLocus{9, 1}}
+    };
+    MappingInstanceSelector selector{&prg_info};
+};
+
+TEST_F(MappingInstanceSelector_addSearchStates, addOneSearchState_correctlyRegistered){
+    selector.add_searchstate(s1);
+    traversal_info expected_info{
+            SearchStates{s1},
+            uniqueLoci{ VariantLocus{ 5, 1}, VariantLocus{7, 1} }
+    };
+    new_uniqueSitePaths expected_map{
+            {SitePath{5} ,  expected_info}
+    };
+
+    EXPECT_EQ(selector.usps, expected_map);
+}
+
+
+TEST_F(MappingInstanceSelector_addSearchStates, addAllSearchStates_correctlyRegistered){
+    SearchStates all_ss{s1, s2, s3};
+    selector.add_searchstates(all_ss);
+
+    traversal_info expected_i1{
+        SearchStates{s1, s2},
+        uniqueLoci{
+            VariantLocus{5,1}, VariantLocus{7, 1}, VariantLocus{5, 2}
+        }
+    };
+
+    traversal_info expected_i2{
+            SearchStates{s3},
+            uniqueLoci{ VariantLocus{9,1} }
+    };
+
+    new_uniqueSitePaths expected_map{
+            {SitePath{5} ,  expected_i1},
+            {SitePath{9}, expected_i2}
+    };
+    EXPECT_EQ(selector.usps, expected_map);
+}

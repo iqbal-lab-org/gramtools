@@ -43,11 +43,8 @@ namespace gram {
     using SitePath = std::set<Marker>;
     using uniqueLoci = std::set<VariantLocus>;
 
-    struct coverage_struct{
-        SearchState search_state;
-        uniqueLoci all_unique_loci;
-    };
-    using new_uniqueSitePaths = std::map<SitePath, std::vector<coverage_struct>>;
+    using traversal_info = std::pair<SearchStates, uniqueLoci>;
+    using new_uniqueSitePaths = std::map<SitePath, traversal_info>;
     using uniqueSitePaths = std::map<SitePath, SearchStates>;
 
     using info_ptr = PRG_Info const* const;
@@ -90,19 +87,23 @@ namespace gram {
     public:
         SearchStates navigational_search_states; /**< for recording per base coverage*/
         uniqueLoci equivalence_class_loci; /**< for recording grouped allele count coverage*/
+        new_uniqueSitePaths usps; /**< For storing all the information prior to selection*/
 
-        MappingInstanceSelector() : input_search_states(), usps(), prg_info(nullptr){};
+        MappingInstanceSelector() = default;
+        MappingInstanceSelector(info_ptr prg_info) : input_search_states(), usps(), prg_info(prg_info){};
 
         MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info)
             : input_search_states(search_states), usps(), prg_info(prg_info)
             {};
 
         void add_searchstate(SearchState const& ss);
+
+        void add_searchstates(SearchStates const& ss);
+        void add_searchstates() {add_searchstates(input_search_states);}
         // uniqueSitePaths get_unique_site_paths(const SearchStates &search_states){};
     private:
         SearchStates const input_search_states;
         info_ptr prg_info;
-        new_uniqueSitePaths usps;
     };
 
     SitePath get_path_sites(const SearchState &search_state);
