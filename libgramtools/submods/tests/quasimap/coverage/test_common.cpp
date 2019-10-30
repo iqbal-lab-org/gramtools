@@ -1,5 +1,6 @@
 #include <cctype>
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "src_common/generate_prg.hpp"
 #include "quasimap/coverage/common.hpp"
@@ -174,7 +175,8 @@ TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
             }
 
     };
-    uint64_t result = count_nonvariant_search_states(search_states);
+    MappingInstanceSelector s;
+    auto result = s.count_nonvar_search_states(search_states);
     uint64_t expected = 1;
     EXPECT_EQ(result, expected);
 }
@@ -531,7 +533,6 @@ protected:
                 {7 , VariantLocus{5, 1}}
         };
         c.par_map = par_map;
-
         prg_info.coverage_graph = c;
     };
     PRG_Info prg_info;
@@ -586,4 +587,58 @@ TEST_F(MappingInstanceSelector_addSearchStates, addAllSearchStates_correctlyRegi
             {SitePath{9}, expected_i2}
     };
     EXPECT_EQ(selector.usps, expected_map);
+}
+
+class MockRandomGenerator : public RandomGenerator{
+public:
+    MOCK_METHOD2(generate, uint32_t(uint32_t, uint32_t));
+};
+
+class MappingInstanceSelector_select : public ::testing::Test {
+protected:
+    PRG_Info prg_info;
+    SearchStates ss{
+        SearchState {
+            SA_Interval{1, 1},
+                    VariantSitePath{VariantLocus{7, 1}}
+        },
+        SearchState {
+                SA_Interval{6, 6},
+                VariantSitePath{VariantLocus{7, 2}}
+        },
+        SearchState {
+            SA_Interval{2, 5},
+                    VariantSitePath{},
+                    VariantSitePath{}
+        }
+    };
+};
+
+TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
+    // Select the SearchState in invariant region of PRG
+    using namespace ::testing;
+    MockRandomGenerator r;
+    EXPECT_CALL(r, generate(1, 2))
+        .Times(Exactly(1))
+        .WillOnce(Return(1));
+
+    MappingInstanceSelector m{ss, &prg_info, &r};
+
+    EXPECT_EQ(m.navigational_search_states.size(), 0);
+}
+
+TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){
+    using namespace ::testing;
+    MockRandomGenerator r;
+    EXPECT_CALL(r, generate(1, 2))
+            .Times(Exactly(1))
+            .WillOnce(Return(2));
+
+    MappingInstanceSelector m{ss, &prg_info, &r};
+    EXPECT_EQ(m.navigational_search_states.size(), 2);
+    uniqueLoci expected_loci{
+            {VariantLocus{7, 1}},
+            {VariantLocus{7, 2}}
+    };
+    EXPECT_EQ(m.equivalence_class_loci, expected_loci);
 }

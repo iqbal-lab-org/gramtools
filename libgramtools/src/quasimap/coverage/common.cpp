@@ -94,7 +94,30 @@ MappingInstanceSelector::MappingInstanceSelector(SearchStates const search_state
     : input_search_states(search_states), usps(), prg_info(prg_info), rand_generator(rand_generator)
 {
     add_searchstates();
+    int32_t selected_index = random_select_entry();
+    if (selected_index >= 0) apply_selection(selected_index);
 };
+
+int32_t MappingInstanceSelector::random_select_entry() {
+    if (usps.size() == 0) return -1;
+    uint32_t nonvariant_count = count_nonvar_search_states();
+    uint32_t count_total_options = nonvariant_count + usps.size();
+
+    uint32_t selected_option = rand_generator->generate(1, count_total_options);
+    // If we select a non-variant path, no coverage information will get recorded.
+    bool no_variants = selected_option <= nonvariant_count;
+    if (no_variants) return -1;
+
+    return selected_option - nonvariant_count - 1;  //return 0-based index in map
+}
+
+void MappingInstanceSelector::apply_selection(int32_t selected_index){
+    auto it = usps.begin();
+    std::advance(it, selected_index);
+    auto chosen_traversal = it->second;
+    navigational_search_states = chosen_traversal.first;
+    equivalence_class_loci = chosen_traversal.second;
+}
 
 void MappingInstanceSelector::add_searchstate(SearchState const& ss){
     LocusFinder l{ss, prg_info};
@@ -107,8 +130,18 @@ void MappingInstanceSelector::add_searchstate(SearchState const& ss){
 
 void MappingInstanceSelector::add_searchstates(SearchStates const& all_ss){
     for (auto const& ss : all_ss){
-        add_searchstate(ss);
+        if (search_state_has_path(ss)) add_searchstate(ss);
     }
+}
+
+uint32_t MappingInstanceSelector::count_nonvar_search_states(SearchStates const& search_states) {
+    uint32_t count = 0;
+    for (const auto &search_state: search_states) {
+        bool has_path =  search_state_has_path(search_state);
+        if (not has_path)
+            ++count;
+    }
+    return count;
 }
 
 bool gram::check_allele_encapsulated(const SearchState &search_state,

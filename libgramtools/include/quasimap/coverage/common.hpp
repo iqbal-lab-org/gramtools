@@ -44,7 +44,8 @@ namespace gram {
      * Abstract base class used for mocking in unit tests
      */
     class RandomGenerator{
-    protected:
+    public:
+        virtual ~RandomGenerator() {};
         virtual uint32_t generate(uint32_t min, uint32_t max) = 0;
     };
 
@@ -66,7 +67,7 @@ namespace gram {
     using uniqueSitePaths = std::map<SitePath, SearchStates>;
 
     using info_ptr = PRG_Info const* const;
-    using rand_ptr = RandomGenerator const* const;
+    using rand_ptr = RandomGenerator *const;
 
     /**
      * Class whose purpose it is to find the set of (nested) Loci supported by a `SearchState`
@@ -109,16 +110,20 @@ namespace gram {
         new_uniqueSitePaths usps; /**< For storing all the information prior to selection*/
 
         // Constructors
-        MappingInstanceSelector() = default;
-        MappingInstanceSelector(info_ptr prg_info) : input_search_states(), usps(),
-            prg_info(prg_info), rand_generator(nullptr){};
+        MappingInstanceSelector() : prg_info(nullptr), rand_generator(nullptr){}
+        MappingInstanceSelector(info_ptr prg_info) : prg_info(prg_info), rand_generator(nullptr){}
         MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info, rand_ptr rand_generator);
-
-        void add_searchstate(SearchState const& ss);
 
         void add_searchstates(SearchStates const& ss);
         void add_searchstates() {add_searchstates(input_search_states);}
-        // uniqueSitePaths get_unique_site_paths(const SearchStates &search_states){};
+
+        void add_searchstate(SearchState const& ss);
+
+        uint32_t count_nonvar_search_states(SearchStates const& search_states);
+        uint32_t count_nonvar_search_states(){count_nonvar_search_states(input_search_states);}
+
+        int32_t random_select_entry();
+        void apply_selection(int32_t selected_index);
     private:
         SearchStates const input_search_states;
         info_ptr prg_info;
