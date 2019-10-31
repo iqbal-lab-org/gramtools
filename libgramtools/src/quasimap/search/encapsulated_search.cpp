@@ -59,7 +59,6 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
         }
 
         //  else: read is completely encapsulated within allele
-
         if (cache.empty) {
             cache.set(SearchState{
                     SA_Interval{sa_index, sa_index},

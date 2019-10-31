@@ -15,132 +15,6 @@ std::set<SitePath> get_site_path_only(new_uniqueSitePaths const& map){
     return site_path;
 }
 
-/*
-PRG: AA5T6CAGTAGCAGT6TA
-i	BWT	SA	text_suffix
-0	A	18
-1	T	17	A
-2	0	0	A A 5 T 6 C A G T A G C A G T 6 T A
-3	T	9	A G C A G T 6 T A
-4	C	6	A G T A G C A G T 6 T A
-5	C	12	A G T 6 T A
-6	A	1	A 5 T 6 C A G T A G C A G T 6 T A
-7	6	5	C A G T A G C A G T 6 T A
-8	G	11	C A G T 6 T A
-9	A	10	G C A G T 6 T A
-10	A	7	G T A G C A G T 6 T A
-11	A	13	G T 6 T A
-12	6	16	T A
-13	G	8	T A G C A G T 6 T A
-14	5	3	T 6 C A G T A G C A G T 6 T A
-15	G	14	T 6 T A
-16	A	2	5 T 6 C A G T A G C A G T 6 T A
-17	T	4	6 C A G T A G C A G T 6 T A
-18	T	15	6 T A
-*/
-
-TEST(CheckAlleleEncapsulated, TwoAlleleEncapsulatedMappings_True) {
-    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // read: cagt
-    uint64_t read_length = 4;
-
-    SearchState search_state = {
-            SA_Interval {7, 8},
-            VariantSitePath {
-                    VariantLocus {5, 2},
-            },
-            VariantSitePath {},
-            SearchVariantSiteState::within_variant_site
-    };
-
-    auto result = check_allele_encapsulated(search_state, read_length, prg_info);
-    EXPECT_TRUE(result);
-}
-
-
-TEST(CheckAlleleEncapsulated, OneAlleleEncapsulatedMapping_True) {
-    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // read: cagt
-    uint64_t read_length = 4;
-
-    SearchState search_state = {
-            SA_Interval {7, 7},
-            VariantSitePath {
-                    VariantLocus {5, 2},
-            },
-            VariantSitePath {},
-            SearchVariantSiteState::within_variant_site
-    };
-
-    auto result = check_allele_encapsulated(search_state, read_length, prg_info);
-    EXPECT_TRUE(result);
-}
-
-
-TEST(CheckAlleleEncapsulated, ReadOutsideOfSite_False) {
-    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // read: aa
-    uint64_t read_length = 2;
-
-    SearchState search_state = {
-            SA_Interval {2, 2},
-            VariantSitePath {},
-            VariantSitePath {},
-            SearchVariantSiteState::outside_variant_site
-    };
-
-    auto result = check_allele_encapsulated(search_state, read_length, prg_info);
-    EXPECT_FALSE(result);
-}
-
-
-TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseRightOustideOfSite_False) {
-    auto prg_raw = encode_prg("aa5t6cagtagcAgt6ta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // read: agtt
-    uint64_t read_length = 4;
-
-    SearchState search_state = {
-            SA_Interval {5, 5},
-            VariantSitePath {
-                    VariantLocus {5, 2},
-            },
-            VariantSitePath {},
-            SearchVariantSiteState::within_variant_site
-    };
-
-    auto result = check_allele_encapsulated(search_state, read_length, prg_info);
-    EXPECT_FALSE(result);
-}
-
-
-TEST(CheckAlleleEncapsulated, MappingExtendsOneBaseLeftOustideOfSite_False) {
-    auto prg_raw = encode_prg("aa5t6cagtagcagt6ta");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    // read: aca
-    uint64_t read_length = 3;
-
-    SearchState search_state = {
-            SA_Interval {6, 6},
-            VariantSitePath {
-                    VariantLocus {5, 2},
-            },
-            VariantSitePath {},
-            SearchVariantSiteState::outside_variant_site
-    };
-
-    auto result = check_allele_encapsulated(search_state, read_length, prg_info);
-    EXPECT_FALSE(result);
-}
-
 
 TEST(RandomInclusiveInt, RandomCall_MinBoundaryReturned) {
     uint32_t random_seed = 48;
@@ -525,7 +399,7 @@ protected:
                 VariantSitePath{VariantLocus{7, 2}}
         },
         SearchState {
-            SA_Interval{2, 5},
+            SA_Interval{2, 3},
                     VariantSitePath{},
                     VariantSitePath{}
         }
@@ -534,9 +408,10 @@ protected:
 
 TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
     // Select the SearchState in invariant region of PRG
+    // The SA Interval is size 2 so the first two choices map to invariant mapping instances
     using namespace ::testing;
     MockRandomGenerator r;
-    EXPECT_CALL(r, generate(1, 2))
+    EXPECT_CALL(r, generate(1, 3))
         .Times(Exactly(1))
         .WillOnce(Return(1));
 
@@ -549,9 +424,9 @@ TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
 TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){
     using namespace ::testing;
     MockRandomGenerator r;
-    EXPECT_CALL(r, generate(1, 2))
+    EXPECT_CALL(r, generate(1, 3))
             .Times(Exactly(1))
-            .WillOnce(Return(2));
+            .WillOnce(Return(3));
 
     MappingInstanceSelector m{ss, &prg_info, &r};
     EXPECT_EQ(m.navigational_search_states.size(), 2);

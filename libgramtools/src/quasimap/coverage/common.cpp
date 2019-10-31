@@ -156,74 +156,11 @@ uint32_t MappingInstanceSelector::count_nonvar_search_states(SearchStates const&
     for (const auto &search_state: search_states) {
         bool has_path =  search_state_has_path(search_state);
         if (not has_path)
-            ++count;
+            // Add all distinct mappings
+            count += (search_state.sa_interval.second - search_state.sa_interval.first + 1);
     }
     return count;
 }
-
-bool gram::check_allele_encapsulated(const SearchState &search_state,
-                                     const uint64_t &read_length,
-                                     const PRG_Info &prg_info) {
-    bool single_allele_path = search_state.traversed_path.size() == 1;
-    bool start_within_allele = search_state.variant_site_state
-                               == SearchVariantSiteState::within_variant_site;
-
-    bool end_within_allele = true;
-    for (SA_Index sa_index = search_state.sa_interval.first;
-         sa_index <= search_state.sa_interval.second;
-         ++sa_index) {
-        auto start_index = prg_info.fm_index[sa_index];
-        auto start_site_marker = prg_info.sites_mask[start_index];
-        auto start_allele_id = prg_info.allele_mask[start_index];
-
-        auto end_index = start_index + read_length - 1;
-        assert(end_index < prg_info.encoded_prg.size());
-
-        auto end_site_marker = prg_info.sites_mask[end_index];
-        auto end_allele_id = prg_info.allele_mask[end_index];
-        end_within_allele = (start_site_marker == end_site_marker)
-                            and (start_allele_id == end_allele_id);
-        if (not end_within_allele)
-            break;
-    }
-
-    return single_allele_path and start_within_allele and end_within_allele;
-}
-
-
-bool gram::multiple_allele_encapsulated(const SearchState &search_state,
-                                        const uint64_t &read_length,
-                                        const PRG_Info &prg_info) {
-    bool allele_encapsulated = check_allele_encapsulated(search_state,
-                                                         read_length,
-                                                         prg_info);
-    bool multiple_mappings = search_state.sa_interval.second - search_state.sa_interval.first > 0;
-    return allele_encapsulated and multiple_mappings;
-}
-
-
-SearchState random_select_single_mapping(const SearchState &search_state,
-                                         const uint32_t &random_seed) {
-    uint32_t actual_seed = 0;
-    if (random_seed == 0) {
-        boost::random_device seed_generator;
-        actual_seed = seed_generator();
-    } else {
-        actual_seed = random_seed;
-    }
-    boost::mt19937 random_number_generator(actual_seed);
-
-    boost::uniform_int<> range((int) search_state.sa_interval.first, (int) search_state.sa_interval.second);
-    using Generator = boost::variate_generator<boost::mt19937, boost::uniform_int<>>;
-    Generator generate_random_number(random_number_generator, range);
-    auto selected_sa_index = (SA_Index) generate_random_number();
-
-    SearchState single_mapping_search_state = search_state;
-    single_mapping_search_state.sa_interval.first = selected_sa_index;
-    single_mapping_search_state.sa_interval.second = selected_sa_index;
-    return single_mapping_search_state;
-}
-
 
 /**
  * Random uniform selection of one mapped path in the prg.
@@ -248,15 +185,6 @@ SearchStates selection(const SearchStates &search_states,
     // This is empty if we selected a mapping instance in an invariant part of the PRG
     SearchStates selected_search_states{m.navigational_search_states};
 
-
-    if (selected_search_states.size() == 1){
-        auto search_state = selected_search_states.front();
-        if (multiple_allele_encapsulated(search_state, read_length, prg_info)) {
-            search_state = random_select_single_mapping(search_state,
-                                                        random_seed);
-            selected_search_states = SearchStates{search_state};
-        }
-    }
     return selected_search_states;
 }
 

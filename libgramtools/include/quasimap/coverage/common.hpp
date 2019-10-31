@@ -133,13 +133,6 @@ namespace gram {
         info_ptr prg_info;
         rand_ptr rand_generator;
     };
-    bool check_allele_encapsulated(const SearchState &search_state,
-                                   const uint64_t &read_length,
-                                   const PRG_Info &prg_info);
-
-    bool multiple_allele_encapsulated(const SearchState &search_state,
-                                      const uint64_t &read_length,
-                                      const PRG_Info &prg_info);
 }
 
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP
