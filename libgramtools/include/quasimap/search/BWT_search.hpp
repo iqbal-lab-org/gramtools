@@ -15,14 +15,6 @@
 namespace gram {
 
     /**
-     * Situation: we have fully mapped a read to the PRG.
-     * Some `SearchState`s may still have unknown allele ids. Here we set those.
-     * Modifies the `SearchStates` in place.
-     */
-        void set_allele_ids(SearchStates &search_states,
-                            const PRG_Info &prg_info);
-        
-    /**
      * Updates each SearchState with the next character in the read.
      * @param pattern_char the next character in the read to look for in the prg.
      * @param SearchStates a set of SearchState elements; each contains an SA interval.

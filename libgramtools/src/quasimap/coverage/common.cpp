@@ -132,8 +132,7 @@ void MappingInstanceSelector::apply_selection(int32_t selected_index){
     auto it = usps.begin();
     std::advance(it, selected_index);
     auto chosen_traversal = it->second;
-    navigational_search_states = chosen_traversal.first;
-    equivalence_class_loci = chosen_traversal.second;
+    selected = SelectedMapping{chosen_traversal.first, chosen_traversal.second};
 }
 
 void MappingInstanceSelector::add_searchstate(SearchState const& ss){
@@ -172,20 +171,50 @@ uint32_t MappingInstanceSelector::count_nonvar_search_states(SearchStates const&
  *  * A single site/allele combination path has been selected. Return this.
  *  * The read maps several times through the same set of sites, going through different alleles. Return all of them. Their coverages will all get recorded.
  *  Specifically this will also be used for reporting allele group counts.
- *  * The read maps through a single site/allele combination, multiple times. This means the read is **encapsulated** inside
- *  two different alleles of the same site. Randomly select and return only one of those.
+ *  * [TODO] The read has horizontal uncertainty: for eg maps inside one site/allele combination twice.
+ *  Probably need to randomly select only one mapping instance from those subcases.
  */
-SearchStates selection(const SearchStates &search_states,
+SelectedMapping selection(const SearchStates &search_states,
                        const uint64_t &read_length,
                        const PRG_Info &prg_info,
                        const uint32_t &random_seed) {
     RandomInclusiveInt rng{random_seed};
     MappingInstanceSelector m{search_states, &prg_info, &rng};
 
-    // This is empty if we selected a mapping instance in an invariant part of the PRG
-    SearchStates selected_search_states{m.navigational_search_states};
+    // This contains empty containers if we selected a mapping instance in an invariant part of the PRG
+    SelectedMapping selected = m.get_selection();
 
-    return selected_search_states;
+    return selected;
+}
+
+void gram::set_allele_ids(SearchStates &search_states,
+                          const PRG_Info &prg_info) {
+
+    for (auto &search_state: search_states) {
+        // If the variant site path is empty, we cannot have an unknown allele id.
+        if (!search_state.traversing_path.empty()) {
+
+            auto last = search_state.traversing_path.back();
+            search_state.traversing_path.pop_back();
+            assert(search_state.traversing_path.size() == 0);
+
+            for (int SA_pos = search_state.sa_interval.first; SA_pos <= search_state.sa_interval.second; SA_pos++) {
+                auto new_search_state = search_state;
+                // Find out allele id
+                auto text_pos = prg_info.fm_index[SA_pos];
+                auto allele_id = prg_info.allele_mask[text_pos];
+                last.second = allele_id;
+
+                new_search_state.traversed_path.emplace_back(last);
+                new_search_state.sa_interval = SA_Interval{SA_pos, SA_pos};
+
+                if (SA_pos != search_state.sa_interval.second){ // Case: add to the set of search states
+                    search_states.emplace_back(new_search_state);
+                }
+                else search_state = new_search_state; // Case: end of the iteration; modify the search state in place.
+            }
+        }
+    }
 }
 
 
@@ -194,14 +223,19 @@ void coverage::record::search_states(Coverage &coverage,
                                      const uint64_t &read_length,
                                      const PRG_Info &prg_info,
                                      const uint32_t &random_seed) {
-    SearchStates selected_search_states = selection(search_states,
+    SelectedMapping selected_search_states = selection(search_states,
                                                     read_length,
                                                     prg_info,
                                                     random_seed);
 
-    coverage::record::allele_sum(coverage, selected_search_states);
-    coverage::record::grouped_allele_counts(coverage, selected_search_states);
-    coverage::record::allele_base(coverage, selected_search_states, read_length, prg_info);
+    // If we selected a mapping instance that does not overlap any variant site, there is no coverage to record.
+    if (selected_search_states.navigational_search_states.size() == 0) return;
+
+    set_allele_ids(selected_search_states.navigational_search_states, prg_info);
+
+    coverage::record::allele_sum(coverage, selected_search_states.navigational_search_states);
+    coverage::record::grouped_allele_counts(coverage, selected_search_states.equivalence_class_loci);
+    coverage::record::allele_base(coverage, selected_search_states.navigational_search_states, read_length, prg_info);
 }
 
 

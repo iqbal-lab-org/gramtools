@@ -245,7 +245,6 @@ SearchStates gram::search_read_backwards(const Pattern &read,
             break;
     }
 
-    if (!new_search_states.empty()) set_allele_ids(new_search_states, prg_info);
     new_search_states = handle_allele_encapsulated_states(new_search_states, prg_info);
     return new_search_states;
 }

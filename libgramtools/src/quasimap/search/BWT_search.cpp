@@ -5,36 +5,6 @@
 using namespace gram;
 
 
-void gram::set_allele_ids(SearchStates &search_states,
-                            const PRG_Info &prg_info) {
-
-    for (auto &search_state: search_states) {
-        // If the variant site path is empty, we cannot have an unknown allele id.
-        if (!search_state.traversing_path.empty()) {
-
-            auto last = search_state.traversing_path.back();
-            search_state.traversing_path.pop_back();
-            assert(search_state.traversing_path.size() == 0);
-
-            for (int SA_pos = search_state.sa_interval.first; SA_pos <= search_state.sa_interval.second; SA_pos++) {
-                auto new_search_state = search_state;
-                // Find out allele id
-                auto text_pos = prg_info.fm_index[SA_pos];
-                auto allele_id = prg_info.allele_mask[text_pos];
-                last.second = allele_id;
-
-                new_search_state.traversed_path.emplace_back(last);
-                new_search_state.sa_interval = SA_Interval{SA_pos, SA_pos};
-
-                if (SA_pos != search_state.sa_interval.second){ // Case: add to the set of search states
-                    search_states.emplace_back(new_search_state);
-                } 
-                else search_state = new_search_state; // Case: end of the iteration; modify the search state in place.
-            }
-        }
-    }
-}
-
 
 /**
  * Backward search followed by check whether the extended searched pattern maps somewhere in the prg.

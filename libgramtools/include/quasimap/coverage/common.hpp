@@ -62,9 +62,6 @@ namespace gram {
     using SitePath = std::set<Marker>;
     using uniqueLoci = std::set<VariantLocus>;
 
-    using traversal_info = std::pair<SearchStates, uniqueLoci>;
-    using new_uniqueSitePaths = std::map<SitePath, traversal_info>;
-    using uniqueSitePaths = std::map<SitePath, SearchStates>;
 
     using info_ptr = PRG_Info const* const;
     using rand_ptr = RandomGenerator *const;
@@ -107,11 +104,17 @@ namespace gram {
         info_ptr prg_info;
     };
 
-    class MappingInstanceSelector{
-    public:
+    using traversal_info = std::pair<SearchStates, uniqueLoci>;
+    using uniqueSitePaths = std::map<SitePath, traversal_info>;
+
+    struct SelectedMapping{
         SearchStates navigational_search_states; /**< for recording per base coverage*/
         uniqueLoci equivalence_class_loci; /**< for recording grouped allele count coverage*/
-        new_uniqueSitePaths usps; /**< For storing all the information prior to selection*/
+    };
+
+    class MappingInstanceSelector{
+    public:
+        uniqueSitePaths usps; /**< For storing all the information prior to selection*/
 
         // Constructors
         MappingInstanceSelector() : prg_info(nullptr), rand_generator(nullptr){}
@@ -128,11 +131,21 @@ namespace gram {
 
         int32_t random_select_entry();
         void apply_selection(int32_t selected_index);
+        SelectedMapping get_selection(){return selected;}
     private:
         SearchStates const input_search_states;
+        SelectedMapping selected; /**< stores the choice made*/
         info_ptr prg_info;
         rand_ptr rand_generator;
     };
+
+    /**
+     * Some `SearchState`s may still have unknown allele ids. This function sets those.
+     * Modifies the `SearchStates` in place.
+     * [TODO]: this is legacy code that does not allow nesting and is only used prior to coverage_Graph pb cov recording
+     */
+    void set_allele_ids(SearchStates &search_states,
+                        const PRG_Info &prg_info);
 }
 
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP

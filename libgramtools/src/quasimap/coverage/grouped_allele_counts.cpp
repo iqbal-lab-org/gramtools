@@ -16,21 +16,18 @@ SitesGroupedAlleleCounts coverage::generate::grouped_allele_counts(const PRG_Inf
 
 
 void coverage::record::grouped_allele_counts(Coverage &coverage,
-                                             const SearchStates &search_states) {
+                                             uniqueLoci const& compatible_loci) {
     // We will store, for each variant site `Marker`, which alleles are traversed across
     // **all** mapping instances of the processed read.
     using AlleleIdSet = std::set<AlleleId>;
     std::unordered_map<Marker, AlleleIdSet> site_allele_group;
 
-    // Loop through all `SearchStates` and the variant/allele combinations in their `variant_site_path`.
-    // Record which alleles are traversed for each site.
-    for (const auto &search_state: search_states) {
-        for (const auto &variant_site: search_state.traversed_path) {
-            auto site_marker = variant_site.first;
-            auto allele_id = variant_site.second - 1;
+    // Loop through all loci and record the alleles compatible with each site
+    for (const auto &locus : compatible_loci) {
+            auto site_marker = locus.first;
+            auto allele_id = locus.second - 1;
             site_allele_group[site_marker].insert(allele_id);
         }
-    }
 
     // Loop through the variant site markers traversed at least once by the read.
     for (const auto &entry: site_allele_group) {

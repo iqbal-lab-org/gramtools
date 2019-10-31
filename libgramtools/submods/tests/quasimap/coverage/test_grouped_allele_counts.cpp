@@ -24,58 +24,17 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {7, 1},
-                            VariantLocus {5, 1},
-                    }
-            },
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {7, 1},
-                            VariantLocus {5, 2},
-                    },
-            },
+    uniqueLoci compatible_loci = {
+            VariantLocus{7, 1},
+            VariantLocus{5, 1},
+            VariantLocus{5, 2}
+
     };
-    coverage::record::grouped_allele_counts(coverage, search_states);
+    coverage::record::grouped_allele_counts(coverage, compatible_loci);
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
             GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
             GroupedAlleleCounts {{AlleleIds {0}, 1}},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GroupedAlleleCount, GivenUnorderedSearchStates_CorrectlyOrderedCoverageAlleleIds) {
-    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
-    auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = coverage::generate::empty_structure(prg_info);
-
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {7, 2},
-                            VariantLocus {5, 3},
-                    }
-            },
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {7, 1},
-                            VariantLocus {5, 1},
-                    },
-            },
-    };
-    coverage::record::grouped_allele_counts(coverage, search_states);
-    auto result = coverage.grouped_allele_counts;
-    SitesGroupedAlleleCounts expected = {
-            GroupedAlleleCounts {{AlleleIds {0, 2}, 1}},
-            GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
     };
     EXPECT_EQ(result, expected);
 }
@@ -86,15 +45,11 @@ TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {5, 3}
-                    }
-            }
+    uniqueLoci compatible_loci = {
+            VariantLocus{5, 3},
+
     };
-    coverage::record::grouped_allele_counts(coverage, search_states);
+    coverage::record::grouped_allele_counts(coverage, compatible_loci);
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
             GroupedAlleleCounts {{AlleleIds {2}, 1}},
@@ -104,47 +59,28 @@ TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
 }
 
 
-TEST(GroupedAlleleCount, MultipleSetsOfSearchStates_CorrectCoverage) {
+TEST(GroupedAlleleCount, MultipleReads_CorrectCoverage) {
     auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
-    SearchStates first_search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {5, 3}
-                    }
-            },
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {7, 2},
-                            VariantLocus {5, 1},
-                    },
-            },
-    };
+    uniqueLoci read1_compatible_loci = {
+            VariantLocus{7, 2},
+            VariantLocus{5, 3},
+            VariantLocus{5, 1}
 
-    SearchStates second_search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {5, 4}
-                    }
-            },
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {7, 2},
-                            VariantLocus {5, 1},
-                    },
-            },
+    };
+    uniqueLoci read2_compatible_loci = {
+            VariantLocus{7, 2},
+            VariantLocus{5, 4},
+            VariantLocus{5, 1}
+
     };
 
     coverage::record::grouped_allele_counts(coverage,
-                                            first_search_states);
+                                            read1_compatible_loci);
     coverage::record::grouped_allele_counts(coverage,
-                                            second_search_states);
+                                            read2_compatible_loci);
 
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {

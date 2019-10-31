@@ -7,7 +7,7 @@
 
 using namespace gram;
 
-std::set<SitePath> get_site_path_only(new_uniqueSitePaths const& map){
+std::set<SitePath> get_site_path_only(uniqueSitePaths const& map){
     std::set<SitePath> site_path;
     for (auto const& e : map){
         site_path.insert(e.first);
@@ -350,7 +350,7 @@ TEST_F(MappingInstanceSelector_addSearchStates, addOneSearchState_correctlyRegis
             SearchStates{s1},
             uniqueLoci{ VariantLocus{ 5, 1}, VariantLocus{7, 1} }
     };
-    new_uniqueSitePaths expected_map{
+    uniqueSitePaths expected_map{
             {SitePath{5} ,  expected_info}
     };
 
@@ -374,7 +374,7 @@ TEST_F(MappingInstanceSelector_addSearchStates, addAllSearchStates_correctlyRegi
             uniqueLoci{ VariantLocus{9,1} }
     };
 
-    new_uniqueSitePaths expected_map{
+    uniqueSitePaths expected_map{
             {SitePath{5} ,  expected_i1},
             {SitePath{9}, expected_i2}
     };
@@ -416,9 +416,10 @@ TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
         .WillOnce(Return(1));
 
     MappingInstanceSelector m{ss, &prg_info, &r};
+    auto selection = m.get_selection();
 
-    EXPECT_EQ(m.navigational_search_states.size(), 0);
-    EXPECT_EQ(m.equivalence_class_loci.size(), 0);
+    EXPECT_EQ(selection.navigational_search_states.size(), 0);
+    EXPECT_EQ(selection.equivalence_class_loci.size(), 0);
 }
 
 TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){
@@ -429,10 +430,11 @@ TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){
             .WillOnce(Return(3));
 
     MappingInstanceSelector m{ss, &prg_info, &r};
-    EXPECT_EQ(m.navigational_search_states.size(), 2);
+    auto selection = m.get_selection();
+    EXPECT_EQ(selection.navigational_search_states.size(), 2);
     uniqueLoci expected_loci{
             {VariantLocus{7, 1}},
             {VariantLocus{7, 2}}
     };
-    EXPECT_EQ(m.equivalence_class_loci, expected_loci);
+    EXPECT_EQ(selection.equivalence_class_loci, expected_loci);
 }

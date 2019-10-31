@@ -3,6 +3,7 @@
 */
 #include "quasimap/search_types.hpp"
 #include "quasimap/coverage/types.hpp"
+#include "common.hpp"
 
 
 #ifndef GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP
@@ -26,7 +27,7 @@ namespace gram {
              * @note Single alleles also get registered as 'groups'.
              */
             void grouped_allele_counts(Coverage &coverage,
-                                       const SearchStates &search_states);
+                                       uniqueLoci const& compatible_loci);
         }
 
         namespace dump {

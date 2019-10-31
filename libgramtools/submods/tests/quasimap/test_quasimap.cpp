@@ -611,7 +611,7 @@ TEST(ReadQuasimap, StartOutOfSiteAndMapThrough_CorrectVarLocusPath) {
 }
 
 
-TEST(ReadQuasimap, ReadCrossingTwoAlleles_CorrectVarLocusPath) {
+TEST(ReadQuasimap, ReadCrossingTwoAlleles_CorrectVarLocusPaths) {
     Pattern kmer = encode_dna_bases("tct");
     Patterns kmers = {kmer};
     prg_setup setup;
@@ -621,12 +621,13 @@ TEST(ReadQuasimap, ReadCrossingTwoAlleles_CorrectVarLocusPath) {
     auto search_states = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
-    auto result = search_states.front().traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 1},
-            VariantLocus {5, 1},
-    };
-    EXPECT_EQ(result, expected);
+    auto traversed_path = search_states.front().traversed_path;
+    VariantSitePath expected_traversed = { VariantLocus {7, 1}};
+    EXPECT_EQ(traversed_path, expected_traversed);
+
+    auto traversing_path = search_states.front().traversing_path;
+    VariantSitePath expected_traversing = {VariantLocus{5, ALLELE_UNKNOWN}};
+    EXPECT_EQ(traversing_path, expected_traversing);
 }
 
 
@@ -640,12 +641,13 @@ TEST(ReadQuasimap, StartWithinAlleleEndWithinAnother_CorrectVarLocusPath) {
     auto search_states = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
-    auto result = search_states.front().traversed_path;
-    VariantSitePath expected = {
-            VariantLocus {7, 1},
-            VariantLocus {5, 1},
-    };
-    EXPECT_EQ(result, expected);
+    auto traversed_path = search_states.front().traversed_path;
+    VariantSitePath expected_traversed = { VariantLocus {7, 1}};
+    EXPECT_EQ(traversed_path, expected_traversed);
+
+    auto traversing_path = search_states.front().traversing_path;
+    VariantSitePath expected_traversing = {VariantLocus{5, ALLELE_UNKNOWN}};
+    EXPECT_EQ(traversing_path, expected_traversing);
 }
 
 
