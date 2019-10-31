@@ -39,8 +39,25 @@ uint32_t RandomInclusiveInt::generate(uint32_t min, uint32_t max){
 
 LocusFinder::LocusFinder(SearchState const search_state, info_ptr prg_info)
 : search_state(search_state), prg_info(prg_info){
+    check_site_uniqueness();
     assign_traversing_loci();
     assign_traversed_loci();
+}
+
+void LocusFinder::check_site_uniqueness(SearchState const& search_state) {
+    auto all_loci = search_state.traversed_path;
+    all_loci.insert(all_loci.end(), search_state.traversing_path.begin(), search_state.traversing_path.end());
+    SitePath unique_sites;
+    for (auto const &entry: all_loci) {
+        Marker site = entry.first;
+        if (unique_sites.find(site) != unique_sites.end()) {
+            throw std::logic_error(
+                    "ERROR: A site cannot have been traversed more than once by a read, but this one is marked as such.\n"
+            );
+        }
+        unique_sites.insert(site);
+    }
+    return;
 }
 
 void LocusFinder::assign_nested_locus(VariantLocus const& var_loc, info_ptr info_ptr){
@@ -208,70 +225,6 @@ SearchState random_select_single_mapping(const SearchState &search_state,
 }
 
 
-uint64_t gram::random_int_inclusive(const uint64_t &min,
-                                    const uint64_t &max,
-                                    const uint64_t &random_seed) {
-    uint64_t actual_seed = 0;
-    if (random_seed == 0) {
-        boost::random_device seed_generator;
-        actual_seed = seed_generator();
-    } else {
-        actual_seed = random_seed;
-    }
-    boost::mt19937 random_number_generator((uint32_t) actual_seed);
-
-    boost::uniform_int<> range((uint32_t) min, (uint32_t) max);
-    using Generator = boost::variate_generator<boost::mt19937, boost::uniform_int<>>;
-    Generator generate_random_number(random_number_generator, range);
-    return (uint64_t) generate_random_number();
-}
-
-
-uint32_t gram::count_nonvariant_search_states(const SearchStates &search_states) {
-    uint32_t count = 0;
-    for (const auto &search_state: search_states) {
-        bool has_path =  search_state_has_path(search_state);
-        if (not has_path)
-            ++count;
-    }
-    return count;
-}
-
-void add_path_sites(SitePath& site_path, VariantSitePath const& copy_from){
-    for (auto const& entry: copy_from){
-        Marker site = entry.first;
-        if (site_path.find(site) != site_path.end()){
-            throw std::logic_error(
-                     "Trying to add site marker to site path but it was there already.\n "
-                     "Site is marked as being traversed twice by the searchstate."
-            );
-        }
-        site_path.insert(site);
-    }
-}
-
-SitePath gram::get_path_sites(const SearchState &search_state) {
-    SitePath site_path = {};
-    add_path_sites(site_path, search_state.traversing_path);
-    add_path_sites(site_path, search_state.traversed_path);
-    return site_path;
-}
-
-
-uniqueSitePaths gram::get_unique_site_paths(const SearchStates &search_states) {
-    uniqueSitePaths all_path_sites;
-    for (const auto &search_state: search_states) {
-        bool has_path =  search_state_has_path(search_state);
-        if (not has_path)
-            continue;
-
-        auto site_path = get_path_sites(search_state);
-        all_path_sites[site_path].push_back(search_state);
-    }
-    return all_path_sites;
-}
-
-
 /**
  * Random uniform selection of one mapped path in the prg.
  * What gets selected is either:
@@ -289,39 +242,22 @@ SearchStates selection(const SearchStates &search_states,
                        const uint64_t &read_length,
                        const PRG_Info &prg_info,
                        const uint32_t &random_seed) {
-    uint64_t nonvariant_count = count_nonvariant_search_states(search_states);
-    // Extract the unique path sites: vectors of site IDs traversed.
-    auto path_sites = get_unique_site_paths(search_states);
+    RandomInclusiveInt rng{random_seed};
+    MappingInstanceSelector m{search_states, &prg_info, &rng};
 
-    uint64_t count_total_options = nonvariant_count + path_sites.size();
-    if (count_total_options == 0)
-        return SearchStates{};
-    uint64_t selected_option = random_int_inclusive(1, count_total_options, random_seed);
+    // This is empty if we selected a mapping instance in an invariant part of the PRG
+    SearchStates selected_search_states{m.navigational_search_states};
 
-    // If we select a non-variant path, return empty `SearchStates`, leading to no coverage information.
-    bool selected_no_path = selected_option <= nonvariant_count;
-    if (selected_no_path)
-        return SearchStates{};
 
-    // We have selected a variant path.
-    uint64_t paths_sites_offset = selected_option - nonvariant_count - 1;
-    auto it = path_sites.begin();
-    std::advance(it, paths_sites_offset);
-    auto selected_path_sites = it->first; // a single vector of site IDs (sites path)
-
-    // Filter all given search states for the single randomly selected vector of site_id (site path).
-    // Allele IDs are not considered at this point.
-    // Mapping instance interactions within sites are considered later (in grouped allele coverage).
-    auto selected_search_states = it->second;
-    if (selected_search_states.size() > 1)
-        return selected_search_states;
-
-    auto search_state = selected_search_states.front();
-    if (multiple_allele_encapsulated(search_state, read_length, prg_info)) {
-        search_state = random_select_single_mapping(search_state,
-                                                    random_seed);
+    if (selected_search_states.size() == 1){
+        auto search_state = selected_search_states.front();
+        if (multiple_allele_encapsulated(search_state, read_length, prg_info)) {
+            search_state = random_select_single_mapping(search_state,
+                                                        random_seed);
+            selected_search_states = SearchStates{search_state};
+        }
     }
-    return SearchStates{search_state};
+    return selected_search_states;
 }
 
 

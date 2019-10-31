@@ -196,7 +196,7 @@ bool gram::quasimap_read(const Pattern &read,
         return read_mapped_exactly;
     auto read_length = read.size();
 
-    uint64_t  random_seed = parameters.seed;
+    uint64_t random_seed = parameters.seed;
     coverage::record::search_states(coverage,
                                     search_states,
                                     read_length,

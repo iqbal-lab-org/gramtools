@@ -672,7 +672,7 @@ TEST(MultiStepQuasimap, RunIndexingExtensionIdSpecification_CorrectOutputs) {
                                                     setup.prg_info);
 
     // concurrent allele querying
-    // Expect three occurrences of 'CC' at this stage, in a single SA interval - because
+    // Expect three occurrences of 'CC' at this stage, in a single SA interval
     EXPECT_EQ(search_states.size(), 1);
     EXPECT_EQ(search_states.front().traversing_path.back().second, ALLELE_UNKNOWN);
 

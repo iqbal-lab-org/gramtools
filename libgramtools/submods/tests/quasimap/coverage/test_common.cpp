@@ -7,7 +7,7 @@
 
 using namespace gram;
 
-std::set<SitePath> get_site_path_only(uniqueSitePaths const& map){
+std::set<SitePath> get_site_path_only(new_uniqueSitePaths const& map){
     std::set<SitePath> site_path;
     for (auto const& e : map){
         site_path.insert(e.first);
@@ -181,7 +181,7 @@ TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
     EXPECT_EQ(result, expected);
 }
 
-TEST(GetSitePath, SameSiteMoreThanOnceInSearchState_ThrowsError){
+TEST(LocusFinder_logic, SameSiteMoreThanOnceInSearchState_ThrowsError){
     SearchState search_state = SearchState{
         SA_Interval{},
         VariantSitePath{
@@ -191,8 +191,8 @@ TEST(GetSitePath, SameSiteMoreThanOnceInSearchState_ThrowsError){
             VariantLocus{5, ALLELE_UNKNOWN}
         }
     };
-
-    EXPECT_THROW(get_path_sites(search_state), std::logic_error);
+    LocusFinder l;
+    EXPECT_THROW(l.check_site_uniqueness(search_state), std::logic_error);
 }
 
 TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
@@ -211,42 +211,23 @@ TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
                             VariantLocus {11, 5},
                     }
             }
-
     };
-    auto result_map = get_unique_site_paths(search_states);
-    auto result = get_site_path_only(result_map);
+    PRG_Info prg_info;
+    MappingInstanceSelector m{&prg_info};
+    m.add_searchstates(search_states);
+    auto result = get_site_path_only(m.usps);
     std::set<SitePath> expected = {
             SitePath {5, 7},
             SitePath {9, 11}
     };
     EXPECT_EQ(result, expected);
-}
 
+    // Check SearchState dispatch
+    auto ss_result1 = m.usps[SitePath{5, 7}].first.front();
+    EXPECT_EQ(ss_result1, search_states.front());
 
-TEST(GetUniquePathSites, TwoIdenticalPaths_SinglePathInSet) {
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {},
-                    VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
-                    }
-            },
-            SearchState {
-                    SA_Interval {},
-                    VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
-                    }
-            }
-
-    };
-    auto result_map = get_unique_site_paths(search_states);
-    auto result = get_site_path_only(result_map);
-    std::set<SitePath> expected = {
-            SitePath {9, 11}
-    };
-    EXPECT_EQ(result, expected);
+    auto ss_result2 = m.usps[SitePath{9, 11}].first.front();
+    EXPECT_EQ(ss_result2, search_states.back());
 }
 
 
@@ -272,79 +253,16 @@ TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) 
             }
 
     };
-    auto result_map = get_unique_site_paths(search_states);
-    auto result = get_site_path_only(result_map);
+    PRG_Info prg_info;
+    MappingInstanceSelector m{&prg_info};
+    m.add_searchstates(search_states);
+    auto result = get_site_path_only(m.usps);
     std::set<SitePath> expected = {
             SitePath {9, 11}
     };
     EXPECT_EQ(result, expected);
 }
 
-
-TEST(GetUniquePathSites, TwoSearchStatesSameSitePaths_CorrectUniquePathMap) {
-    SearchStates search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {5, 1},
-                            VariantLocus {7, 2},
-                    }
-            },
-            SearchState {
-                    SA_Interval {3, 4},
-                    VariantSitePath {
-                            VariantLocus {5, 3},
-                            VariantLocus {7, 2},
-                    }
-            }
-    };
-
-    uniqueSitePaths expected;
-    expected.insert(std::make_pair(SitePath{5, 7}, search_states));
-    auto result = get_unique_site_paths(search_states);
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GetUniquePathSites, SearchStatesWithSameAndDifferentSitePaths_CorrectUniquePathMap) {
-    SearchStates same_search_states = {
-            SearchState {
-                    SA_Interval {1, 2},
-                    VariantSitePath {
-                            VariantLocus {5, 1},
-                            VariantLocus {7, 2},
-                    }
-            },
-
-            SearchState {
-                    SA_Interval {5, 12},
-                    VariantSitePath {
-                            VariantLocus {5, 3},
-                            VariantLocus {7, 5},
-                    }
-            }
-    };
-
-    SearchStates different_search_state = {
-            SearchState {
-                SA_Interval {3, 4},
-                VariantSitePath {
-                    VariantLocus {9, 3},
-                    VariantLocus {11, 5},
-                    }
-            }
-    };
-    uniqueSitePaths expected;
-    expected.insert(std::make_pair(SitePath{5, 7}, same_search_states));
-    expected.insert(std::make_pair(SitePath{9, 11}, different_search_state));
-
-    SearchStates all_search_states;
-    all_search_states.insert(all_search_states.end(), same_search_states.begin(), same_search_states.end());
-    all_search_states.emplace_back(different_search_state.front());
-    auto result = get_unique_site_paths(all_search_states);
-
-    EXPECT_EQ(result, expected);
-}
 
 class LocusFinder_minimal : public ::testing::Test{
 protected:
@@ -625,6 +543,7 @@ TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
     MappingInstanceSelector m{ss, &prg_info, &r};
 
     EXPECT_EQ(m.navigational_search_states.size(), 0);
+    EXPECT_EQ(m.equivalence_class_loci.size(), 0);
 }
 
 TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){

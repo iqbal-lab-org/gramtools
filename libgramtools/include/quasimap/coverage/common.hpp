@@ -79,8 +79,12 @@ namespace gram {
 
         LocusFinder(SearchState const search_state, info_ptr prg_info);
 
+        /** Sanity check: are all variant site markers in the `SearchState` different? */
+        void check_site_uniqueness(SearchState const& search_state);
+        void check_site_uniqueness(){check_site_uniqueness(this->search_state);}
+
         /**
-         * Takes a (potentially nested) `VariantLocus` and registers it as well as all sites it is nested
+         * Takes a `VariantLocus` and registers it as well as all sites it is nested
          * within, up to a base site.
          */
         void assign_nested_locus(VariantLocus const& var_loc, info_ptr info_ptr);
@@ -129,10 +133,6 @@ namespace gram {
         info_ptr prg_info;
         rand_ptr rand_generator;
     };
-
-    SitePath get_path_sites(const SearchState &search_state);
-    uniqueSitePaths get_unique_site_paths(const SearchStates &search_states);
-
     bool check_allele_encapsulated(const SearchState &search_state,
                                    const uint64_t &read_length,
                                    const PRG_Info &prg_info);
@@ -140,15 +140,6 @@ namespace gram {
     bool multiple_allele_encapsulated(const SearchState &search_state,
                                       const uint64_t &read_length,
                                       const PRG_Info &prg_info);
-
-    uint64_t random_int_inclusive(const uint64_t &min,
-                                  const uint64_t &max,
-                                  const uint64_t &random_seed);
-
-    uint32_t count_nonvariant_search_states(const SearchStates &search_states);
-
-
-
 }
 
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP
