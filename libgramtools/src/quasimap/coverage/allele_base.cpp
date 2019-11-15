@@ -6,6 +6,7 @@
 
 
 using namespace gram;
+using namespace gram::coverage::per_base;
 
 
 SitesAlleleBaseCoverage gram::coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
@@ -160,9 +161,10 @@ void sa_index_allele_base_coverage(Coverage &coverage,
         if (last_site_prg_start_end.first != 0) {
             site_prg_start_end = site_marker_prg_indexes(site_marker, prg_info);
             read_bases_consumed += site_prg_start_end.first - last_site_prg_start_end.second - 1;
-            if (read_bases_consumed > read_length) throw std::out_of_range(
-                    "ERROR:Consumed more bases than the read length."
-                    "Check that the site boundaries are properly detected.");
+            if (read_bases_consumed > read_length)
+                throw std::out_of_range(
+                        "ERROR:Consumed more bases than the read length."
+                        "Check that the site boundaries are properly detected.");
         }
         last_site_prg_start_end = site_prg_start_end;
 
@@ -183,6 +185,24 @@ void coverage::record::allele_base(Coverage &coverage,
                                    const uint64_t &read_length,
                                    const PRG_Info &prg_info) {
     SitesCoverageBoundaries sites_coverage_boundaries;
+
+    /*
+     class NodeImprint{
+        cov_Node* referent;
+        uint32_t start;
+         uint32_t end;
+         bool full; // if end-start + 1 == referent.coverage.size()
+     }
+
+     class pbcovRecorder{
+         void generate_imprints(SearchState const& ss);
+         void record_coverage(corresp);
+
+         cov_graph* cov_graph;
+         std::map<cov_Node*, NodeImprint> corresp;
+         SearchStates input_ss;
+     };
+     */
 
     for (const auto &search_state: search_states) {
         if (search_state.traversed_path.empty())
@@ -265,3 +285,66 @@ void coverage::dump::allele_base(const Coverage &coverage,
     file.open(parameters.allele_base_coverage_fpath);
     file << json_string << std::endl;
 }
+
+Traverser::Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size) :
+        cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true) {
+
+    // Will give the next site to choose in the graph
+    traversed_index = traversed_loci.size();
+    start_pos = start_point.offset;
+}
+
+
+std::optional<covG_ptr> Traverser::next_Node() {
+    if (traversed_index == 0 && !first_node) {
+        cur_Node = nullptr;
+        return {};
+    }
+    else {
+        if (first_node) first_node = false;
+        go_to_next_site();
+        auto returned_Node = cur_Node;
+        move_past_single_edge_node(); // Move past the bubble node
+        return returned_Node;
+    }
+}
+
+void Traverser::go_to_next_site(){
+    if (!cur_Node->is_in_bubble()){
+        // Skip invariants
+        start_pos = 0;
+        while(cur_Node->get_edges().size() == 1){
+            update_coordinates();
+            move_past_single_edge_node();
+        }
+        // Pick the right allelic node
+        --traversed_index;
+        choose_allele();
+    }
+    update_coordinates();
+}
+
+void Traverser::move_past_single_edge_node(){
+    assert(cur_Node->get_edges().size() == 1);
+    cur_Node = cur_Node->get_edges()[0];
+}
+
+void Traverser::update_coordinates(){
+    assign_end_position();
+    if (cur_Node->has_sequence()) bases_remaining -= (end_pos - start_pos + 1);
+}
+
+void Traverser::assign_end_position() {
+    std::size_t seq_size = cur_Node->get_sequence_size();
+    end_pos = std::min(seq_size - 1, start_pos + bases_remaining - 1);
+}
+
+void Traverser::choose_allele() {
+    auto traversed_locus = traversed_loci[traversed_index];
+    auto site_id{traversed_locus.first}, allele_id{traversed_locus.second};
+    auto next_node = cur_Node->get_edges()[allele_id - 1];
+    assert(next_node->get_site() == site_id && next_node->get_allele() == allele_id);
+
+    cur_Node = next_node;
+}
+

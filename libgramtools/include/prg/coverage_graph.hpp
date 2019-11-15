@@ -58,7 +58,8 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, coverage_Node const& node);
 
-    bool has_sequence() { return sequence.size() != 0; };
+    bool has_sequence() { return sequence.size() != 0; }
+    bool is_in_bubble() { return allele_ID != 0 && site_ID != 0;}
 
     /*
      * Getters
@@ -74,15 +75,16 @@ public:
      * Setters
      */
     void set_pos(int pos) { this->pos = pos; };
+    void mark_as_boundary() { is_site_boundary = true; };
 
     void add_sequence(std::string const &new_seq) {
+        assert(new_seq.size() == 1);
         sequence += new_seq;
         coverage.emplace_back(0);
     };
 
     void add_edge(covG_ptr const target) { next.emplace_back(target); };
 
-    void mark_as_boundary() { is_site_boundary = true; };
 
 private:
     std::string sequence;

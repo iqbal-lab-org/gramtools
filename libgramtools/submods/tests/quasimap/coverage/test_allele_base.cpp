@@ -10,6 +10,7 @@
 
 
 using namespace gram;
+using namespace gram::coverage::per_base;
 
 /*
 PRG: GCT5C6AA6T6AG7T8C8CT
@@ -439,4 +440,63 @@ TEST(AlleleStartOffsetIndex, GivenFirstAlleleBase_CorrectAlleleIndexOffset) {
     uint64_t expected = 0;
 
     EXPECT_EQ(expected, result);
+}
+
+TEST(Traverser, StartOutOfSiteEndInSite_correctObjectState){
+    auto prg_raw = encode_prg("CT5gg6AAGa5cc");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    std::size_t read_size = 5;
+    VariantSitePath traversed_path{
+        VariantLocus{5, 2}
+    };
+    auto start_point = prg_info.coverage_graph.random_access[0];
+
+    Traverser t{start_point, traversed_path, read_size};
+    auto variant_node = t.next_Node().value();
+    EXPECT_EQ(variant_node->get_site(), 5);
+    EXPECT_EQ(variant_node->get_allele(), 2);
+
+    std::pair<uint32_t,uint32_t> expected_coordinates{0, 2};
+    EXPECT_EQ(expected_coordinates, t.get_node_interval());
+    EXPECT_EQ(false, t.next_Node().has_value());
+}
+
+TEST(Traverser, StartAndEndInSite_CorrectNodeInterval){
+    auto prg_raw = encode_prg("ct5g6aaAAAAAAaga5cc");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    std::size_t read_size = 6;
+    // Empty because the fact we are in VariantLocus{5, 2} is recorded in traversing_path container
+    VariantSitePath traversed_path{};
+    auto start_point = prg_info.coverage_graph.random_access[7];
+
+    Traverser t{start_point, traversed_path, read_size};
+    auto variant_node = t.next_Node().value();
+
+    std::pair<uint32_t,uint32_t> expected_coordinates{2, 7};
+    EXPECT_EQ(expected_coordinates, t.get_node_interval());
+}
+
+TEST(Traverser, StartInSiteAndTraverseToAnotherSite_CorrectObjectState){
+    auto prg_raw = encode_prg("ct5g6aAA6CC7gc8ga8AAAAa8");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    std::size_t read_size = 8;
+    VariantSitePath traversed_path{
+        VariantLocus{7, 3}
+    };
+    auto start_point = prg_info.coverage_graph.random_access[6];
+
+    Traverser t{start_point, traversed_path, read_size};
+    auto cur_Node = t.next_Node();
+    auto variant_node = cur_Node;
+    while (cur_Node.has_value()) {
+        variant_node = cur_Node;
+        cur_Node = t.next_Node();
+    }
+
+    std::pair<uint32_t,uint32_t> expected_coordinates{0, 3};
+    EXPECT_EQ(expected_coordinates, t.get_node_interval());
+    EXPECT_EQ(0, t.get_remaining_bases());
 }
