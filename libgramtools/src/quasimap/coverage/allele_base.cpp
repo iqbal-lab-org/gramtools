@@ -286,6 +286,25 @@ void coverage::dump::allele_base(const Coverage &coverage,
     file << json_string << std::endl;
 }
 
+DummyCovNode::DummyCovNode(node_coordinate start_pos, node_coordinate end_pos, std::size_t node_size)
+: start_pos(start_pos), end_pos(end_pos), node_size(node_size), full(false){
+    if (start_pos > end_pos) throw InconsistentCovNodeCoordinates("start_pos must not be greater than end_pos");
+    if (start_pos >= node_size || end_pos >= node_size) throw \
+        InconsistentCovNodeCoordinates("node_size must be greater than start_pos and end_pos");
+
+    if(end_pos == node_size - 1) full = true;
+}
+
+void DummyCovNode::extend_coordinates(node_coordinates coords) {
+    if (coords.second >= node_size) throw InconsistentCovNodeCoordinates("end coordinate must be less than node_size");
+    if (full) return;
+    if (coords.first < start_pos) start_pos = coords.first;
+    if (coords.second > end_pos){
+        end_pos = coords.second;
+        if (end_pos == node_size - 1) full = true;
+    }
+}
+
 Traverser::Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size) :
         cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true){
 

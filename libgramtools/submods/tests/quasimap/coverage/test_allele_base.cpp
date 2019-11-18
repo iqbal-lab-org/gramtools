@@ -442,6 +442,33 @@ TEST(AlleleStartOffsetIndex, GivenFirstAlleleBase_CorrectAlleleIndexOffset) {
     EXPECT_EQ(expected, result);
 }
 
+TEST(DummyCovNode, BuildWithSizeSmallerThanEndCoord_ThrowsException){
+   EXPECT_THROW(DummyCovNode(0, 5, 3), InconsistentCovNodeCoordinates);
+}
+
+TEST(DummyCovNode, BuildWithStartGreaterThanEnd_ThrowsException){
+    EXPECT_THROW(DummyCovNode(2, 1, 3), InconsistentCovNodeCoordinates);
+}
+
+TEST(DummyCovNode, ExtendWithEndPosGreaterThanNodeSize_ThrowsException){
+    auto d = DummyCovNode(1, 5, 6);
+    EXPECT_THROW(d.extend_coordinates({0, 6}), InconsistentCovNodeCoordinates);
+}
+
+TEST(DummyCovNode, ExtendNoStartAndNoEnd_CorrectUnchangesCoordinates) {
+    auto d = DummyCovNode(1, 5, 6);
+    d.extend_coordinates({2, 5});
+    node_coordinates expected_coords{1, 5};
+    EXPECT_EQ(expected_coords, d.get_coordinates());
+}
+
+TEST(DummyCovNode, ExtendStartAndEnd_CorrectExtendedCoordinates){
+    auto d = DummyCovNode(3, 3, 6);
+    d.extend_coordinates({0, 5});
+    node_coordinates expected_coords{0, 5};
+    EXPECT_EQ(expected_coords, d.get_coordinates());
+}
+
 TEST(Traverser, StartOutOfSiteEndInSite_correctObjectState){
     auto prg_raw = encode_prg("CT5gg6AAGa5cc");
     auto prg_info = generate_prg_info(prg_raw);
@@ -458,7 +485,7 @@ TEST(Traverser, StartOutOfSiteEndInSite_correctObjectState){
     EXPECT_EQ(variant_node->get_allele(), 2);
 
     std::pair<uint32_t,uint32_t> expected_coordinates{0, 2};
-    EXPECT_EQ(expected_coordinates, t.get_node_interval());
+    EXPECT_EQ(expected_coordinates, t.get_node_coordinates());
     EXPECT_EQ(false, t.next_Node().has_value());
 }
 
@@ -475,7 +502,7 @@ TEST(Traverser, StartAndEndInSite_CorrectNodeInterval){
     auto variant_node = t.next_Node().value();
 
     std::pair<uint32_t,uint32_t> expected_coordinates{2, 7};
-    EXPECT_EQ(expected_coordinates, t.get_node_interval());
+    EXPECT_EQ(expected_coordinates, t.get_node_coordinates());
 }
 
 TEST(Traverser, StartInSiteAndTraverseToAnotherSite_CorrectObjectState){
@@ -497,7 +524,7 @@ TEST(Traverser, StartInSiteAndTraverseToAnotherSite_CorrectObjectState){
     }
 
     std::pair<uint32_t,uint32_t> expected_coordinates{0, 3};
-    EXPECT_EQ(expected_coordinates, t.get_node_interval());
+    EXPECT_EQ(expected_coordinates, t.get_node_coordinates());
     EXPECT_EQ(0, t.get_remaining_bases());
 }
 
@@ -542,7 +569,7 @@ TEST(Traverser_Nested, StartOutOfSiteEndOutOfSite_CorrectChosenSitesAndEndState)
     EXPECT_EQ(0, t.get_remaining_bases());
     // Make sure we are placed correctly in the last node
     std::pair<uint32_t, uint32_t> expected_last_node_coords{0, 1};
-    EXPECT_EQ(expected_last_node_coords, t.get_node_interval());
+    EXPECT_EQ(expected_last_node_coords, t.get_node_coordinates());
 }
 
 TEST(Traverser_Nested, TraverseGraphWithLevel2Nesting_CorrectChosenSitesAndEndState){
@@ -575,5 +602,5 @@ TEST(Traverser_Nested, TraverseGraphWithLevel2Nesting_CorrectChosenSitesAndEndSt
 
     EXPECT_EQ(0, t.get_remaining_bases());
     std::pair<uint32_t, uint32_t> expected_last_node_coords{0, 0};
-    EXPECT_EQ(expected_last_node_coords, t.get_node_interval());
+    EXPECT_EQ(expected_last_node_coords, t.get_node_coordinates());
 }

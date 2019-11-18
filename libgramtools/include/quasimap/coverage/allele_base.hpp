@@ -72,6 +72,32 @@ namespace gram {
 namespace gram {
     namespace coverage {
         namespace per_base {
+            using node_coordinate = uint32_t;
+            using node_coordinates = std::pair<node_coordinate, node_coordinate>;
+
+        class InconsistentCovNodeCoordinates : public std::exception {
+            public:
+                InconsistentCovNodeCoordinates(std::string msg) : msg(msg) {;}
+                const char * what() const throw(){
+                    return msg.c_str();
+                }
+            private:
+                std::string msg;
+            };
+
+            class DummyCovNode{
+            public:
+                DummyCovNode() = default;
+                DummyCovNode(node_coordinate start_pos, node_coordinate end_pos, std::size_t node_size);
+
+                void extend_coordinates(node_coordinates coords);
+                node_coordinates get_coordinates(){return node_coordinates{start_pos, end_pos};}
+            private:
+                bool full;
+                node_coordinate start_pos;
+                node_coordinate end_pos;
+                std::size_t node_size;
+            };
 
             /**
              * Class which produces all coverage node from the coverage graph that are in variant sites.
@@ -91,7 +117,7 @@ namespace gram {
                 /*
                  * Getters
                  */
-                std::pair<uint32_t, uint32_t> get_node_interval() {
+                node_coordinates get_node_coordinates() {
                     return {start_pos, end_pos};
                 }
 
@@ -132,8 +158,8 @@ namespace gram {
                 VariantSitePath traversed_loci;
                 uint32_t traversed_index;
                 bool first_node;
-                uint32_t start_pos;
-                uint32_t end_pos;
+                node_coordinate start_pos;
+                node_coordinate end_pos;
             };
         }
     }
