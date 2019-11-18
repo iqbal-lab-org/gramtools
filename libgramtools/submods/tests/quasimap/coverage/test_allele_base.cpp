@@ -500,3 +500,80 @@ TEST(Traverser, StartInSiteAndTraverseToAnotherSite_CorrectObjectState){
     EXPECT_EQ(expected_coordinates, t.get_node_interval());
     EXPECT_EQ(0, t.get_remaining_bases());
 }
+
+// Helper function to get all the loci that were traversed. Modifies the traversal in place
+VariantSitePath collect_traversal(Traverser & t){
+    VariantSitePath traversal;
+    VariantLocus site_and_allele;
+    auto cur_Node = t.next_Node();
+
+    while(bool(cur_Node)){
+        site_and_allele = {cur_Node.value()->get_site(), cur_Node.value()->get_allele()};
+        traversal.push_back(site_and_allele);
+        cur_Node = t.next_Node();
+    }
+    return traversal;
+}
+
+TEST(Traverser_Nested, StartOutOfSiteEndOutOfSite_CorrectChosenSitesAndEndState){
+    std::string raw_prg = "A[ctt,G[AAA,a]T]CCccc";
+    marker_vec v = prg_string_to_ints(raw_prg);
+    auto prg_info = generate_prg_info(v);
+
+    std::size_t read_size = 8;
+    VariantSitePath traversed_path{
+            VariantLocus{7, 1},
+            VariantLocus{5, 2}
+    };
+
+    auto start_point = prg_info.coverage_graph.random_access[0];
+    Traverser t{start_point, traversed_path, read_size};
+
+    VariantSitePath expected_traversal{
+        VariantLocus{5, 2},
+        VariantLocus{7, 1},
+        VariantLocus{5, 2} // After exiting site 7, we still have coverage to record on allele 2 of site 5 (base 'T')
+    };
+
+    VariantSitePath actual_traversal = collect_traversal(t);
+    EXPECT_EQ(expected_traversal, actual_traversal);
+
+    // Make sure we have consumed all bases of the read
+    EXPECT_EQ(0, t.get_remaining_bases());
+    // Make sure we are placed correctly in the last node
+    std::pair<uint32_t, uint32_t> expected_last_node_coords{0, 1};
+    EXPECT_EQ(expected_last_node_coords, t.get_node_interval());
+}
+
+TEST(Traverser_Nested, TraverseGraphWithLevel2Nesting_CorrectChosenSitesAndEndState){
+    std::string raw_prg = "A[CT[GC[c,A]A,gc]T[C,a]Tt,t]c";
+    marker_vec v = prg_string_to_ints(raw_prg);
+    auto prg_info = generate_prg_info(v);
+
+    std::size_t read_size = 10;
+    VariantSitePath traversed_path{
+            VariantLocus{11, 1},
+            VariantLocus{9, 2},
+            VariantLocus{7, 1},
+            VariantLocus{5, 1}
+    };
+    auto start_point = prg_info.coverage_graph.random_access[0];
+    Traverser t{start_point, traversed_path, read_size};
+
+    VariantSitePath expected_traversal{
+            VariantLocus{5, 1},
+            VariantLocus{7, 1},
+            VariantLocus{9, 2},
+            VariantLocus{7, 1},
+            VariantLocus{5, 1},
+            VariantLocus{11, 1},
+            VariantLocus{5, 1},
+    };
+
+    VariantSitePath actual_traversal = collect_traversal(t);
+    EXPECT_EQ(expected_traversal, actual_traversal);
+
+    EXPECT_EQ(0, t.get_remaining_bases());
+    std::pair<uint32_t, uint32_t> expected_last_node_coords{0, 0};
+    EXPECT_EQ(expected_last_node_coords, t.get_node_interval());
+}

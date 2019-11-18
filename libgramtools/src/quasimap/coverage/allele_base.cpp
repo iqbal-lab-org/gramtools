@@ -287,7 +287,7 @@ void coverage::dump::allele_base(const Coverage &coverage,
 }
 
 Traverser::Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size) :
-        cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true) {
+        cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true){
 
     // Will give the next site to choose in the graph
     traversed_index = traversed_loci.size();
@@ -296,42 +296,53 @@ Traverser::Traverser(node_access start_point, VariantSitePath traversed_loci, st
 
 
 std::optional<covG_ptr> Traverser::next_Node() {
-    if (traversed_index == 0 && !first_node) {
-        cur_Node = nullptr;
+    if (first_node){
+        process_first_node();
+        first_node = false;
+        return cur_Node;
+    }
+    else if (bases_remaining == 0) {
         return {};
     }
     else {
-        if (first_node) first_node = false;
         go_to_next_site();
-        auto returned_Node = cur_Node;
-        move_past_single_edge_node(); // Move past the bubble node
-        return returned_Node;
+        if (cur_Node == nullptr) return {};
+        return cur_Node;
     }
+}
+
+void Traverser::process_first_node(){
+    update_coordinates();
+    if (!cur_Node->is_in_bubble()) go_to_next_site();
 }
 
 void Traverser::go_to_next_site(){
-    if (!cur_Node->is_in_bubble()){
-        // Skip invariants
-        start_pos = 0;
-        while(cur_Node->get_edges().size() == 1){
-            update_coordinates();
-            move_past_single_edge_node();
+    start_pos = 0;
+    // Skip invariants
+    while(cur_Node->get_edges().size() == 1){
+        if (bases_remaining <= 0) {
+            cur_Node = nullptr;
+            return;
         }
-        // Pick the right allelic node
-        --traversed_index;
-        choose_allele();
+        move_past_single_edge_node();
+        update_coordinates();
+        if (cur_Node->is_in_bubble()) return; // Deals with exiting nested sites: we need to avoid skipping those
     }
-    update_coordinates();
-}
+    // Pick the right allelic node
+    --traversed_index;
+    choose_allele();
 
-void Traverser::move_past_single_edge_node(){
-    assert(cur_Node->get_edges().size() == 1);
-    cur_Node = cur_Node->get_edges()[0];
+    update_coordinates();
 }
 
 void Traverser::update_coordinates(){
     assign_end_position();
     if (cur_Node->has_sequence()) bases_remaining -= (end_pos - start_pos + 1);
+}
+
+void Traverser::move_past_single_edge_node(){
+    assert(cur_Node->get_edges().size() == 1);
+    cur_Node = cur_Node->get_edges()[0];
 }
 
 void Traverser::assign_end_position() {

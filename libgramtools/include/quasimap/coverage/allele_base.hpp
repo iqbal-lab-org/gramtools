@@ -20,40 +20,6 @@ namespace gram {
             SitesAlleleBaseCoverage allele_base_structure(const PRG_Info &prg_info);
         }
 
-        namespace per_base{
-
-            class Traverser{
-            public:
-                Traverser() {;}
-                Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size);
-
-                std::optional<covG_ptr> next_Node();
-                /*
-                 * Getters
-                 */
-                std::pair<uint32_t, uint32_t> get_node_interval(){
-                    return {start_pos, end_pos};
-                }
-                std::size_t get_remaining_bases(){
-                    return bases_remaining;
-                }
-
-                void go_to_next_site();
-                void move_past_single_edge_node();
-                void update_coordinates();
-                void assign_end_position();
-                void choose_allele();
-
-            private:
-                covG_ptr cur_Node;
-                std::size_t bases_remaining;
-                VariantSitePath traversed_loci;
-                uint32_t traversed_index;
-                bool first_node;
-                uint32_t start_pos;
-                uint32_t end_pos;
-            };
-        }
 
         namespace record {
             /**
@@ -103,4 +69,73 @@ namespace gram {
 
 }
 
+namespace gram {
+    namespace coverage {
+        namespace per_base {
+
+            /**
+             * Class which produces all coverage node from the coverage graph that are in variant sites.
+             * The choice of nodes at fork points is made using the set of `VariantLocus` traversed by a `SearchState`.
+             *
+             * Note the current assumption must be true: each node in a bubble has outdegree 1.
+             * This is enforced in the `coverage_Graph` by having site boundary nodes flanking each bubble.
+             */
+            class Traverser {
+            public:
+                Traverser() { ; }
+
+                Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size);
+
+                std::optional<covG_ptr> next_Node();
+
+                /*
+                 * Getters
+                 */
+                std::pair<uint32_t, uint32_t> get_node_interval() {
+                    return {start_pos, end_pos};
+                }
+
+                std::size_t get_remaining_bases() {
+                    return bases_remaining;
+                }
+
+                /**
+                 * Advances past all nodes with outdegree one, until we either:
+                 *  - Find a node with outdegree > 1, so we choose an allelic node
+                 *  - Consume all bases, so the traversal has ended.
+                 */
+                void go_to_next_site();
+
+                /**
+                 * First node gets special treatment.
+                 * We can either start:
+                 *  - Outside of a bubble: in which case, we move to the next node in a bubble
+                 *  - In a bubble: in which case, we only call update_coordinates()
+                 */
+                void process_first_node();
+
+                /**
+                 * Consumes bases in the current node, and sets start and end coordinates.
+                 * The start and end coordinates signal how much coverage should be recorded.
+                 */
+                void update_coordinates();
+
+                void move_past_single_edge_node();
+
+                void assign_end_position();
+
+                void choose_allele();
+
+            private:
+                covG_ptr cur_Node;
+                std::size_t bases_remaining;
+                VariantSitePath traversed_loci;
+                uint32_t traversed_index;
+                bool first_node;
+                uint32_t start_pos;
+                uint32_t end_pos;
+            };
+        }
+    }
+}
 #endif //GRAMTOOLS_ALLELE_BASE_HPP
