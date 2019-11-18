@@ -689,7 +689,7 @@ protected:
     SearchStates multi_mapped_reads_1{
             SearchState{
                     SA_Interval{9, 9},
-                    VariantSitePath{VariantLocus{7, 1}}
+                    VariantSitePath{VariantLocus{7, 2}}
             },
             SearchState{
                     SA_Interval{8, 8},
@@ -752,7 +752,7 @@ TEST_F(PbCovRecorder_nestedDeletion, simpleRead1Mapped_correctDummyCovNodes){
    EXPECT_EQ(expected_dummies, actual_dummies);
 }
 
-TEST_F(PbCovRecorder_nestedDeletion, simpleRead1Mapped_correctRecordePbCoverage){
+TEST_F(PbCovRecorder_nestedDeletion, simpleRead1Mapped_correctRecordedPbCoverage){
     //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "CGCCTT"
     SearchStates mapping{simple_read_1};
     std::size_t read_size{6};
@@ -782,4 +782,51 @@ TEST_F(PbCovRecorder_nestedDeletion, simpleRead2Mapped_correctDummyCovNodes){
             DummyCovNode{0, 0, 1}, DummyCovNode{}
     };
     EXPECT_EQ(expected_dummies, actual_dummies);
+}
+
+
+TEST_F(PbCovRecorder_nestedDeletion, simpleRead2Mapped_correctRecordedPbCoverage){
+    //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "ATTTT"
+    SearchStates mapping{simple_read_2};
+    std::size_t read_size{5};
+    PbCovRecorder recorder(prg_info, mapping, read_size);
+    auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
+
+    AlleleCoverage expected_coverage{
+            BaseCoverage{}, BaseCoverage{0, 0},
+            BaseCoverage{0, 0, 0}, BaseCoverage{0, 0, 0, 0},
+            BaseCoverage{1}, BaseCoverage{}
+    };
+    EXPECT_EQ(expected_coverage, actual_coverage);
+}
+
+TEST_F(PbCovRecorder_nestedDeletion, multiMappedReadDistinctSearchStates_correctRecordedPbCoverage) {
+    //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "GCC"
+    std::size_t read_size{3};
+    PbCovRecorder{prg_info, multi_mapped_reads_1, read_size};
+    auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
+
+    AlleleCoverage expected_coverage{
+        BaseCoverage{}, BaseCoverage{1, 1},
+        BaseCoverage{1, 1, 1}, BaseCoverage{1, 0, 0, 0},
+        BaseCoverage{0}, BaseCoverage{}
+    };
+
+    EXPECT_EQ(expected_coverage, actual_coverage);
+}
+
+TEST_F(PbCovRecorder_nestedDeletion, multiMappedReadSingleSearchState_correctRecordedPbCoverage) {
+    //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "CTTT"
+    std::size_t read_size{4};
+
+    PbCovRecorder{prg_info, multi_mapped_reads_2, read_size};
+    auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
+
+    AlleleCoverage expected_coverage{
+            BaseCoverage{}, BaseCoverage{0, 0},
+            BaseCoverage{0, 0, 1}, BaseCoverage{0, 0, 0, 1},
+            BaseCoverage{0}, BaseCoverage{}
+    };
+
+    EXPECT_EQ(expected_coverage, actual_coverage);
 }

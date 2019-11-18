@@ -97,7 +97,7 @@ namespace gram {
                 }
 
                 void extend_coordinates(node_coordinates coords);
-                node_coordinates get_coordinates(){return node_coordinates{start_pos, end_pos};}
+                node_coordinates get_coordinates() const{return node_coordinates{start_pos, end_pos};}
             private:
                 bool full;
                 node_coordinate start_pos;
@@ -182,7 +182,10 @@ namespace gram {
                         prg_info(&prg_info), read_size(read_size){}
 
                 void process_SearchState(SearchState const& ss);
+                void record_full_traversal(Traverser& t);
                 void process_Node(covG_ptr cov_node, node_coordinate start_pos, node_coordinate end_pos);
+                void write_coverage_from_dummy_nodes();
+
                 realCov_to_dummyCov get_cov_mapping() const {return cov_mapping;}
 
             private:

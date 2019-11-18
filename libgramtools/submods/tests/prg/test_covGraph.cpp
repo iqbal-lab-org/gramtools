@@ -141,8 +141,8 @@ TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
 TEST_F(cov_G_Builder_nested, NodeSizes) {
     //"[A,AA,A[A,C]A]C[AC,C]G"
     auto const &rand_access = c.random_access;
-    // Note: these are UNIQUE nodes, so disregarding "," which point to bubble start node,
-    // and sequence continuation for more than 1 consecutive nucleotides.
+    // This test queries UNIQUE nodes, so we will skip "," which point to bubble start node,
+    // and sequence continuation for nodes with size > 1
     std::vector<int> expected{
         0, 1, 2, 1, 0, 1, 1, 0, 1, 0, 1, 0, 2, 1, 0, 1
     };
@@ -157,10 +157,13 @@ TEST_F(cov_G_Builder_nested, NodeSizes) {
             else seen_entries.insert(s.node->get_site());
         }
         if (s.node == prev) continue;
-        auto cov_space = s.node->get_coverage_space();
-        // There should be as much allocated per base coverage as there are characters in the sequence node
-        EXPECT_EQ(s.node->get_sequence_size(), cov_space);
-        res[pos++] = cov_space;
+        auto sequence_size = s.node->get_sequence_size();
+
+        // Test there is as much allocated per base coverage as there are characters in the sequence node
+        // if we are in variant site. Outside variant sites we do not genotype so do not allocate/record coverage.
+        if (s.node->is_in_bubble()) EXPECT_EQ(s.node->get_coverage_space(), sequence_size);
+
+        res[pos++] = sequence_size;
         prev = s.node;
     }
     EXPECT_EQ(res,expected);

@@ -384,14 +384,49 @@ PbCovRecorder::PbCovRecorder(PRG_Info& prg_info, SearchStates const& search_stat
        std::size_t read_size)
 : prg_info(&prg_info), read_size(read_size){
         for (auto const& search_state : search_states) process_SearchState(search_state);
+        write_coverage_from_dummy_nodes();
 }
 
-void PbCovRecorder::process_SearchState(SearchState const& ss){
-    std::size_t sa_interval_size = ss.sa_interval.second - ss.sa_interval.first + 1;
-    auto first_coordinate = prg_info->fm_index[ss.sa_interval.first];
-    auto first_access_point = prg_info->coverage_graph.random_access[first_coordinate];
-    Traverser t{first_access_point, ss.traversed_path, read_size};
+void PbCovRecorder::write_coverage_from_dummy_nodes(){
+    BaseCoverage cur_coverage;
+    covG_ptr cov_node;
+    node_coordinates to_increment;
+   for (auto const& element : cov_mapping){
+       cov_node = element.first;
+       to_increment = element.second.get_coordinates();
+       cur_coverage = cov_node->get_coverage();
+       for (auto i = to_increment.first; i <= to_increment.second; i++) cur_coverage[i]++;
+       cov_node->set_coverage(cur_coverage);
+   }
+}
 
+
+void PbCovRecorder::process_SearchState(SearchState const& ss){
+    bool first{true};
+    Traverser t;
+
+    for (auto occurrence = ss.sa_interval.first; occurrence <= ss.sa_interval.second; occurrence++){
+        auto coordinate = prg_info->fm_index[occurrence];
+        auto access_point = prg_info->coverage_graph.random_access[coordinate];
+        t = {access_point, ss.traversed_path, read_size};
+
+        // Record a full traversal starting at the first mapping instance
+        if (first){
+            first = false;
+            record_full_traversal(t);
+        }
+        // Record coverage at the alternative start points in the SearchState, if any.
+        // This occurs if the suffix interval has size more than one.
+        // In which case we only want need to process the first node in the traversal
+        else {
+            auto cur_Node = t.next_Node().value();
+            auto coordinates = t.get_node_coordinates();
+            process_Node(cur_Node, coordinates.first, coordinates.second);
+        }
+    }
+}
+
+void PbCovRecorder::record_full_traversal(Traverser& t){
     auto cur_Node = t.next_Node();
     auto coordinates = t.get_node_coordinates();
     while(bool(cur_Node)){

@@ -44,6 +44,7 @@ public:
 
     coverage_Node(std::string const seq, int const pos, int const site_ID = 0, int const allele_ID = 0) :
             sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false) {
+        // No need to allocate coverage if outside a variant site, as only variant site coverage is used for genotyping
         if (is_in_bubble()) this->coverage = BaseCoverage(seq.size(), 0);
     }
 
@@ -80,6 +81,10 @@ public:
      */
     void set_pos(int pos) { this->pos = pos; };
     void mark_as_boundary() { is_site_boundary = true; };
+    void set_coverage(BaseCoverage const& new_cov){
+        assert(new_cov.size() == coverage.size() && new_cov.size() == sequence.size());
+        coverage = new_cov;
+    }
 
     void add_sequence(std::string const &new_seq) {
         sequence += new_seq;
