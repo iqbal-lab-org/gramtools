@@ -89,6 +89,12 @@ namespace gram {
             public:
                 DummyCovNode() = default;
                 DummyCovNode(node_coordinate start_pos, node_coordinate end_pos, std::size_t node_size);
+                bool operator==(DummyCovNode const& other) const{
+                    return (node_size == other.node_size &&
+                            start_pos == other.start_pos &&
+                            end_pos == other.end_pos &&
+                            node_size == other.node_size);
+                }
 
                 void extend_coordinates(node_coordinates coords);
                 node_coordinates get_coordinates(){return node_coordinates{start_pos, end_pos};}
@@ -99,6 +105,8 @@ namespace gram {
                 std::size_t node_size;
             };
 
+            using realCov_to_dummyCov = std::map<covG_ptr, DummyCovNode>;
+
             /**
              * Class which produces all coverage node from the coverage graph that are in variant sites.
              * The choice of nodes at fork points is made using the set of `VariantLocus` traversed by a `SearchState`.
@@ -108,7 +116,7 @@ namespace gram {
              */
             class Traverser {
             public:
-                Traverser() { ; }
+                Traverser() {}
 
                 Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size);
 
@@ -160,6 +168,27 @@ namespace gram {
                 bool first_node;
                 node_coordinate start_pos;
                 node_coordinate end_pos;
+            };
+
+            class PbCovRecorder{
+            public:
+                PbCovRecorder(PRG_Info& prg_info, SearchStates const& search_states,
+                        std::size_t read_size);
+
+                // Testing-related constructors
+                PbCovRecorder() = default;
+                PbCovRecorder(realCov_to_dummyCov existing_cov_mapping): cov_mapping(existing_cov_mapping) {}
+                PbCovRecorder(PRG_Info& prg_info, std::size_t read_size) :
+                        prg_info(&prg_info), read_size(read_size){}
+
+                void process_SearchState(SearchState const& ss);
+                void process_Node(covG_ptr cov_node, node_coordinate start_pos, node_coordinate end_pos);
+                realCov_to_dummyCov get_cov_mapping() const {return cov_mapping;}
+
+            private:
+                realCov_to_dummyCov cov_mapping;
+                PRG_Info* prg_info; // non-const: we will add coverage in nodes of its coverage_Graph.
+                std::size_t read_size;
             };
         }
     }

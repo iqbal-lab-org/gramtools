@@ -26,6 +26,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/unordered_map.hpp>
+#include "quasimap/coverage/types.hpp"
 
 using namespace gram;
 using seqPos = int32_t;
@@ -42,9 +43,11 @@ public:
     coverage_Node(seqPos pos) : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(pos), is_site_boundary{false} { ; };
 
     coverage_Node(std::string const seq, int const pos, int const site_ID = 0, int const allele_ID = 0) :
-            sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false) { ; };
+            sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false) {
+        if (is_in_bubble()) this->coverage = BaseCoverage(seq.size(), 0);
+    }
 
-    bool is_boundary() { return is_site_boundary; };
+    bool is_boundary() { return is_site_boundary; }
 
     /**
      * Compare pointers to `coverage_Node`; used in topological ordering (lastmost sequence position first)
@@ -67,6 +70,7 @@ public:
     int get_pos() const { return pos; }
     int const get_sequence_size() const { return sequence.size(); }
     int const get_coverage_space() const { return coverage.size() ;}
+    BaseCoverage const get_coverage() const { return coverage; }
     Marker get_site() const { return site_ID ; }
     Marker get_allele() const { return allele_ID ; }
     std::vector<covG_ptr> const& get_edges() const{return next;}
@@ -78,9 +82,10 @@ public:
     void mark_as_boundary() { is_site_boundary = true; };
 
     void add_sequence(std::string const &new_seq) {
-        assert(new_seq.size() == 1);
         sequence += new_seq;
-        coverage.emplace_back(0);
+        if (is_in_bubble()){
+            for (auto i = 0; i < new_seq.size(); ++i) coverage.emplace_back(0);
+        }
     };
 
     void add_edge(covG_ptr const target) { next.emplace_back(target); };
@@ -91,7 +96,7 @@ private:
     Marker site_ID;
     Marker allele_ID;
     seqPos pos;
-    std::vector<uint64_t> coverage;
+    BaseCoverage coverage;
     bool is_site_boundary;
     std::vector<covG_ptr> next;
 

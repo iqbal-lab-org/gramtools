@@ -604,3 +604,182 @@ TEST(Traverser_Nested, TraverseGraphWithLevel2Nesting_CorrectChosenSitesAndEndSt
     std::pair<uint32_t, uint32_t> expected_last_node_coords{0, 0};
     EXPECT_EQ(expected_last_node_coords, t.get_node_coordinates());
 }
+
+TEST(PbCovRecorder,ProcessNewCovNode_CorrectDummyCovNodeMade){
+    PbCovRecorder pb_rec;
+    covG_ptr cov_node = boost::make_shared<coverage_Node>(
+            coverage_Node{"ACTG", 102, 5, 2});
+    realCov_to_dummyCov expected_mapping{
+            {cov_node, DummyCovNode(1, 3, 4)}
+    };
+
+    pb_rec.process_Node(cov_node, 1, 3);
+    EXPECT_EQ(expected_mapping, pb_rec.get_cov_mapping());
+}
+
+TEST(PbCovRecorder, ProcessExistingCovNode_CorrectlyUpdatedDummyCovNode){
+    covG_ptr cov_node = boost::make_shared<coverage_Node>(
+            coverage_Node{"ACTGCC", 99, 5, 2});
+    realCov_to_dummyCov existing_mapping  {
+            {cov_node, DummyCovNode{1, 3, 6}}
+    };
+    PbCovRecorder pb_rec(existing_mapping);
+    pb_rec.process_Node(cov_node, 2, 5);
+
+    realCov_to_dummyCov expected_mapping{
+            {cov_node, DummyCovNode(1, 5, 6)}
+    };
+
+    EXPECT_EQ(expected_mapping, pb_rec.get_cov_mapping());
+}
+
+using prg_positions = std::vector<std::size_t>;
+using dummy_cov_nodes = std::vector<DummyCovNode>;
+/*
+PRG: AT[GC[GCC,CCGC],T]TTTT
+i	BWT	SA	text_suffix
+0	T	22	0
+1	0	0	A T 5 G C 7 G C C 8 C C G C 8 6 T 6 T T T T 0
+2	8	10	C C G C 8 6 T 6 T T T T 0
+3	G	7	C C 8 C C G C 8 6 T 6 T T T T 0
+4	C	11	C G C 8 6 T 6 T T T T 0
+5	G	4	C 7 G C C 8 C C G C 8 6 T 6 T T T T 0
+6	C	8	C 8 C C G C 8 6 T 6 T T T T 0
+7	G	13	C 8 6 T 6 T T T T 0
+8	7	6	G C C 8 C C G C 8 6 T 6 T T T T 0
+9	5	3	G C 7 G C C 8 C C G C 8 6 T 6 T T T T 0
+10	C	12	G C 8 6 T 6 T T T T 0
+11	T	21	T 0
+12	T	20	T T 0
+13	T	19	T T T 0
+14	6	18	T T T T 0
+15	A	1	T 5 G C 7 G C C 8 C C G C 8 6 T 6 T T T T 0
+16	6	16	T 6 T T T T 0
+17	T	2	5 G C 7 G C C 8 C C G C 8 6 T 6 T T T T 0
+18	T	17	6 T T T T 0
+19	8	15	6 T 6 T T T T 0
+20	C	5	7 G C C 8 C C G C 8 6 T 6 T T T T 0
+21	C	9	8 C C G C 8 6 T 6 T T T T 0
+22	C	14	8 6 T 6 T T T T 0
+*/
+class PbCovRecorder_nestedDeletion : public ::testing::Test {
+protected:
+    void SetUp() {
+        std::string raw_prg = "AT[GC[GCC,CCGC],T]TTTT";
+        marker_vec v = prg_string_to_ints(raw_prg);
+        prg_info = generate_prg_info(v);
+    }
+    PRG_Info prg_info;
+    prg_positions all_sequence_node_positions{0, 3, 6, 10, 16, 18};
+
+    // Make some read SearchStates
+    // Read: CGCCTT
+    SearchState simple_read_1{
+            SA_Interval{5, 5},
+            VariantSitePath{VariantLocus{7, 1}}
+    };
+
+    // Read: ATTTT
+    SearchState simple_read_2{
+            SA_Interval{1, 1},
+            VariantSitePath{VariantLocus{5, 2}}
+    };
+
+    // Read: GCC. Two distinct occurrences compatible with same sites
+    SearchStates multi_mapped_reads_1{
+            SearchState{
+                    SA_Interval{9, 9},
+                    VariantSitePath{VariantLocus{7, 1}}
+            },
+            SearchState{
+                    SA_Interval{8, 8},
+                    VariantSitePath{}
+            }
+    };
+
+    // Read: CTT. In a single Search State
+    SearchStates multi_mapped_reads_2{
+            SearchState{
+                    SA_Interval{6, 7},
+                    VariantSitePath{}
+            }
+    };
+};
+
+
+dummy_cov_nodes collect_dummy_cov_nodes(coverage_Graph const& cov_graph, prg_positions positions,
+        realCov_to_dummyCov cov_mapping){
+    dummy_cov_nodes result(positions.size());
+    covG_ptr accessed_node;
+    std::size_t index{0};
+
+    for (auto& pos : positions){
+       accessed_node = cov_graph.random_access[pos].node;
+       if (cov_mapping.find(accessed_node) == cov_mapping.end()) result[index] = DummyCovNode{};
+       else result[index] = cov_mapping.at(accessed_node);
+        index++;
+    }
+    return result;
+}
+
+
+AlleleCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions){
+   AlleleCoverage result(positions.size());
+    covG_ptr accessed_node;
+    std::size_t index{0};
+
+    for (auto& pos : positions) {
+        accessed_node = cov_graph.random_access[pos].node;
+        result[index] = accessed_node->get_coverage();
+        index++;
+    }
+   return result;
+}
+
+TEST_F(PbCovRecorder_nestedDeletion, simpleRead1Mapped_correctDummyCovNodes){
+   //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "CGCCTT"
+   std::size_t read_size{6};
+   PbCovRecorder recorder(prg_info, read_size);
+   recorder.process_SearchState(simple_read_1);
+   auto actual_dummies = collect_dummy_cov_nodes(prg_info.coverage_graph, all_sequence_node_positions,
+           recorder.get_cov_mapping());
+
+   dummy_cov_nodes expected_dummies{
+           DummyCovNode{}, DummyCovNode{1, 1, 2},
+           DummyCovNode{0, 2, 3}, DummyCovNode{},
+           DummyCovNode{}, DummyCovNode{}
+   };
+   EXPECT_EQ(expected_dummies, actual_dummies);
+}
+
+TEST_F(PbCovRecorder_nestedDeletion, simpleRead1Mapped_correctRecordePbCoverage){
+    //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "CGCCTT"
+    SearchStates mapping{simple_read_1};
+    std::size_t read_size{6};
+    PbCovRecorder recorder(prg_info, mapping, read_size);
+    auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
+
+    AlleleCoverage expected_coverage{
+            BaseCoverage{}, BaseCoverage{0, 1},
+            BaseCoverage{1, 1, 1}, BaseCoverage{0, 0, 0, 0},
+            BaseCoverage{0}, BaseCoverage{}
+    };
+    EXPECT_EQ(expected_coverage, actual_coverage);
+}
+
+TEST_F(PbCovRecorder_nestedDeletion, simpleRead2Mapped_correctDummyCovNodes){
+    //PRG: "AT[GC[GCC,CCGC],T]TTTT"; Read: "ATTTT"
+    SearchStates mapping = SearchStates{simple_read_2};
+    std::size_t read_size{5};
+    PbCovRecorder recorder(prg_info, read_size);
+    recorder.process_SearchState(simple_read_2);
+    auto actual_dummies = collect_dummy_cov_nodes(prg_info.coverage_graph, all_sequence_node_positions,
+                                                  recorder.get_cov_mapping());
+
+    dummy_cov_nodes expected_dummies{
+            DummyCovNode{}, DummyCovNode{},
+            DummyCovNode{}, DummyCovNode{},
+            DummyCovNode{0, 0, 1}, DummyCovNode{}
+    };
+    EXPECT_EQ(expected_dummies, actual_dummies);
+}

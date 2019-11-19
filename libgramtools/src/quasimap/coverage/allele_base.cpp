@@ -292,7 +292,7 @@ DummyCovNode::DummyCovNode(node_coordinate start_pos, node_coordinate end_pos, s
     if (start_pos >= node_size || end_pos >= node_size) throw \
         InconsistentCovNodeCoordinates("node_size must be greater than start_pos and end_pos");
 
-    if(end_pos == node_size - 1) full = true;
+    if(end_pos - start_pos == node_size - 1) full = true;
 }
 
 void DummyCovNode::extend_coordinates(node_coordinates coords) {
@@ -301,9 +301,10 @@ void DummyCovNode::extend_coordinates(node_coordinates coords) {
     if (coords.first < start_pos) start_pos = coords.first;
     if (coords.second > end_pos){
         end_pos = coords.second;
-        if (end_pos == node_size - 1) full = true;
     }
+    if (end_pos - start_pos == node_size - 1) full = true;
 }
+
 
 Traverser::Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size) :
         cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true){
@@ -378,3 +379,36 @@ void Traverser::choose_allele() {
     cur_Node = next_node;
 }
 
+
+PbCovRecorder::PbCovRecorder(PRG_Info& prg_info, SearchStates const& search_states,
+       std::size_t read_size)
+: prg_info(&prg_info), read_size(read_size){
+        for (auto const& search_state : search_states) process_SearchState(search_state);
+}
+
+void PbCovRecorder::process_SearchState(SearchState const& ss){
+    std::size_t sa_interval_size = ss.sa_interval.second - ss.sa_interval.first + 1;
+    auto first_coordinate = prg_info->fm_index[ss.sa_interval.first];
+    auto first_access_point = prg_info->coverage_graph.random_access[first_coordinate];
+    Traverser t{first_access_point, ss.traversed_path, read_size};
+
+    auto cur_Node = t.next_Node();
+    auto coordinates = t.get_node_coordinates();
+    while(bool(cur_Node)){
+        process_Node(cur_Node.value(), coordinates.first, coordinates.second);
+        cur_Node = t.next_Node();
+        coordinates = t.get_node_coordinates();
+    }
+}
+
+void PbCovRecorder::process_Node(covG_ptr cov_node, node_coordinate start_pos, node_coordinate end_pos){
+    if (cov_mapping.find(cov_node) == cov_mapping.end()){
+        std::size_t cov_node_size = cov_node->get_sequence_size();
+        DummyCovNode new_dummy_cov_node{start_pos, end_pos, cov_node_size};
+        cov_mapping.insert({cov_node, new_dummy_cov_node});
+    }
+    else{
+        DummyCovNode& existing_dummy_cov_node = cov_mapping.at(cov_node);
+        existing_dummy_cov_node.extend_coordinates(node_coordinates{start_pos, end_pos});
+    }
+}
