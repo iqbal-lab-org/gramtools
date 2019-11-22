@@ -332,6 +332,23 @@ TEST_F(cov_G_Builder_nested_adjMarkers, ParentalMap) {
     EXPECT_EQ(c.par_map, expected);
 }
 
+TEST(coverage_Graph, Nestedness){
+    std::string prg{"ATCG[GC,G]A[AT,T]A"};
+    marker_vec v = prg_string_to_ints(prg);
+    PRG_String p{v};
+    coverage_Graph g{p};
+
+    EXPECT_FALSE(g.is_nested);
+
+    std::string nested_prg{"[A,]A[[G,A]A,C,T]"};
+    marker_vec nested_v = prg_string_to_ints(nested_prg);
+    PRG_String nested_p{nested_v};
+    coverage_Graph nested_g{nested_p};
+
+    EXPECT_TRUE(nested_g.is_nested);
+}
+
+
 // Make a coverage graph, serialise it to disk, reload into another coverage graph,
 // and test the two are equal (provided equality has been properly defined).
 TEST(coverage_Graph, Serialisation){
@@ -366,14 +383,13 @@ TEST(Target_map, EvenIsEntry_OddIsExit){
     PRG_String p{v};
     auto c = cov_Graph_Builder{p};
 
-    std::vector<targeted_marker> targets;
-    Marker seed;
-    target_m expected_map;
+    std::vector<targeted_marker> targets{
+        targeted_marker{5, 0}
+    };
+    Marker seed{7};
 
-    seed = 7;
-    targets.emplace_back(targeted_marker{5, 0});
+    target_m expected_map;
     expected_map.insert(std::make_pair(seed, targets));
-    targets.clear();
 
     EXPECT_EQ(c.target_map, expected_map);
 }

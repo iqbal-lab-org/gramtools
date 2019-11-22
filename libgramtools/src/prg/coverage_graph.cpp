@@ -7,6 +7,8 @@ coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
     par_map = std::move(built_graph.par_map);
     random_access = std::move(built_graph.random_access);
     target_map = std::move(built_graph.target_map);
+
+    par_map.size() != 0 ? is_nested = true : is_nested = false;
 }
 
 bool operator==(coverage_Graph const& f, coverage_Graph const& s){

@@ -189,6 +189,7 @@ public:
      * Use : equivalence class coverage recording
      */
     parental_map par_map;
+
     /**
      * A vector of the same size as the PRG string, giving access to the corresponding node in the graph.
      * Use : per base coverage recording
@@ -203,6 +204,8 @@ public:
      * Use: read mapping
      */
     target_m target_map;
+
+    bool is_nested; /**< Upon construction, gets set to true if graph has nested bubbles */
 
     friend bool operator==(coverage_Graph const& f, coverage_Graph const& s);
 

@@ -234,7 +234,7 @@ void coverage::record::search_states(Coverage &coverage,
     set_allele_ids(selected_search_states.navigational_search_states, prg_info);
 
     // [TODO :remove] trick to only run these on non-nested PRG strings.
-    if (prg_info.coverage_graph.par_map.size() == 0){
+    if (! prg_info.coverage_graph.is_nested){
         coverage::record::allele_base(coverage, selected_search_states.navigational_search_states, read_length, prg_info);
     }
     coverage::record::allele_sum(coverage, selected_search_states.equivalence_class_loci);
