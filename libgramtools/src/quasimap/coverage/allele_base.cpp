@@ -374,7 +374,7 @@ void Traverser::choose_allele() {
     auto traversed_locus = traversed_loci[traversed_index];
     auto site_id{traversed_locus.first}, allele_id{traversed_locus.second};
     auto next_node = cur_Node->get_edges()[allele_id - 1];
-    assert(next_node->get_site() == site_id && next_node->get_allele() == allele_id);
+    assert(next_node->get_site_ID() == site_id && next_node->get_allele_ID() == allele_id);
 
     cur_Node = next_node;
 }

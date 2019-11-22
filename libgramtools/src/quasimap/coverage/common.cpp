@@ -89,7 +89,7 @@ void LocusFinder::assign_traversing_loci(SearchState const& search_state, info_p
     for (int i = search_state.sa_interval.first; i <= search_state.sa_interval.second; ++i){
       auto prg_pos =  prg_info->fm_index[i];
       auto& node_access = prg_info->coverage_graph.random_access[prg_pos];
-      auto allele_id = node_access.node->get_allele();
+      auto allele_id = node_access.node->get_allele_ID();
 
       new_locus = VariantLocus{parent_seed, allele_id};
       unique_loci.insert(new_locus);
@@ -235,9 +235,9 @@ void coverage::record::search_states(Coverage &coverage,
 
     // [TODO :remove] trick to only run these on non-nested PRG strings.
     if (prg_info.coverage_graph.par_map.size() == 0){
-        coverage::record::allele_sum(coverage, selected_search_states.navigational_search_states);
         coverage::record::allele_base(coverage, selected_search_states.navigational_search_states, read_length, prg_info);
     }
+    coverage::record::allele_sum(coverage, selected_search_states.equivalence_class_loci);
     coverage::record::grouped_allele_counts(coverage, selected_search_states.equivalence_class_loci);
 }
 

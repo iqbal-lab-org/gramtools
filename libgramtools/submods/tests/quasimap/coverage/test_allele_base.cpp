@@ -50,8 +50,8 @@ TEST(Traverser, StartOutOfSiteEndInSite_correctObjectState){
 
     Traverser t{start_point, traversed_path, read_size};
     auto variant_node = t.next_Node().value();
-    EXPECT_EQ(variant_node->get_site(), 5);
-    EXPECT_EQ(variant_node->get_allele(), 2);
+    EXPECT_EQ(variant_node->get_site_ID(), 5);
+    EXPECT_EQ(variant_node->get_allele_ID(), 2);
 
     std::pair<uint32_t,uint32_t> expected_coordinates{0, 2};
     EXPECT_EQ(expected_coordinates, t.get_node_coordinates());
@@ -104,7 +104,7 @@ VariantSitePath collect_traversal(Traverser & t){
     auto cur_Node = t.next_Node();
 
     while(bool(cur_Node)){
-        site_and_allele = {cur_Node.value()->get_site(), cur_Node.value()->get_allele()};
+        site_and_allele = {cur_Node.value()->get_site_ID(), cur_Node.value()->get_allele_ID()};
         traversal.push_back(site_and_allele);
         cur_Node = t.next_Node();
     }

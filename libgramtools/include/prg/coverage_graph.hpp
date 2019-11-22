@@ -72,9 +72,10 @@ public:
     int const get_sequence_size() const { return sequence.size(); }
     int const get_coverage_space() const { return coverage.size() ;}
     BaseCoverage const get_coverage() const { return coverage; }
-    Marker get_site() const { return site_ID ; }
-    Marker get_allele() const { return allele_ID ; }
+    Marker get_site_ID() const { return site_ID ; }
+    Marker get_allele_ID() const { return allele_ID ; }
     std::vector<covG_ptr> const& get_edges() const{return next;}
+    std::size_t const get_num_edges() const{return next.size();}
 
     /*
      * Setters

@@ -1,6 +1,7 @@
 #include <cassert>
 #include <fstream>
 #include <vector>
+#include <quasimap/coverage/common.hpp>
 
 #include "quasimap/coverage/allele_sum.hpp"
 
@@ -12,49 +13,37 @@ AlleleSumCoverage gram::coverage::generate::allele_sum_structure(const PRG_Info 
     uint64_t number_of_variant_sites = prg_info.num_variant_sites;
     AlleleSumCoverage allele_sum_coverage(number_of_variant_sites);
 
+    Marker site_ID;
+    std::size_t num_alleles;
     const auto min_boundary_marker = 5;
-    bool last_char_was_zero = true;
 
-    for (const auto &mask_value: prg_info.sites_mask) {
-        if (mask_value == 0) {
-            last_char_was_zero = true;
-            continue;
-        }
+    // Go through each bubble in the graph, and make room for coverage for each edge in the bubble start.
+    for (auto const& bubble_entry : prg_info.coverage_graph.bubble_map){
+       site_ID = bubble_entry.first->get_site_ID();
+        auto site_ID_corresp_index = (site_ID - min_boundary_marker) / 2; // Maps marker 5 to index 0; marker 7 to index 1; etc.
 
-        const auto &current_marker = mask_value;
-        if (last_char_was_zero) { // We found a new allele. Make room for it and give it a 0 count.
-            auto variant_site_cover_index = (current_marker - min_boundary_marker) / 2; // Maps marker 5 to index 0; marker 7 to index 1; etc.
-            allele_sum_coverage[variant_site_cover_index].push_back(0);
-            last_char_was_zero = false;
-        }
+       num_alleles = bubble_entry.first->get_num_edges();
+       for (std::size_t i = 0; i < num_alleles; i++) allele_sum_coverage[site_ID_corresp_index].push_back(0);
     }
     return allele_sum_coverage;
 }
 
 
 void gram::coverage::record::allele_sum(Coverage &coverage,
-                                        const SearchStates &search_states) {
+                                        const uniqueLoci &compatible_loci) {
     auto &allele_sum_coverage = coverage.allele_sum_coverage;
-    HashSet<VariantLocus> seen_sites;
 
-    for (const auto &search_state: search_states) {
-        for (size_t i = search_state.traversed_path.size(); i-- > 0; ) {
-            auto const& variant_site = search_state.traversed_path[i];
-            bool site_seen_previously = seen_sites.find(variant_site) != seen_sites.end();
-            if (site_seen_previously)
-                continue;
+    for (const auto &locus: compatible_loci) {
+        auto marker = locus.first;
+        auto allele_id = locus.second;
 
-            auto marker = variant_site.first;
-            auto allele_id = variant_site.second;
+        auto min_boundary_marker = 5;
+        auto site_coverage_index = (marker - min_boundary_marker) /
+                                   2; // The variant site markers are at least 2 apart (odd numbers) so divide by 2.
+        auto allele_coverage_index = allele_id - 1;
 
-            auto min_boundary_marker = 5;
-            auto site_coverage_index = (marker - min_boundary_marker) / 2; // The variant site markers are at least 2 apart (odd numbers) so divide by 2.
-            auto allele_coverage_index = allele_id - 1;
-
-            #pragma omp atomic
-            allele_sum_coverage[site_coverage_index][allele_coverage_index] += 1;
-            seen_sites.insert(variant_site);
-        }
+#pragma omp atomic
+        allele_sum_coverage[site_coverage_index][allele_coverage_index] += 1;
     }
 }
 

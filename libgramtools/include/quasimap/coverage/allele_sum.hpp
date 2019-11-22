@@ -4,6 +4,7 @@
  */
 #include "quasimap/search_types.hpp"
 #include "quasimap/coverage/types.hpp"
+#include "common.hpp"
 
 
 #ifndef GRAMTOOLS_ALLELE_SUM_HPP
@@ -13,7 +14,7 @@ namespace gram::coverage {
     namespace generate {
         /**
          * Generates the coverage structure recording allele sum counts.
-         * Iterates over the `gram::PRG_Info::sites_mask` to do so.
+         * Iterates over the bubbles of the coverage Graph to do so.
          * @return `gram::AlleleSumCoverage` A vector of vectors of integers. The top-level vector represents each site, as a vector of allele counts.
          */
         AlleleSumCoverage allele_sum_structure(const PRG_Info &prg_info);
@@ -21,12 +22,12 @@ namespace gram::coverage {
 
     namespace record {
         /**
-         * Loops over search_states and variant site paths, recording traversed alleles.
+         * Increments each site/allele combination compatible with the mapped read.
          * @param coverage The `Coverage` structure common to all mapped reads.
-         * @param search_states The selected `SearchStates` for recording coverage.
+         * @param compatible_loci The selected `SearchStates` for recording coverage.
          */
         void allele_sum(Coverage &coverage,
-                        const SearchStates &search_states);
+                        const uniqueLoci &compatible_loci);
     }
 
     namespace dump {

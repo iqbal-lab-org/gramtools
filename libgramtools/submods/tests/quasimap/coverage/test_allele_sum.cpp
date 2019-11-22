@@ -46,3 +46,18 @@ TEST(AlleleSumCoverage, GivenThreeVariantSites_CorrectAlleleSumCoverageStructure
     };
     EXPECT_EQ(result, expected);
 }
+
+
+TEST(AlleleSumCoverage_Nested, GivenFourNestedVariantSites_CorrectAlleleSumCoverageStructure) {
+    auto prg_raw = prg_string_to_ints("A[GC,T[C,G[CG,C]]A,C]AAT[A,C,G,T]C");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    auto result = coverage::generate::allele_sum_structure(prg_info);
+    AlleleSumCoverage expected = {
+            {0, 0, 0},
+            {0, 0},
+            {0, 0},
+            {0, 0, 0, 0}
+    };
+    EXPECT_EQ(result, expected);
+}

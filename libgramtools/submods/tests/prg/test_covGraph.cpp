@@ -129,8 +129,8 @@ TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
     std::vector<VariantLocus> res{rand_access.size(), VariantLocus()};
     int pos = 0;
     for (auto const&s : rand_access){
-       res[pos].first = s.node->get_site();
-        res[pos].second = s.node->get_allele();
+       res[pos].first = s.node->get_site_ID();
+        res[pos].second = s.node->get_allele_ID();
         pos++;
     }
 
@@ -153,8 +153,8 @@ TEST_F(cov_G_Builder_nested, NodeSizes) {
     for (auto const&s : rand_access) {
         // Test for skipping site entry points
         if (c.bubble_map.find(s.node) != c.bubble_map.end()){
-            if (seen_entries.find(s.node->get_site()) != seen_entries.end()) continue;
-            else seen_entries.insert(s.node->get_site());
+            if (seen_entries.find(s.node->get_site_ID()) != seen_entries.end()) continue;
+            else seen_entries.insert(s.node->get_site_ID());
         }
         if (s.node == prev) continue;
         auto sequence_size = s.node->get_sequence_size();
@@ -202,7 +202,7 @@ TEST_F(cov_G_Builder_nested, Bubble_Positions){
     int pos = -1;
     for (auto const &s : rand_access) {
         pos++;
-        Marker site_ID = s.node->get_site();
+        Marker site_ID = s.node->get_site_ID();
         try{
             bool is_site_entry = c.bubble_starts.at(site_ID) == s.node;
             bool is_site_exit = c.bubble_ends.at(site_ID) == s.node;
@@ -311,12 +311,12 @@ TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
 
     for (auto const &s : c.random_access) {
         if (c.bubble_map.find(s.node) != c.bubble_map.end()) {
-            if (seen_entries.find(s.node->get_site()) != seen_entries.end()) {
+            if (seen_entries.find(s.node->get_site_ID()) != seen_entries.end()) {
                 // Case: at the entry node for the at least second time
-                seen_entries.at(s.node->get_site())++;
+                seen_entries.at(s.node->get_site_ID())++;
             }
             // Case: at the entry node for the first time
-            else seen_entries.insert({s.node->get_site(), 0});
+            else seen_entries.insert({s.node->get_site_ID(), 0});
         }
     }
 
