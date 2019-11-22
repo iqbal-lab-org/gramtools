@@ -11,6 +11,84 @@
 using namespace gram;
 using namespace gram::coverage::per_base;
 
+
+TEST(AlleleBaseCoverageDump, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {
+    SitesAlleleBaseCoverage allele_base_coverage = {
+            AlleleCoverage{
+                    BaseCoverage{1, 12},
+                    BaseCoverage{0, 3, 0},
+            },
+            AlleleCoverage{
+                    BaseCoverage{0},
+                    BaseCoverage{0, 19, 0},
+            },
+    };
+    auto result = dump_allele_base_coverage(allele_base_coverage);
+    std::string expected = "{\"allele_base_counts\":[[[1,12],[0,3,0]],[[0],[0,19,0]]]}";
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(AlleleBaseCoverageDump, GivenSingleSiteAlleleBaseCoverage_CorrectJsonDump) {
+    SitesAlleleBaseCoverage allele_base_coverage = {
+            AlleleCoverage{
+                    BaseCoverage{1, 12},
+                    BaseCoverage{0, 3, 0},
+            }
+    };
+    auto result = dump_allele_base_coverage(allele_base_coverage);
+    std::string expected = "{\"allele_base_counts\":[[[1,12],[0,3,0]]]}";
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(AlleleBaseCoverageDump, GivenEmptyAlleleBaseCoverage_CorrectJsonDump) {
+    SitesAlleleBaseCoverage allele_base_coverage = {};
+    auto result = dump_allele_base_coverage(allele_base_coverage);
+    std::string expected = "{\"allele_base_counts\":[]}";
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AlleleBaseCoverageStructure, GivenNestedCovGraph_EmptyStructure){
+    auto prg_raw = prg_string_to_ints("[AC[TG,CC]T,T]A");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    SitesAlleleBaseCoverage expected{};
+    Coverage actual = coverage::generate::empty_structure(prg_info);
+    EXPECT_EQ(actual.allele_base_coverage, expected);
+}
+
+TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphOneSite_CorrectStructure){
+    auto prg_raw = encode_prg("ac5gg6ga6ccc6c6aaa");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    SitesAlleleBaseCoverage expected{
+        AlleleCoverage{
+                BaseCoverage{0, 0}, BaseCoverage{0, 0},
+                BaseCoverage{0, 0, 0}, BaseCoverage{0}
+        }
+    };
+    Coverage actual = coverage::generate::empty_structure(prg_info);
+    EXPECT_EQ(actual.allele_base_coverage, expected);
+}
+
+TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphTwoSites_CorrectStructure){
+    auto prg_raw = encode_prg("ac5a6c6tt6atg7gggg8g8cc");
+    auto prg_info = generate_prg_info(prg_raw);
+
+    SitesAlleleBaseCoverage expected{
+            AlleleCoverage{
+                    BaseCoverage{0}, BaseCoverage{0},
+                    BaseCoverage{0, 0}
+            },
+            AlleleCoverage{
+                BaseCoverage{0, 0, 0, 0}, BaseCoverage{0}
+            }
+    };
+    Coverage actual = coverage::generate::empty_structure(prg_info);
+    EXPECT_EQ(actual.allele_base_coverage, expected);
+}
+
 TEST(DummyCovNode, BuildWithSizeSmallerThanEndCoord_ThrowsException){
    EXPECT_THROW(DummyCovNode(0, 5, 3), InconsistentCovNodeCoordinates);
 }

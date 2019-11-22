@@ -10,32 +10,25 @@ using namespace gram::coverage::per_base;
 
 
 SitesAlleleBaseCoverage gram::coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
+    // If graph is nested, this data structure cannot be populated correctly, so return it empty by convention
+    if (prg_info.coverage_graph.is_nested) return SitesAlleleBaseCoverage{};
+
     uint64_t number_of_variant_sites = prg_info.num_variant_sites;
     SitesAlleleBaseCoverage allele_base_coverage(number_of_variant_sites);
 
+    Marker site_ID;
     const auto min_boundary_marker = 5;
 
-    uint64_t allele_size = 0;
-    Marker last_marker = 0;
+    for (auto const& bubble_entry : prg_info.coverage_graph.bubble_map){
+        site_ID = bubble_entry.first->get_site_ID();
+        auto site_ID_corresp_index = (site_ID - min_boundary_marker) / 2;
+        AlleleCoverage& referent = allele_base_coverage.at(site_ID_corresp_index);
 
-    // Traverse the sites mask, in order to identify alleles.
-    for (const auto &mask_value: prg_info.sites_mask) {
-        auto within_allele = mask_value != 0;
-        if (within_allele) {
-            allele_size += 1;
-            last_marker = mask_value;
-            continue;
+        for (auto const& allele_node : bubble_entry.first->get_edges()){
+            assert(allele_node->is_in_bubble());
+            // Add as many 0's in the allele as there are bases in the node
+           referent.emplace_back(BaseCoverage(allele_node->get_sequence_size()));
         }
-
-        auto no_allele_to_flush = allele_size == 0;
-        if (no_allele_to_flush)
-            continue;
-
-        // Store room aside for the allele
-        BaseCoverage bases(allele_size);
-        uint64_t variant_site_cover_index = (last_marker - min_boundary_marker) / 2;
-        allele_base_coverage.at(variant_site_cover_index).emplace_back(bases);
-        allele_size = 0;
     }
     return allele_base_coverage;
 }
