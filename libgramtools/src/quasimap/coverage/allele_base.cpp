@@ -172,30 +172,18 @@ void sa_index_allele_base_coverage(Coverage &coverage,
     }
 }
 
+void coverage::record::allele_base(PRG_Info const &prg_info, const SearchStates &search_states,
+                                   const uint64_t &read_length) {
 
+    PbCovRecorder record_it{prg_info, search_states, read_length};
+}
+
+/*
 void coverage::record::allele_base(Coverage &coverage,
                                    const SearchStates &search_states,
                                    const uint64_t &read_length,
                                    const PRG_Info &prg_info) {
     SitesCoverageBoundaries sites_coverage_boundaries;
-
-    /*
-     class NodeImprint{
-        cov_Node* referent;
-        uint32_t start;
-         uint32_t end;
-         bool full; // if end-start + 1 == referent.coverage.size()
-     }
-
-     class pbcovRecorder{
-         void generate_imprints(SearchState const& ss);
-         void record_coverage(corresp);
-
-         cov_graph* cov_graph;
-         std::map<cov_Node*, NodeImprint> corresp;
-         SearchStates input_ss;
-     };
-     */
 
     for (const auto &search_state: search_states) {
         if (search_state.traversed_path.empty())
@@ -214,6 +202,7 @@ void coverage::record::allele_base(Coverage &coverage,
                                           prg_info);
     }
 }
+ */
 
 /**
  * String serialise the base coverages for one allele.
@@ -373,8 +362,8 @@ void Traverser::choose_allele() {
 }
 
 
-PbCovRecorder::PbCovRecorder(PRG_Info& prg_info, SearchStates const& search_states,
-       std::size_t read_size)
+PbCovRecorder::PbCovRecorder(const PRG_Info &prg_info, SearchStates const &search_states,
+                             std::size_t read_size)
 : prg_info(&prg_info), read_size(read_size){
         for (auto const& search_state : search_states) process_SearchState(search_state);
         write_coverage_from_dummy_nodes();

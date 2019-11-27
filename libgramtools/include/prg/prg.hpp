@@ -29,7 +29,7 @@ namespace gram {
         marker_vec encoded_prg;
         marker_map last_allele_positions;
         
-        coverage_Graph coverage_graph;
+        mutable coverage_Graph coverage_graph;
 
         sdsl::int_vector<> sites_mask; /**< Stores the site number at each allele position. Variant markers and outside variant sites get 0.*/
         sdsl::int_vector<> allele_mask; /**< Stores the allele index at each allele position. Variant markers and outside variant sites get 0. */

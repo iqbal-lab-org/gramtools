@@ -26,10 +26,10 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/unordered_map.hpp>
-#include "quasimap/coverage/types.hpp"
 
 using namespace gram;
 using seqPos = int32_t;
+using BaseCoverage = std::vector<uint16_t>; /**< Number of reads mapped to each base of an allele */
 
 /**
  * The building blocks of a `coverage_Graph`

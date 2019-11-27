@@ -27,10 +27,9 @@ namespace gram {
              * `SearchStates`, can have different mapping instances going through the same `VariantLocus`.
              * The `SitesCoverageBoundaries` structure avoids recording the same base more than once in that case.
              */
-            void allele_base(Coverage &coverage,
+            void allele_base(const PRG_Info &prg_info,
                              const SearchStates &search_states,
-                             const uint64_t &read_length,
-                             const PRG_Info &prg_info);
+                             const uint64_t &read_length);
         }
 
         namespace dump {
@@ -172,7 +171,7 @@ namespace gram {
 
             class PbCovRecorder{
             public:
-                PbCovRecorder(PRG_Info& prg_info, SearchStates const& search_states,
+                PbCovRecorder(PRG_Info const& prg_info, SearchStates const& search_states,
                         std::size_t read_size);
 
                 // Testing-related constructors
@@ -190,7 +189,7 @@ namespace gram {
 
             private:
                 realCov_to_dummyCov cov_mapping;
-                PRG_Info* prg_info; // non-const: we will add coverage in nodes of its coverage_Graph.
+                PRG_Info const* prg_info; // non-const: we will add coverage in nodes of its coverage_Graph.
                 std::size_t read_size;
             };
         }
