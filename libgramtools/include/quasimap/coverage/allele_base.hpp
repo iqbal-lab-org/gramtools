@@ -15,9 +15,10 @@ namespace gram {
         namespace generate {
             /**
              * Produce base-level coverage recording structure.
+             * The structure is 'flat' so cannot be populated, and returns empty, for a nested PRG.
              * @see types.hpp
              */
-            SitesAlleleBaseCoverage allele_base_structure(const PRG_Info &prg_info);
+            SitesAlleleBaseCoverage allele_base_non_nested(const PRG_Info &prg_info);
         }
 
 
@@ -27,9 +28,9 @@ namespace gram {
              * `SearchStates`, can have different mapping instances going through the same `VariantLocus`.
              * The `SitesCoverageBoundaries` structure avoids recording the same base more than once in that case.
              */
-            void allele_base(const PRG_Info &prg_info,
-                             const SearchStates &search_states,
-                             const uint64_t &read_length);
+            void allele_base(PRG_Info const& prg_info,
+                             SearchStates const& search_states,
+                             uint64_t const& read_length);
         }
 
         namespace dump {

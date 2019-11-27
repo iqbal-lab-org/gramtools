@@ -9,7 +9,7 @@ using namespace gram;
 using namespace gram::coverage::per_base;
 
 
-SitesAlleleBaseCoverage gram::coverage::generate::allele_base_structure(const PRG_Info &prg_info) {
+SitesAlleleBaseCoverage gram::coverage::generate::allele_base_non_nested(const PRG_Info &prg_info) {
     // If graph is nested, this data structure cannot be populated correctly, so return it empty by convention
     if (prg_info.coverage_graph.is_nested) return SitesAlleleBaseCoverage{};
 
@@ -27,7 +27,7 @@ SitesAlleleBaseCoverage gram::coverage::generate::allele_base_structure(const PR
         for (auto const& allele_node : bubble_entry.first->get_edges()){
             assert(allele_node->is_in_bubble());
             // Add as many 0's in the allele as there are bases in the node
-           referent.emplace_back(BaseCoverage(allele_node->get_sequence_size()));
+           referent.emplace_back(BaseCoverage(allele_node->get_coverage()));
         }
     }
     return allele_base_coverage;
@@ -348,15 +348,20 @@ void Traverser::move_past_single_edge_node(){
 }
 
 void Traverser::assign_end_position() {
+    end_pos = 0;
     std::size_t seq_size = cur_Node->get_sequence_size();
-    end_pos = std::min(seq_size - 1, start_pos + bases_remaining - 1);
+    if (seq_size > 0) end_pos = std::min(seq_size - 1, start_pos + bases_remaining - 1);
 }
 
 void Traverser::choose_allele() {
     auto traversed_locus = traversed_loci[traversed_index];
     auto site_id{traversed_locus.first}, allele_id{traversed_locus.second};
     auto next_node = cur_Node->get_edges()[allele_id - 1];
-    assert(next_node->get_site_ID() == site_id && next_node->get_allele_ID() == allele_id);
+
+    // Check site & allele consistency
+    if (next_node->has_sequence()){
+        assert(next_node->get_site_ID() == site_id && next_node->get_allele_ID() == allele_id);
+    }
 
     cur_Node = next_node;
 }
@@ -419,6 +424,7 @@ void PbCovRecorder::record_full_traversal(Traverser& t){
 }
 
 void PbCovRecorder::process_Node(covG_ptr cov_node, node_coordinate start_pos, node_coordinate end_pos){
+    if (! cov_node->has_sequence()) return; // Skips double site entries, where `cov_node` is a no-sequence bubble entry
     if (cov_mapping.find(cov_node) == cov_mapping.end()){
         std::size_t cov_node_size = cov_node->get_sequence_size();
         DummyCovNode new_dummy_cov_node{start_pos, end_pos, cov_node_size};

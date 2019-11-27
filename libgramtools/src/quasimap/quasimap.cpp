@@ -5,6 +5,7 @@
 #include "quasimap/search/BWT_search.hpp"
 #include "quasimap/search/vBWT_jump.hpp"
 #include "quasimap/coverage/common.hpp"
+#include "quasimap/coverage/allele_base.hpp"
 
 #include <omp.h>
 
@@ -72,7 +73,10 @@ QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
     
     //Compute read mapping statistics (used in `infer` command)
     readstats.compute_coverage_depth(coverage);
-    
+
+    // Extract non-nested per base coverage
+    coverage.allele_base_coverage = coverage::generate::allele_base_non_nested(prg_info);
+
     // Write coverage results to disk
     coverage::dump::all(coverage, parameters);
     return quasimap_stats;

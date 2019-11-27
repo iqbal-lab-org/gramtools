@@ -54,8 +54,8 @@ TEST(AlleleBaseCoverageStructure, GivenNestedCovGraph_EmptyStructure){
     auto prg_info = generate_prg_info(prg_raw);
 
     SitesAlleleBaseCoverage expected{};
-    Coverage actual = coverage::generate::empty_structure(prg_info);
-    EXPECT_EQ(actual.allele_base_coverage, expected);
+    auto actual = coverage::generate::allele_base_non_nested(prg_info);
+    EXPECT_EQ(actual, expected);
 }
 
 TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphOneSite_CorrectStructure){
@@ -68,8 +68,8 @@ TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphOneSite_CorrectStructure
                 BaseCoverage{0, 0, 0}, BaseCoverage{0}
         }
     };
-    Coverage actual = coverage::generate::empty_structure(prg_info);
-    EXPECT_EQ(actual.allele_base_coverage, expected);
+    auto actual = coverage::generate::allele_base_non_nested(prg_info);
+    EXPECT_EQ(actual, expected);
 }
 
 TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphTwoSites_CorrectStructure){
@@ -85,8 +85,8 @@ TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphTwoSites_CorrectStructur
                 BaseCoverage{0, 0, 0, 0}, BaseCoverage{0}
             }
     };
-    Coverage actual = coverage::generate::empty_structure(prg_info);
-    EXPECT_EQ(actual.allele_base_coverage, expected);
+    auto actual = coverage::generate::allele_base_non_nested(prg_info);
+    EXPECT_EQ(actual, expected);
 }
 
 TEST(DummyCovNode, BuildWithSizeSmallerThanEndCoord_ThrowsException){
