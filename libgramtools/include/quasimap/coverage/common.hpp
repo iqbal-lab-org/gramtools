@@ -1,3 +1,8 @@
+/** @file
+ * Major role is to expose functions to select mapping instances of a read according to their equivalence classes,
+ * and call coverage recording functions on selection.
+ * Also has functions to set up the coverage recording structures other than coverage_Graph
+ */
 #include "quasimap/search_types.hpp"
 #include "quasimap/coverage/types.hpp"
 
@@ -13,7 +18,7 @@ namespace gram {
     namespace coverage {
         namespace record {
             /**
-             * Selects read mappings and records coverage information.
+             * Selects read mappings and records all coverage information.
              * @see selection()
              */
             void search_states(Coverage &coverage,
@@ -60,14 +65,22 @@ namespace gram {
     };
 
     using SitePath = std::set<Marker>;
+    /**
+     * A set of site marker IDs signalling non-nested bubbles. One set defines an equivalence class.
+     */
+    using level0_Sites = std::set<Marker>;
     using uniqueLoci = std::set<VariantLocus>;
-
 
     using info_ptr = PRG_Info const* const;
     using rand_ptr = RandomGenerator *const;
 
     /**
-     * Class whose purpose it is to find the set of (nested) Loci supported by a `SearchState`
+     * Finds the set of (nested) Loci supported by a `SearchState`.
+     *
+     * Key attributes are:
+     *  - base_sites: a `level0_Sites`. Each distinct `level0_Sites` defines an equivalence class.
+     *  - unique_loci: this is a set of `VariantLocus` that the processed `SearchState` is compatible with
+     *  (data struct: `uniqueLoci`).
      */
     class LocusFinder{
     public:
@@ -82,7 +95,7 @@ namespace gram {
 
         /**
          * Takes a `VariantLocus` and registers it as well as all sites it is nested
-         * within, up to a base site.
+         * within, up to a level 0 site.
          */
         void assign_nested_locus(VariantLocus const& var_loc, info_ptr info_ptr);
 
@@ -96,7 +109,7 @@ namespace gram {
         void assign_traversed_loci(SearchState const& search_state, info_ptr prg_info);
         void assign_traversed_loci(){assign_traversed_loci(this->search_state, this->prg_info);}
 
-        SitePath base_sites; /**< 'Level 0' nesting sites; they form the basis for `SearchState` selection */
+        level0_Sites base_sites; /**< Form the basis for `SearchState` selection */
         SitePath used_sites; /**< For remembering which sites have already been processed */
         uniqueLoci unique_loci; /**< For grouped allele counts coverage recording */
     private:
@@ -104,17 +117,33 @@ namespace gram {
         info_ptr prg_info;
     };
 
+    /**
+     * Models an equivalence class: a list of `SearchState`s that are all compatible with the same level 0 sites.
+     * The second member, `uniqueLoci`, is the set of all `VariantLocus` that the `SearchStates` are compatible with.
+     */
     using traversal_info = std::pair<SearchStates, uniqueLoci>;
-    using uniqueSitePaths = std::map<SitePath, traversal_info>;
+    /**
+     * Models a set of equivalence classes: each `level0_Sites` is a set of site markers at level 0, ie non-nested bubbles.
+     * This data structure is the basis for:
+     *  -Dispatching `SearchState`s into their equivalence class
+     *  -Random selection of one equivalence class.
+     */
+    using uniqueSitePaths = std::map<level0_Sites, traversal_info>;
 
     struct SelectedMapping{
-        SearchStates navigational_search_states; /**< for recording per base coverage*/
-        uniqueLoci equivalence_class_loci; /**< for recording grouped allele count coverage*/
+        SearchStates navigational_search_states; /**< Use: recording per base coverage*/
+        uniqueLoci equivalence_class_loci; /**< Use: recording grouped allele count and allele sum coverage*/
     };
 
+    /**
+     * Takes a set of `SearchState`s, dispatches them into equivalence classes, and randomly selects
+     * equivalent mapping instances of the read.
+     *
+     * The basis for selection is the set of `level0_Sites` in `usps`.
+     */
     class MappingInstanceSelector{
     public:
-        uniqueSitePaths usps; /**< For storing all the information prior to selection*/
+        uniqueSitePaths usps; /**< Key dispatching and selection object.*/
 
         // Constructors
         MappingInstanceSelector() : prg_info(nullptr), rand_generator(nullptr){}
@@ -124,11 +153,20 @@ namespace gram {
         void add_searchstates(SearchStates const& ss);
         void add_searchstates() {add_searchstates(input_search_states);}
 
+        /**
+         * Dispatches a `SearchState` into `usps` using `LocusFinder`.
+         */
         void add_searchstate(SearchState const& ss);
 
         uint32_t count_nonvar_search_states(SearchStates const& search_states);
         uint32_t count_nonvar_search_states(){count_nonvar_search_states(input_search_states);}
 
+        /**
+         * Selects from the set of mapping instances of a read in the PRG.
+         * Can select either:
+         *  - A non-variant mapping instance: no coverage is recorded
+         *  - An equivalence class of `SearchState`s: coverage is recorded for those `SearchState`s.
+         */
         int32_t random_select_entry();
         void apply_selection(int32_t selected_index);
         SelectedMapping get_selection(){return selected;}
@@ -138,14 +176,6 @@ namespace gram {
         info_ptr prg_info;
         rand_ptr rand_generator;
     };
-
-    /**
-     * Some `SearchState`s may still have unknown allele ids. This function sets those.
-     * Modifies the `SearchStates` in place.
-     * [TODO]: this is legacy code that does not allow nesting and is only used prior to coverage_Graph pb cov recording
-     */
-    void set_allele_ids(SearchStates &search_states,
-                        const PRG_Info &prg_info);
 }
 
 #endif //GRAMTOOLS_COVERAGE_COMMON_HPP

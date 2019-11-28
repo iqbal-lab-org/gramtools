@@ -139,8 +139,11 @@ void MappingInstanceSelector::add_searchstate(SearchState const& ss){
     LocusFinder l{ss, prg_info};
     // Create or retrieve the coverage information
     auto& cov_info = usps[l.base_sites];
-    // Merge each locus to the existing coverage information
+
+    // Merge each `VariantLocus` into the existing set of unique `VariantLocus`
     for (auto& locus : l.unique_loci) cov_info.second.insert(locus);
+
+    // Add the `SearchState` to the list of `SearchStates` compatible with the `base_sites`
     cov_info.first.push_back(ss);
 }
 
@@ -187,37 +190,6 @@ SelectedMapping selection(const SearchStates &search_states,
     return selected;
 }
 
-void gram::set_allele_ids(SearchStates &search_states,
-                          const PRG_Info &prg_info) {
-
-    for (auto &search_state: search_states) {
-        // If the variant site path is empty, we cannot have an unknown allele id.
-        if (!search_state.traversing_path.empty()) {
-
-            auto last = search_state.traversing_path.back();
-            search_state.traversing_path.pop_back();
-            assert(search_state.traversing_path.size() == 0);
-
-            for (int SA_pos = search_state.sa_interval.first; SA_pos <= search_state.sa_interval.second; SA_pos++) {
-                auto new_search_state = search_state;
-                // Find out allele id
-                auto text_pos = prg_info.fm_index[SA_pos];
-                auto allele_id = prg_info.allele_mask[text_pos];
-                last.second = allele_id;
-
-                new_search_state.traversed_path.emplace_back(last);
-                new_search_state.sa_interval = SA_Interval{SA_pos, SA_pos};
-
-                if (SA_pos != search_state.sa_interval.second){ // Case: add to the set of search states
-                    search_states.emplace_back(new_search_state);
-                }
-                else search_state = new_search_state; // Case: end of the iteration; modify the search state in place.
-            }
-        }
-    }
-}
-
-
 void coverage::record::search_states(Coverage &coverage,
                                      const SearchStates &search_states,
                                      const uint64_t &read_length,
@@ -230,8 +202,6 @@ void coverage::record::search_states(Coverage &coverage,
 
     // If we selected a mapping instance that does not overlap any variant site, there is no coverage to record.
     if (selected_search_states.navigational_search_states.size() == 0) return;
-
-    //set_allele_ids(selected_search_states.navigational_search_states, prg_info);
 
     coverage::record::allele_base(prg_info, selected_search_states.navigational_search_states,
                                   read_length);

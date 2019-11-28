@@ -26,7 +26,6 @@ namespace gram {
             /**
              * Record base-level coverage for selected `SearchStates`.
              * `SearchStates`, can have different mapping instances going through the same `VariantLocus`.
-             * The `SitesCoverageBoundaries` structure avoids recording the same base more than once in that case.
              */
             void allele_base(PRG_Info const& prg_info,
                              SearchStates const& search_states,
@@ -85,6 +84,11 @@ namespace gram {
                 std::string msg;
             };
 
+            /**
+             * Models a `coverage_Node`, with start and end positions (0-based, inclusive) of base coverage entries
+             * to increment. These positions get extended by a `Traverser` processing a `SearchState` and at the end
+             * of `SearchStates` processing coverage is actually incremented.
+             */
             class DummyCovNode{
             public:
                 DummyCovNode() = default;
@@ -105,6 +109,10 @@ namespace gram {
                 std::size_t node_size;
             };
 
+            /**
+             * Ties together a `coverage_Node` to the `DummyCovNode` representing which of its
+             * bases need coverage incremented.
+             */
             using realCov_to_dummyCov = std::map<covG_ptr, DummyCovNode>;
 
             /**
@@ -170,6 +178,10 @@ namespace gram {
                 node_coordinate end_pos;
             };
 
+            /**
+             * Uses `Traverser` to collect per-base coverage implied by search_states and add the coverage
+             * to the `coverage_Graph`.
+             */
             class PbCovRecorder{
             public:
                 PbCovRecorder(PRG_Info const& prg_info, SearchStates const& search_states,
@@ -182,7 +194,11 @@ namespace gram {
                         prg_info(&prg_info), read_size(read_size){}
 
                 void process_SearchState(SearchState const& ss);
-                void record_full_traversal(Traverser& t);
+                void record_full_traversal(Traverser& t); /**< Processes all traversed_loci of a `SearchState`.*/
+                /**
+                 * Creates of extends a `DummyCovNode` based on the `Traverser`'s currently traversed `coverage_Node`
+                 * in the `coverage_Graph`.
+                 */
                 void process_Node(covG_ptr cov_node, node_coordinate start_pos, node_coordinate end_pos);
                 void write_coverage_from_dummy_nodes();
 

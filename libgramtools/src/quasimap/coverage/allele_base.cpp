@@ -35,7 +35,6 @@ SitesAlleleBaseCoverage gram::coverage::generate::allele_base_non_nested(const P
 
 void coverage::record::allele_base(PRG_Info const &prg_info, const SearchStates &search_states,
                                    const uint64_t &read_length) {
-
     PbCovRecorder record_it{prg_info, search_states, read_length};
 }
 
