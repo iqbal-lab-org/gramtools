@@ -14,7 +14,7 @@ namespace gram {
     namespace coverage {
         namespace generate {
             /**
-             * Produce base-level coverage recording structure.
+             * Produces base-level coverage recording structure and populates it with coverage from the `coverage_Graph`
              * The structure is 'flat' so cannot be populated, and returns empty, for a nested PRG.
              * @see types.hpp
              */
