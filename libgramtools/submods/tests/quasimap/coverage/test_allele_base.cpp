@@ -7,6 +7,7 @@
 #include "quasimap/coverage/allele_base.hpp"
 #include "quasimap/coverage/common.hpp"
 #include "quasimap/quasimap.hpp"
+#include "tests/common.hpp"
 
 using namespace gram;
 using namespace gram::coverage::per_base;
@@ -283,7 +284,6 @@ TEST(PbCovRecorder_NodeProcessing, ProcessExistingCovNode_CorrectlyUpdatedDummyC
 /**
  * Tests full coverage recording by inspecting `DummyCovNode`s and `coverage_Node`s
  */
-using prg_positions = std::vector<std::size_t>;
 using dummy_cov_nodes = std::vector<DummyCovNode>;
 
 dummy_cov_nodes collect_dummy_cov_nodes(coverage_Graph const& cov_graph, prg_positions positions,
@@ -302,18 +302,6 @@ dummy_cov_nodes collect_dummy_cov_nodes(coverage_Graph const& cov_graph, prg_pos
 }
 
 
-AlleleCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions){
-    AlleleCoverage result(positions.size());
-    covG_ptr accessed_node;
-    std::size_t index{0};
-
-    for (auto& pos : positions) {
-        accessed_node = cov_graph.random_access[pos].node;
-        result[index] = accessed_node->get_coverage();
-        index++;
-    }
-    return result;
-}
 
 
 /*
@@ -373,7 +361,7 @@ protected:
 };
 
 TEST_F(PbCovRecorder_TwoSitesNoNesting, ReadCoversTwoSites_CorrectCoverageNodes) {
-    //PRG: "GCT5C6G6T6AG7T8CC8CT" ; Read: "CTGAGC"
+    //PRG: "gCT5c6G6t6AG7t8Cc8ct" ; Read: "CTGAGC"
     PbCovRecorder{prg_info, SearchStates{read_1}, read1_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 

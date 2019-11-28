@@ -21,6 +21,7 @@
 #include "common/utils.hpp"
 #include "quasimap/search/BWT_search.hpp"
 #include "quasimap/coverage/allele_base.hpp"
+#include "tests/common.hpp"
 
 using namespace gram;
 
@@ -259,28 +260,6 @@ TEST(Coverage, ReadEntirelyWithinAllele_CoverageRecorded) {
     EXPECT_EQ(result, expected);
 }
 
-
-/*
-PRG: AC5T6CAGTAGTC6TA
-i	BWT	SA	text_suffix
-0	A	16
-1	T	15	A
-2	0	0	A C 5 T 6 C A G T A G T C 6 T A
-3	C	6	A G T A G T C 6 T A
-4	T	9	A G T C 6 T A
-5	6	5	C A G T A G T C 6 T A
-6	A	1	C 5 T 6 C A G T A G T C 6 T A
-7	T	12	C 6 T A
-8	A	7	G T A G T C 6 T A
-9	A	10	G T C 6 T A
-10	6	14	T A
-11	G	8	T A G T C 6 T A
-12	G	11	T C 6 T A
-13	5	3	T 6 C A G T A G T C 6 T A
-14	C	2	5 T 6 C A G T A G T C 6 T A
-15	T	4	6 C A G T A G T C 6 T A
-16	C	13	6 T A
-*/
 
 TEST(Coverage, ReadMapsWithinAllele_SumCoverageIsOne) {
     Patterns kmers = {
@@ -834,30 +813,157 @@ TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
     EXPECT_EQ(result_exit_entry, expected_exit_entry);
 }
 
-TEST(Coverage_Nested, DoubleNesting_CorrectCoverage){
-    Pattern kmer = encode_dna_bases("CTA");
-    Patterns kmers = {kmer};
+class Coverage_Nested_DoubleNesting : public ::testing::Test {
+    // Double nesting meaning a bubble inside a bubble inside a bubble
+protected:
+    void SetUp() {
+        Pattern kmer = encode_dna_bases("TA");
+        Patterns kmers = {kmer};
+        setup.setup_nested("A[[A[CCC,c],t],g]TA", kmers);
+    }
     prg_setup setup;
-    setup.setup_nested("A[[A[CCC,c],t],g]TA", kmers);
+    prg_positions positions{0, 3, 5, 9, 12, 15, 17}; // All the nodes in the cov graph with sequence
 
-    auto read1 = encode_dna_bases("AACCCTA");
+    Pattern read1 = encode_dna_bases("AACCCTA");
+    Pattern read2 = encode_dna_bases("CTA");
+};
+
+TEST_F(Coverage_Nested_DoubleNesting, ReadEndsInsideNestedSite_CorrectCoverage){
+    // PRG: "A[[A[CCC,c],t],g]TA"; Read: "AACCCTA"
     quasimap_read(read1, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
-    const auto &result = setup.coverage.grouped_allele_counts;
+    const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
     // The read is compatible with the first allele of all three sites in the PRG
-    SitesGroupedAlleleCounts expected = {
+    SitesGroupedAlleleCounts expectedGpAlCounts = {
             GroupedAlleleCounts {{AlleleIds {0}, 1}},
             GroupedAlleleCounts {{AlleleIds {0}, 1}},
             GroupedAlleleCounts {{AlleleIds {0}, 1}},
     };
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
 
-    // This read is also compatible with the same sites above
-    auto read2 = encode_dna_bases("CCTA");
+    auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
+    AlleleCoverage expectedPbCov{
+      BaseCoverage{}, BaseCoverage{1}, BaseCoverage{1, 1, 1},
+      BaseCoverage{0}, BaseCoverage{0}, BaseCoverage{0},
+      BaseCoverage{}
+    };
+    EXPECT_EQ(PbCov, expectedPbCov);
+}
 
-    setup.coverage = coverage::generate::empty_structure(setup.prg_info); // Clear out coverage
-    EXPECT_NE(result, expected); // Make sure coverage has been invalidated
+TEST_F(Coverage_Nested_DoubleNesting, ReadMultiMaps_CorrectCoverage){
+    // PRG: "A[[A[CCC,c],t],g]TA"; Read: "CTA"
+    quasimap_read(read2, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
+
+    const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
+    // The read is compatible with the two alleles of the most nested site in the PRG string
+    SitesGroupedAlleleCounts expectedGpAlCounts = {
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
+    };
+    EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
+
+    auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
+    AlleleCoverage expectedPbCov{
+            BaseCoverage{}, BaseCoverage{0}, BaseCoverage{0, 0, 1},
+            BaseCoverage{1}, BaseCoverage{0}, BaseCoverage{0},
+            BaseCoverage{}
+    };
+    EXPECT_EQ(PbCov, expectedPbCov);
+}
+
+
+class Coverage_Nested_SingleNestingPlusSNP : public ::testing::Test {
+protected:
+    void SetUp() {
+        Patterns kmers = {
+                encode_dna_bases("C"),
+                encode_dna_bases("G"),
+                encode_dna_bases("T"),
+        };
+        setup.setup_nested("a[t[tt,t]t,a[at,]a]g[c,g]", kmers);
+    }
+    prg_setup setup;
+    prg_positions positions{0, 2, 4, 7, 9, 11, 13, 17, 19, 21, 23}; // All the nodes in the cov graph with sequence
+
+    Pattern read1 = encode_dna_bases("ATTTTGC");
+    Pattern read2 = encode_dna_bases("TT");
+    Pattern read3 = encode_dna_bases("AAAGG");
+};
+
+TEST_F(Coverage_Nested_SingleNestingPlusSNP, FullyCrossingRead_CorrectCoverage){
+    //PRG: "A[T[TT,T]T,a[at,]a]G[C,g]" ; Read: "ATTTTGC"
+    quasimap_read(read1, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
+
+    const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
+    // The read is compatible with the two alleles of the most nested site in the PRG string
+    SitesGroupedAlleleCounts expectedGpAlCounts = {
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
+            GroupedAlleleCounts {},
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
+    };
+    EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
+
+    auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
+    AlleleCoverage expectedPbCov{
+            BaseCoverage{},
+            BaseCoverage{1}, BaseCoverage{1, 1}, BaseCoverage{0}, BaseCoverage{1},
+            BaseCoverage{0}, BaseCoverage{0, 0}, BaseCoverage{0},
+            BaseCoverage{},
+            BaseCoverage{1}, BaseCoverage{0}
+    };
+    EXPECT_EQ(PbCov, expectedPbCov);
+}
+
+TEST_F(Coverage_Nested_SingleNestingPlusSNP, VeryMultiMappingRead_CorrectCoverage) {
+    //PRG: "A[T[TT,T]T,a[at,]a]G[C,g]" ; Read: "TT"
+    // This read should have 5 mapping instances: one is encapsulated(=empty traversing and traversed),
+    // two are in 'traversing' mode, two are in 'traversed' mode. All are encapsulated inside site 0 as well.
 
     quasimap_read(read2, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
-    EXPECT_EQ(result, expected);
+
+    const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
+    // The read is compatible with the two alleles of the most nested site in the PRG string
+    SitesGroupedAlleleCounts expectedGpAlCounts = {
+            GroupedAlleleCounts {{AlleleIds {0}, 1}},
+            GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
+            GroupedAlleleCounts {},
+            GroupedAlleleCounts {},
+    };
+    EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
+
+    auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
+    AlleleCoverage expectedPbCov{
+            BaseCoverage{},
+            BaseCoverage{1}, BaseCoverage{1, 1}, BaseCoverage{1}, BaseCoverage{1},
+            BaseCoverage{0}, BaseCoverage{0, 0}, BaseCoverage{0},
+            BaseCoverage{},
+            BaseCoverage{0}, BaseCoverage{0}
+    };
+    EXPECT_EQ(PbCov, expectedPbCov);
+}
+
+TEST_F(Coverage_Nested_SingleNestingPlusSNP, MapThroughDirectDeletion_CorrectCoverage) {
+    //PRG: "A[t[tt,t]t,A[at,]A]G[c,G]" ; Read: "AAAGG"
+    quasimap_read(read3, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
+
+    const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
+    SitesGroupedAlleleCounts expectedGpAlCounts = {
+            GroupedAlleleCounts {{AlleleIds {1}, 1}},
+            GroupedAlleleCounts {},
+            GroupedAlleleCounts {{AlleleIds {1}, 1}},
+            GroupedAlleleCounts {{AlleleIds {1}, 1}},
+    };
+    EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
+
+    auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
+    AlleleCoverage expectedPbCov{
+            BaseCoverage{},
+            BaseCoverage{0}, BaseCoverage{0, 0}, BaseCoverage{0}, BaseCoverage{0},
+            BaseCoverage{1}, BaseCoverage{0, 0}, BaseCoverage{1},
+            BaseCoverage{},
+            BaseCoverage{0}, BaseCoverage{1}
+    };
+    EXPECT_EQ(PbCov, expectedPbCov);
 }
