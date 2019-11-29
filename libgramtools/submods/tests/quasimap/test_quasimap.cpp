@@ -560,13 +560,19 @@ TEST(vBWTJump_andBWTExtension, InitiallyInSite_HaveExitedSite) {
     EXPECT_EQ(result, expected);
 }
 
-TEST(SearchStates, StartOufofSiteAndEndInSite_CorrectSearchState) {
-    Pattern kmer = encode_dna_bases("gtcc");
-    Patterns kmers = {kmer};
+class SearchStates_and_Coverage_EndInSite : public::testing::Test{
+protected:
+    void SetUp(){
+        kmer = encode_dna_bases("gtcc");
+        Patterns kmers = {kmer};
+        setup.setup("gcgct5c6g6T6AGTCCt", kmers);
+    }
+    Pattern kmer;
     prg_setup setup;
-    setup.setup("gcgct5c6g6T6AGTCCt", kmers);
+    Pattern read = encode_dna_bases("tagtcc");
+};
 
-    auto read = encode_dna_bases("tagtcc");
+TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectSearchState) {
     auto search_states = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
@@ -576,11 +582,29 @@ TEST(SearchStates, StartOufofSiteAndEndInSite_CorrectSearchState) {
     SA_Interval expected = {14, 14};
     EXPECT_EQ(result, expected);
 
-    auto path_result = search_state.traversed_path;
+    auto path_result = search_state.traversing_path;
     VariantSitePath path_expected = {
-            VariantLocus {5, 3} // TODO: leave in `traversing_path` instead? (here calls `handle_allele_encapsulated`)
+            VariantLocus{5, ALLELE_UNKNOWN}
     };
     EXPECT_EQ(path_result, path_expected);
+}
+
+TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectCoverage) {
+    quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
+
+    const auto &AlSumResult = setup.coverage.allele_sum_coverage;
+    AlleleSumCoverage AlSumExpected = {
+            {0, 0, 1}
+    };
+    EXPECT_EQ(AlSumResult, AlSumExpected );
+
+    auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
+    SitesAlleleBaseCoverage pbCovExpected{
+            AlleleCoverage{
+                    BaseCoverage{0}, BaseCoverage{0}, BaseCoverage{1}
+            }
+    };
+    EXPECT_EQ(pbCovResult, pbCovExpected);
 }
 
 TEST(SearchStates, StartInSiteAndMapOut_CorrectVarLocusPath) {

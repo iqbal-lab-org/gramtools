@@ -42,6 +42,14 @@ namespace gram {
                    and this->traversed_path == other.traversed_path
                    and this->variant_site_state == other.variant_site_state;
         };
+
+        /**
+         * Asks if `SearchState` has crossed any site boundary markers.
+         * If it has not it may still have mapped fully inside an allele.
+         */
+        bool has_path() const{
+            return (! this->traversed_path.empty() || ! this->traversing_path.empty());
+        }
     };
 
     using SearchStates = std::list<SearchState>;

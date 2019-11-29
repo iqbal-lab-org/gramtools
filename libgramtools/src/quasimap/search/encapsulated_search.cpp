@@ -31,8 +31,7 @@ public:
 
 SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_state,
                                                     const PRG_Info &prg_info) {
-    bool has_path = not search_state.traversed_path.empty();
-    assert(not has_path);
+    assert(not search_state.has_path());
 
     SearchStates new_search_states = {};
     SearchStateCache cache;
@@ -41,9 +40,11 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
          sa_index <= search_state.sa_interval.second;
          ++sa_index) {
 
+        // Retrieve site and allele IDs
         auto prg_index = prg_info.fm_index[sa_index];
-        auto site_marker = prg_info.sites_mask[prg_index];
-        auto allele_id = prg_info.allele_mask[prg_index];
+        auto cov_node = prg_info.coverage_graph.random_access[prg_index].node;
+        auto site_marker = cov_node->get_site_ID();
+        auto allele_id = cov_node->get_allele_ID();
 
         bool within_site = site_marker != 0;
         if (not within_site) {
@@ -72,7 +73,8 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
         }
 
         // cache is not empty: if the current SearchState goes through same site and allele,
-        // lengthen the SA interval of cached SearchState
+        // lengthen the SA interval of cached SearchState; saves space.
+        // Note that two encapsulated mapping do NOT have to be (lexicographic ordering) consecutive in the suffix array.
         VariantSitePath current_path = {VariantLocus{site_marker, allele_id}};
         bool cache_has_same_path = current_path == cache.search_state.traversed_path;
         if (cache_has_same_path) {
@@ -97,8 +99,8 @@ SearchStates gram::handle_allele_encapsulated_states(const SearchStates &search_
     SearchStates new_search_states = {};
 
     for (const auto &search_state: search_states) {
-        bool has_path = not search_state.traversed_path.empty();
-        if (has_path) {
+        bool has_a_path = search_state.has_path();
+        if (has_a_path) {
             new_search_states.emplace_back(search_state);
             continue;
         }

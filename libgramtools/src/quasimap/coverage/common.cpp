@@ -10,15 +10,6 @@
 
 using namespace gram;
 
-/**
- * A `SearchState` has a path if either its traversed_path or its traversing_path is non empty
- */
-bool search_state_has_path(SearchState const& search_state){
-    bool has_path = not search_state.traversed_path.empty();
-    has_path = has_path || not search_state.traversing_path.empty();
-    return has_path;
-}
-
 RandomInclusiveInt::RandomInclusiveInt(uint32_t const& random_seed){
     if (random_seed == 0){
         boost::random_device seed_generator;
@@ -149,14 +140,14 @@ void MappingInstanceSelector::add_searchstate(SearchState const& ss){
 
 void MappingInstanceSelector::add_searchstates(SearchStates const& all_ss){
     for (auto const& ss : all_ss){
-        if (search_state_has_path(ss)) add_searchstate(ss);
+        if (ss.has_path()) add_searchstate(ss);
     }
 }
 
 uint32_t MappingInstanceSelector::count_nonvar_search_states(SearchStates const& search_states) {
     uint32_t count = 0;
     for (const auto &search_state: search_states) {
-        bool has_path =  search_state_has_path(search_state);
+        bool has_path =  search_state.has_path();
         if (not has_path)
             // Add all distinct mappings
             count += (search_state.sa_interval.second - search_state.sa_interval.first + 1);
