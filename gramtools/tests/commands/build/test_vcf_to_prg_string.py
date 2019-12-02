@@ -29,28 +29,25 @@ Bugs/Notes:
 
 """
 import filecmp
+from pathlib import Path
 import os
 import subprocess
 import unittest
 
-this_file = os.path.abspath(__file__)
-perl_utility = os.path.abspath(os.path.join(this_file, os.pardir,
-                                            os.pardir, 'utils',
-                                                    'vcf_to_linear_prg.pl'))
-python_utility = os.path.abspath(os.path.join(this_file, os.pardir,
-                                            os.pardir, 'utils',
-                                            'vcf_to_prg_string.py'))
-data_dir = os.path.abspath(os.path.join(this_file, os.pardir, 'data', 'vcf_to_prg_string'))
+base_dir = Path(__file__).parent.parent.parent.parent
+perl_utility = base_dir / 'commands' / 'build' / 'vcf_to_linear_prg.pl'
+python_utility = base_dir / 'commands' / 'build' / 'vcf_to_prg_string.py'
+data_dir = base_dir / 'tests' / 'data' / 'vcf_to_prg_string'
 
 class Utility_Tester(object):
     """
     Initialised with a file prefix, and able to run perl and python utilities.
     """
     def __init__(self, file_prefix):
-        self.vcf_file = os.path.join(data_dir, file_prefix + '.vcf')
-        self.ref_file = os.path.join(data_dir, file_prefix + '.ref.fa')
-        self.expected_prg = os.path.join(data_dir, file_prefix + '.prg')
-        self.expected_vcf = os.path.join(data_dir, file_prefix + '.expect.vcf') # For perl util only
+        self.vcf_file = data_dir / (file_prefix + '.vcf')
+        self.ref_file = data_dir / (file_prefix + '.ref.fa')
+        self.expected_prg = data_dir / (file_prefix + '.prg')
+        self.expected_vcf = data_dir / (file_prefix + '.expect.vcf') # For perl util only
         self.outfile_prefix = 'tmp.' + file_prefix
         self.outfile = self.outfile_prefix + '.prg'
 
@@ -60,9 +57,9 @@ class Utility_Tester(object):
 
         # Test the perl utility
         perl_command = ' '.join([
-            'perl', perl_utility,
-            '--vcf', self.vcf_file,
-            '--ref', self.ref_file,
+            'perl', str(perl_utility),
+            '--vcf', str(self.vcf_file),
+            '--ref', str(self.ref_file),
             '--min_freq 0.01',
             '--outfile', self.outfile,
         ])
@@ -80,9 +77,9 @@ class Utility_Tester(object):
         :return:
         """
         python_command = ' '.join([
-            'python3', python_utility,
-            self.vcf_file,
-            self.ref_file,
+            'python3', str(python_utility),
+            str(self.vcf_file),
+            str(self.ref_file),
             '--outfile', self.outfile_prefix,
             '--mode', mode,
         ])
@@ -99,8 +96,8 @@ class Utility_Tester(object):
 class Test_UtilityScriptsFunction(unittest.TestCase):
     def test_find_utility_script(self):
         """Test that we find the conversion utilities"""
-        self.assertTrue(os.path.exists(perl_utility))
-        self.assertTrue(os.path.exists(python_utility))
+        self.assertTrue(perl_utility.exists())
+        self.assertTrue(python_utility.exists())
 
 
 class Test_VcfToPrgString(unittest.TestCase):

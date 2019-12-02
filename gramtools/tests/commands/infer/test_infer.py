@@ -4,10 +4,11 @@ from unittest.mock import Mock
 import tempfile
 import os
 
-from ...utils import prg_local_parser
-from ..utils import _MockVcfRecord
-from ... import fasta_from_vcf
-from ... import genotyper
+
+from gramtools.utils import prg_local_parser
+from gramtools.commands.infer import genotyper
+from gramtools.commands.infer import fasta_from_vcf
+from ...utils import _MockVcfRecord
 
 def setup_fasta_files(tmpdir, fasta_string):
     fp_in = os.path.join(tmpdir,"test_in.fasta")

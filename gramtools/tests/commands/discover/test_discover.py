@@ -2,9 +2,9 @@ import unittest
 import os
 import collections
 
-from ...commands import discover
-from ..utils import _MockVcfRecord
-from ...utils import prg_local_parser
+from gramtools.commands import discover
+from gramtools.utils import prg_local_parser
+from ...utils import _MockVcfRecord
 
 
 class TestSecondaryRegions(unittest.TestCase):

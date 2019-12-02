@@ -2,7 +2,7 @@ import logging
 import itertools
 import collections
 
-from ..utils import prg_regions_parser
+from . import prg_regions_parser
 
 log = logging.getLogger('gramtools')
 

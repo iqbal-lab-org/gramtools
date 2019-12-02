@@ -5,11 +5,11 @@ import argparse
 import collections
 
 from . import version
-from .commands import build
-from .commands import simulate
+from .commands.build import build
 from .commands import quasimap
-from .commands import infer
+from .commands.infer import infer
 from .commands import discover
+from .commands import simulate
 
 
 def _setup_logging(args):

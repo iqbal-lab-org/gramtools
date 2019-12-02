@@ -1,8 +1,8 @@
 import unittest
 
-from .. import common
-from ...utils import prg_regions_parser
-from ...commands import simulate
+from gramtools.commands.simulate import prg_regions_parser
+from gramtools.commands.simulate import simulate
+from ... import common
 
 
 class TestGenerateReads(unittest.TestCase):

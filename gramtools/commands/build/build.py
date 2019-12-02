@@ -12,10 +12,10 @@ import collections
 
 import cluster_vcf_records
 
-from .. import version
-from .. import common
-from .. import paths
-from ..utils import vcf_to_prg_string
+from ... import version
+from ... import common
+from ... import paths
+from . import vcf_to_prg_string
 
 log = logging.getLogger('gramtools')
 

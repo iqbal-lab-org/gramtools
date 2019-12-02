@@ -10,10 +10,10 @@ import logging
 import vcf
 import collections
 
-from .. import genotyper
-from .. import paths
-from .. import version
-from .. import fasta_from_vcf
+from . import genotyper
+from . import fasta_from_vcf
+from gramtools import paths
+from gramtools import version
 
 # For reference of vcf record attributes: cf https://pyvcf.readthedocs.io/en/latest/API.html#vcf-model-record
 
