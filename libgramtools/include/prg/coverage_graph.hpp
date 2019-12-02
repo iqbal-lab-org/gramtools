@@ -220,6 +220,7 @@ private:
        ar & par_map;
        ar & random_access;
        ar & target_map;
+       ar & is_nested;
     }
 };
 

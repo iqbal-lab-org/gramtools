@@ -14,7 +14,9 @@ FM_Index gram::generate_fm_index(const Parameters &parameters) {
     FM_Index fm_index;
 
     sdsl::memory_monitor::start();
-    // Last param is the number of bytes per integer for reading encoded PRG string. NB: they must be in big endian
+    // Last param is the number of bytes per integer for reading encoded PRG string.
+    // NB: sdsl doc says reads those in big endian, but actually reads in little endian (GH issue #418)
+    // So the prg file needs to be in little endian.
     sdsl::construct(fm_index, parameters.encoded_prg_fpath, gram::num_bytes_per_integer);
     sdsl::memory_monitor::stop();
 

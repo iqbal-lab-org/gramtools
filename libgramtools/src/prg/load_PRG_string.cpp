@@ -29,6 +29,11 @@ PRG_String::PRG_String(std::string const& file_in, endianness en){
     };
     output_file = file_in;
     map_and_normalise_ends();
+
+    // Rewrite `file_in`, in two cases:
+    // - The PRG string was in legacy format (5G6C5)
+    // - sdsl requires it in little endian for building the fm_index
+    if (odd_site_end_found || en == endianness::big) write(output_file, endianness::little);
 }
 
 PRG_String::PRG_String(marker_vec const& v_in){

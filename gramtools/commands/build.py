@@ -119,13 +119,12 @@ def run(args):
     command_paths = paths.generate_build_paths(args)
     report = collections.OrderedDict()
 
-    # Update the vcf path to a combined vcf from all those provided.
-    # We also do this if only a single one is provided, to deal with overlapping records.
-    command_paths['vcf'] = _cluster_vcf_records(report, 'vcf_record_clustering', command_paths)
-
     if hasattr(args, 'prg') and args.prg is not None:
         _skip_prg_construction(report, 'copy_existing_PRG_string', command_paths, args)
     else:
+        # Update the vcf path to a combined vcf from all those provided.
+        # We also do this if only a single one is provided, to deal with overlapping records.
+        command_paths['vcf'] = _cluster_vcf_records(report, 'vcf_record_clustering', command_paths)
         _execute_command_generate_prg(report, 'vcf_to_PRG_string_conversion', command_paths)
 
     _execute_gramtools_cpp_build(report, 'gramtools_build', command_paths, args)
