@@ -20,7 +20,7 @@ from gramtools import version
 log = logging.getLogger('gramtools')
 
 
-def parse_args(common_parser, subparsers):
+def setup_command_parser(common_parser, subparsers):
     parser = subparsers.add_parser('infer',
                                    parents=[common_parser])
     parser.add_argument('--run-dir', '--run-directory',

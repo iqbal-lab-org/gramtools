@@ -37,7 +37,7 @@ commands = collections.OrderedDict([
 ])
 
 
-def _parse_args():
+def _setup_parser():
     root_parser.add_argument('--version', help='', action='store_true')
     metavar = '{{{commands}}}'.format(commands=', '.join(commands.keys()))
     subparsers = root_parser.add_subparsers(title='subcommands',
@@ -48,14 +48,12 @@ def _parse_args():
     common_parser.add_argument('--debug', help='', action='store_true')
 
     for command in commands.values():
-        command.parse_args(common_parser, subparsers)
-
-    arguments = root_parser.parse_args()
-    return arguments
+        command.setup_command_parser(common_parser, subparsers)
 
 
 def run():
-    args = _parse_args()
+    _setup_parser()
+    args = root_parser.parse_args()
 
     _setup_logging(args)
     if args.version:

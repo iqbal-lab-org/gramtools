@@ -11,4 +11,5 @@ libgramtools/submods/tests/test_main
 libgramtools/submods/print_fm_index/print_fm_index
 doc/html
 *~
+*.swp
 *.ar

@@ -7,7 +7,7 @@ from . import prg_regions_parser
 log = logging.getLogger('gramtools')
 
 
-def parse_args(common_parser, subparsers):
+def setup_command_parser(common_parser, subparsers):
     parser = subparsers.add_parser('simulate',
                                    parents=[common_parser])
     parser.add_argument('--max-num-reads', help='',
