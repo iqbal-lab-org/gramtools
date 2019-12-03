@@ -13,39 +13,35 @@ from .commands import simulate
 
 
 def _setup_logging(args):
-    log = logging.getLogger('gramtools')
-    log.propagate = False # Do not pass to ancestor loggers
+    log = logging.getLogger("gramtools")
+    log.propagate = False  # Do not pass to ancestor loggers
     handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    formatter = logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
     log.addHandler(handler)
 
-    if hasattr(args, 'debug') and args.debug:
+    if hasattr(args, "debug") and args.debug:
         level = logging.DEBUG
     else:
         level = logging.INFO
     log.setLevel(level)
 
 
-root_parser = argparse.ArgumentParser(prog='gramtools')
-commands = collections.OrderedDict([
-    ('build', build),
-    ('quasimap', quasimap),
-    ('infer', infer),
-    ('discover', discover),
-])
+root_parser = argparse.ArgumentParser(prog="gramtools")
+commands = collections.OrderedDict(
+    [("build", build), ("quasimap", quasimap), ("infer", infer), ("discover", discover)]
+)
 
 
 def _setup_parser():
-    root_parser.add_argument('--version', help='', action='store_true')
-    metavar = '{{{commands}}}'.format(commands=', '.join(commands.keys()))
-    subparsers = root_parser.add_subparsers(title='subcommands',
-                                            dest='subparser_name',
-                                            metavar=metavar)
+    root_parser.add_argument("--version", help="", action="store_true")
+    metavar = "{{{commands}}}".format(commands=", ".join(commands.keys()))
+    subparsers = root_parser.add_subparsers(
+        title="subcommands", dest="subparser_name", metavar=metavar
+    )
 
-    common_parser = subparsers.add_parser('common', add_help=False)
-    common_parser.add_argument('--debug', help='', action='store_true')
+    common_parser = subparsers.add_parser("common", add_help=False)
+    common_parser.add_argument("--debug", help="", action="store_true")
 
     for command in commands.values():
         command.setup_command_parser(common_parser, subparsers)
@@ -69,5 +65,5 @@ def run():
         command.run(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

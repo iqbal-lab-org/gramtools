@@ -15,57 +15,63 @@ import cortex
 
 from .. import paths
 
-log = logging.getLogger('gramtools')
+log = logging.getLogger("gramtools")
 
 
 def setup_command_parser(common_parser, subparsers):
-    parser = subparsers.add_parser('discover',
-                                   parents=[common_parser])
+    parser = subparsers.add_parser("discover", parents=[common_parser])
 
-    parser.add_argument('--run-dir', '--run-directory',
-                        help='Common directory for gramtools running commands. Will contain discover outputs.'
-                             'The outputs are: the vcf files from the variant callers,'
-                             '[their adjucated combination], both native and rebased '
-                             '(=expressed in original reference coordinates).',
-                        dest='run_dir',
-                        type=str,
-                        required=True)
+    parser.add_argument(
+        "--run-dir",
+        "--run-directory",
+        help="Common directory for gramtools running commands. Will contain discover outputs."
+        "The outputs are: the vcf files from the variant callers,"
+        "[their adjucated combination], both native and rebased "
+        "(=expressed in original reference coordinates).",
+        dest="run_dir",
+        type=str,
+        required=True,
+    )
 
-    parser.add_argument('--reads',
-                        help='Reads files for variant discovery against `infer`.\n'
-                             'These should be the same as those used in `quasimap`.'
-                             'Those are used by default.',
-                        type=str,
-                        required=False)
+    parser.add_argument(
+        "--reads",
+        help="Reads files for variant discovery against `infer`.\n"
+        "These should be the same as those used in `quasimap`."
+        "Those are used by default.",
+        type=str,
+        required=False,
+    )
 
 
 def run(args):
-    log.info('Start process: discover')
+    log.info("Start process: discover")
     _paths = paths.generate_discover_paths(args)
 
     # call variants using `cortex`
-    log.debug('Running cortex')
-    cortex.calls(_paths['inferred_fasta'], _paths['reads_files'], _paths['cortex_vcf'])
+    log.debug("Running cortex")
+    cortex.calls(_paths["inferred_fasta"], _paths["reads_files"], _paths["cortex_vcf"])
 
     # Get the length of the inferred fasta reference; was computed at infer stage.
-    with open(_paths['inferred_ref_size']) as f:
+    with open(_paths["inferred_ref_size"]) as f:
         chrom_sizes = [int(s) for s in f.read().split()]
 
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
-    log.debug('Rebasing vcf')
-    rebased_vcf_records = _rebase_vcf(_paths,
-                                      chrom_sizes)
+    log.debug("Rebasing vcf")
+    rebased_vcf_records = _rebase_vcf(_paths, chrom_sizes)
 
     if rebased_vcf_records is None:
         log.debug("Rebased VCF does not contain records")
-        log.info('End process: discover')
+        log.info("End process: discover")
         return
 
-    template_vcf_file_path = _paths['cortex_vcf']
-    _dump_rebased_vcf(rebased_vcf_records, _paths['rebased_vcf'], template_vcf_file_path)
+    template_vcf_file_path = _paths["cortex_vcf"]
+    _dump_rebased_vcf(
+        rebased_vcf_records, _paths["rebased_vcf"], template_vcf_file_path
+    )
 
-    log.info('End process: discover. '
-             'Rebased vcf in {}'.format(_paths['rebased_vcf']))
+    log.info(
+        "End process: discover. " "Rebased vcf in {}".format(_paths["rebased_vcf"])
+    )
 
 
 ## Rebase a vcf so that it uses same reference as base_vcf.
@@ -87,9 +93,7 @@ def run(args):
 # * `new_reference` is the personalised reference; it is the original prg with inferred variant alleles instead.
 #
 # Thus what rebasing achieves is to express the variant calls in terms of the original prg coordinates.
-def _rebase_vcf(_paths,
-                chrom_sizes,
-                check_records = True):
+def _rebase_vcf(_paths, chrom_sizes, check_records=True):
     base_vcf_file_path = _paths["inferred_vcf"]
     personalised_vcf_file_path = _paths["cortex_vcf"]
 
@@ -107,9 +111,10 @@ def _rebase_vcf(_paths,
         return None
     base_records = _load_records(base_vcf_file_path)
 
-
     # Given a variant call position w.r.t the personalised reference, we will need to know how this position maps to the original prg.
-    flagged_personalised_regions = _flag_personalised_reference_regions(base_records, chrom_sizes)
+    flagged_personalised_regions = _flag_personalised_reference_regions(
+        base_records, chrom_sizes
+    )
 
     new_vcf_records = []
     for vcf_record in variant_call_records:
@@ -119,16 +124,22 @@ def _rebase_vcf(_paths,
         if check_records:
             position = vcf_record.POS
             inferred_sequence = inferred_refs[chrom_key]
-            if len(inferred_sequence) < position or \
-                vcf_record.REF != inferred_sequence[position - 1 : position - 1 + len(vcf_record.REF)]:
+            if (
+                len(inferred_sequence) < position
+                or vcf_record.REF
+                != inferred_sequence[position - 1 : position - 1 + len(vcf_record.REF)]
+            ):
                 var_unplaced_records.append(str(vcf_record))
                 continue
 
         regions_list = flagged_personalised_regions.get(chrom_key, None)
-        assert regions_list is not None, "Error: ref ID {} in vcf record {} is not present in vcf from infer {}".\
-            format(chrom_key, vcf_record, base_vcf_file_path)
+        assert (
+            regions_list is not None
+        ), "Error: ref ID {} in vcf record {} is not present in vcf from infer {}".format(
+            chrom_key, vcf_record, base_vcf_file_path
+        )
 
-        new_record = _rebase_vcf_record(vcf_record,regions_list)
+        new_record = _rebase_vcf_record(vcf_record, regions_list)
 
         # Check the rebased record is properly placed
         # Note that an error here can be due to the original vcf being inconsistent with the original fasta (at build)
@@ -136,7 +147,9 @@ def _rebase_vcf(_paths,
         if check_records:
             original_sequence = original_refs[chrom_key]
             position = new_record.POS
-            ref_seq = original_sequence[position - 1 : position - 1 + len(vcf_record.REF)].upper()
+            ref_seq = original_sequence[
+                position - 1 : position - 1 + len(vcf_record.REF)
+            ].upper()
             if new_record.REF.upper() != ref_seq:
                 ori_unplaced_records.append(str(new_record))
                 continue
@@ -147,21 +160,28 @@ def _rebase_vcf(_paths,
             new_vcf_records.append(new_record)
 
     if len(var_unplaced_records) > 0:
-        log.warning("The following new variant records were skipped: {} \n"\
-                    "Reasons: POS is not a valid position in the inferred reference sequence,"\
-                    "or REF does not coincide with inferred reference sequence.".format("\t".join(var_unplaced_records)))
+        log.warning(
+            "The following new variant records were skipped: {} \n"
+            "Reasons: POS is not a valid position in the inferred reference sequence,"
+            "or REF does not coincide with inferred reference sequence.".format(
+                "\t".join(var_unplaced_records)
+            )
+        )
 
     if len(ori_unplaced_records) > 0:
-        log.warning("The following records when rebased, were discordant with original reference: {} \n" \
-                    .format("\t".join(ori_unplaced_records)))
+        log.warning(
+            "The following records when rebased, were discordant with original reference: {} \n".format(
+                "\t".join(ori_unplaced_records)
+            )
+        )
     return new_vcf_records
 
 
 def _dump_rebased_vcf(records, rebase_file_path, template_vcf_file_path):
-    template_handle = open(template_vcf_file_path, 'r')
+    template_handle = open(template_vcf_file_path, "r")
     template_vcf = vcf.Reader(template_handle)
 
-    rebase_handle = open(rebase_file_path, 'w')
+    rebase_handle = open(rebase_file_path, "w")
     writer = vcf.Writer(rebase_handle, template_vcf)
     for record in records:
         writer.write_record(record)
@@ -172,7 +192,9 @@ def _dump_rebased_vcf(records, rebase_file_path, template_vcf_file_path):
 #  Call the two references coordinates ref 2 and ref 1.
 #  A `_Region` either marks a region in ref 2 within a variant region in ref 1, or a region in ref 2 within an invariant region in ref 1.
 class _Region:
-    def __init__(self, base_POS, inf_POS, length, vcf_record_REF=None, vcf_record_ALT=None):
+    def __init__(
+        self, base_POS, inf_POS, length, vcf_record_REF=None, vcf_record_ALT=None
+    ):
         ## Start coordinate in base reference.
         self.base_POS = base_POS
         ## Start coordinate in inferred reference.
@@ -230,11 +252,17 @@ def _flag_personalised_reference_regions(base_records, chrom_sizes) -> _Regions_
 
             # We enter a new ref ID; let's make sure we capture the end of the previous ref ID
             if num_chroms >= 0:
-                base_ref_pos, inf_ref_pos = chrom_positions[prev_chrom_key][0], chrom_positions[prev_chrom_key][1]
+                base_ref_pos, inf_ref_pos = (
+                    chrom_positions[prev_chrom_key][0],
+                    chrom_positions[prev_chrom_key][1],
+                )
                 if base_ref_pos <= chrom_size:
                     regions_list = all_personalised_ref_regions[prev_chrom_key]
-                    non_var_region = _Region(base_POS=base_ref_pos, inf_POS=inf_ref_pos,
-                                             length=chrom_size - base_ref_pos + 1)
+                    non_var_region = _Region(
+                        base_POS=base_ref_pos,
+                        inf_POS=inf_ref_pos,
+                        length=chrom_size - base_ref_pos + 1,
+                    )
                     regions_list.append(non_var_region)
 
             num_chroms += 1
@@ -242,22 +270,32 @@ def _flag_personalised_reference_regions(base_records, chrom_sizes) -> _Regions_
 
         else:
             # Enforce ref ID contiguity
-            assert chrom_key == prev_chrom_key, "Ref IDs not contiguous: {} and {} interspersed"\
-                                                          .format(chrom_key, prev_chrom_key)
+            assert (
+                chrom_key == prev_chrom_key
+            ), "Ref IDs not contiguous: {} and {} interspersed".format(
+                chrom_key, prev_chrom_key
+            )
             # Enforce position sortedness
-            assert vcf_record.POS > prev_record.POS, "Records not in increasing POS order: {} and {}"\
-                                                            .format(prev_record, vcf_record)
+            assert (
+                vcf_record.POS > prev_record.POS
+            ), "Records not in increasing POS order: {} and {}".format(
+                prev_record, vcf_record
+            )
         regions_list = all_personalised_ref_regions[chrom_key]
-        base_ref_pos, inf_ref_pos = chrom_positions[chrom_key][0], chrom_positions[chrom_key][1]
+        base_ref_pos, inf_ref_pos = (
+            chrom_positions[chrom_key][0],
+            chrom_positions[chrom_key][1],
+        )
 
         # Build non-variant region
         if vcf_record.POS > base_ref_pos:
             region_length = vcf_record.POS - base_ref_pos
             if len(regions_list) == 0 or regions_list[-1].is_site:
-                non_var_region = _Region(base_POS=base_ref_pos, inf_POS=inf_ref_pos,
-                                         length=region_length)
+                non_var_region = _Region(
+                    base_POS=base_ref_pos, inf_POS=inf_ref_pos, length=region_length
+                )
                 regions_list.append(non_var_region)
-            else: # We saw a site, but it was not used; so, we only need to merge this region with prev region.
+            else:  # We saw a site, but it was not used; so, we only need to merge this region with prev region.
                 regions_list[-1].length += region_length
             base_ref_pos += region_length
             inf_ref_pos += region_length
@@ -270,13 +308,19 @@ def _flag_personalised_reference_regions(base_records, chrom_sizes) -> _Regions_
         if set(picked_alleles) == {None}:
             picked_allele = 0  # GT of './.'
         else:
-            picked_allele = int(picked_alleles[0])  # Get the first one. Can be 0 (REF) !
+            picked_allele = int(
+                picked_alleles[0]
+            )  # Get the first one. Can be 0 (REF) !
 
         # Only make a var region if the inference procedure did not pick the REF.
         if picked_allele != 0:
-            var_region = _Region(base_POS=base_ref_pos, inf_POS=inf_ref_pos,
-                                 length=len(vcf_record.ALT[picked_allele - 1]), vcf_record_REF=vcf_record.REF,
-                                 vcf_record_ALT=str(vcf_record.ALT[picked_allele - 1]))
+            var_region = _Region(
+                base_POS=base_ref_pos,
+                inf_POS=inf_ref_pos,
+                length=len(vcf_record.ALT[picked_allele - 1]),
+                vcf_record_REF=vcf_record.REF,
+                vcf_record_ALT=str(vcf_record.ALT[picked_allele - 1]),
+            )
 
             regions_list.append(var_region)
             base_ref_pos += len(vcf_record.REF)
@@ -291,8 +335,11 @@ def _flag_personalised_reference_regions(base_records, chrom_sizes) -> _Regions_
         raise ValueError("No records in provided vcf.")
 
     if base_ref_pos <= chrom_size:
-        non_var_region = _Region(base_POS=base_ref_pos, inf_POS=inf_ref_pos,
-                                 length=chrom_size - base_ref_pos + 1)
+        non_var_region = _Region(
+            base_POS=base_ref_pos,
+            inf_POS=inf_ref_pos,
+            length=chrom_size - base_ref_pos + 1,
+        )
         regions_list.append(non_var_region)
 
     return all_personalised_ref_regions
@@ -349,7 +396,8 @@ def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
         # NOTE that region.length is 'overloaded': if a non-var region, it is the fixed interval between var regions.
         # If a var region, it is the inferred_vcf record's ALT length (REF and ALT lengths can differ).
         consumable = region.length - (
-                    vcf_record.POS + consumed_reference - region.inf_POS)  # The amount of the inferred reference that can be consumed by the region
+            vcf_record.POS + consumed_reference - region.inf_POS
+        )  # The amount of the inferred reference that can be consumed by the region
 
         if consumable >= (reference_length - consumed_reference):
             journey_continues = False
@@ -358,11 +406,15 @@ def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
             to_consume = consumable
 
         if region.is_site:
-            rebased_REF += region.vcf_record_REF  # Copy the whole base REF for the variant site
+            rebased_REF += (
+                region.vcf_record_REF
+            )  # Copy the whole base REF for the variant site
 
         else:
             # We can use the vcf_record's REF, as that is also the base REF sequence- because we are in a non-variant site.
-            rebased_REF += vcf_record.REF[consumed_reference:consumed_reference + to_consume]
+            rebased_REF += vcf_record.REF[
+                consumed_reference : consumed_reference + to_consume
+            ]
 
         consumed_reference += to_consume  # Log the progression
 
@@ -379,7 +431,9 @@ def _rebase_vcf_record(vcf_record, personalised_reference_regions: _Regions):
         if inset < 0:
             rebased_ALT += region.vcf_record_ALT[inset:]
 
-    vcf_record = _modify_vcf_record(vcf_record, POS=rebased_POS, REF=rebased_REF, ALT=[rebased_ALT])
+    vcf_record = _modify_vcf_record(
+        vcf_record, POS=rebased_POS, REF=rebased_REF, ALT=[rebased_ALT]
+    )
 
     return vcf_record
 
@@ -410,7 +464,7 @@ def _find_start_region_index(vcf_record, marked_regions):
 
 ## Produce a list of vcf records parsed from `vcf_file_path`.
 def _load_records(vcf_file_path):
-    file_handle = open(vcf_file_path, 'r')
+    file_handle = open(vcf_file_path, "r")
     vcf_reader = vcf.Reader(file_handle)
     all_vcf_records = list(vcf_reader)
     return all_vcf_records
@@ -420,6 +474,7 @@ def _load_records(vcf_file_path):
 def _alwaysRef():
     while True:
         yield 0
+
 
 def load_multi_fasta(fasta_fname):
     # Load the record fully in memory
@@ -436,9 +491,8 @@ def load_multi_fasta(fasta_fname):
                 record = ""
 
             else:
-                record += line.replace("\n","")
+                record += line.replace("\n", "")
 
         records[new_recomb_name] = record
 
     return records
-

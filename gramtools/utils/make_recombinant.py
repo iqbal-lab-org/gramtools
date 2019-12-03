@@ -5,13 +5,21 @@ import random
 import os
 import vcf
 
-DNA = {'A', 'C', 'G', 'T', 'N'}
+DNA = {"A", "C", "G", "T", "N"}
 REF_READ_CHUNK_SIZE = 1000000
 
 
 ## An interface to the module for making new fasta (recombinant) from fasta + vcf.
 class Recombinator(object):
-    def __init__(self, reference_fpath, vcf_fpath, output_fpath, random_selection=True, seed=None, offset=1):
+    def __init__(
+        self,
+        reference_fpath,
+        vcf_fpath,
+        output_fpath,
+        random_selection=True,
+        seed=None,
+        offset=1,
+    ):
         self.reference_fpath = reference_fpath
         self.vcf_fpath = vcf_fpath
         self.output_fpath = output_fpath
@@ -28,8 +36,15 @@ class Recombinator(object):
         fhandle = open(self.vcf_fpath)
         vcf_reader = vcf.Reader(fhandle)
         description = "Recombinant built from ref and vcf"
-        _make_recombinant(self.reference_fpath, vcf_reader, self.output_fpath, description, self.random_selection,
-                          self.seed, self.offset)
+        _make_recombinant(
+            self.reference_fpath,
+            vcf_reader,
+            self.output_fpath,
+            description,
+            self.random_selection,
+            self.seed,
+            self.offset,
+        )
         if len(Recombinator.picked_alleles) > 0:
             picked_file = os.path.realpath(os.path.dirname(self.output_fpath))
             picked_file = os.path.join(picked_file, "picked_alleles")
@@ -42,8 +57,15 @@ class Recombinator(object):
 #  @param reference the 'base' reference: non-variant sites of the prg + first allele of each variant site.
 # @param vcf_reader set of vcf records describing variants inferred against the old reference.
 # Default random_selection to False because can be used as is for 'genotyping' mode.
-def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, random_selection=False, seed=None,
-                      offset=1):
+def _make_recombinant(
+    reference_fpath,
+    vcf_reader,
+    output_fpath,
+    description,
+    random_selection=False,
+    seed=None,
+    offset=1,
+):
     if random_selection and seed is not None:
         random.seed(seed)
 
@@ -90,7 +112,9 @@ def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, ra
                     allele_index = int(genotype[0])
 
             else:  # Random selection mode
-                allele_index = random.randrange(len(record.ALT) + 1)  # Add 1 to choose between REF and all ALTs
+                allele_index = random.randrange(
+                    len(record.ALT) + 1
+                )  # Add 1 to choose between REF and all ALTs
                 Recombinator.picked_alleles.append(str(allele_index))
 
             if allele_index == 0:
@@ -113,4 +137,3 @@ def _make_recombinant(reference_fpath, vcf_reader, output_fpath, description, ra
     recombinant.close()
 
     return inferred_reference_length
-

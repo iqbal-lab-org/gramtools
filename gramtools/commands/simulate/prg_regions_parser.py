@@ -2,7 +2,7 @@
 # Extracts and loads in memory all regions from a prg (variant and non-variant)
 from . import genome_regions
 
-var_marker_chars = set('0123456789')
+var_marker_chars = set("0123456789")
 
 
 class ParsingCursor:
@@ -26,8 +26,7 @@ def handle_var_site(prg_char, cursor, regions):
     """Handle cursor in variant site."""
     is_marker_char = prg_char[0] in var_marker_chars
 
-    entering_var_site = (not cursor.in_var_site
-                         and is_marker_char)
+    entering_var_site = not cursor.in_var_site and is_marker_char
     if entering_var_site:
         flush_region(cursor, regions)
         cursor.in_var_site = True
@@ -93,7 +92,7 @@ class IterPeek:
 def decode_prg(prg_seq):
     """Decode prg by concatenating variant site marker digits."""
     iter_prg = IterPeek(prg_seq)
-    marker = ''
+    marker = ""
     for x in iter_prg:
         if x not in var_marker_chars:
             yield x
@@ -104,7 +103,7 @@ def decode_prg(prg_seq):
             continue
         else:
             x = marker
-            marker = ''
+            marker = ""
         yield x
 
 
@@ -113,8 +112,7 @@ def parse(prg_seq):
     regions = genome_regions.GenomeRegions()
     cursor = ParsingCursor()
     for x in decode_prg(prg_seq):
-        in_variant_region = (cursor.in_var_site
-                             or x[0] in var_marker_chars)
+        in_variant_region = cursor.in_var_site or x[0] in var_marker_chars
         if in_variant_region:
             handle_var_site(x, cursor, regions)
         else:

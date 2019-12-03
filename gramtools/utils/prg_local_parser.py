@@ -3,12 +3,8 @@
 # The characters are directly comparison to an allele_index, which is used to choose which allele needs to be picked for each variant site.
 
 PRG_READ_CHUNK_SIZE = 1000000
-DIGITS = {
-    '0', '1', '2', '3',
-    '4', '5', '6', '7',
-    '8', '9'
-}
-FASTA_LINE_SIZE = 60  #In characters
+DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+FASTA_LINE_SIZE = 60  # In characters
 
 
 ## An OOP implementation of cursor-based 'local' prg parsing.
@@ -16,7 +12,7 @@ FASTA_LINE_SIZE = 60  #In characters
 class Prg_Local_Parser(object):
     def __init__(self, prg_fpath, output_file_name, fasta_header, allele_indexes):
         self.prg_parser = _parse(prg_fpath)
-        self.writer = FastaWriter(output_file_name, description = fasta_header)
+        self.writer = FastaWriter(output_file_name, description=fasta_header)
         self.allele_indexes = allele_indexes
 
     def parse(self):
@@ -29,14 +25,13 @@ class Prg_Local_Parser(object):
 class FastaWriter:
     def __init__(self, fpath, description):
         self._fpath = fpath
-        self._fhandle = open(self._fpath, 'w')
+        self._fhandle = open(self._fpath, "w")
         self._fhandle.write("> {} \n".format(description))
         self._running_tally = 0
         self._total_size = 0
 
         self._cache = []
         self._max_cache_size = 1000000
-
 
     def get_size(self):
         return self._total_size
@@ -47,32 +42,30 @@ class FastaWriter:
         self._total_size += 1
 
         if self._running_tally == FASTA_LINE_SIZE:
-            self._cache.append('\n')
+            self._cache.append("\n")
             self._running_tally = 0
 
         if len(self._cache) > self._max_cache_size:
             self._flush()
 
     def _flush(self):
-        cache = ''.join(self._cache)
+        cache = "".join(self._cache)
         self._fhandle.write(cache)
         self._cache = []
 
     def _flush_endFile(self):
-        if self._cache[-1] != '\n':
-            self._cache.append('\n')
+        if self._cache[-1] != "\n":
+            self._cache.append("\n")
 
         self._flush()
-
 
     def close(self):
         self._flush_endFile()
         self._fhandle.close()
 
 
-
 def _is_int(data):
-    if data is None or data == '':
+    if data is None or data == "":
         return False
     if len(data) > 1:
         return True
@@ -108,12 +101,12 @@ def _parse_prg_chars(chars):
 
         else:
             if int_chars:
-                yield ''.join(int_chars)
+                yield "".join(int_chars)
                 int_chars = []
             yield char
 
     if int_chars:
-        yield ''.join(int_chars)
+        yield "".join(int_chars)
 
 
 def _parse_prg_structure(chars, cursor):
@@ -166,7 +159,7 @@ def _read_chunk(file_handle, chunk_size=PRG_READ_CHUNK_SIZE):
             if not char:
                 break
             extra_chars.append(char)
-        chars += ''.join(extra_chars)
+        chars += "".join(extra_chars)
     return chars
 
 
@@ -180,6 +173,7 @@ def _parse(prg_fpath):
 
             for cursor in _parse_prg_structure(chars, cursor):
                 yield cursor
+
 
 def _dump_fasta(prg_parser, allele_indexes, writer):
     allele_index = next(allele_indexes)
@@ -200,4 +194,3 @@ def _dump_fasta(prg_parser, allele_indexes, writer):
 
         if cursor.allele_id == allele_index:
             writer.append(cursor.char)
-

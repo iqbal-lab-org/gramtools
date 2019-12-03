@@ -4,20 +4,15 @@ import collections
 
 from . import prg_regions_parser
 
-log = logging.getLogger('gramtools')
+log = logging.getLogger("gramtools")
 
 
 def setup_command_parser(common_parser, subparsers):
-    parser = subparsers.add_parser('simulate',
-                                   parents=[common_parser])
-    parser.add_argument('--max-num-reads', help='',
-                        type=int, default=None)
-    parser.add_argument('--read-length', help='',
-                        type=int)
-    parser.add_argument('--reference', help='',
-                        type=str)
-    parser.add_argument('--output-fpath', help='',
-                        type=str)
+    parser = subparsers.add_parser("simulate", parents=[common_parser])
+    parser.add_argument("--max-num-reads", help="", type=int, default=None)
+    parser.add_argument("--read-length", help="", type=int)
+    parser.add_argument("--reference", help="", type=str)
+    parser.add_argument("--output-fpath", help="", type=str)
 
 
 def _read_regions(read_length, start_region, regions):
@@ -35,12 +30,10 @@ def _read_regions(read_length, start_region, regions):
 
 
 def _variants_read_regions(read_length, genome_regions):
-    variant_regions = (region for region in genome_regions
-                       if region.is_variant_site)
+    variant_regions = (region for region in genome_regions if region.is_variant_site)
 
     for start_region in variant_regions:
-        read_regions = _read_regions(read_length, start_region,
-                                     genome_regions)
+        read_regions = _read_regions(read_length, start_region, genome_regions)
         yield read_regions
 
 
@@ -67,30 +60,31 @@ def _generate_reads(read_length, genome_regions, max_num_reads=None):
             continue
         if read not in reads:
             reads.add(read)
-            yield ''.join(read)
-    log.debug('Number of reads generated: %s', len(reads))
+            yield "".join(read)
+    log.debug("Number of reads generated: %s", len(reads))
 
 
 def _dump_random_reads(reads, quality, output_fpath):
-    with open(output_fpath, 'w') as fhandle:
+    with open(output_fpath, "w") as fhandle:
         for i, read in enumerate(reads):
-            fastq_line = '@{read_num}\n{read}\n+\n{quality}\n'.format(
-                read_num=i, read=read, quality=quality)
+            fastq_line = "@{read_num}\n{read}\n+\n{quality}\n".format(
+                read_num=i, read=read, quality=quality
+            )
             fhandle.write(fastq_line)
 
 
 def run(args):
-    log.info('Start process: simulate')
+    log.info("Start process: simulate")
 
-    log.debug('Parsing PRG')
-    with open(args.reference, 'r') as file_handle:
+    log.debug("Parsing PRG")
+    with open(args.reference, "r") as file_handle:
         prg_seq = file_handle.read()
 
     regions = prg_regions_parser.parse(prg_seq)
 
-    log.debug('Generating reads')
+    log.debug("Generating reads")
     reads = _generate_reads(args.read_length, regions, args.max_num_reads)
-    read_qualities = 'H' * args.read_length
+    read_qualities = "H" * args.read_length
     _dump_random_reads(reads, read_qualities, args.output_fpath)
 
-    log.info('End process: simulate')
+    log.info("End process: simulate")

@@ -31,7 +31,7 @@ class GenomeRegions:
         self._region_idx[region] = len(self._regions) - 1
 
     def __str__(self):
-        return str(''.join(str(region) for region in self._regions))
+        return str("".join(str(region) for region in self._regions))
 
     def __repr__(self):
         return str(self)
@@ -51,7 +51,7 @@ class _GenomeRegion:
         return self.variant_site_marker is not None
 
     def __str__(self):
-        return '[{alleles}]'.format(alleles='|'.join(str(x) for x in self.alleles))
+        return "[{alleles}]".format(alleles="|".join(str(x) for x in self.alleles))
 
     def __repr__(self):
         return str(self)
