@@ -56,14 +56,15 @@ class Utility_Tester(object):
             os.unlink(self.outfile)
 
         # Test the perl utility
-        perl_command = ' '.join([
+        perl_command = [
             'perl', str(perl_utility),
             '--vcf', str(self.vcf_file),
             '--ref', str(self.ref_file),
             '--min_freq 0.01',
             '--outfile', self.outfile,
-        ])
-        completed_process = subprocess.run(perl_command, shell=True)
+        ]
+        completed_process = subprocess.run(perl_command, stdout = subprocess.PIPE,
+                                           stderr = subprocess.PIPE)
         return completed_process
 
     def _perl_cleanup(self):
@@ -76,16 +77,16 @@ class Utility_Tester(object):
         in same way as perl utility.
         :return:
         """
-        python_command = ' '.join([
+        python_command = [
             'python3', str(python_utility),
             str(self.vcf_file),
             str(self.ref_file),
             '--outfile', self.outfile_prefix,
             '--mode', mode,
-        ])
+        ]
 
-        completed_process = subprocess.run(python_command, shell=True,
-                                           check=check)
+        completed_process = subprocess.run(python_command, check=check, stdout = subprocess.PIPE,
+                                           stderr = subprocess.PIPE)
         return completed_process
 
     def _python_cleanup(self):

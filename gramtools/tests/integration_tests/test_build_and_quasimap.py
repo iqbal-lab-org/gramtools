@@ -20,12 +20,30 @@ gramtools._setup_parser()
 
 class twoSitesNoNesting(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):  # Setup the attributes only once and share across the test cases
+    def setUpClass(cls):
+        """
+        Setup the attributes only once and share across the test cases
+
+        The PRG is : "AAA5CC6TA5AC7TTTT8GGG7"
+        The reads are : "AAATAACGG" and "CACTTTT"
+        """
         cls.gram_dir = tempfile.mkdtemp()
 
         cls.run_dir = str(Path(cls.gram_dir) / 'run')
         cls.prg_file = str(data_dir / 'two_sites_noNesting.fasta.max_nest5.min_match1.bin')
         cls.reads_file = str(data_dir / 'two_sites_noNesting_twoReads.fastq')
+
+        # Expected per base cov
+        cls.expected_per_base = [
+            [[0, 1], [1, 1]],
+            [[1, 1, 1, 1], [1, 1, 0]]
+        ]
+
+        # Expect one read mapping to each allele of each of the two sites in the PRG
+        cls.expected_grouped_counts = [
+            {'1' : 1, '0' : 1},
+            {'1' : 1, '0' : 1},
+        ]
 
 
     @classmethod
@@ -52,23 +70,13 @@ class twoSitesNoNesting(unittest.TestCase):
         allele_groups, all_groups_site_counts = \
             infer._load_grouped_allele_coverage(_paths['grouped_allele_counts_coverage'])
 
-        # Test per base cov
-        expected_per_base = [
-            [[0, 1], [1, 1]],
-            [[1, 1, 1, 1], [1, 1, 0]]
-        ]
-        self.assertEqual(expected_per_base, all_per_base_coverage)
+        self.assertEqual(self.expected_per_base, all_per_base_coverage)
 
         # Test grouped allele counts
         # First make sure the group IDs are right #
         self.assertEqual(allele_groups['0'], {0})
         self.assertEqual(allele_groups['1'], {1})
-        # Expect one read mapping to each allele of each of the two sites in the PRG
-        expected_grouped_counts = [
-            {'1' : 1, '0' : 1},
-            {'1' : 1, '0' : 1},
-        ]
-        self.assertEqual(expected_grouped_counts, all_groups_site_counts)
+        self.assertEqual(self.expected_grouped_counts, all_groups_site_counts)
 
 
 if __name__ == "__main__":
