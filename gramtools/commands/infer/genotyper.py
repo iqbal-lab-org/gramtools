@@ -186,6 +186,7 @@ class Genotyper:
     def run(self):
         if (
             len(self.allele_combination_cov) == 0
+            or self.mean_depth == 0
             or Genotyper._total_coverage(self.allele_combination_cov) == 0
         ):
             self.genotype = {"."}

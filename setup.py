@@ -33,12 +33,12 @@ def _build_backend(root_dir, mode="install"):
             os.mkdir(cmake_dir)
 
     subprocess.call(
-        f"CC=gcc CXX=g++ cmake -j 4 -DCMAKE_BUILD_TYPE={build_type} ..",
+        f"CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE={build_type} ..",
         cwd=cmake_dir,
         shell=True,
     )
 
-    return_code = subprocess.call(["make"], cwd=cmake_dir)
+    return_code = subprocess.call(["make", "-j", "4"], cwd=cmake_dir)
     if return_code != 0:
         print("ERROR: gramtools backend compilation returned: ", return_code)
         exit(-1)

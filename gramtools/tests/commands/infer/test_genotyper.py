@@ -153,6 +153,27 @@ class TestGenotyper(unittest.TestCase):
         self.assertEqual({"."}, gtyper.genotype)
         self.assertEqual(0.0, gtyper.genotype_confidence)
 
+    def test_nomatherror_mean_depth0(self):
+        """
+        Can get a mean_depth of zero but try to genotype a non-zero coverage site due to rounding imprecision.
+        In which case we need to avoid trying to do log(0) in likelihood calculation and should return no call.
+        """
+        mean_depth = 0
+        error_rate = 0.01
+        allele_combination_cov = {"1": 1}
+        allele_groups_dict = {"1": {0}, "2": {1}}
+        allele_per_base_cov = [[1], [0, 0]]
+        gtyper = genotyper.Genotyper(
+            mean_depth,
+            error_rate,
+            allele_combination_cov,
+            allele_per_base_cov,
+            allele_groups_dict,
+        )
+        gtyper.run()
+        self.assertEqual({"."}, gtyper.genotype)
+        self.assertEqual(0.0, gtyper.genotype_confidence)
+
 
 if __name__ == "__main__":
     unittest.main()
