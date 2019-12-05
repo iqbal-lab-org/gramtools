@@ -21,7 +21,8 @@ PRG_Info generate_prg_info(const marker_vec &prg_raw) {
     PRG_Info prg_info;
     prg_info.encoded_prg = encoded_prg;
     prg_info.fm_index = generate_fm_index(parameters);
-    prg_info.coverage_graph = coverage_Graph{ps};
+    // NB: the move is crucial here, otherwise the initialised cov_Graph's destructor affects the assigned-to cov_Graph
+    prg_info.coverage_graph = std::move(coverage_Graph{ps});
     prg_info.last_allele_positions = ps.get_end_positions();
     prg_info.sites_mask = generate_sites_mask(encoded_prg);
     prg_info.allele_mask = generate_allele_mask(encoded_prg);

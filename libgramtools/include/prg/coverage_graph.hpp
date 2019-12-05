@@ -81,8 +81,8 @@ public:
     /*
      * Setters
      */
-    void set_pos(int pos) { this->pos = pos; };
-    void mark_as_boundary() { is_site_boundary = true; };
+    void set_pos(int pos) { this->pos = pos; }
+    void mark_as_boundary() { is_site_boundary = true; }
     void set_coverage(BaseCoverage const& new_cov){
         assert(new_cov.size() == coverage.size() && new_cov.size() == sequence.size());
         coverage = new_cov;
@@ -93,9 +93,10 @@ public:
         if (is_in_bubble()){
             for (auto i = 0; i < new_seq.size(); ++i) coverage.emplace_back(0);
         }
-    };
+    }
 
-    void add_edge(covG_ptr const target) { next.emplace_back(target); };
+    void add_edge(covG_ptr const target) { next.emplace_back(target); }
+    void clear_edges() { next.clear(); }
 
 
 private:
@@ -173,6 +174,14 @@ public:
     covG_ptr root;
 
     coverage_Graph() = default;
+
+    coverage_Graph(coverage_Graph&) = default;
+    coverage_Graph(coverage_Graph&&) = default;
+    coverage_Graph& operator=(coverage_Graph& ) = default;
+    coverage_Graph& operator=(coverage_Graph&& ) = default; // Needs to be declared, because user-defined destructor exists.
+
+    ~coverage_Graph();
+
     /**
      * Build a coverage graph from a PRG String int vector.
      */
@@ -215,12 +224,18 @@ private:
     friend class boost::serialization::access;
     template <typename Archive>
     void serialize(Archive& ar, const unsigned int version){
-       ar & root;
-       ar & bubble_map;
-       ar & par_map;
-       ar & random_access;
-       ar & target_map;
-       ar & is_nested;
+        /* Important: bubble_map should serialise before root.
+         Indeed, `ar & root` recursively serialises all nodes from the root,
+         which can overflow the stack and segfault for large graphs.
+         Whereas bubble_map is ordered by 'rightmost' node first, so serialisation
+         Is less recursive (note serialisation of the same pointer twice is ignored by boost)
+         */
+        ar & bubble_map;
+        ar & root;
+        ar & par_map;
+        ar & random_access;
+        ar & target_map;
+        ar & is_nested;
     }
 };
 
@@ -228,7 +243,6 @@ private:
 /**
  * A class in charge of mechanics of building coverage graph
  * It is designed for use by DEVELOPER only
- *
  */
 class cov_Graph_Builder {
 public:

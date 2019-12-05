@@ -1,5 +1,20 @@
 #include "prg/coverage_graph.hpp"
 
+/**
+ * Shared_ptr in boost get destroyed when their reference_count goes to 0>
+ * By default, because the graph only stores one such pointer (to the root)
+ * and the graph is defined recursively from the root, boost will recursively
+ * destroy the graph, which can overflow the stack.
+ *
+ * Destroying rightmost bubbles first avoids this.
+ */
+coverage_Graph::~coverage_Graph(){
+    for (auto& bubble : bubble_map){
+        bubble.first.get()->clear_edges();
+        bubble.second.get()->clear_edges();
+    }
+}
+
 coverage_Graph::coverage_Graph(PRG_String const &vec_in) {
     auto built_graph = cov_Graph_Builder(vec_in);
     root = built_graph.root;

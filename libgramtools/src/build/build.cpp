@@ -23,7 +23,8 @@ void commands::build::run(const Parameters &parameters) {
 
     std::cout << "Generate coverage graph" << std::endl;
     timer.start("Generate Coverage Graph");
-    prg_info.coverage_graph = generate_cov_graph(parameters, ps);
+    //Need move, not copy assignment, else destructor can affect assigned-to object. Move is compiler default here anyway.
+    prg_info.coverage_graph = std::move(generate_cov_graph(parameters, ps));
     timer.stop();
 
     prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
