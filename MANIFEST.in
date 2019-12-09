@@ -1,0 +1,2 @@
+include gramtools/lib/*
+include gramtools/bin/*

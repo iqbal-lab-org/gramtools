@@ -13,3 +13,4 @@ doc/html
 *~
 *.swp
 *.ar
+dist/

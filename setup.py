@@ -135,11 +135,6 @@ class _TestCommand(test):
         )
 
 
-_package_data = {
-    "gramtools": ["bin/gram", "lib/*", "commands/build/vcf_to_linear_prg.pl"]
-}
-
-
 setuptools.setup(
     name="gramtools",
     version=f"{package_version.__version__}",
@@ -148,7 +143,6 @@ setuptools.setup(
     long_description=readme,
     entry_points={"console_scripts": ["gramtools = gramtools.gramtools:run"]},
     packages=setuptools.find_packages("."),
-    package_data=_package_data,
     include_package_data=True,
     install_requires=[
         "scipy >= 1.0.1",
