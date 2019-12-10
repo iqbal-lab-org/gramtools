@@ -34,20 +34,43 @@ TEST(PRGString, Load_from_File){
     EXPECT_EQ(expected, res);
 }
 
-TEST(PRGString, WriteToFile){
-    std::string fname{"@pstring_out"};
-    std::string prg_string{"A[A,C]T[GGG,G]C"};
-    marker_vec t = prg_string_to_ints(prg_string);
-    PRG_String l{t};
-    l.write(fname);
+class PRGString_WriteAndRead : public ::testing::Test {
+protected:
+    void SetUp() {
+        fname = "@pstring_out";
+        std::string prg_string{"A[A,C]T[GGG,G]C"};
+        expected_markers = prg_string_to_ints(prg_string);
+        p = PRG_String(expected_markers);
+    }
+
+    void TearDown() {
+        if (remove(fname.c_str()) != 0){
+            std::cerr << "Could not delete the built file " << fname;
+            exit(1);
+        }
+    }
+    std::string fname;
+    marker_vec expected_markers;
+    PRG_String p;
+};
+
+TEST_F(PRGString_WriteAndRead, WriteAndReadLittleEndian){
+    // Little Endian should be the default for read and write
+    p.write(fname);
 
     // Load it into another object
-    PRG_String l2{fname};
-    EXPECT_TRUE(l.get_PRG_string() == l2.get_PRG_string());
-    if (remove(fname.c_str()) != 0){
-        std::cerr << "Could not delete the built file " << fname;
-        exit(1);
-    }
+    PRG_String p2{fname};
+    EXPECT_EQ(p2.get_endianness(), endianness::little);
+    EXPECT_EQ(expected_markers, p2.get_PRG_string());
+}
+
+TEST_F(PRGString_WriteAndRead, WriteAndReadBigEndian){
+    p.write(fname, endianness::big);
+
+    // Load it into another object
+    PRG_String p2{fname, endianness::big};
+    EXPECT_EQ(p2.get_endianness(), endianness::big);
+    EXPECT_EQ(expected_markers, p2.get_PRG_string());
 }
 
 TEST(PRGString, ExitPoint_ConvertOddToEven){

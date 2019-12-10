@@ -33,10 +33,9 @@ public:
      */
     void write(std::string const& fname, endianness = endianness::little);
 
-    void set_output_file(std::string const &fname) { output_file = fname; };
-
     // Getters
     const marker_vec get_PRG_string() const { return my_PRG_string; };
+    const endianness get_endianness() const { return en; };
     const std::unordered_map<Marker, int> get_end_positions() const { return end_positions;};
 
     friend std::ostream &operator<<(std::ostream &out, PRG_String const &e) {
@@ -53,6 +52,7 @@ public:
 
 private:
     std::string output_file;
+    endianness en;
     marker_vec my_PRG_string;
     std::unordered_map<Marker, int> end_positions; // Where a given site ends; the allele (even) marker is stored.
 
