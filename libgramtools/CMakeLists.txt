@@ -88,8 +88,8 @@ target_link_libraries(gramtools LINK_PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
 set_target_properties(gramtools
         PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/lib
-        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/lib)
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 add_dependencies(gramtools
         sdsl
         zlib
@@ -100,10 +100,10 @@ add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/lib
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/cmake-build-debug/lib/libgramtools.a
+        ${CMAKE_CURRENT_BINARY_DIR}/lib/libgramtools.a
         ${PROJECT_SOURCE_DIR}/gramtools/lib
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/lib/*
+        ${CMAKE_CURRENT_BINARY_DIR}/lib/*
         ${PROJECT_SOURCE_DIR}/gramtools/lib)
 
 #########################
@@ -125,14 +125,14 @@ target_link_libraries(gram LINK_PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
 set_target_properties(gram
         PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake-build-debug/bin
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON)
 add_custom_command(TARGET gram POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/bin
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/cmake-build-debug/bin/gram
+        ${CMAKE_CURRENT_BINARY_DIR}/bin/gram
         ${PROJECT_SOURCE_DIR}/gramtools/bin)
 
 #################

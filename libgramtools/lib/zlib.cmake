@@ -9,6 +9,6 @@ ExternalProject_Add(zlib
         TEST_COMMAND      "")
 
 ExternalProject_Add_Step(zlib extract_tar
-        COMMAND tar -xvzf ${CMAKE_CURRENT_BINARY_DIR}/download/zlib.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/src
+        COMMAND tar -xzf ${CMAKE_CURRENT_BINARY_DIR}/download/zlib.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/src
         DEPENDEES download
         DEPENDERS configure)

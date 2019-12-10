@@ -55,7 +55,7 @@ set_target_properties(test_main
         CXX_STANDARD_REQUIRED ON)
 add_custom_command(TARGET test_main POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/submods/tests/test_main
+        ${CMAKE_CURRENT_BINARY_DIR}/test_main
         ${PROJECT_SOURCE_DIR}/libgramtools/submods/tests)
 
 add_test(NAME test_main COMMAND test_main)

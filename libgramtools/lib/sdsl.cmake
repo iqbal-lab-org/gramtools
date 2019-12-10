@@ -9,6 +9,6 @@ ExternalProject_Add(sdsl
         TEST_COMMAND      "")
 
 ExternalProject_Add_Step(sdsl extract_tar
-        COMMAND tar -xvzf ${CMAKE_CURRENT_BINARY_DIR}/download/sdsl-lite-2.1.1.tar.gz.offline.install.gz -C ${CMAKE_CURRENT_BINARY_DIR}/src
+        COMMAND tar -xzf ${CMAKE_CURRENT_BINARY_DIR}/download/sdsl-lite-2.1.1.tar.gz.offline.install.gz -C ${CMAKE_CURRENT_BINARY_DIR}/src
         DEPENDEES download
         DEPENDERS configure)

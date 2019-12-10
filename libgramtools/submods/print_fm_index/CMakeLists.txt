@@ -13,5 +13,5 @@ target_include_directories(print_fm_index PUBLIC
 
 add_custom_command(TARGET print_fm_index POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/submods/print_fm_index/print_fm_index
+        ${CMAKE_CURRENT_BINARY_DIR}/print_fm_index
         ${PROJECT_SOURCE_DIR}/libgramtools/submods/print_fm_index)

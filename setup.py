@@ -14,14 +14,12 @@ with open("./README.md") as fhandle:
     readme = fhandle.read()
 
 _root_dir = os.path.dirname(os.path.realpath(__file__))
-cmake_dir = os.path.join(_root_dir, "cmake-build-debug")  # cmake target directory
+cmake_dir = os.path.join(_root_dir, "cmake-build-release")  # cmake target directory
 
 
 def _build_backend(root_dir, mode="install"):
     assert mode in {"install", "test"}
     build_type = "REL_WITH_ASSERTS"  # Has -O flag
-    if mode == "test":
-        build_type = "DEBUG"  # No optimisation: allows for easy debugging
 
     print("Compiling gramtools backend")
 
@@ -125,8 +123,10 @@ class _TestCommand(test):
 
     def run(self):
         # test.run(self) # Setuptools' own front end test logic
-        _test_frontend(_root_dir)
         _build_backend(_root_dir, mode="test")
+        _test_frontend(
+            _root_dir
+        )  # Front end has integration test relying on backed, so need to build first
         _test_backend(_root_dir)
         print(
             """
