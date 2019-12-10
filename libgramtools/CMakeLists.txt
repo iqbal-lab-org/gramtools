@@ -3,35 +3,45 @@ include(ExternalProject)
 execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/download)
 execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/src)
 
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
-add_dependencies(htslib zlib)
-
 add_custom_target(py_git_version
         COMMAND make -C ${PROJECT_SOURCE_DIR}/gramtools/version)
 
+
+######################
+###  Compile flags ##
+######################
 # add a RELEASE_WITH_ASSERTS build type. Use via `cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS`
 # Note: this variable name NEEDS TO BE UPPERCASE (but not in cmake call)
 set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lpthread -lrt -lm -llzma -fopenmp -ftrapv")
 
-set(EXTERNAL_LIBS_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/lib)
-set(EXTERNAL_INCLUDE_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/include)
+######################
+###  External libs ###
+######################
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
+add_dependencies(htslib zlib)
 
-set(SOURCE
-        ${PROJECT_SOURCE_DIR}/libgramtools/src)
-set(INCLUDE
-        ${PROJECT_SOURCE_DIR}/libgramtools/include)
+## Boost ##
+set(Boost_INCLUDE_DIR ${BOOST_SRC_DIR}/include)
+set(Boost_LIBRARY_DIR ${BOOST_SRC_DIR}/lib)
+####    ####
 
 find_package(BZip2)
 
-# In development mode, makes sure can access the dependencies
-include_directories(${EXTERNAL_INCLUDE_DIR})
+### Include headers ####
+set(EXTERNAL_INCLUDE_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/include
+        ${Boost_INCLUDE_DIR})
+
+#### Link libraries ####
+set(EXTERNAL_LIBS_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/lib
+        ${Boost_LIBRARY_DIR})
+link_directories(${EXTERNAL_LIBS_DIR})
 
 set(EXTERN_LIBS
         boost_filesystem
@@ -46,7 +56,14 @@ set(EXTERN_LIBS
         divsufsort64
         z)
 
-link_directories(${EXTERNAL_LIBS_DIR})
+#########################
+###  Gramtools sources ##
+#########################
+set(SOURCE
+        ${PROJECT_SOURCE_DIR}/libgramtools/src)
+set(INCLUDE
+        ${PROJECT_SOURCE_DIR}/libgramtools/include)
+
 
 file(GLOB_RECURSE SOURCE_FILES
         ${SOURCE}/*.cpp)
@@ -54,7 +71,9 @@ file(GLOB_RECURSE SOURCE_FILES
 file(GLOB_RECURSE INCLUDE_FILES
         ${INCLUDE}/*.hpp)
 
-# libgramtools
+#########################
+####  libgramtools   ####
+#########################
 add_library(gramtools STATIC
         ${SOURCE_FILES}
         ${INCLUDE_FILES})
@@ -87,7 +106,9 @@ add_custom_command(TARGET gramtools POST_BUILD
         ${PROJECT_SOURCE_DIR}/cmake-build-debug/libgramtools/lib/*
         ${PROJECT_SOURCE_DIR}/gramtools/lib)
 
-# gram executable
+#########################
+###  gram executable  ###
+#########################
 add_executable(gram
         ${SOURCE}/main.cpp
         ${SOURCE}/common/timer_report.cpp)
@@ -114,7 +135,9 @@ add_custom_command(TARGET gram POST_BUILD
         ${PROJECT_SOURCE_DIR}/cmake-build-debug/bin/gram
         ${PROJECT_SOURCE_DIR}/gramtools/bin)
 
-# tests
+#################
+####  tests  ####
+#################
 enable_testing()
 add_subdirectory(submods/tests)
 add_test(test_main test_main)
