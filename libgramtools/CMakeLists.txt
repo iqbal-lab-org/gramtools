@@ -14,7 +14,7 @@ add_custom_target(py_git_version
 # Note: this variable name NEEDS TO BE UPPERCASE (but not in cmake call)
 set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lpthread -lrt -lm -llzma -fopenmp -ftrapv")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lpthread -lrt -lm -llzma -fopenmp -ftrapv -Wuninitialized")
 
 ######################
 ###  External libs ###

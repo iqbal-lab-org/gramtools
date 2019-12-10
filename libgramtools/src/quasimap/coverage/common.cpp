@@ -101,21 +101,20 @@ void LocusFinder::assign_traversed_loci(SearchState const& search_state, info_pt
 MappingInstanceSelector::MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info, rand_ptr rand_generator)
     : input_search_states(search_states), usps(), prg_info(prg_info), rand_generator(rand_generator)
 {
-    add_searchstates();
+    process_searchstates(input_search_states);
     int32_t selected_index = random_select_entry();
     if (selected_index >= 0) apply_selection(selected_index);
 };
 
 int32_t MappingInstanceSelector::random_select_entry() {
     if (usps.size() == 0) return -1;
-    uint32_t nonvariant_count = count_nonvar_search_states();
+    uint32_t nonvariant_count = count_nonvar_search_states(input_search_states);
     uint32_t count_total_options = nonvariant_count + usps.size();
 
     uint32_t selected_option = rand_generator->generate(1, count_total_options);
     // If we select a non-variant path, no coverage information will get recorded.
     bool no_variants = selected_option <= nonvariant_count;
     if (no_variants) return -1;
-
     return selected_option - nonvariant_count - 1;  //return 0-based index in map
 }
 
@@ -138,7 +137,7 @@ void MappingInstanceSelector::add_searchstate(SearchState const& ss){
     cov_info.first.push_back(ss);
 }
 
-void MappingInstanceSelector::add_searchstates(SearchStates const& all_ss){
+void MappingInstanceSelector::process_searchstates(SearchStates const& all_ss){
     for (auto const& ss : all_ss){
         if (ss.has_path()) add_searchstate(ss);
     }

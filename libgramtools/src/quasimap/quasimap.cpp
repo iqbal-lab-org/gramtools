@@ -112,7 +112,7 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
 
     //  Parallelise loop below
     #pragma omp parallel for
-    for (int i = 0; i < reads_buffer.size(); ++i) {
+    for (std::size_t i = 0; i < reads_buffer.size(); ++i) {
 
         auto thread_id = omp_get_thread_num();
         //  Report total number of mapped reads everytime at least `diff` such have been mapped

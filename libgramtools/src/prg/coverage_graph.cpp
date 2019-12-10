@@ -247,7 +247,7 @@ void cov_Graph_Builder::map_targets(){
 };
 
 void cov_Graph_Builder::entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m){
-    Marker inserted;
+    Marker inserted{0};
     switch(prev_t){
         case marker_type::site_entry: // Double entry
         case marker_type::site_end: // End site goes straight to start site

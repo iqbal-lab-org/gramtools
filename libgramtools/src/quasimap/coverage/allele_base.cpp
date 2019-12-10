@@ -123,7 +123,8 @@ void DummyCovNode::extend_coordinates(node_coordinates coords) {
 
 
 Traverser::Traverser(node_access start_point, VariantSitePath traversed_loci, std::size_t read_size) :
-        cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true){
+        cur_Node(start_point.node), traversed_loci(traversed_loci), bases_remaining(read_size), first_node(true),
+        end_pos(0){
 
     // Will give the next site to choose in the graph
     traversed_index = traversed_loci.size();

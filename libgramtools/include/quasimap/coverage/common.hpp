@@ -145,13 +145,16 @@ namespace gram {
     public:
         uniqueSitePaths usps; /**< Key dispatching and selection object.*/
 
-        // Constructors
-        MappingInstanceSelector() : prg_info(nullptr), rand_generator(nullptr){}
-        MappingInstanceSelector(info_ptr prg_info) : prg_info(prg_info), rand_generator(nullptr){}
+        // Constructor
         MappingInstanceSelector(SearchStates const search_states, info_ptr prg_info, rand_ptr rand_generator);
 
-        void add_searchstates(SearchStates const& ss);
-        void add_searchstates() {add_searchstates(input_search_states);}
+        // Constructors for testing
+        MappingInstanceSelector() : prg_info(nullptr), rand_generator(nullptr){}
+        MappingInstanceSelector(info_ptr prg_info) : prg_info(prg_info), rand_generator(nullptr){}
+        MappingInstanceSelector(info_ptr prg_info, rand_ptr rand_g) : prg_info(prg_info), rand_generator(rand_g){}
+
+        void process_searchstates(SearchStates const& all_ss);
+        void set_searchstates(SearchStates const& ss) {input_search_states = ss;}
 
         /**
          * Dispatches a `SearchState` into `usps` using `LocusFinder`.
@@ -159,7 +162,6 @@ namespace gram {
         void add_searchstate(SearchState const& ss);
 
         uint32_t count_nonvar_search_states(SearchStates const& search_states);
-        uint32_t count_nonvar_search_states(){count_nonvar_search_states(input_search_states);}
 
         /**
          * Selects from the set of mapping instances of a read in the PRG.
@@ -171,7 +173,7 @@ namespace gram {
         void apply_selection(int32_t selected_index);
         SelectedMapping get_selection(){return selected;}
     private:
-        SearchStates const input_search_states;
+        SearchStates input_search_states;
         SelectedMapping selected; /**< stores the choice made*/
         info_ptr prg_info;
         rand_ptr rand_generator;

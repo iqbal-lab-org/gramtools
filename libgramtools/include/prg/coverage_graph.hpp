@@ -91,7 +91,7 @@ public:
     void add_sequence(std::string const &new_seq) {
         sequence += new_seq;
         if (is_in_bubble()){
-            for (auto i = 0; i < new_seq.size(); ++i) coverage.emplace_back(0);
+            for (std::size_t i = 0; i < new_seq.size(); ++i) coverage.emplace_back(0);
         }
     }
 

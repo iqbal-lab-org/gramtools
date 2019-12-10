@@ -14,7 +14,7 @@ using namespace gram;
 
 
 bool gram::is_site_marker(Marker const& variant_marker){
-    if (!variant_marker > 4) throw std::invalid_argument("The given marker is not a variant marker");
+    if (!(variant_marker > 4)) throw std::invalid_argument("The given marker is not a variant marker");
     return variant_marker % 2 == 1;
 }
 
@@ -154,7 +154,7 @@ std::vector<Marker> gram::prg_string_to_ints(std::string const& string_prg) {
     int char_count{0};
 
     std::vector<Marker> encoded_prg(string_prg.size());
-    for (int i = 0; i<string_prg.size(); ++i){
+    for (std::size_t i = 0; i < string_prg.size(); ++i){
         const auto &c = string_prg[i];
 
         switch(c) {

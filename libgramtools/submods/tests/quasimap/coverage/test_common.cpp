@@ -88,7 +88,7 @@ TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
     };
     PRG_Info prg_info;
     MappingInstanceSelector m{&prg_info};
-    m.add_searchstates(search_states);
+    m.process_searchstates(search_states);
     auto result = get_site_path_only(m.usps);
     std::set<SitePath> expected = {
             SitePath {5, 7},
@@ -129,7 +129,7 @@ TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) 
     };
     PRG_Info prg_info;
     MappingInstanceSelector m{&prg_info};
-    m.add_searchstates(search_states);
+    m.process_searchstates(search_states);
     auto result = get_site_path_only(m.usps);
     std::set<SitePath> expected = {
             SitePath {9, 11}
@@ -360,7 +360,7 @@ TEST_F(MappingInstanceSelector_addSearchStates, addOneSearchState_correctlyRegis
 
 TEST_F(MappingInstanceSelector_addSearchStates, addAllSearchStates_correctlyRegistered){
     SearchStates all_ss{s1, s2, s3};
-    selector.add_searchstates(all_ss);
+    selector.process_searchstates(all_ss);
 
     traversal_info expected_i1{
         SearchStates{s1, s2},
@@ -387,6 +387,12 @@ public:
 };
 
 class MappingInstanceSelector_select : public ::testing::Test {
+    /*
+     * There are four `SearchState`s: two go through two alleles of the same site (7),
+     * and two do not cross any variant site in the PRG, and are held together (SA Interval of size 2)
+     *
+     * The logic for random selection is choosing between 1 and 3, where 1 and 2 correspond to the invariants.
+     */
 protected:
     PRG_Info prg_info;
     SearchStates ss{
@@ -406,6 +412,27 @@ protected:
     };
 };
 
+TEST_F(MappingInstanceSelector_select, SelectInvariantAndThenVariant_correctIndices) {
+    using namespace ::testing;
+    MockRandomGenerator r;
+    EXPECT_CALL(r, generate(1, 3))
+            .Times(Exactly(2))
+            .WillOnce(Return(1))
+            .WillOnce(Return(3));
+
+    MappingInstanceSelector m{&prg_info, &r};
+    m.set_searchstates(ss); // Copies them to m
+    m.process_searchstates(ss);
+    EXPECT_EQ(m.usps.size(), 1); // Expect one unique site recorded: 7
+
+    int32_t selected_index;
+    selected_index = m.random_select_entry();
+    EXPECT_EQ(selected_index, -1); // We chose an invariant index, which returns -1
+
+    selected_index = m.random_select_entry();
+    EXPECT_EQ(selected_index, 0); // We chose the `SearchState` overlapping a variant site, at index 0.
+}
+
 TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
     // Select the SearchState in invariant region of PRG
     // The SA Interval is size 2 so the first two choices map to invariant mapping instances
@@ -421,6 +448,7 @@ TEST_F(MappingInstanceSelector_select, selectnonvariant_emptyMappingSelector){
     EXPECT_EQ(selection.navigational_search_states.size(), 0);
     EXPECT_EQ(selection.equivalence_class_loci.size(), 0);
 }
+
 
 TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){
     using namespace ::testing;
