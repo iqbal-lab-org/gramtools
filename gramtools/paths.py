@@ -45,6 +45,7 @@ def generate_build_paths(args):
         log.debug("Creating gram directory:\n%s", paths["gram_dir"])
 
     if args.reference is not None:
+        _check_exists(args.reference)
         if os.path.lexists(paths["original_reference"]):
             os.unlink(paths["original_reference"])
         os.symlink(os.path.abspath(args.reference), paths["original_reference"])
@@ -54,9 +55,16 @@ def generate_build_paths(args):
             vcf_file for arglist in args.vcf for vcf_file in arglist
         ]  # Flattens out list of lists.
 
+        for vcf_file in vcf_files:
+            _check_exists(vcf_file)
+
         # Right now, the path to the vcf is malformed; it is a list, to account for multiple input vcfs.
         # We modify this to a single properly formed vcf subsequently.
         paths["vcf"] = vcf_files
+
+    if args.prg is not None:
+        _check_exists(args.prg)
+
     return paths
 
 
@@ -234,3 +242,10 @@ def generate_discover_paths(args):
         all_paths.update({"reads_files": reads_files})
 
     return all_paths
+
+
+def _check_exists(fname):
+    if not os.path.isfile(fname):
+        error_message = f"File required but not found: {fname}"
+        log.error(error_message)
+        exit(1)

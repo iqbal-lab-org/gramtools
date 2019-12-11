@@ -16,6 +16,7 @@ from ... import version
 from ... import common
 from ... import paths
 from . import vcf_to_prg_string
+from ...paths import _check_exists
 
 log = logging.getLogger("gramtools")
 
@@ -42,13 +43,11 @@ def setup_command_parser(common_parser, subparsers):
         "--reference",
         help="Reference the vcf file refers to, used to build non-variant parts of the prg.",
         type=str,
-        required=False,
     )
     parser.add_argument(
         "--prg",
         help="A prg can be passed in directly instead of a vcf/reference combination.",
         type=str,
-        required=False,
     )
 
     parser.add_argument(
@@ -127,10 +126,11 @@ def run(args):
     log.info("Start process: build")
     start_time = str(time.time()).split(".")[0]
 
+    _check_build_args(args)
     command_paths = paths.generate_build_paths(args)
     report = collections.OrderedDict()
 
-    if hasattr(args, "prg") and args.prg is not None:
+    if args.prg is not None:
         _skip_prg_construction(report, "copy_existing_PRG_string", command_paths, args)
     else:
         # Update the vcf path to a combined vcf from all those provided.
@@ -228,14 +228,9 @@ def _execute_command_generate_prg(report, action, build_paths):
 ## Checks prg file exists and copies it to gram directory.
 @with_report
 def _skip_prg_construction(report, action, build_paths, args):
-    if not os.path.isfile(args.prg):
-        error_message = f"PRG argument provided and file not found: {args.prg}"
-        log.error(error_message)
-        raise FileNotFoundError(error_message)
-    else:
-        log.debug("PRG file provided, skipping construction")
-        log.debug("Copying PRG file into gram directory")
-        shutil.copyfile(args.prg, build_paths["prg"])
+    log.debug("PRG file provided, skipping construction")
+    log.debug("Copying PRG file into gram directory")
+    shutil.copyfile(args.prg, build_paths["prg"])
 
 
 ## Executes `gram build` backend.
@@ -323,3 +318,20 @@ def get_next_valid_record(vcf_reader):
     except Exception:
         next_record = get_next_valid_record(vcf_reader)
     return next_record
+
+
+def _check_build_args(args):
+    no_prg = args.prg is None
+    no_vcf_and_no_ref = args.reference is None and args.vcf is None
+    not_both_vcf_and_ref = args.reference is None or args.vcf is None
+
+    if no_prg and no_vcf_and_no_ref:
+        log.error(
+            "Please provide genetic variation via either --prg or --vcf/--reference"
+        )
+        exit(1)
+    if not no_prg:
+        return
+    if not_both_vcf_and_ref:
+        log.error("Please provide both --reference and --vcf")
+        exit(1)

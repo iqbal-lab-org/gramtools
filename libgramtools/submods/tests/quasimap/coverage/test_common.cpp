@@ -69,6 +69,22 @@ TEST(LocusFinder_logic, SameSiteMoreThanOnceInSearchState_ThrowsError){
     EXPECT_THROW(l.check_site_uniqueness(search_state), std::logic_error);
 }
 
+TEST(SameLevel0SitesDifferentOrder, SingleEntryInMap){
+    level0_Sites s1{Marker{5}, Marker{7}, Marker{9}, Marker{11}};
+    level0_Sites s2{Marker{11}, Marker{9}, Marker{7}, Marker{5}};
+
+    uniqueSitePaths unique_map{};
+    unique_map.insert(
+            {s1, traversal_info{}}
+            );
+    unique_map.insert(
+            {s2, traversal_info{}}
+            );
+
+    EXPECT_EQ(1, unique_map.size());
+}
+
+
 TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
     SearchStates search_states = {
             SearchState {
