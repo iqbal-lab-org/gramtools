@@ -4,7 +4,6 @@
 # Once the prg is stored the back-end `build` routine is called, producing the encoded prg, its fm-index, and other supporting data structures.
 import os
 import time
-import json
 import shutil
 import logging
 import subprocess
@@ -12,137 +11,40 @@ import collections
 
 import cluster_vcf_records
 
-from ... import version
 from ... import common
 from ... import paths
 from . import vcf_to_prg_string
 from ...paths import _check_exists
 
+from . import arguments
+from . import report
+
 log = logging.getLogger("gramtools")
-
-
-def setup_command_parser(common_parser, subparsers):
-    parser = subparsers.add_parser("build", parents=[common_parser])
-    parser.add_argument(
-        "--gram-dir",
-        "--gram-directory",
-        help="",
-        dest="gram_dir",
-        type=str,
-        required=True,
-    )
-
-    parser.add_argument(
-        "--vcf",
-        help="File containing variant information to capture in the prg.",
-        nargs="+",
-        action="append",
-        type=str,
-    )
-    parser.add_argument(
-        "--reference",
-        help="Reference the vcf file refers to, used to build non-variant parts of the prg.",
-        type=str,
-    )
-    parser.add_argument(
-        "--prg",
-        help="A prg can be passed in directly instead of a vcf/reference combination.",
-        type=str,
-    )
-
-    parser.add_argument(
-        "--kmer-size",
-        help="Kmer size for indexing the prg. Defaults to 5.",
-        type=int,
-        default=5,
-        required=False,
-    )
-
-    # The current default behaviour is to extract only relevant kmers from prg.
-    parser.add_argument(
-        "--all-kmers",
-        help="Whether or not all kmers of given size should be indexed.\n"
-        "When this flag is not used, only kmers overlapping variant sites in prg will be indexed.",
-        action="store_true",
-        required=False,
-    )
-
-    parser.add_argument(
-        "--max-read-length",
-        help="Used to determine which kmers overlap variant sites. Only needed if --all-kmers flag is off.",
-        type=int,
-        default=150,
-        required=False,
-    )
-
-    parser.add_argument("--max-threads", help="", type=int, default=1, required=False)
-
-
-def with_report(f):
-    """
-    Decorator to add logging and reporting to build procedures
-    To signal that something went wrong in decorated function call, that function needs to raise an Exception.
-    """
-
-    def reportify(report, action, *args):
-        if report.get("success") is False:
-            report[action] = {"success": False}
-            return report
-
-        success, error, command, stdout = True, None, None, None
-        timer_start = time.time()
-
-        try:
-            original_result = f(report, action, *args)
-        except Exception as e:
-            success = False
-            error = str(e)
-            original_result = None
-        timer_end = time.time()
-
-        log.debug(f"Ran {action} in: {timer_end - timer_start} seconds")
-
-        report["success"] = success
-        action_report = collections.OrderedDict(
-            [
-                ("success", success),
-                ("error_message", error),
-                ("Run time", int(timer_end) - int(timer_start)),
-            ]
-        )
-
-        # The condition below allows the called function to modify the report as well.
-        if action not in report:
-            report[action] = action_report
-        else:
-            report[action].update(action_report)
-
-        return original_result
-
-    return reportify
 
 
 def run(args):
     log.info("Start process: build")
     start_time = str(time.time()).split(".")[0]
 
-    _check_build_args(args)
+    arguments._check_build_args(args)
     command_paths = paths.generate_build_paths(args)
-    report = collections.OrderedDict()
+    build_report = collections.OrderedDict()
 
     if args.prg is not None:
-        _skip_prg_construction(report, "copy_existing_PRG_string", command_paths, args)
+        _skip_prg_construction(
+            build_report, "copy_existing_PRG_string", command_paths, args
+        )
     else:
         # Update the vcf path to a combined vcf from all those provided.
         # We also do this if only a single one is provided, to deal with overlapping records.
         command_paths["vcf"] = _cluster_vcf_records(
-            report, "vcf_record_clustering", command_paths
+            build_report, "vcf_record_clustering", command_paths
         )
         _execute_command_generate_prg(
-            report, "vcf_to_PRG_string_conversion", command_paths
+            build_report, "vcf_to_PRG_string_conversion", command_paths
         )
 
-    _execute_gramtools_cpp_build(report, "gramtools_build", command_paths, args)
+    _execute_gramtools_cpp_build(build_report, "gramtools_build", command_paths, args)
 
     log.debug("Computing sha256 hash of project paths")
     command_hash_paths = common.hash_command_paths(command_paths)
@@ -151,14 +53,14 @@ def run(args):
     _report = collections.OrderedDict(
         [("kmer_size", args.kmer_size), ("max_read_length", args.max_read_length)]
     )
-    report.update(_report)
+    build_report.update(_report)
 
     report_file_path = command_paths["build_report"]
-    _save_report(
-        start_time, report, command_paths, command_hash_paths, report_file_path
+    report._save_report(
+        start_time, build_report, command_paths, command_hash_paths, report_file_path
     )
 
-    if report["success"] is False:
+    if build_report["success"] is False:
         log.error(
             f'Unsuccessful build. Process reported to {command_paths["build_report"]}'
         )
@@ -176,10 +78,14 @@ def _count_vcf_record_lines(vcf_file_path):
     return num_recs
 
 
+def setup_command_parser(common_parser, subparsers):
+    arguments.setup_build_parser(common_parser, subparsers)
+
+
 ## Combines records in one or more vcf files using external python utility.
 # Records where the REFs overlap are merged together and all possible haplotypes enumerated.
 # New path to 'vcf' is path to the combined vcf
-@with_report
+@report.with_report
 def _cluster_vcf_records(report, action, command_paths):
     vcf_files = command_paths["vcf"]
     final_vcf_name = command_paths["built_vcf"]
@@ -197,7 +103,7 @@ def _cluster_vcf_records(report, action, command_paths):
 
 
 ## Calls utility that converts a vcf and fasta reference into a linear prg.
-@with_report
+@report.with_report
 def _execute_command_generate_prg(report, action, build_paths):
     vcf_in = build_paths["vcf"]
     log.info(f"Running {action} on {vcf_in}")
@@ -226,7 +132,7 @@ def _execute_command_generate_prg(report, action, build_paths):
 
 
 ## Checks prg file exists and copies it to gram directory.
-@with_report
+@report.with_report
 def _skip_prg_construction(report, action, build_paths, args):
     log.debug("PRG file provided, skipping construction")
     log.debug("Copying PRG file into gram directory")
@@ -234,7 +140,7 @@ def _skip_prg_construction(report, action, build_paths, args):
 
 
 ## Executes `gram build` backend.
-@with_report
+@report.with_report
 def _execute_gramtools_cpp_build(report, action, build_paths, args):
 
     command = [
@@ -280,58 +186,3 @@ def _execute_gramtools_cpp_build(report, action, build_paths, args):
     )
     if command_result == False:
         raise Exception("Error running gramtools build.")
-
-
-def _save_report(
-    start_time, report, command_paths, command_hash_paths, report_file_path
-):
-    end_time = str(time.time()).split(".")[0]
-    _, report_dict = version.report()
-    current_working_directory = os.getcwd()
-
-    _report = collections.OrderedDict(
-        [
-            ("start_time", start_time),
-            ("end_time", end_time),
-            ("total_runtime", int(end_time) - int(start_time)),
-        ]
-    )
-    _report.update(report)
-    _report.update(
-        collections.OrderedDict(
-            [
-                ("current_working_directory", current_working_directory),
-                ("paths", command_paths),
-                ("path_hashes", command_hash_paths),
-                ("version_report", report_dict),
-            ]
-        )
-    )
-
-    with open(report_file_path, "w") as fhandle:
-        json.dump(_report, fhandle, indent=4)
-
-
-def get_next_valid_record(vcf_reader):
-    try:
-        next_record = next(vcf_reader, None)
-    except Exception:
-        next_record = get_next_valid_record(vcf_reader)
-    return next_record
-
-
-def _check_build_args(args):
-    no_prg = args.prg is None
-    no_vcf_and_no_ref = args.reference is None and args.vcf is None
-    not_both_vcf_and_ref = args.reference is None or args.vcf is None
-
-    if no_prg and no_vcf_and_no_ref:
-        log.error(
-            "Please provide genetic variation via either --prg or --vcf/--reference"
-        )
-        exit(1)
-    if not no_prg:
-        return
-    if not_both_vcf_and_ref:
-        log.error("Please provide both --reference and --vcf")
-        exit(1)
