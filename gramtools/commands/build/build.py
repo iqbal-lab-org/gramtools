@@ -150,14 +150,12 @@ def _execute_gramtools_cpp_build(report, action, build_paths, args):
         build_paths["gram_dir"],
         "--kmer-size",
         str(args.kmer_size),
-        "--max-read-size",
-        str(args.max_read_length),
         "--max-threads",
         str(args.max_threads),
+        "--all-kmers",  # Currently always build all kmers of given size
+        "--max-read-size",  # TODO: currently only used when --all-kmers is not passed. Maybe retire entirely.
+        "150",
     ]
-
-    if args.all_kmers:
-        command.append("--all-kmers")
 
     if args.debug:
         command += ["--debug"]

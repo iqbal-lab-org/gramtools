@@ -1,3 +1,4 @@
+import argparse
 
 def setup_build_parser(common_parser, subparsers):
     parser = subparsers.add_parser("build", parents=[common_parser])
@@ -17,6 +18,7 @@ def setup_build_parser(common_parser, subparsers):
         action="append",
         type=str,
     )
+
     parser.add_argument(
         "--reference",
         help="Reference the vcf file refers to, used to build non-variant parts of the prg.",
@@ -28,25 +30,19 @@ def setup_build_parser(common_parser, subparsers):
         type=str,
     )
 
-    # The current default behaviour is to extract only relevant kmers from prg.
-    parser.add_argument(
-        "--all-kmers",
-        help="Index all kmers of the given --kmer-size. Currently required.",
-        action="store_true",
-        required=False,
-    )
-
     parser.add_argument(
         "--kmer-size",
-        help="Kmer size for indexing the prg. Defaults to 5. Currently capped at 14 (268 million kmers).",
+        help="Kmer size for indexing the prg. Defaults to 10. "
+        "Higher k speeds quasimapping. Currently capped at 14 (268 million kmers), because of all kmers enumeration.",
         type=int,
-        default=5,
+        default=10,
         required=False,
     )
 
     parser.add_argument(
         "--max-read-length",
-        help="Used to determine which kmers overlap variant sites. Only needed if --all-kmers flag is off.",
+        help=argparse.SUPPRESS,
+        # help="Used to determine which kmers overlap variant sites",
         type=int,
         default=150,
         required=False,
@@ -69,4 +65,10 @@ def _check_build_args(args):
         return
     if not_both_vcf_and_ref:
         print("Please provide both --reference and --vcf")
+        exit(1)
+
+    if args.kmer_size > 14:
+        print(
+            "--kmer-size must be 14 or less, because indexing currently produces all kmers of that size."
+        )
         exit(1)

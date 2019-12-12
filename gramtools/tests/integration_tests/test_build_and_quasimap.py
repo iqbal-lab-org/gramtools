@@ -47,7 +47,7 @@ class twoSitesNoNesting(unittest.TestCase):
 
     def test_build(self):
         args = gramtools.root_parser.parse_args(
-            f"build --gram-dir {self.gram_dir} --prg {self.prg_file} --kmer-size 5 --all-kmers".split()
+            f"build --gram-dir {self.gram_dir} --prg {self.prg_file} --kmer-size 5".split()
         )
         build.run(args)
 
