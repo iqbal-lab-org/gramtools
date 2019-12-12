@@ -13,10 +13,9 @@ void commands::build::run(const Parameters &parameters) {
     std::cout << "Generating integer encoded PRG" << std::endl;
     timer.start("Encoded PRG");
     PRG_String ps{parameters.encoded_prg_fpath};
-    prg_info.encoded_prg = ps.get_PRG_string();
     timer.stop();
     std::cout << "Number of characters in integer encoded linear PRG: "
-              << prg_info.encoded_prg.size()
+              << ps.size()
               << std::endl;
 
     prg_info.last_allele_positions = ps.get_end_positions();
@@ -42,23 +41,10 @@ void commands::build::run(const Parameters &parameters) {
 
     std::cout << "Generating PRG masks" << std::endl;
     timer.start("Generating PRG masks");
-    prg_info.dna_bwt_masks = generate_bwt_masks(prg_info.fm_index, parameters);
-
-    prg_info.sites_mask = generate_sites_mask(prg_info.encoded_prg);
-    sdsl::store_to_file(prg_info.sites_mask, parameters.sites_mask_fpath);
-
-    prg_info.allele_mask = generate_allele_mask(prg_info.encoded_prg);
-    sdsl::store_to_file(prg_info.allele_mask, parameters.allele_mask_fpath);
-
-    prg_info.prg_markers_mask = generate_prg_markers_mask(prg_info.encoded_prg);
-    prg_info.prg_markers_rank = sdsl::rank_support_v<1>(&prg_info.prg_markers_mask);
-    prg_info.prg_markers_select = sdsl::select_support_mcl<1>(&prg_info.prg_markers_mask);
-
-    prg_info.markers_mask_count_set_bits =
-            prg_info.prg_markers_rank(prg_info.prg_markers_mask.size());
 
     prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
 
+    prg_info.dna_bwt_masks = generate_bwt_masks(prg_info.fm_index, parameters);
     prg_info.rank_bwt_a = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_a);
     prg_info.rank_bwt_c = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_c);
     prg_info.rank_bwt_g = sdsl::rank_support_v<1>(&prg_info.dna_bwt_masks.mask_g);

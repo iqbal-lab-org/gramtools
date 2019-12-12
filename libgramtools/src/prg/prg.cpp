@@ -140,7 +140,6 @@ PRG_Info gram::load_prg_info(const Parameters &parameters) {
     PRG_Info prg_info;
 
     PRG_String ps{parameters.encoded_prg_fpath};
-    prg_info.encoded_prg = ps.get_PRG_string();
     prg_info.last_allele_positions = ps.get_end_positions();
 
     // Load coverage graph
@@ -150,15 +149,6 @@ PRG_Info gram::load_prg_info(const Parameters &parameters) {
     prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
 
     prg_info.fm_index = load_fm_index(parameters);
-    prg_info.sites_mask = load_sites_mask(parameters);
-    prg_info.allele_mask = load_allele_mask(parameters);
-
-    prg_info.prg_markers_mask = generate_prg_markers_mask(prg_info.encoded_prg);
-    prg_info.prg_markers_rank = sdsl::rank_support_v<1>(&prg_info.prg_markers_mask);
-    prg_info.prg_markers_select = sdsl::select_support_mcl<1>(&prg_info.prg_markers_mask);
-
-    prg_info.markers_mask_count_set_bits =
-            prg_info.prg_markers_rank(prg_info.prg_markers_mask.size());
 
     prg_info.bwt_markers_mask = generate_bwt_markers_mask(prg_info.fm_index);
 

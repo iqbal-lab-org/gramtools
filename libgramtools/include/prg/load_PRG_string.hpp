@@ -35,6 +35,7 @@ public:
 
     // Getters
     const marker_vec get_PRG_string() const { return my_PRG_string; };
+    std::size_t size() const { return my_PRG_string.size(); };
     const endianness get_endianness() const { return en; };
     const std::unordered_map<Marker, int> get_end_positions() const { return end_positions;};
 
