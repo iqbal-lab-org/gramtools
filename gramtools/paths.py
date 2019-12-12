@@ -33,15 +33,8 @@ def _generate_project_paths(gram_dir):
 def generate_build_paths(args):
     paths = _generate_project_paths(args.gram_dir)
 
-    if not os.path.exists(paths["gram_dir"]):
-        os.mkdir(paths["gram_dir"])
-        log.debug("Creating gram directory:\n%s", paths["gram_dir"])
-
     if args.reference is not None:
         _check_exists(args.reference)
-        if os.path.lexists(paths["original_reference"]):
-            os.unlink(paths["original_reference"])
-        os.symlink(os.path.abspath(args.reference), paths["original_reference"])
 
     if args.vcf is not None:
         vcf_files = [
@@ -57,6 +50,14 @@ def generate_build_paths(args):
 
     if args.prg is not None:
         _check_exists(args.prg)
+
+    if not os.path.exists(paths["gram_dir"]):
+        os.mkdir(paths["gram_dir"])
+        log.debug("Creating gram directory:\n%s", paths["gram_dir"])
+
+        if os.path.lexists(paths["original_reference"]):
+            os.unlink(paths["original_reference"])
+        os.symlink(os.path.abspath(args.reference), paths["original_reference"])
 
     return paths
 

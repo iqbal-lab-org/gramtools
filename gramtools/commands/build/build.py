@@ -14,7 +14,6 @@ import cluster_vcf_records
 from ... import common
 from ... import paths
 from . import vcf_to_prg_string
-from ...paths import _check_exists
 
 from . import arguments
 from . import report

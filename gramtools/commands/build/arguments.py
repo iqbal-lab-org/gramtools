@@ -1,5 +1,6 @@
 import argparse
 
+
 def setup_build_parser(common_parser, subparsers):
     parser = subparsers.add_parser("build", parents=[common_parser])
     parser.add_argument(
@@ -61,14 +62,16 @@ def _check_build_args(args):
             "Please provide known variation through either: \n* --prg \n* --vcf and --reference"
         )
         exit(1)
-    if not no_prg:
-        return
-    if not_both_vcf_and_ref:
-        print("Please provide both --reference and --vcf")
-        exit(1)
 
     if args.kmer_size > 14:
         print(
-            "--kmer-size must be 14 or less, because indexing currently produces all kmers of that size."
+            "--kmer-size must be 14 or less, because indexing currently produces all kmers of given size."
         )
+        exit(1)
+
+    if not no_prg:
+        return
+
+    if not_both_vcf_and_ref:
+        print("Please provide both --reference and --vcf")
         exit(1)
