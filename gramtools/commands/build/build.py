@@ -23,10 +23,10 @@ log = logging.getLogger("gramtools")
 
 
 def run(args):
+    arguments._check_build_args(args)
     log.info("Start process: build")
     start_time = str(time.time()).split(".")[0]
 
-    arguments._check_build_args(args)
     command_paths = paths.generate_build_paths(args)
     build_report = collections.OrderedDict()
 

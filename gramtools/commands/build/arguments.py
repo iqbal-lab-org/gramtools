@@ -1,3 +1,4 @@
+
 def setup_build_parser(common_parser, subparsers):
     parser = subparsers.add_parser("build", parents=[common_parser])
     parser.add_argument(
@@ -27,20 +28,19 @@ def setup_build_parser(common_parser, subparsers):
         type=str,
     )
 
-    parser.add_argument(
-        "--kmer-size",
-        help="Kmer size for indexing the prg. Defaults to 5.",
-        type=int,
-        default=5,
-        required=False,
-    )
-
     # The current default behaviour is to extract only relevant kmers from prg.
     parser.add_argument(
         "--all-kmers",
-        help="Whether or not all kmers of given size should be indexed.\n"
-        "When this flag is not used, only kmers overlapping variant sites in prg will be indexed.",
+        help="Index all kmers of the given --kmer-size. Currently required.",
         action="store_true",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--kmer-size",
+        help="Kmer size for indexing the prg. Defaults to 5. Currently capped at 14 (268 million kmers).",
+        type=int,
+        default=5,
         required=False,
     )
 
@@ -61,12 +61,12 @@ def _check_build_args(args):
     not_both_vcf_and_ref = args.reference is None or args.vcf is None
 
     if no_prg and no_vcf_and_no_ref:
-        log.error(
-            "Please provide genetic variation via either --prg or --vcf/--reference"
+        print(
+            "Please provide known variation through either: \n* --prg \n* --vcf and --reference"
         )
         exit(1)
     if not no_prg:
         return
     if not_both_vcf_and_ref:
-        log.error("Please provide both --reference and --vcf")
+        print("Please provide both --reference and --vcf")
         exit(1)
