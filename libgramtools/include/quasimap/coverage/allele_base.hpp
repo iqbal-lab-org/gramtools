@@ -49,7 +49,8 @@ namespace gram {
      */
     std::pair<uint64_t, uint64_t> site_marker_prg_indexes(const uint64_t &site_marker, const PRG_Info &prg_info);
 
-    using SitesCoverageBoundaries = PairHashMap<VariantLocus, uint64_t>; /**< For a given `VariantLocus`, gives the last allele base position recorded.*/
+    /** For a given `VariantLocus`, gives the last allele base position recorded.*/
+    using SitesCoverageBoundaries = PairHashMap<VariantLocus, uint64_t>;
 
     /**
      * Increments each traversed base's coverage in traversed allele.

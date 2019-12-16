@@ -10,7 +10,6 @@
 
 #include "common/parameters.hpp"
 
-
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 

@@ -69,6 +69,14 @@ private:
     }
 };
 
+TEST(ReverseComplementRead, GivenRead_ReverseComplementReadReturned) {
+    gram::Pattern read = {1, 2, 1, 3, 4};
+    auto result = gram::reverse_complement_read(read);
+    gram::Pattern expected = {1, 2, 4, 3, 4};
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(GetKmer, GivenReadAndKmerSize_CorrectKmerReturned) {
     auto read = encode_dna_bases("accgaatt");
     uint32_t kmer_size = 3;

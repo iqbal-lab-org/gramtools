@@ -266,3 +266,34 @@ SearchStates gram::process_read_char_search_states(const int_Base &pattern_char,
                                                    prg_info);
     return new_search_states;
 }
+
+
+/**
+ * Produce integer-encoded Watson-Crick base complement.
+ */
+int_Base complement_encoded_base(const int_Base &encoded_base) {
+    switch (encoded_base) {
+        case 1:
+            return 4;
+        case 2:
+            return 3;
+        case 3:
+            return 2;
+        case 4:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+Pattern gram::reverse_complement_read(const Pattern &read) {
+    Pattern reverse_read;
+    reverse_read.reserve(read.size());
+
+    for (auto it = read.rbegin(); it != read.rend(); ++it) {
+        const auto &base = *it;
+        auto complement_base = complement_encoded_base(base);
+        reverse_read.push_back(complement_base);
+    }
+    return reverse_read;
+}

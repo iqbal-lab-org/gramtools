@@ -1,3 +1,8 @@
+/**
+ * @file
+ * In gramtools, we use a linearised representation of a Population Reference Graph (PRG) for mapping reads to.
+ * The one that supports arbitrarily nested variation reads such linear prgs from a stream of binary integers.
+ */
 #ifndef PRG_STRING_HPP
 #define PRG_STRING_HPP
 #include <string>

@@ -8,11 +8,20 @@
 #include "sequence_read/seqread.hpp"
 #include "common/utils.hpp"
 
-
 namespace fs = boost::filesystem;
 using namespace gram;
 
+std::string gram::full_path(const std::string &gram_dirpath,
+                            const std::string &file_name) {
+    fs::path dir(gram_dirpath);
+    fs::path file(file_name);
+    fs::path full_path = dir / file;
+    return full_path.string();
+}
 
+/******************
+ * Data typedefs **
+ ******************/
 bool gram::is_site_marker(Marker const& variant_marker){
     if (!(variant_marker > 4)) throw std::invalid_argument("The given marker is not a variant marker");
     return variant_marker % 2 == 1;
@@ -22,14 +31,10 @@ bool gram::is_allele_marker(Marker const& variant_marker){
     return !is_site_marker(variant_marker);
 }
 
-std::string gram::full_path(const std::string &gram_dirpath,
-                      const std::string &file_name) {
-    fs::path dir(gram_dirpath);
-    fs::path file(file_name);
-    fs::path full_path = dir / file;
-    return full_path.string();
-}
 
+/******************************************
+ * Characters to integers and vice-versa **
+ ******************************************/
 EncodeResult gram::encode_char(const char &c) {
     EncodeResult encode_result = {};
 
@@ -94,38 +99,6 @@ Pattern gram::encode_dna_bases(const std::string &dna_str) {
 }
 
 
-/**
- * Produce integer-encoded Watson-Crick base complement.
- */
-int_Base complement_encoded_base(const int_Base &encoded_base) {
-    switch (encoded_base) {
-        case 1:
-            return 4;
-        case 2:
-            return 3;
-        case 3:
-            return 2;
-        case 4:
-            return 1;
-        default:
-            return 0;
-    }
-}
-
-
-Pattern gram::reverse_complement_read(const Pattern &read) {
-    Pattern reverse_read;
-    reverse_read.reserve(read.size());
-
-    for (auto it = read.rbegin(); it != read.rend(); ++it) {
-        const auto &base = *it;
-        auto compliment_base = complement_encoded_base(base);
-        reverse_read.push_back(compliment_base);
-    }
-    return reverse_read;
-}
-
-
 Pattern gram::encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
     Pattern pattern;
@@ -139,6 +112,9 @@ Pattern gram::encode_dna_bases(const GenomicRead &read_sequence) {
 }
 
 
+/************************************************
+ * Linearised PRGs to integer vectors, and v-v.**
+ ************************************************/
 std::string gram::ints_to_prg_string(std::vector<Marker> const& int_vec){
     std::string readable_string(int_vec.size(), '0');
     std::unordered_map<int,int> last_allele_indices; // Will record where to close the sites.

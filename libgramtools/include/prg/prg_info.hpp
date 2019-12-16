@@ -1,7 +1,6 @@
 /**@file
- * Defines the prg-related data structure supporting quasimapping.
- * Also defines routines manipulating or populating this data structure (eg for integer encoding a prg); see gram::commands::build
- * Also defines routine for loading a prg from disk: see load_prg_info().
+ * Defines a prg-related data structure holding all the structures supporting quasimapping,
+ * except for the `kmer_index`.
  */
 #ifndef GRAMTOOLS_PRG_INFO_HPP
 #define GRAMTOOLS_PRG_INFO_HPP
@@ -51,7 +50,7 @@ namespace gram {
 
     /**
      * Populates PRG_Info struct from disk.
-     * Contains encoded prg, fm_index and masks over the prg and the BWT of the prg with rank and select support.
+     * Contains encoded prg, fm_index and masks the BWT of the prg with rank and select support.
      * Note that the fm_index contains the bwt, and that **it** has rank support.
      * @see PRG_Info()
      */

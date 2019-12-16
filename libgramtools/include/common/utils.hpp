@@ -8,35 +8,21 @@
 #include <list>
 #include <cstdint>
 #include <string>
-#include <stack>
 #include <unordered_set>
 #include <unordered_map>
 
 #include <boost/functional/hash.hpp>
-
 #include "sequence_read/seqread.hpp"
 
 
 namespace gram {
-    template<typename SEQUENCE>
-    struct sequence_hash {
-        std::size_t operator()(const SEQUENCE &seq) const {
-            std::size_t hash = 0; // Used as an initial seed
-            boost::hash_range(hash, seq.begin(), seq.end());
-            return hash;
-        }
-    };
 
-    template<typename SEQUENCE, typename T>
-    using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash<SEQUENCE>>;
+    std::string full_path(const std::string &gram_dirpath,
+                          const std::string &file_name);
 
-    template<typename PAIR, typename T>
-    using PairHashMap = std::unordered_map<PAIR, T, boost::hash<PAIR>>;
-
-    template<typename T>
-    using HashSet = std::unordered_set<T, boost::hash<T>>;
-
-
+    /******************
+     * Data typedefs **
+     ******************/
     using int_Base = uint8_t; /**< nucleotide represented as byte-sized integer */
     using Pattern = std::vector<int_Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
     using Patterns = std::vector<Pattern>;
@@ -59,29 +45,25 @@ namespace gram {
      */
     bool is_allele_marker(Marker const& variant_marker);
 
-    /**
-     * Produce the reverse complement of a `read`.
-     */
-    Pattern reverse_complement_read(const Pattern &read);
 
-    Pattern encode_dna_bases(const std::string &dna_str);
 
-    Pattern encode_dna_bases(const GenomicRead &read_sequence);
-
+    /******************************************
+     * Characters to integers and vice-versa **
+     ******************************************/
     struct EncodeResult {
         bool is_dna;
         uint32_t character;
     };
 
     /**
-     * Encode a character read from the prg as an integer.
+     * Encode a single character read from the linearised prg as an integer.
      * Use `EncodeResult` object to additionally store if the encoded character is DNA or not.
      * @see EncodeResult()
      */
     EncodeResult encode_char(const char &c);
 
     /**
-     * Encode dna base as integer (range: 1-4)
+     * Encode dna character as integer (range: 1-4)
      */
     int_Base encode_dna_base(const char &base_str);
 
@@ -90,16 +72,49 @@ namespace gram {
      */
     std::string decode_dna_base(const int_Base& base);
 
-    std::string full_path(const std::string &gram_dirpath,
-                          const std::string &file_name);
+    Pattern encode_dna_bases(const std::string &dna_str);
 
-    std::string ints_to_prg_string(std::vector<Marker> const& int_vec); /**< Prg string as int vector, to readable string */
+    Pattern encode_dna_bases(const GenomicRead &read_sequence);
+
+
+    /************************************************
+     * Linearised PRGs to integer vectors, and v-v.**
+     ************************************************/
+
+    /** Converts linearised PRG as int vector to a more readable string.
+     *  We use the following notation: '[' opens a site, ',' delimits alleles in a site, ']' closes a site.
+     * */
+    std::string ints_to_prg_string(std::vector<Marker> const& int_vec);
+
+
     /**
      * Convert a nested PRG string to int representation, with linear site numbering.
-     * CAUTION: the site numbering is based on the fixed order in which '[' chars are encountered
-     * String to int conversion might have lost the initial ordering.
+     * The site numbering is based on the fixed order in which '[' chars are encountered;
+     * thus int -> prg_string -> int can lose original site numbering.
      */
     std::vector<Marker> prg_string_to_ints(std::string const& string_prg);
+
+
+    /************
+     * Hashing **
+     ************/
+    template<typename SEQUENCE>
+    struct sequence_hash {
+        std::size_t operator()(const SEQUENCE &seq) const {
+            std::size_t hash = 0; // Used as an initial seed
+            boost::hash_range(hash, seq.begin(), seq.end());
+            return hash;
+        }
+    };
+
+    template<typename SEQUENCE, typename T>
+    using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash<SEQUENCE>>;
+
+    template<typename PAIR, typename T>
+    using PairHashMap = std::unordered_map<PAIR, T, boost::hash<PAIR>>;
+
+    template<typename T>
+    using HashSet = std::unordered_set<T, boost::hash<T>>;
 
 }
 

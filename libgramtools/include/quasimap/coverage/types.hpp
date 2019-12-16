@@ -10,10 +10,6 @@
 namespace gram {
     using AlleleSumCoverage = std::vector<std::vector<uint64_t>>; /**<Number of reads mapped per allele for each variant site.*/
 
-    // TODO: maybe remove this line? As it is used in utils.hpp
-    template<typename SEQUENCE, typename T>
-    using SequenceHashMap = std::unordered_map<SEQUENCE, T, sequence_hash < SEQUENCE>>;
-
     /** Vector of `gram::AlleleId`. Used to store different alleles of the same variant site both by a read.*/
     using AlleleIds = std::vector<AlleleId>;
     /* An unordered_map associating a group of alleles (`gram::AlleleIds`) with a count of how many reads mapped to this group.*/

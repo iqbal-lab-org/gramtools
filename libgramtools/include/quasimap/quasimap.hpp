@@ -83,5 +83,9 @@ namespace gram {
     SearchStates process_read_char_search_states(const int_Base &pattern_char,
                                                  const SearchStates &old_search_states,
                                                  const PRG_Info &prg_info);
+
+
+
+    Pattern reverse_complement_read(const Pattern &read);
 }
 #endif //GRAMTOOLS_QUASIMAP_HPP
