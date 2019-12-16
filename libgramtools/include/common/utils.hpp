@@ -49,14 +49,6 @@ namespace gram {
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/
     using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */
 
-    using VariantSitePath = std::vector<VariantLocus>; /**< A path through variant sites is a list of allele/site combinations. */
-    using VariantSitePaths = std::vector<VariantSitePath>;
-
-    /** The suffix array (SA) holds the starting index of all (lexicographically sorted) cyclic permutations of the prg.
-     * An `SA_Index` is an index into one such position.*/
-    using SA_Index = uint32_t;
-    using SA_Interval = std::pair<SA_Index, SA_Index>; /**< A set of **contiguous** indices in the suffix array.*/
-
     /**
      * Unified definition of a site marker
      */
@@ -75,6 +67,18 @@ namespace gram {
     Pattern encode_dna_bases(const std::string &dna_str);
 
     Pattern encode_dna_bases(const GenomicRead &read_sequence);
+
+    struct EncodeResult {
+        bool is_dna;
+        uint32_t character;
+    };
+
+    /**
+     * Encode a character read from the prg as an integer.
+     * Use `EncodeResult` object to additionally store if the encoded character is DNA or not.
+     * @see EncodeResult()
+     */
+    EncodeResult encode_char(const char &c);
 
     /**
      * Encode dna base as integer (range: 1-4)

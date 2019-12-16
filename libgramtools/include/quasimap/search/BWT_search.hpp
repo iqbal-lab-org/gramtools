@@ -15,6 +15,16 @@
 namespace gram {
 
     /**
+     * Performs a rank query on the BWT. given a `dna_base` and a `upper_index`.
+     * @param upper_index the index into the suffix array/BWT.
+     * @param dna_base the base to count in the BWT.
+     * @return the number of occurrences of `dna_base` up to (and excluding) `upper_index` in the BWT of the prg.
+     */
+    uint64_t dna_bwt_rank(const uint64_t &upper_index,
+                          const Marker &dna_base,
+                          const PRG_Info &prg_info);
+
+    /**
      * Updates each SearchState with the next character in the read.
      * @param pattern_char the next character in the read to look for in the prg.
      * @param SearchStates a set of SearchState elements; each contains an SA interval.

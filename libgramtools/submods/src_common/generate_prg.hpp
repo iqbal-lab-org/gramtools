@@ -1,7 +1,7 @@
 #ifndef COMMON_GEN_PRG
 #define COMMON_GEN_PRG
 
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 #include "common/utils.hpp"
 #include "kmer_index/masks.hpp"
 

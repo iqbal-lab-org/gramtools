@@ -9,7 +9,7 @@
 #include <sdsl/bit_vectors.hpp>
 #include <omp.h>
 
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 #include "common/timer_report.hpp"
 
 #include "build/build.hpp"

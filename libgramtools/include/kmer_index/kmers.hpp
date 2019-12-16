@@ -33,7 +33,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 #include "common/parameters.hpp"
 #include "common/utils.hpp"
 

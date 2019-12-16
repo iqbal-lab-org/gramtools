@@ -20,7 +20,7 @@
 #include "gtest/gtest.h"
 
 #include "src_common/generate_prg.hpp"
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 #include "kmer_index/build.hpp"
 #include "quasimap/search/vBWT_jump.hpp"
 

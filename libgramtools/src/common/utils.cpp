@@ -30,23 +30,46 @@ std::string gram::full_path(const std::string &gram_dirpath,
     return full_path.string();
 }
 
+EncodeResult gram::encode_char(const char &c) {
+    EncodeResult encode_result = {};
 
-int_Base gram::encode_dna_base(const char &base_str) {
-    switch (base_str) {
+    switch (c) {
         case 'A':
-        case 'a': return 1;
+        case 'a':
+            encode_result.is_dna = true;
+            encode_result.character = 1;
+            return encode_result;
 
         case 'C':
-        case 'c': return 2;
+        case 'c':
+            encode_result.is_dna = true;
+            encode_result.character = 2;
+            return encode_result;
 
         case 'G':
-        case 'g': return 3;
+        case 'g':
+            encode_result.is_dna = true;
+            encode_result.character = 3;
+            return encode_result;
 
         case 'T':
-        case 't': return 4;
+        case 't':
+            encode_result.is_dna = true;
+            encode_result.character = 4;
+            return encode_result;
 
-        default: return 0;
+        default:
+            /// The character is non-DNA, so must be a variant marker.
+            encode_result.is_dna = false;
+            encode_result.character = (uint32_t) c - '0';
+            return encode_result;
     }
+}
+
+int_Base gram::encode_dna_base(const char &base_str) {
+    EncodeResult result = encode_char(base_str);
+    if (result.is_dna) return result.character;
+    else return 0;
 }
 
 std::string  gram::decode_dna_base(const int_Base& base){

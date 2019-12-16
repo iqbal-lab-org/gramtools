@@ -1,7 +1,7 @@
 /** @file
  * Defines the key data structures supporting `quasimap`ping.
  */
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 
 
 #ifndef GRAMTOOLS_SEARCH_TYPES_HPP
@@ -22,6 +22,14 @@ namespace gram {
         unknown
     };
 
+    /** A path through variant sites is a list of allele/site combinations. */
+    using VariantSitePath = std::vector<VariantLocus>;
+    using VariantSitePaths = std::vector<VariantSitePath>;
+
+    /** The suffix array (SA) holds the starting index of all (lexicographically sorted) cyclic permutations of the prg.
+     * An `SA_Index` is an index into one such position.*/
+    using SA_Index = uint32_t;
+    using SA_Interval = std::pair<SA_Index, SA_Index>; /**< A set of **contiguous** indices in the suffix array.*/
 
     /**
      * A single path of a read through the prg.

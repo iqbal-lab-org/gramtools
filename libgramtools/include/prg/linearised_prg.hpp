@@ -16,6 +16,9 @@ namespace gram{
     enum class endianness{big, little};
 }
 
+/**********************
+ * Supporting nesting**
+ **********************/
 class PRG_String {
 public:
     PRG_String() {};
@@ -62,4 +65,18 @@ private:
      */
     void map_and_normalise_ends();
 };
-#endif //COV_GRAPH_HPP
+
+
+/**************************
+ * Not Supporting nesting**
+ **************************/
+namespace gram{
+/**
+ * Convert prg as string of characters to vector of integers.
+ * Nucleotides encoded as 1-4. Variant markers can make up several characters so are treated with a buffer.
+ * NB: this function only works for PRGs with no nested variation (otherwise, for eg, '57' confounded with '5' then '7')
+ */
+    marker_vec encode_prg(const std::string &prg_raw);
+}
+
+#endif //PRG_STRING_HPP

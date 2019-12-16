@@ -5,6 +5,23 @@
 using namespace gram;
 
 
+uint64_t gram::dna_bwt_rank(const uint64_t &upper_index,
+                            const Marker &dna_base,
+                            const PRG_Info &prg_info) {
+    switch (dna_base) {
+        case 1:
+            return prg_info.rank_bwt_a(upper_index);
+        case 2:
+            return prg_info.rank_bwt_c(upper_index);
+        case 3:
+            return prg_info.rank_bwt_g(upper_index);
+        case 4:
+            return prg_info.rank_bwt_t(upper_index);
+        default:
+            return 0;
+    }
+}
+
 
 /**
  * Backward search followed by check whether the extended searched pattern maps somewhere in the prg.

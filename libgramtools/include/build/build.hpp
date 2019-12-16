@@ -9,7 +9,7 @@
 #include "common/parameters.hpp"
 #include "common/timer_report.hpp"
 
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 #include "prg/linearised_prg.hpp"
 #include "prg/make_data_structures.hpp"
 #include "kmer_index/masks.hpp"

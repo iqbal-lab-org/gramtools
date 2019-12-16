@@ -9,7 +9,7 @@
  */
 #include "common/utils.hpp"
 #include "common/parameters.hpp"
-#include "prg/prg.hpp"
+#include "prg/prg_info.hpp"
 #include "prg/make_data_structures.hpp"
 #include "quasimap/search_types.hpp"
 #include "kmer_index_types.hpp"
