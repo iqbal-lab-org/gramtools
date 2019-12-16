@@ -3,7 +3,7 @@
 
 #include "prg/prg.hpp"
 #include "common/utils.hpp"
-#include "prg/masks.hpp"
+#include "kmer_index/masks.hpp"
 
 gram::PRG_Info generate_prg_info(const marker_vec &prg_raw);
 

@@ -17,7 +17,7 @@
 #ifndef COV_GRAPH_HPP
 #define COV_GRAPH_HPP
 
-#include "load_PRG_string.hpp"
+#include "linearised_prg.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/archive/binary_iarchive.hpp>

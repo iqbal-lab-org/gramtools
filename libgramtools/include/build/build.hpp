@@ -10,9 +10,9 @@
 #include "common/timer_report.hpp"
 
 #include "prg/prg.hpp"
-#include "prg/load_PRG_string.hpp"
+#include "prg/linearised_prg.hpp"
 #include "prg/make_data_structures.hpp"
-#include "prg/masks.hpp"
+#include "kmer_index/masks.hpp"
 
 #include "kmer_index/build.hpp"
 #include "kmer_index/dump.hpp"

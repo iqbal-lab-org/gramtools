@@ -1,4 +1,4 @@
-#include <prg/load_PRG_string.hpp>
+#include <prg/linearised_prg.hpp>
 
 
 PRG_String::PRG_String(std::string const &file_in, endianness en) :

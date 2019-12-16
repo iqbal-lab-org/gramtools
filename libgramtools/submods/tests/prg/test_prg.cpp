@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "src_common/generate_prg.hpp"
 
-#include "prg/masks.hpp"
+#include "kmer_index/masks.hpp"
 
 
 using namespace gram;

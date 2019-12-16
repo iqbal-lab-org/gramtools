@@ -1,5 +1,5 @@
 #include "common/utils.hpp"
-#include "prg/masks.hpp"
+#include "kmer_index/masks.hpp"
 #include "generate_prg.hpp"
 
 

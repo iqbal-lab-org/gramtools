@@ -13,9 +13,8 @@
 #include <tuple>
 
 #include "common/utils.hpp"
-#include "dna_ranks.hpp"
 #include "prg/make_data_structures.hpp"
-#include "prg/load_PRG_string.hpp"
+#include "prg/linearised_prg.hpp"
 #include "prg/coverage_graph.hpp"
 
 namespace gram {
@@ -51,10 +50,6 @@ namespace gram {
         uint64_t num_variant_sites;
     };
 
-    /**
-     * Maps the end positions of sites, producing a map with keys being the even `Marker` for that site.
-     */
-    marker_map map_site_ends(sdsl::int_vector<> const& encoded_prg);
 
     /**
      * Performs a rank query on the BWT. given a `dna_base` and a `upper_index`.
