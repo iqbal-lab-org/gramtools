@@ -33,11 +33,9 @@ def _generate_project_paths(gram_dir):
 def generate_build_paths(args):
     paths = _generate_project_paths(args.gram_dir)
 
+    ## Run checks before making gram dir ##
     if args.reference is not None:
         _check_exists(args.reference)
-        if os.path.lexists(paths["original_reference"]):
-            os.unlink(paths["original_reference"])
-        os.symlink(os.path.abspath(args.reference), paths["original_reference"])
 
     if args.vcf is not None:
         vcf_files = [
@@ -58,6 +56,11 @@ def generate_build_paths(args):
         os.mkdir(paths["gram_dir"])
         log.debug("Creating gram directory:\n%s", paths["gram_dir"])
 
+    # Must run after gram_dir is guaranteed to exist
+    if args.reference is not None:
+        if os.path.lexists(paths["original_reference"]):
+            os.unlink(paths["original_reference"])
+        os.symlink(os.path.abspath(args.reference), paths["original_reference"])
     return paths
 
 
@@ -130,18 +133,11 @@ def generate_quasimap_paths(args):
 
     if not os.path.exists(all_paths["run_dir"]):
         os.mkdir(all_paths["run_dir"])
-    else:
-        log.warning(
-            "Directory {} already exists. Existing files and directories with conflicting names"
-            "(eg: 'reads', 'quasimap_outputs', 'build_dir') will be overriden.".format(
-                all_paths["run_dir"]
-            )
-        )
 
     if not os.path.exists(all_paths["quasimap_dir"]):
         os.mkdir(all_paths["quasimap_dir"])
 
-    # Make a reference to the gram_dir made in build. This will avoid downstream commands
+    # Make a reference to the gram_dir made in build. This avoids downstream commands
     # to require a --gram_dir argument.
     if os.path.lexists(all_paths["build_dir"]):
         os.unlink(all_paths["build_dir"])
@@ -209,19 +205,15 @@ def generate_discover_paths(args):
         os.mkdir(all_paths["discover_dir"])
 
     #  Check `infer` files are present
-    if not os.path.exists(all_paths["inferred_fasta"]):
-        log.error(
-            "Cannot find fasta formatted inferred personalised reference, at {}".format(
-                all_paths["inferred_fasta"]
-            )
-        )
+    _check_exists(
+        all_paths["inferred_fasta"],
+        file_description="Fasta formatted inferred personalised reference",
+    )
 
-    if not os.path.exists(all_paths["inferred_vcf"]):
-        log.error(
-            "Cannot find vcf formatted inferred personalised reference, at {}".format(
-                all_paths["inferred_fasta"]
-            )
-        )
+    _check_exists(
+        all_paths["inferred_vcf"],
+        file_description="Vcf formatted inferred personalised reference",
+    )
 
     #  Build read file paths by scanning the reads_directory, and following symlinks.
     if args.reads is None:
@@ -237,8 +229,8 @@ def generate_discover_paths(args):
     return all_paths
 
 
-def _check_exists(fname):
+def _check_exists(fname, file_description="File"):
     if not os.path.isfile(fname):
-        error_message = f"File required but not found: {fname}"
+        error_message = f"{file_description} required but not found: {fname}"
         log.error(error_message)
         exit(1)
