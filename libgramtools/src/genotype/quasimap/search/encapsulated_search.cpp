@@ -1,4 +1,4 @@
-#include "quasimap/search/encapsulated_search.hpp"
+#include "genotype/quasimap/search/encapsulated_search.hpp"
 
 /**
  * A caching object used to temporarily store a single search state

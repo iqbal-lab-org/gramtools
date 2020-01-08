@@ -1,4 +1,4 @@
-#include "quasimap/search/vBWT_jump.hpp"
+#include "genotype/quasimap/search/vBWT_jump.hpp"
 
 SA_Interval gram::get_allele_marker_sa_interval(const Marker &allele_marker_char,
                                                 const PRG_Info &prg_info) {

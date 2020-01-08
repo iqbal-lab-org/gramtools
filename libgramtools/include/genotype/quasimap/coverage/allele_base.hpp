@@ -1,8 +1,8 @@
 /**@file
  * Defines coverage related operations for base-level allele coverage.
  */
-#include "quasimap/search_types.hpp"
-#include "quasimap/coverage/types.hpp"
+#include "genotype/quasimap/search_types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 #include <optional>
 
 
@@ -207,7 +207,7 @@ namespace gram {
 
             private:
                 realCov_to_dummyCov cov_mapping;
-                PRG_Info const* prg_info; // non-const: we will add coverage in nodes of its coverage_Graph.
+                PRG_Info const* prg_info;
                 std::size_t read_size;
             };
         }

@@ -2,7 +2,7 @@
  * Defines the kmer index and the caching structure for remembering the relevant previous mappings.
  */
 #include "common/utils.hpp"
-#include "quasimap/search_types.hpp"
+#include "genotype/quasimap/search_types.hpp"
 
 
 #ifndef GRAMTOOLS_KMER_INDEX_TYPES_HPP

@@ -2,8 +2,8 @@
 #include <thread>
 #include <unordered_map>
 
-#include "quasimap/search/vBWT_jump.hpp"
-#include "quasimap/search/BWT_search.hpp"
+#include "genotype/quasimap/search/vBWT_jump.hpp"
+#include "genotype/quasimap/search/BWT_search.hpp"
 #include "kmer_index/load.hpp"
 #include "kmer_index/kmers.hpp"
 #include "kmer_index/build.hpp"

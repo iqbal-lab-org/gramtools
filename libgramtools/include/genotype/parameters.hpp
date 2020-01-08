@@ -11,13 +11,11 @@
 #include "common/parameters.hpp"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
-
 
 #ifndef GRAMTOOLS_QUASIMAP_PARAMETERS_HPP
 #define GRAMTOOLS_QUASIMAP_PARAMETERS_HPP
 
-namespace gram::commands::quasimap {
+namespace gram::commands::genotype {
     /**
      * Parse command line parameters.
      * A directory containing the information necessary for vBWT mapping to the prg must be passed.

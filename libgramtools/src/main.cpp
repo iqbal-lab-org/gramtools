@@ -15,8 +15,8 @@
 #include "build/build.hpp"
 #include "build/parameters.hpp"
 
-#include "quasimap/quasimap.hpp"
-#include "quasimap/parameters.hpp"
+#include "genotype/genotype.hpp"
+#include "genotype/parameters.hpp"
 
 #include "main.hpp"
 
@@ -39,7 +39,7 @@ int main(int argc, const char *const *argv) {
             commands::build::run(parameters);
             break;
         case Commands::quasimap:
-            commands::quasimap::run(parameters);
+            commands::genotype::run(parameters);
             break;
     }
     return 0;
@@ -49,7 +49,7 @@ int main(int argc, const char *const *argv) {
 std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description global("Gramtools! Global options");
     global.add_options()
-                  ("command", po::value<std::string>(), "command to execute: {build, quasimap}")
+                  ("command", po::value<std::string>(), "command to execute: {build, genotype}")
                   ("subargs", po::value<std::vector<std::string> >(), "arguments to command")
                   ("help", "Produce this help message")
                 ("debug", "Turn on debug output");
@@ -82,8 +82,8 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
     if (cmd == "build") {
         auto parameters = commands::build::parse_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::build);
-    } else if (cmd == "quasimap") {
-        auto parameters = commands::quasimap::parse_parameters(vm, parsed);
+    } else if (cmd == "genotype") {
+        auto parameters = commands::genotype::parse_parameters(vm, parsed);
         return std::make_pair(parameters, Commands::quasimap);
     }
     else {

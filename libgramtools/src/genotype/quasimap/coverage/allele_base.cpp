@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 
-#include "quasimap/coverage/allele_base.hpp"
+#include "genotype/quasimap/coverage/allele_base.hpp"
 
 
 using namespace gram;

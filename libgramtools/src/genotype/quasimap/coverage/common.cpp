@@ -1,11 +1,11 @@
 #include <boost/random.hpp>
 #include <boost/nondet_random.hpp>
 
-#include "quasimap/coverage/allele_sum.hpp"
-#include "quasimap/coverage/allele_base.hpp"
-#include "quasimap/coverage/grouped_allele_counts.hpp"
+#include "genotype/quasimap/coverage/allele_sum.hpp"
+#include "genotype/quasimap/coverage/allele_base.hpp"
+#include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
 
-#include "quasimap/coverage/common.hpp"
+#include "genotype/quasimap/coverage/common.hpp"
 
 
 using namespace gram;

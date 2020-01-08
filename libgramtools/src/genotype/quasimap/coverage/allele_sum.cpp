@@ -1,9 +1,9 @@
 #include <cassert>
 #include <fstream>
 #include <vector>
-#include <quasimap/coverage/common.hpp>
 
-#include "quasimap/coverage/allele_sum.hpp"
+#include "genotype/quasimap/coverage/common.hpp"
+#include "genotype/quasimap/coverage/allele_sum.hpp"
 
 
 using namespace gram;

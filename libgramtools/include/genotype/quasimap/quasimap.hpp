@@ -5,10 +5,9 @@
 #ifndef GRAMTOOLS_QUASIMAP_HPP
 #define GRAMTOOLS_QUASIMAP_HPP
 
-#include "parameters.hpp"
+#include "genotype/parameters.hpp"
 #include "sequence_read/seqread.hpp"
 
-#include "common/parameters.hpp"
 #include "common/utils.hpp"
 #include "common/read_stats.hpp"
 
@@ -19,9 +18,6 @@
 
 namespace gram {
 
-    namespace commands::quasimap {
-        void run(const Parameters &parameters);
-    }
 
     struct QuasimapReadsStats {
         uint64_t all_reads_count = 0;

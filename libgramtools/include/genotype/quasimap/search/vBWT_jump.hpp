@@ -2,7 +2,7 @@
 #define GRAMTOOLS_vBWT_JUMP
 
 #include "common/utils.hpp"
-#include "quasimap/search_types.hpp"
+#include "genotype/quasimap/search_types.hpp"
 #include <vector>
 
 namespace gram {

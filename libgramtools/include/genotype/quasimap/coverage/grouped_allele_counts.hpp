@@ -1,8 +1,8 @@
 /** @file
 * Defines coverage related operations for base-level allele coverage.
 */
-#include "quasimap/search_types.hpp"
-#include "quasimap/coverage/types.hpp"
+#include "genotype/quasimap/search_types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 #include "common.hpp"
 
 

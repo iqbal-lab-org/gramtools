@@ -4,7 +4,7 @@
  *  This module allows for recording that, as well as some other usable metrics, such as max read length and number of
  *  sites with no coverage.
  */
-#include "quasimap/coverage/types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 
 #ifndef GRAMTOOLS_READSTATS_HPP
 #define GRAMTOOLS_READSTATS_HPP

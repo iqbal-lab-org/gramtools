@@ -1,5 +1,5 @@
 #include <sdsl/suffix_arrays.hpp>
-#include "quasimap/search/BWT_search.hpp"
+#include "genotype/quasimap/search/BWT_search.hpp"
 
 
 using namespace gram;

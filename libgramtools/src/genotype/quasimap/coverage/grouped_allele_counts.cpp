@@ -1,7 +1,7 @@
 #include <fstream>
 #include <vector>
 
-#include "quasimap/coverage/grouped_allele_counts.hpp"
+#include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
 
 
 using namespace gram;

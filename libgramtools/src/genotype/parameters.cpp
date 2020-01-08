@@ -1,19 +1,19 @@
 #include "common/utils.hpp"
-#include "quasimap/quasimap.hpp"
-#include "quasimap/parameters.hpp"
+#include "genotype/quasimap/quasimap.hpp"
+#include "genotype/parameters.hpp"
 
 
 using namespace gram;
 
 
-Parameters commands::quasimap::parse_parameters(po::variables_map &vm,
+Parameters commands::genotype::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
     std::string gram_dirpath;
     std::string run_directory;
     uint32_t kmer_size;
     std::vector<std::string> reads;
 
-    po::options_description quasimap_description("quasimap options");
+    po::options_description quasimap_description("genotype options");
     quasimap_description.add_options()
                                 ("gram", po::value<std::string>(&gram_dirpath)->required(),
                                  "gramtools directory")

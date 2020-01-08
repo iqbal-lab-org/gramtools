@@ -9,7 +9,7 @@
 #define GRAMTOOLS_SEARCH_HPP
 
 #include "common/utils.hpp"
-#include "quasimap/search_types.hpp"
+#include "genotype/quasimap/search_types.hpp"
 
 
 namespace gram {
