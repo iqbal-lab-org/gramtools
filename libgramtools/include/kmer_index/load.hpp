@@ -17,9 +17,9 @@ namespace gram {
     /**
      * Extracts a nucleotide kmer from an integer vector representing all indexed kmers.
      */
-    Pattern deserialize_next_kmer(const uint64_t &kmer_start_index,
-                                  const sdsl::int_vector<3> &all_kmers,
-                                  const uint32_t &kmers_size);
+    Sequence deserialize_next_kmer(const uint64_t &kmer_start_index,
+                                   const sdsl::int_vector<3> &all_kmers,
+                                   const uint32_t &kmers_size);
 
     /**
      * Extracts the statistics of a single indexed kmer.

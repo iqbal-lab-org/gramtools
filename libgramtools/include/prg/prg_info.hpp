@@ -13,7 +13,6 @@
 #include "common/utils.hpp"
 #include "prg/make_data_structures.hpp"
 #include "prg/linearised_prg.hpp"
-#include "prg/coverage_graph.hpp"
 
 namespace gram {
 

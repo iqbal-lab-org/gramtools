@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "src_common/generate_prg.hpp"
-#include "quasimap/search/encapsulated_search.hpp"
+#include "genotype/quasimap/search/encapsulated_search.hpp"
 
 /*
 PRG: AC5T6CAGTAGTC6TA

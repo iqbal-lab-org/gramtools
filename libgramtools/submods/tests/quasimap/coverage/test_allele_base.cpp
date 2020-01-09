@@ -4,9 +4,9 @@
 
 
 #include "src_common/generate_prg.hpp"
-#include "quasimap/coverage/allele_base.hpp"
-#include "quasimap/coverage/common.hpp"
-#include "quasimap/quasimap.hpp"
+#include "genotype/quasimap/coverage/allele_base.hpp"
+#include "genotype/quasimap/coverage/common.hpp"
+#include "genotype/quasimap/quasimap.hpp"
 #include "tests/common.hpp"
 
 using namespace gram;

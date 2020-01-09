@@ -119,8 +119,8 @@ std::vector<PrgIndexRange> gram::get_kmer_region_ranges(std::vector<PrgIndexRang
 }
 
 
-Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
-                                        const PRG_Info &prg_info) {
+Sequences gram::get_site_ordered_alleles(const uint64_t &within_site_index,
+                                         const PRG_Info &prg_info) {
     // TODO: this is probably unnecessary, as the function is only called with an end boundary index?
     auto site_end_index = find_site_end_boundary(within_site_index, prg_info);
     auto boundary_marker = prg_info.encoded_prg[site_end_index] - 1;
@@ -128,7 +128,7 @@ Patterns gram::get_site_ordered_alleles(const uint64_t &within_site_index,
     int64_t current_index = (int64_t) site_end_index - 1;
     uint64_t current_char = 0;
 
-    Patterns site_alleles;
+    Sequences site_alleles;
     std::vector<int_Base> allele;
 
     while (current_char != boundary_marker and current_index >= 0) {
@@ -458,12 +458,12 @@ uint64_t gram::find_site_start_boundary(const uint64_t &end_boundary_index,
 /**
  * Extract the region before the last reachable site (right-to-left) in the prg for an indexable kmer.
  */
-Pattern get_pre_site_part(const uint64_t site_end_boundary,
-                          const uint64_t kmer_size,
-                          const PRG_Info &prg_info) {
+Sequence get_pre_site_part(const uint64_t site_end_boundary,
+                           const uint64_t kmer_size,
+                           const PRG_Info &prg_info) {
     auto first_site_start_boundary = find_site_start_boundary(site_end_boundary,
                                                               prg_info);
-    Pattern pre_site_part = {};
+    Sequence pre_site_part = {};
     if (first_site_start_boundary != 0) {
         // TODO: this should be +1 not -1 otherwise you can map a full kmer outside the variant site.
         int64_t end_index = first_site_start_boundary - kmer_size - 1;
@@ -487,17 +487,17 @@ Pattern get_pre_site_part(const uint64_t site_end_boundary,
  * Add the region past the last reachable variant site in the kmer to`region_parts`.
  * This region could contribute to a kmer to index and so needs to be added to regions to consider for kmer indexing.
  */
-void add_pre_site_region(std::list<Patterns> &region_parts,
+void add_pre_site_region(std::list<Sequences> &region_parts,
                          const std::list<uint64_t> &inrange_sites,
                          const uint64_t kmer_size,
                          const PRG_Info &prg_info) {
     // Extract the first variant site in the prg: ie the last reachable one for kmer to index.
     auto first_site_end_boundary = inrange_sites.front();
-    Pattern pre_site_part = get_pre_site_part(first_site_end_boundary,
-                                              kmer_size,
-                                              prg_info);
+    Sequence pre_site_part = get_pre_site_part(first_site_end_boundary,
+                                               kmer_size,
+                                               prg_info);
     if (not pre_site_part.empty())
-        region_parts.emplace_back(Patterns{pre_site_part});
+        region_parts.emplace_back(Sequences{pre_site_part});
 }
 
 
@@ -505,7 +505,7 @@ void add_pre_site_region(std::list<Patterns> &region_parts,
  * Adds all alleles of reachable sites and non-variant regions between them to `region_parts`.
  * @param region_parts list of nucleotide regions to add. These will be combined to form kmers to index.
  */
-void add_site_regions(std::list<Patterns> &region_parts,
+void add_site_regions(std::list<Sequences> &region_parts,
                       const std::list<uint64_t> &inrange_sites,
                       const PRG_Info &prg_info) {
     auto site_count = 0;
@@ -521,12 +521,12 @@ void add_site_regions(std::list<Patterns> &region_parts,
         // Push the non-variant region between two sites, if not at the last site.
         auto nonvariant_region = right_intersite_nonvariant_region(end_boundary_index,
                                                                    prg_info);
-        region_parts.emplace_back(Patterns{nonvariant_region});
+        region_parts.emplace_back(Sequences{nonvariant_region});
     }
 }
 
 
-void add_post_site_regions(std::list<Patterns> &region_parts,
+void add_post_site_regions(std::list<Sequences> &region_parts,
                            const std::list<uint64_t> &inrange_sites,
                            const uint64_t kmer_size,
                            const PRG_Info &prg_info) {
@@ -537,7 +537,7 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
     auto index = end_boundary_index + 1;
     uint64_t number_consumed_kmer_bases = 0;
 
-    Pattern nonvariant_region = {};
+    Sequence nonvariant_region = {};
 
     while (number_consumed_kmer_bases < kmer_size + 1
            and index <= prg_info.encoded_prg.size() - 1) {
@@ -554,7 +554,7 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
         }
 
         if (not nonvariant_region.empty()) {
-            region_parts.emplace_back(Patterns{nonvariant_region});
+            region_parts.emplace_back(Sequences{nonvariant_region});
             nonvariant_region = {};
         }
 
@@ -571,15 +571,15 @@ void add_post_site_regions(std::list<Patterns> &region_parts,
     }
 
     if (not nonvariant_region.empty())
-        region_parts.emplace_back(Patterns{nonvariant_region});
+        region_parts.emplace_back(Sequences{nonvariant_region});
 }
 
 
-std::list<Patterns> gram::get_kmer_size_region_parts(const uint64_t &current_range_end_index,
-                                                     const std::list<uint64_t> &inrange_sites,
-                                                     const uint64_t kmer_size,
-                                                     const PRG_Info &prg_info) {
-    std::list<Patterns> region_parts = {};
+std::list<Sequences> gram::get_kmer_size_region_parts(const uint64_t &current_range_end_index,
+                                                      const std::list<uint64_t> &inrange_sites,
+                                                      const uint64_t kmer_size,
+                                                      const PRG_Info &prg_info) {
+    std::list<Sequences> region_parts = {};
     add_pre_site_region(region_parts,
                         inrange_sites,
                         kmer_size,
@@ -628,7 +628,7 @@ bool gram::update_allele_index_path(std::vector<uint64_t> &current_allele_index_
  * Count the maximum number of different kmers to index to produce.
  * Based on multiplying each variant site's number of alleles.
  */
-uint64_t total_number_paths(const std::list<Patterns> &region_parts) {
+uint64_t total_number_paths(const std::list<Sequences> &region_parts) {
     uint64_t number_of_paths_expected = 1;
     for (const auto &ordered_alleles: region_parts) {
         uint64_t number_of_alleles = ordered_alleles.size();
@@ -638,11 +638,11 @@ uint64_t total_number_paths(const std::list<Patterns> &region_parts) {
 }
 
 
-unordered_vector_set<Pattern> gram::get_path_reverse_kmers(const Pattern &path,
-                                                           const uint64_t &kmer_size) {
-    unordered_vector_set<Pattern> reverse_kmers;
+unordered_vector_set<Sequence> gram::get_path_reverse_kmers(const Sequence &path,
+                                                            const uint64_t &kmer_size) {
+    unordered_vector_set<Sequence> reverse_kmers;
     for (int64_t i = path.size() - 1; i >= kmer_size - 1; --i) {
-        Pattern reverse_kmer;
+        Sequence reverse_kmer;
         reverse_kmer.reserve(kmer_size);
         for (int64_t j = i; j >= i - (int64_t) kmer_size + 1; --j)
             reverse_kmer.push_back(path[j]);
@@ -652,8 +652,8 @@ unordered_vector_set<Pattern> gram::get_path_reverse_kmers(const Pattern &path,
 }
 
 
-unordered_vector_set<Pattern> gram::get_region_parts_reverse_kmers(const std::list<Patterns> &region_parts,
-                                                                   const uint64_t &kmer_size) {
+unordered_vector_set<Sequence> gram::get_region_parts_reverse_kmers(const std::list<Sequences> &region_parts,
+                                                                    const uint64_t &kmer_size) {
     uint64_t number_of_paths_expected = total_number_paths(region_parts);
     std::vector<uint64_t> current_allele_index_path(region_parts.size(), 0); // Start at index 0 for each part of `region_parts`.
     std::vector<uint64_t> parts_allele_counts; // Stores the number of alleles for each part of `region_parts`
@@ -661,7 +661,7 @@ unordered_vector_set<Pattern> gram::get_region_parts_reverse_kmers(const std::li
     for (const auto &ordered_alleles: region_parts)
         parts_allele_counts.push_back(ordered_alleles.size());
 
-    unordered_vector_set<Pattern> all_reverse_kmers;
+    unordered_vector_set<Sequence> all_reverse_kmers;
     uint64_t count_paths = 0;
 
     while (count_paths < number_of_paths_expected) {
@@ -671,7 +671,7 @@ unordered_vector_set<Pattern> gram::get_region_parts_reverse_kmers(const std::li
                       << std::endl;
         }
 
-        Pattern path;
+        Sequence path;
         uint64_t i = 0;
         for (const auto &ordered_alleles: region_parts) {
             auto allele_index = current_allele_index_path[i];
@@ -693,10 +693,10 @@ unordered_vector_set<Pattern> gram::get_region_parts_reverse_kmers(const std::li
 }
 
 
-unordered_vector_set<Pattern> gram::get_sites_reverse_kmers(uint64_t &current_range_end_index,
-                                                            const std::list<uint64_t> &inrange_sites,
-                                                            const uint64_t kmer_size,
-                                                            const PRG_Info &prg_info) {
+unordered_vector_set<Sequence> gram::get_sites_reverse_kmers(uint64_t &current_range_end_index,
+                                                             const std::list<uint64_t> &inrange_sites,
+                                                             const uint64_t kmer_size,
+                                                             const PRG_Info &prg_info) {
     auto region_parts = get_kmer_size_region_parts(current_range_end_index,
                                                    inrange_sites,
                                                    kmer_size,
@@ -717,13 +717,13 @@ unordered_vector_set<Pattern> gram::get_sites_reverse_kmers(uint64_t &current_ra
     return all_reverse_kmers;
 }
 
-unordered_vector_set<Pattern> gram::get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
-                                                                   const uint64_t &kmer_size,
-                                                                   const PRG_Info &prg_info) {
+unordered_vector_set<Sequence> gram::get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
+                                                                    const uint64_t &kmer_size,
+                                                                    const PRG_Info &prg_info) {
     const auto &region_start = kmer_region_range.first;
     const auto &region_end = kmer_region_range.second;
 
-    unordered_vector_set<Pattern> all_reverse_kmers = {};
+    unordered_vector_set<Sequence> all_reverse_kmers = {};
 
     // Loop through each index position, building kmers to index.
     for (auto current_index = region_end;
@@ -833,8 +833,8 @@ std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<P
 }
 
 
-ordered_vector_set<Pattern> gram::get_prg_reverse_kmers(const Parameters &parameters,
-                                                        const PRG_Info &prg_info) {
+ordered_vector_set<Sequence> gram::get_prg_reverse_kmers(const Parameters &parameters,
+                                                         const PRG_Info &prg_info) {
     auto boundary_marker_indexes = get_boundary_marker_indexes(prg_info);
     auto kmer_region_ranges = get_kmer_region_ranges(boundary_marker_indexes,
                                                      parameters.max_read_size,
@@ -843,7 +843,7 @@ ordered_vector_set<Pattern> gram::get_prg_reverse_kmers(const Parameters &parame
     kmer_region_ranges = combine_overlapping_regions(kmer_region_ranges);
 
     // this data structure orders the kmers
-    ordered_vector_set<Pattern> all_kmers = {};
+    ordered_vector_set<Sequence> all_kmers = {};
     for (const auto &kmer_region_range: kmer_region_ranges) {
         auto reverse_kmers = get_region_range_reverse_kmers(kmer_region_range,
                                                             parameters.kmers_size,
@@ -854,8 +854,8 @@ ordered_vector_set<Pattern> gram::get_prg_reverse_kmers(const Parameters &parame
 }
 
 
-std::vector<Pattern> gram::reverse(const ordered_vector_set<Pattern> &reverse_kmers) {
-    std::vector<Pattern> kmers;
+std::vector<Sequence> gram::reverse(const ordered_vector_set<Sequence> &reverse_kmers) {
+    std::vector<Sequence> kmers;
     for (auto reverse_kmer: reverse_kmers) {
         std::reverse(reverse_kmer.begin(), reverse_kmer.end());
         auto &kmer = reverse_kmer;
@@ -869,7 +869,7 @@ std::vector<Pattern> gram::reverse(const ordered_vector_set<Pattern> &reverse_km
  * Given the current pattern, find the next one.
  * The rightmost incrementable (value < 4) position is the one incremented, maximising prefix conservation.
  */
-void next_kmer(Pattern &current_kmer, const uint64_t &kmer_size) {
+void next_kmer(Sequence &current_kmer, const uint64_t &kmer_size) {
     int64_t max_update_index = kmer_size - 1;
 
     // TODO: memory leakage here. Replace with: while (max_update_index >= 0 and current_kmer[max_update_index] == 4)
@@ -887,9 +887,9 @@ void next_kmer(Pattern &current_kmer, const uint64_t &kmer_size) {
         current_kmer[i] = 1;
 }
 
-ordered_vector_set<Pattern> gram::generate_all_kmers(const uint64_t &kmer_size) {
-    ordered_vector_set<Pattern> all_kmers = {};
-    Pattern current_kmer(kmer_size, 1); // Start with the pattern '1 1 1 1'
+ordered_vector_set<Sequence> gram::generate_all_kmers(const uint64_t &kmer_size) {
+    ordered_vector_set<Sequence> all_kmers = {};
+    Sequence current_kmer(kmer_size, 1); // Start with the pattern '1 1 1 1'
 
     while (true) {
         all_kmers.insert(current_kmer);
@@ -900,9 +900,9 @@ ordered_vector_set<Pattern> gram::generate_all_kmers(const uint64_t &kmer_size) 
     return all_kmers;
 }
 
-std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
-                                         const PRG_Info &prg_info) {
-    ordered_vector_set<Pattern> ordered_reverse_kmers = {};
+std::vector<Sequence> gram::get_all_kmers(const Parameters &parameters,
+                                          const PRG_Info &prg_info) {
+    ordered_vector_set<Sequence> ordered_reverse_kmers = {};
     if (parameters.all_kmers_flag) {
         ordered_reverse_kmers = generate_all_kmers(parameters.kmers_size);
     } else {
@@ -914,9 +914,9 @@ std::vector<Pattern> gram::get_all_kmers(const Parameters &parameters,
     return ordered_kmers;
 }
 
-std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
-    std::vector<Pattern> prefix_diffs = {};
-    Pattern last_full_kmer = {};
+std::vector<Sequence> gram::get_prefix_diffs(const std::vector<Sequence> &kmers) {
+    std::vector<Sequence> prefix_diffs = {};
+    Sequence last_full_kmer = {};
 
     for (const auto &kmer: kmers) {
         if (last_full_kmer.empty()) {
@@ -941,15 +941,15 @@ std::vector<Pattern> gram::get_prefix_diffs(const std::vector<Pattern> &kmers) {
         }
         last_full_kmer = kmer; // Update the kmer predecessor
         // Produce a `Pattern` (vector of `Base`s) from the list of differences
-        Pattern prefix_diff{std::make_move_iterator(std::begin(prefix_diff_list)),
-                            std::make_move_iterator(std::end(prefix_diff_list))};
+        Sequence prefix_diff{std::make_move_iterator(std::begin(prefix_diff_list)),
+                             std::make_move_iterator(std::end(prefix_diff_list))};
         prefix_diffs.push_back(prefix_diff);
     }
     return prefix_diffs;
 }
 
-std::vector<Pattern> gram::get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
-                                                                 const PRG_Info &prg_info) {
+std::vector<Sequence> gram::get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
+                                                                  const PRG_Info &prg_info) {
     std::cout << "Getting all kmers" << std::endl;
     auto kmers = get_all_kmers(parameters, prg_info);
     std::cout << "Getting kmer prefix diffs" << std::endl;

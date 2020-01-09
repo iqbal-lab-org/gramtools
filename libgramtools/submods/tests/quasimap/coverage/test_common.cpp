@@ -3,7 +3,7 @@
 #include "gmock/gmock.h"
 
 #include "src_common/generate_prg.hpp"
-#include "quasimap/coverage/common.hpp"
+#include "genotype/quasimap/coverage/common.hpp"
 
 using namespace gram;
 

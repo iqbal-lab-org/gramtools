@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "src_common/generate_prg.hpp"
-#include "quasimap/coverage/allele_sum.hpp"
+#include "genotype/quasimap/coverage/allele_sum.hpp"
 
 
 using namespace gram;

@@ -19,7 +19,7 @@ using namespace gram;
 TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {
     const auto dna_str = "AAACCCGGGTTTACGT";
     const auto result = encode_dna_bases(dna_str);
-    const Pattern expected = {
+    const Sequence expected = {
             1, 1, 1,
             2, 2, 2,
             3, 3, 3,
@@ -55,7 +55,7 @@ TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
 
     auto kmer = encode_dna_bases("atgct");
     const int kmer_size = 5;
-    Patterns kmers = {kmer};
+    Sequences kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
     auto search_states = kmer_index[kmer];
@@ -75,7 +75,7 @@ TEST(IndexKmers, KmerDoesNotCrossSite_CorrectSaInterval) {
 
     auto kmer = encode_dna_bases("gctc");
     const int kmer_size = 4;
-    Patterns kmers = {kmer};
+    Sequences kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
     auto search_states = kmer_index[kmer];
@@ -93,7 +93,7 @@ TEST(IndexKmers, KmerDoesNotCrossSite_CorrectVariantSitePath) {
 
     auto kmer = encode_dna_bases("gctc");
     const int kmer_size = 4;
-    Patterns kmers = {kmer};
+    Sequences kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
     auto search_states = kmer_index[kmer];
@@ -111,7 +111,7 @@ TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
 
     auto kmer = encode_dna_bases("aggca");
     const int kmer_size = 5;
-    Patterns kmers = {kmer};
+    Sequences kmers = {kmer};
 
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
     auto search_states = kmer_index[kmer];
@@ -132,7 +132,7 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
     auto kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("agtat");
     auto kmer_prefix_diff = encode_dna_bases("ac");
-    Patterns kmers = {
+    Sequences kmers = {
             first_full_kmer,
             kmer_prefix_diff
     };
@@ -177,7 +177,7 @@ TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
     auto kmer_size = 5;
     auto first_full_kmer = encode_dna_bases("attat");
     auto kmer_prefix_diff = encode_dna_bases("ac");
-    Patterns kmers = {
+    Sequences kmers = {
             first_full_kmer,
             kmer_prefix_diff
     };
@@ -211,7 +211,7 @@ TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
     auto first_full_kmer = encode_dna_bases("agtat");
     auto kmer_prefix_diff = encode_dna_bases("aa");
     auto second_full_kmer = encode_dna_bases("aatat");
-    Patterns kmers = {
+    Sequences kmers = {
             first_full_kmer,
             kmer_prefix_diff
     };
@@ -239,7 +239,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     auto first_full_kmer = encode_dna_bases("agtat");
     auto second_full_kmer = encode_dna_bases("actat");
     auto third_full_kmer = encode_dna_bases("aatat");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agtat"),
             encode_dna_bases("ac"),
             encode_dna_bases("aa"),
@@ -281,7 +281,7 @@ TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     auto first_full_kmer = encode_dna_bases("agtat");
     auto second_full_kmer = encode_dna_bases("actat");
     auto third_full_kmer = encode_dna_bases("attat");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agtat"),
             encode_dna_bases("ac"),
             encode_dna_bases("at"),
@@ -316,7 +316,7 @@ TEST(IndexKmers, OneKmerStartsAtAllele_SiteFound) {
 
     const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("gtat");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("gtat"),
     };
 
@@ -338,7 +338,7 @@ TEST(IndexKmers, KmerFromAlleleCenter_KmerEntryFoundNoVariantSitePath) {
 
     const int kmer_size = 3;
     auto first_full_kmer = encode_dna_bases("ccc");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("ccc"),
     };
 
@@ -364,7 +364,7 @@ TEST(IndexKmers, TwoKmersStartAtAllele_SitesFound) {
     auto second_full_kmer = encode_dna_bases("ctat");
     // Only writing 'c' as second kmer in list
     // below means we will index 'ctat' because of prefix diffing.
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("gtat"),
             encode_dna_bases("c"),
     };
@@ -395,7 +395,7 @@ TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
 
     const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("acag");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("acag"),
     };
 
@@ -418,7 +418,7 @@ TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("acag");
     auto second_full_kmer = encode_dna_bases("acac");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("acag"),
             encode_dna_bases("acac"),
     };
@@ -449,7 +449,7 @@ TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
 
     const int kmer_size = 4;
     auto first_full_kmer = encode_dna_bases("ctta");
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("ctta"),
     };
 
@@ -490,7 +490,7 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
 
     auto kmer_size = 4;
     auto kmer = encode_dna_bases("tttt");
-    Patterns kmers = {kmer};
+    Sequences kmers = {kmer};
 
     auto result = index_kmers(kmers, kmer_size, prg_info);
     // Note for the expectation: the markers get processed in reverse SA index ordering
@@ -534,7 +534,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerEndingAtTailExtracted) {
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
+    Sequence target_kmer = {4, 3, 3, 1, 1, 2, 3, 3, 2, 4, 2, 3, 2, 3, 3};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_TRUE(found);
 }
@@ -554,7 +554,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerStartingAtLeftMostAlleleChar
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {1, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2};
+    Sequence target_kmer = {1, 4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_TRUE(found);
 }
@@ -574,7 +574,7 @@ TEST(IndexKmers, GivenPrgWithLongNonVariantTail_KmerImmediatelyAfterSiteExtracte
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2, 2};
+    Sequence target_kmer = {4, 2, 2, 2, 2, 3, 1, 2, 3, 1, 4, 4, 2, 2, 2};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_TRUE(found);
 }
@@ -595,7 +595,7 @@ TEST(IndexKmers, KmerStartsOneBaseBeyondRangeEdge_KmerNotExtracted) {
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
+    Sequence target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_FALSE(found);
 }
@@ -616,7 +616,7 @@ TEST(IndexKmers, KmerStartsAtRangeEdge_KmerExtracted) {
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
+    Sequence target_kmer = {3, 1, 2, 3, 1, 4, 4, 2, 2, 2, 2, 3, 1, 2, 3};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_TRUE(found);
 }
@@ -636,7 +636,7 @@ TEST(IndexKmers, KmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) {
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {1, 2, 1, 3, 1, 2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1, 2};
+    Sequence target_kmer = {1, 2, 1, 3, 1, 2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1, 2};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_TRUE(found);
 }
@@ -656,7 +656,7 @@ TEST(IndexKmers, KmerEndJustOutsideMaxReadSize_KmerNotFoundInIndex) {
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {1, 2, 1, 3, 1, 2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1, 2};
+    Sequence target_kmer = {1, 2, 1, 3, 1, 2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1, 2};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_FALSE(found);
 }
@@ -676,7 +676,7 @@ TEST(IndexKmers, TwoSitesAndKmerWithinMaxReadSizeRegionNoSiteOverlap_KmerFound) 
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {2, 3, 1, 4, 4};
+    Sequence target_kmer = {2, 3, 1, 4, 4};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_TRUE(found);
 }
@@ -696,7 +696,7 @@ TEST(IndexKmers, TwoSitesAndKmerOutsideMaxReadSizeRegionNoSiteOverlap_KmerNotFou
     auto kmer_index = index_kmers(kmer_prefix_diffs,
                                   parameters.kmers_size,
                                   prg_info);
-    Pattern target_kmer = {2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1};
+    Sequence target_kmer = {2, 3, 1, 4, 4, 2, 4, 2, 2, 4, 3, 1};
     auto found = kmer_index.find(target_kmer) != kmer_index.end();
     EXPECT_FALSE(found);
 }
@@ -707,7 +707,7 @@ TEST(IndexKmers, GivenTwoSerializedKmers_CorrectlyExtrctedKmers) {
     const uint32_t kmer_size = 4;
     uint64_t kmer_start_index = 0;
 
-    std::vector<Pattern> result = {};
+    std::vector<Sequence> result = {};
     auto kmer = deserialize_next_kmer(kmer_start_index, all_kmers, kmer_size);
     result.push_back(kmer);
 
@@ -715,7 +715,7 @@ TEST(IndexKmers, GivenTwoSerializedKmers_CorrectlyExtrctedKmers) {
     kmer = deserialize_next_kmer(kmer_start_index, all_kmers, kmer_size);
     result.push_back(kmer);
 
-    std::vector<Pattern> expected = {
+    std::vector<Sequence> expected = {
             {1, 2, 3, 4},
             {1, 2, 1, 2},
     };

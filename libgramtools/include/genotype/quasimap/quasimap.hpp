@@ -44,7 +44,7 @@ namespace gram {
      */
     void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                                   Coverage &coverage,
-                                  const Pattern &read,
+                                  const Sequence &read,
                                   const Parameters &parameters,
                                   const KmerIndex &kmer_index,
                                   const PRG_Info &prg_info);
@@ -56,18 +56,18 @@ namespace gram {
      * @param prg_info object holding all data structures necessary for vBWT, including `gram::FM_Index`.
      * @return
      */
-    bool quasimap_read(const Pattern &read, Coverage &coverage, const KmerIndex &kmer_index, const PRG_Info &prg_info,
+    bool quasimap_read(const Sequence &read, Coverage &coverage, const KmerIndex &kmer_index, const PRG_Info &prg_info,
                        const Parameters &parameters);
 
-    Pattern get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read);
+    Sequence get_kmer_from_read(const uint32_t &kmer_size, const Sequence &read);
 
     /**
      * Generates a list of `SearchState`s from a read and a kmer, which is 3'-most kmer in the read.
      * The kmer_index is queried to generate an initial set of `SearchState`s (precomputed at `build` stage) to start from.
      * @return SearchStates: a list of `SearchState`s, which at core are an SA interval and a path through the prg (marker-allele ID pairs)
      */
-    SearchStates search_read_backwards(const Pattern &read,
-                                       const Pattern &kmer,
+    SearchStates search_read_backwards(const Sequence &read,
+                                       const Sequence &kmer,
                                        const KmerIndex &kmer_index,
                                        const PRG_Info &prg_info);
 
@@ -82,6 +82,6 @@ namespace gram {
 
 
 
-    Pattern reverse_complement_read(const Pattern &read);
+    Sequence reverse_complement_read(const Sequence &read);
 }
 #endif //GRAMTOOLS_QUASIMAP_HPP

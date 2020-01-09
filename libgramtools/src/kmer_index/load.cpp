@@ -10,12 +10,12 @@
 using namespace gram;
 
 
-Pattern gram::deserialize_next_kmer(const uint64_t &kmer_start_index,
-                                    const sdsl::int_vector<3> &all_kmers,
-                                    const uint32_t &kmers_size) {
+Sequence gram::deserialize_next_kmer(const uint64_t &kmer_start_index,
+                                     const sdsl::int_vector<3> &all_kmers,
+                                     const uint32_t &kmers_size) {
     // TODO: implement as an iterator
     assert(kmer_start_index <= all_kmers.size() - kmers_size);
-    Pattern kmer;
+    Sequence kmer;
     kmer.reserve(kmers_size);
     for (uint64_t i = kmer_start_index; i < kmer_start_index + kmers_size; ++i)
         kmer.emplace_back(all_kmers[i]);

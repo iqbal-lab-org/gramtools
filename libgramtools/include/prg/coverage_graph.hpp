@@ -18,7 +18,7 @@
 #define COV_GRAPH_HPP
 
 #include "linearised_prg.hpp"
-#include <boost/shared_ptr.hpp>
+#include "prg/types.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -28,15 +28,12 @@
 #include <boost/serialization/unordered_map.hpp>
 
 using namespace gram;
-using seqPos = int32_t;
-using BaseCoverage = std::vector<uint16_t>; /**< Number of reads mapped to each base of an allele */
 
 /**
  * The building blocks of a `coverage_Graph`
  * Contain sequence, site & allele ID, coverage array
  */
 class coverage_Node {
-    using covG_ptr = boost::shared_ptr<coverage_Node>;
 public:
     coverage_Node() : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(0), is_site_boundary{false} { ; };
 
@@ -122,11 +119,6 @@ private:
     }
 };
 
-/*
- * Data structures
- */
-using covG_ptr = boost::shared_ptr<coverage_Node>;
-using marker_to_node = std::unordered_map<Marker, covG_ptr>;
 
 enum class marker_type {
     sequence, site_entry, allele_end, site_end
@@ -161,8 +153,6 @@ private:
     }
 };
 
-using access_vec = std::vector<node_access>;
-using target_m = std::unordered_map<Marker, std::vector<targeted_marker>>;
 
 /**
 * This class implements a DAG of `coverage_Node`s.
@@ -191,7 +181,7 @@ public:
      * Children nodes appear before parent nodes.
      * Use : genotyping
      */
-    std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
+    covG_ptr_map bubble_map;
 
     /**
      * Maps a site ID to a Locus which is its immediate parent in the graph.
@@ -259,7 +249,7 @@ public:
 
     // These will get transferred to the coverage_Graph
     covG_ptr root;
-    std::map<covG_ptr, covG_ptr, std::greater<covG_ptr> > bubble_map;
+    covG_ptr_map bubble_map;
     parental_map par_map;
     access_vec random_access;
     target_m target_map;

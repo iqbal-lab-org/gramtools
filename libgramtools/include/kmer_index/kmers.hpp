@@ -98,8 +98,8 @@ namespace gram {
      * @param within_site_index
      * @return A vector of alleles. Alleles are ordered by appearance in the prg.
      */
-    Patterns get_site_ordered_alleles(const uint64_t &within_site_index,
-                                      const PRG_Info &prg_info);
+    Sequences get_site_ordered_alleles(const uint64_t &within_site_index,
+                                       const PRG_Info &prg_info);
 
     /**
      * Record which variant sites are potentially reachable by a kmer.
@@ -114,15 +114,15 @@ namespace gram {
     std::pair<uint64_t, uint64_t> get_nonvariant_region(const uint64_t &site_end_boundary_index,
                                                         const PRG_Info &prg_info);
 
-    Pattern right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
-                                              const PRG_Info &prg_info);
+    Sequence right_intersite_nonvariant_region(const uint64_t &site_end_boundary_index,
+                                               const PRG_Info &prg_info);
 
     /** Build a set of kmers to index from each index inside a `kmer_region_range`.
      * @param kmer_region_range Set of contiguous indices into the prg from which sets of kmers to be indexed are extracted ony by one.
      */
-    unordered_vector_set<Pattern> get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
-                                                                 const uint64_t &kmer_size,
-                                                                 const PRG_Info &prg_info);
+    unordered_vector_set<Sequence> get_region_range_reverse_kmers(const PrgIndexRange &kmer_region_range,
+                                                                  const uint64_t &kmer_size,
+                                                                  const PRG_Info &prg_info);
 
     /**
      * Find the start index of a variant site marker from its end index.
@@ -134,18 +134,18 @@ namespace gram {
      * From a list of reachable variant sites, extract a set of parts (alleles and non-variant regions).
      * These parts are later combined to generate all the kmers to index starting from a given prg index.
      */
-    std::list<Patterns> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
-                                                   const std::list<uint64_t> &inrange_sites,
-                                                   const uint64_t kmer_size,
-                                                   const PRG_Info &prg_info);
+    std::list<Sequences> get_kmer_size_region_parts(const uint64_t &current_range_end_index,
+                                                    const std::list<uint64_t> &inrange_sites,
+                                                    const uint64_t kmer_size,
+                                                    const PRG_Info &prg_info);
 
     /**
      * Extracts all kmers to index from the `region_parts` that can be traversed.
      * @param region_parts The variant and non-variant regions within reach of a starting position in the prg.
      * @return all unique kmers extracted from all enumerated path through the `region_parts`.
      */
-    unordered_vector_set<Pattern> get_region_parts_reverse_kmers(const std::list<Patterns> &region_parts,
-                                                                 const uint64_t &kmer_size);
+    unordered_vector_set<Sequence> get_region_parts_reverse_kmers(const std::list<Sequences> &region_parts,
+                                                                  const uint64_t &kmer_size);
 
     /**
      * Increments a single allele index among all region parts.
@@ -159,8 +159,8 @@ namespace gram {
      * @param path A single path through the prg.
      * @return A (unique) set of kmers to index. The kmers are in reverse (right to left) order.
      */
-    unordered_vector_set<Pattern> get_path_reverse_kmers(const Pattern &path,
-                                                         const uint64_t &kmer_size);
+    unordered_vector_set<Sequence> get_path_reverse_kmers(const Sequence &path,
+                                                          const uint64_t &kmer_size);
 
     /**
      * Gets all unique kmers to index from a starting position in the prg.
@@ -169,10 +169,10 @@ namespace gram {
      * @param inrange_sites the variant sites in range of the starting position.
      * @note the function updates `current_range_end_index` so that it is past the leftmost site in `inrange_sites`.
      */
-    unordered_vector_set<Pattern> get_sites_reverse_kmers(uint64_t &current_range_end_index,
-                                                          const std::list<uint64_t> &inrange_sites,
-                                                          const uint64_t kmer_size,
-                                                          const PRG_Info &prg_info);
+    unordered_vector_set<Sequence> get_sites_reverse_kmers(uint64_t &current_range_end_index,
+                                                           const std::list<uint64_t> &inrange_sites,
+                                                           const uint64_t kmer_size,
+                                                           const PRG_Info &prg_info);
 
     /**
      * Sort a set of kmer ranges (`gram::PrgIndexRange`s), and merge together those that overlap.
@@ -189,28 +189,28 @@ namespace gram {
      * left-to-right in the prg, readies the kmers for the cached indexing process.
      * @see gram::get_prefix_diffs()
      */
-    std::vector<Pattern> reverse(const ordered_vector_set<Pattern> &reverse_kmers);
+    std::vector<Sequence> reverse(const ordered_vector_set<Sequence> &reverse_kmers);
 
     /**
      * Computes the minimal changes between kmers and their immediate predecessor in the ordered set.
      * The changes are listed left to right (prefix order).
      */
-    std::vector<Pattern> get_prefix_diffs(const std::vector<Pattern> &kmers);
+    std::vector<Sequence> get_prefix_diffs(const std::vector<Sequence> &kmers);
 
     /**
      * Extract kmers to index from a prg. Only kmers in the prg whose mapping can overlap a variant site will get indexed.
      * @return all the kmers to index, in reverse sorted order. The kmers are maintained in reverse (first kmer position == last position in prg)
      * so that they get inserted in sorted (dictionary) order.
      */
-    ordered_vector_set<Pattern> get_prg_reverse_kmers(const Parameters &parameters,
-                                                      const PRG_Info &prg_info);
+    ordered_vector_set<Sequence> get_prg_reverse_kmers(const Parameters &parameters,
+                                                       const PRG_Info &prg_info);
 
     /**
      * High-level routine for extracting all kmers of interest and computing the prefix differences.
      * @see gram::kmer_index::build()
      */
-    std::vector<Pattern> get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
-                                                               const PRG_Info &prg_info);
+    std::vector<Sequence> get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
+                                                                const PRG_Info &prg_info);
 
     /**
      * Core routine for producing kmers to index.
@@ -218,8 +218,8 @@ namespace gram {
      * variant sites in the prg.
      * If it is set, produces all the kmers of given size.
      */
-    std::vector<Pattern> get_all_kmers(const Parameters &parameters,
-                                       const PRG_Info &prg_info);
+    std::vector<Sequence> get_all_kmers(const Parameters &parameters,
+                                        const PRG_Info &prg_info);
 
     /**
      * Generate all kmers of a given size, in order.
@@ -227,7 +227,7 @@ namespace gram {
      * Kmers themselves are produced in order ('1111' then '1112' etc..)
      * @see next_kmer()
      */
-    ordered_vector_set<Pattern> generate_all_kmers(const uint64_t &kmer_size);
+    ordered_vector_set<Sequence> generate_all_kmers(const uint64_t &kmer_size);
 
 }
 

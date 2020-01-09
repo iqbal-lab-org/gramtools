@@ -2,7 +2,7 @@
  * Defines the kmer index and the caching structure for remembering the relevant previous mappings.
  */
 #include "common/utils.hpp"
-#include "genotype/quasimap/search_types.hpp"
+#include "genotype/quasimap/search/types.hpp"
 
 
 #ifndef GRAMTOOLS_KMER_INDEX_TYPES_HPP
@@ -18,7 +18,7 @@ namespace gram {
     };
     using KmerIndexCache = std::list<CacheElement>; /**< Stored previously computed `SearchStates` for re-use when indexing different kmers. */
 
-    using KmerIndex = SequenceHashMap<Pattern, SearchStates>; /**< Unordered map linking a kmer to all mapped locations in the prg.*/
+    using KmerIndex = SequenceHashMap<Sequence, SearchStates>; /**< Unordered map linking a kmer to all mapped locations in the prg.*/
 }
 
 #endif //GRAMTOOLS_KMER_INDEX_TYPES_HPP

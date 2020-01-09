@@ -11,7 +11,7 @@
 #include "common/parameters.hpp"
 #include "prg/prg_info.hpp"
 #include "prg/make_data_structures.hpp"
-#include "genotype/quasimap/search_types.hpp"
+#include "genotype/quasimap/search/types.hpp"
 #include "kmer_index_types.hpp"
 #include "kmers.hpp"
 
@@ -46,7 +46,7 @@ namespace gram {
      * @see update_full_kmer()
      * @see update_kmer_index_cache()
      */
-    KmerIndex index_kmers(const Patterns &kmers, const int kmer_size, const PRG_Info &prg_info);
+    KmerIndex index_kmers(const Sequences &kmers, const int kmer_size, const PRG_Info &prg_info);
 
     namespace kmer_index {
         KmerIndex build(const Parameters &parameters,

@@ -20,7 +20,6 @@ namespace gram {
 
     using AlleleGroupHash = SequenceHashMap<AlleleIds, uint64_t>;
 
-    using BaseCoverage = std::vector<uint16_t>; /**< Number of reads mapped to each base of an allele */
     using AlleleCoverage = std::vector<BaseCoverage>; /**< `gram::BaseCoverage` for each allele of a variant site. */
     using SitesAlleleBaseCoverage = std::vector<AlleleCoverage>; /**< Vector of gram::AlleleCoverage, one for each variant site in the prg. */
 

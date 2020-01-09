@@ -24,16 +24,18 @@ namespace gram {
      * Data typedefs **
      ******************/
     using int_Base = uint8_t; /**< nucleotide represented as byte-sized integer */
-    using Pattern = std::vector<int_Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
-    using Patterns = std::vector<Pattern>;
+    using Sequence = std::vector<int_Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
+    using Sequences = std::vector<Sequence>;
 
     using Marker = uint32_t ; /**< An integer >=5 describing a site or allele marker in the prg. */
-    using AlleleId = uint32_t; /**< An integer describing which allele is referred to within a given variant site. */
-
     using marker_vec = std::vector<Marker>;
-
+    using AlleleId = uint32_t; /**< An integer describing which allele is referred to within a given variant site. */
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/
+
     using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */
+
+    // coverage-related
+    using BaseCoverage = std::vector<uint16_t>; /**< Number of reads mapped to each base of an allele */
 
     /**
      * Unified definition of a site marker
@@ -44,7 +46,6 @@ namespace gram {
      * Unified definition of an allele marker
      */
     bool is_allele_marker(Marker const& variant_marker);
-
 
 
     /******************************************
@@ -72,9 +73,9 @@ namespace gram {
      */
     std::string decode_dna_base(const int_Base& base);
 
-    Pattern encode_dna_bases(const std::string &dna_str);
+    Sequence encode_dna_bases(const std::string &dna_str);
 
-    Pattern encode_dna_bases(const GenomicRead &read_sequence);
+    Sequence encode_dna_bases(const GenomicRead &read_sequence);
 
 
     /************************************************

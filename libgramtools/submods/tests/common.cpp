@@ -1,4 +1,5 @@
 #include "tests/common.hpp"
+using namespace gram;
 
 AlleleCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions){
     AlleleCoverage result(positions.size());

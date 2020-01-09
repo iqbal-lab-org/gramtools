@@ -1,7 +1,7 @@
 #ifndef TEST_SRC_COMMON
 #define TEST_SRC_COMMON
 
-#include "quasimap/coverage/types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 #include "prg/coverage_graph.hpp"
 
 using prg_positions = std::vector<std::size_t>;
@@ -12,7 +12,7 @@ using prg_positions = std::vector<std::size_t>;
  *
  * Useful for testing per base coverage recordings.
  */
-AlleleCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions);
+gram::AlleleCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions);
 
 #endif //TEST_SRC_COMMON
 

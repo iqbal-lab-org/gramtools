@@ -22,7 +22,7 @@
 #include "src_common/generate_prg.hpp"
 #include "prg/prg_info.hpp"
 #include "kmer_index/build.hpp"
-#include "quasimap/search/vBWT_jump.hpp"
+#include "genotype/quasimap/search/vBWT_jump.hpp"
 
 
 using namespace gram;

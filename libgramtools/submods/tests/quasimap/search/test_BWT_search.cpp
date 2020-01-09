@@ -10,8 +10,8 @@
 #include "gtest/gtest.h"
 #include "src_common/generate_prg.hpp"
 #include "prg/prg_info.hpp"
-#include "quasimap/search/BWT_search.hpp"
-#include "quasimap/quasimap.hpp"
+#include "genotype/quasimap/search/BWT_search.hpp"
+#include "genotype/quasimap/quasimap.hpp"
 #include "kmer_index/build.hpp"
 
 /*
@@ -257,8 +257,8 @@ TEST(VarPrg, ReadLeadsToPrgEdge_NoSearchStatesFound) {
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("agcgc");
-    Pattern kmer = encode_dna_bases("gcgc");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gcgc");
+    Sequences kmers = {kmer};
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 

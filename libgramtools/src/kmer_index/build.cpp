@@ -65,7 +65,7 @@ CacheElement get_initial_cache_element(const int_Base &base,
  * @param full_kmer: a `Pattern`, which is a vector of `Base`s (`uint8`s)
  */
 void build_kmer_cache(KmerIndexCache &cache,
-                      const Pattern &kmer_prefix_diff,
+                      const Sequence &kmer_prefix_diff,
                       const int kmer_size,
                       const PRG_Info &prg_info) {
     auto it = kmer_prefix_diff.rbegin();
@@ -101,8 +101,8 @@ void build_kmer_cache(KmerIndexCache &cache,
 /**
  * Modify the `full_kmer` using the set of differences recorded previously.
  */
-void update_full_kmer(Pattern &full_kmer,
-                      const Pattern &kmer_prefix_diff,
+void update_full_kmer(Sequence &full_kmer,
+                      const Sequence &kmer_prefix_diff,
                       const int kmer_size) {
     if (kmer_prefix_diff.size() == kmer_size) {
         full_kmer = kmer_prefix_diff;
@@ -114,12 +114,12 @@ void update_full_kmer(Pattern &full_kmer,
         full_kmer[start_idx++] = base;
 }
 
-KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
+KmerIndex gram::index_kmers(const Sequences &kmer_prefix_diffs,
                             const int kmer_size,
                             const PRG_Info &prg_info) {
     KmerIndex kmer_index;
     KmerIndexCache cache;
-    Pattern full_kmer;
+    Sequence full_kmer;
 
     auto total_num_kmers = kmer_prefix_diffs.size();
     std::cout << "Total number of unique kmers: "
@@ -161,8 +161,8 @@ KmerIndex gram::index_kmers(const Patterns &kmer_prefix_diffs,
 KmerIndex gram::kmer_index::build(const Parameters &parameters,
                                   const PRG_Info &prg_info) {
     // Extract all relevant kmers and generate the minimal differences between them.
-    Patterns kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
-                                                                       prg_info);
+    Sequences kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,
+                                                                        prg_info);
     std::cout << "Indexing kmers" << std::endl;
     KmerIndex kmer_index = index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);
     return kmer_index;

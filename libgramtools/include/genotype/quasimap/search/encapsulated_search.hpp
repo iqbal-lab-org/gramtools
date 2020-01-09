@@ -1,7 +1,7 @@
 #ifndef ENCAPS_SEARCH_HPP
 #define ENCAPS_SEARCH_HPP
 
-#include "genotype/quasimap/search_types.hpp"
+#include "genotype/quasimap/search/types.hpp"
 namespace gram {
 
     /**

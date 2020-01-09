@@ -16,11 +16,11 @@
 
 #include "src_common/generate_prg.hpp"
 #include "kmer_index/build.hpp"
-#include "quasimap/coverage/common.hpp"
-#include "quasimap/quasimap.hpp"
+#include "genotype/quasimap/coverage/common.hpp"
+#include "genotype/quasimap/quasimap.hpp"
 #include "common/utils.hpp"
-#include "quasimap/search/BWT_search.hpp"
-#include "quasimap/coverage/allele_base.hpp"
+#include "genotype/quasimap/search/BWT_search.hpp"
+#include "genotype/quasimap/coverage/allele_base.hpp"
 #include "tests/common.hpp"
 
 using namespace gram;
@@ -34,19 +34,19 @@ public:
 
     explicit prg_setup() {};
     void setup(std::string raw_prg,
-            Patterns kmers){
+               Sequences kmers){
        auto encoded_prg = encode_prg(raw_prg);
        internal_setup(encoded_prg, kmers);
     }
 
     void setup_nested(std::string raw_prg,
-               Patterns kmers){
+                      Sequences kmers){
         auto encoded_prg = prg_string_to_ints(raw_prg);
         internal_setup(encoded_prg, kmers);
     }
 
 private:
-    void internal_setup(marker_vec encoded_prg, Patterns kmers){
+    void internal_setup(marker_vec encoded_prg, Sequences kmers){
         size_t kmer_size = kmers.front().size();
         for (auto const& kmer : kmers) assert(kmer_size == kmer.size());
 
@@ -70,9 +70,9 @@ private:
 };
 
 TEST(ReverseComplementRead, GivenRead_ReverseComplementReadReturned) {
-    gram::Pattern read = {1, 2, 1, 3, 4};
+    gram::Sequence read = {1, 2, 1, 3, 4};
     auto result = gram::reverse_complement_read(read);
-    gram::Pattern expected = {1, 2, 4, 3, 4};
+    gram::Sequence expected = {1, 2, 4, 3, 4};
     EXPECT_EQ(result, expected);
 }
 
@@ -87,8 +87,8 @@ TEST(GetKmer, GivenReadAndKmerSize_CorrectKmerReturned) {
 
 
 TEST(Coverage, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("gccta");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gccta");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6aG7t8C8CTA", kmers);
 
@@ -106,8 +106,8 @@ TEST(Coverage, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("gtcta");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gtcta");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta",kmers);
 
@@ -124,8 +124,8 @@ TEST(Coverage, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("gtcta");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gtcta");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta",kmers);
 
@@ -143,8 +143,8 @@ TEST(Coverage, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadCrossTwoSitesAndEndsInSite_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("gtcta");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gtcta");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta",kmers);
 
@@ -161,8 +161,8 @@ TEST(Coverage, ReadCrossTwoSitesAndEndsInSite_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadDoesNotMap_EmptyAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("gtcta");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gtcta");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta",kmers);
 
@@ -179,8 +179,8 @@ TEST(Coverage, ReadDoesNotMap_EmptyAlleleCoverage) {
 
 
 TEST(Coverage, ReadEndsInAllele_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("ctc");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("ctc");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta", kmers);
 
@@ -198,8 +198,8 @@ TEST(Coverage, ReadEndsInAllele_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadStartsInAllele_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("agt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("agt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6T6AG7T8c8cta",kmers);
 
@@ -216,8 +216,8 @@ TEST(Coverage, ReadStartsInAllele_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("agt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("agt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta", kmers);
 
@@ -234,8 +234,8 @@ TEST(Coverage, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadMapsToThreePositions_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("agt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("agt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("tag5tc6g6t6ag7t8c8cta",kmers);
 
@@ -253,8 +253,8 @@ TEST(Coverage, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, ReadEntirelyWithinAllele_CoverageRecorded) {
-    Pattern kmer = encode_dna_bases("ccc");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("ccc");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5cccc6g6t6ag",kmers);
 
@@ -270,13 +270,13 @@ TEST(Coverage, ReadEntirelyWithinAllele_CoverageRecorded) {
 
 
 TEST(Coverage, ReadMapsWithinAllele_SumCoverageIsOne) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agt"),
     };
     prg_setup setup;
     setup.setup("ac5t6cagtagtc6ta",kmers);
 
-    Pattern read = encode_dna_bases("gtagt");
+    Sequence read = encode_dna_bases("gtagt");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
     const auto &result = setup.coverage.allele_sum_coverage;
@@ -288,14 +288,14 @@ TEST(Coverage, ReadMapsWithinAllele_SumCoverageIsOne) {
 
 
 TEST(Coverage, ReadMapsTwiceWithinAllele_SumCoverageIsOne) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agt"),
     };
     prg_setup setup;
     setup.setup("ac5t6cagtagttttgtagtc6ta",kmers);
     setup.parameters.seed = 42;
 
-    Pattern read = encode_dna_bases("gtagt");
+    Sequence read = encode_dna_bases("gtagt");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
     const auto &result = setup.coverage.allele_sum_coverage;
@@ -307,14 +307,14 @@ TEST(Coverage, ReadMapsTwiceWithinAllele_SumCoverageIsOne) {
 
 
 TEST(Coverage, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agt"),
     };
     prg_setup setup;
     setup.setup("gtagtac5gtagtact6t6ta",kmers);
     setup.parameters.seed = 39;
 
-    Pattern read = encode_dna_bases("gtagt");
+    Sequence read = encode_dna_bases("gtagt");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
     auto const& sumCovResult = setup.coverage.allele_sum_coverage;
@@ -334,13 +334,13 @@ TEST(Coverage, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
 
 
 TEST(Coverage, ReadEndWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("cgt"),
     };
     prg_setup setup;
     setup.setup("tac5gta6gtt6ta", kmers);
 
-    Pattern read = encode_dna_bases("tacgt");
+    Sequence read = encode_dna_bases("tacgt");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
     const auto &sumCovResult = setup.coverage.allele_sum_coverage;
@@ -360,14 +360,14 @@ TEST(Coverage, ReadEndWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
 
 TEST(Coverage, ReadStartWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("taa"),
     };
     prg_setup setup;
     setup.setup("c5ccc6agt6ccgt6taa", kmers);
     setup.parameters.seed = 39;
 
-    Pattern read = encode_dna_bases("gttaa");
+    Sequence read = encode_dna_bases("gttaa");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
     const auto &result = setup.coverage.allele_sum_coverage;
@@ -379,14 +379,14 @@ TEST(Coverage, ReadStartWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
 
 TEST(Coverage, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agt"),
     };
     prg_setup setup;
     setup.setup("ac5gtagtact6t6gggtagt6ta", kmers);
     setup.parameters.seed = 42;
 
-    Pattern read = encode_dna_bases("gtagt");
+    Sequence read = encode_dna_bases("gtagt");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
 
     const auto &result = setup.coverage.allele_sum_coverage;
@@ -407,12 +407,12 @@ TEST(Coverage, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
 
 
 TEST(Coverage, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("agt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("agt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6T6AG7T8c8cta", kmers);
 
-    Patterns reads = {
+    Sequences reads = {
             encode_dna_bases("tagt"),
             encode_dna_bases("tagt")
     };
@@ -441,12 +441,12 @@ TEST(Coverage, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 }
 
 TEST(Coverage, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
-    Pattern kmer = encode_dna_bases("agt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("agt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta", kmers);
 
-    Patterns reads = {
+    Sequences reads = {
             encode_dna_bases("gagt"),
             encode_dna_bases("tagt"),
             encode_dna_bases("cagt")
@@ -477,14 +477,14 @@ TEST(Coverage, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("agt"),
             encode_dna_bases("agc"),
     };
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7t8c8cta", kmers);
 
-    Patterns reads = {
+    Sequences reads = {
             encode_dna_bases("gagt"),
             encode_dna_bases("tagt"),
             encode_dna_bases("cagc")
@@ -504,7 +504,7 @@ TEST(Coverage, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 
 
 TEST(Coverage, MappingThreeReadsOneReadMapsTwice_CorrectAlleleCoverage) {
-    Patterns kmers = {
+    Sequences kmers = {
             encode_dna_bases("cta"),
             encode_dna_bases("act"),
     };
@@ -512,7 +512,7 @@ TEST(Coverage, MappingThreeReadsOneReadMapsTwice_CorrectAlleleCoverage) {
     setup.setup("gcac5t6g6c6ta7t8c8cta", kmers);
     setup.parameters.seed = 42;
 
-    Patterns reads = {
+    Sequences reads = {
             encode_dna_bases("accta"),
             encode_dna_bases("gcact"),
     };
@@ -534,8 +534,8 @@ TEST(KmerIndexQuasimap, KmerAbsentFromKmerIndex_NoSearchStatesReturned) {
     auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Pattern kmer = encode_dna_bases("gtaa");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gtaa");
+    Sequences kmers = {kmer};
     auto kmer_size = 4;
     auto kmer_index = index_kmers(kmers, kmer_size, prg_info);
 
@@ -572,12 +572,12 @@ class SearchStates_and_Coverage_EndInSite : public::testing::Test{
 protected:
     void SetUp(){
         kmer = encode_dna_bases("gtcc");
-        Patterns kmers = {kmer};
+        Sequences kmers = {kmer};
         setup.setup("gcgct5c6g6T6AGTCCt", kmers);
     }
-    Pattern kmer;
+    Sequence kmer;
     prg_setup setup;
-    Pattern read = encode_dna_bases("tagtcc");
+    Sequence read = encode_dna_bases("tagtcc");
 };
 
 TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectSearchState) {
@@ -616,8 +616,8 @@ TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectCoverage) {
 }
 
 TEST(SearchStates, StartInSiteAndMapOut_CorrectVarLocusPath) {
-    Pattern kmer = encode_dna_bases("gctc");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gctc");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gcGCT5C6g6t6agtcct", kmers);
 
@@ -634,8 +634,8 @@ TEST(SearchStates, StartInSiteAndMapOut_CorrectVarLocusPath) {
 
 
 TEST(SearchStates, StartOutOfSiteAndMapThrough_CorrectVarLocusPath) {
-    Pattern kmer = encode_dna_bases("tgag");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("tgag");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gcgcT5c6G6t6AGtcct", kmers);
 
@@ -653,8 +653,8 @@ TEST(SearchStates, StartOutOfSiteAndMapThrough_CorrectVarLocusPath) {
 
 
 TEST(SearchStates, ReadCrossingTwoAlleles_CorrectVarLocusPaths) {
-    Pattern kmer = encode_dna_bases("tct");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("tct");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7T8c8CT", kmers);
 
@@ -673,8 +673,8 @@ TEST(SearchStates, ReadCrossingTwoAlleles_CorrectVarLocusPaths) {
 
 
 TEST(SearchStates, StartWithinAlleleEndWithinAnother_CorrectVarLocusPath) {
-    Pattern kmer = encode_dna_bases("gag");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("gag");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5c6g6t6ag7GAG8c8ct", kmers);
 
@@ -697,8 +697,8 @@ TEST(SearchStates, StartWithinAlleleEndWithinAnother_CorrectVarLocusPath) {
  * We test: correct indexing, correct base extension, correct allele id specification.
  */
 TEST(MultiStep, RunIndexingExtensionIdSpecification_CorrectOutputs) {
-    Pattern kmer = encode_dna_bases("c");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("c");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("gct5gC6aC6C6t6Cg", kmers);
 
@@ -722,8 +722,8 @@ TEST(MultiStep, RunIndexingExtensionIdSpecification_CorrectOutputs) {
 }
 
 TEST(SearchStates, OneMappingEncapsulatedByAllele) {
-    Pattern kmer = encode_dna_bases("tagt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("tagt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("t5c6gCTTAGT6aa", kmers);
 
@@ -741,8 +741,8 @@ TEST(SearchStates, OneMappingEncapsulatedByAllele) {
 }
 
 TEST(SearchStates, StartAndEndInSite_CorrectSearchStates) {
-    Pattern kmer = encode_dna_bases("tagt");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("tagt");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup("t5c6gcttagtacgcttagt6aa", kmers);
 
@@ -765,8 +765,8 @@ TEST(SearchStates, StartAndEndInSite_CorrectSearchStates) {
 
 
 TEST(SearchStates_Nested, MapIntoAndOutOfNestedSite_CorrectSearchStates) {
-    Pattern kmer = encode_dna_bases("ac");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("ac");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup_nested("a[c,g[ct,t]a]c", kmers);
 
@@ -809,8 +809,8 @@ i	BWT	SA	text_suffix
 16	G	12	10 6 6 T 0
 */
 TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
-    Pattern kmer = encode_dna_bases("t");
-    Patterns kmers = {kmer};
+    Sequence kmer = encode_dna_bases("t");
+    Sequences kmers = {kmer};
     prg_setup setup;
     setup.setup_nested("t[a[c,g][c,g],]t", kmers);
 
@@ -849,15 +849,15 @@ class Coverage_Nested_DoubleNesting : public ::testing::Test {
     // Double nesting meaning a bubble inside a bubble inside a bubble
 protected:
     void SetUp() {
-        Pattern kmer = encode_dna_bases("TA");
-        Patterns kmers = {kmer};
+        Sequence kmer = encode_dna_bases("TA");
+        Sequences kmers = {kmer};
         setup.setup_nested("A[[A[CCC,c],t],g]TA", kmers);
     }
     prg_setup setup;
     prg_positions positions{0, 3, 5, 9, 12, 15, 17}; // All the nodes in the cov graph with sequence
 
-    Pattern read1 = encode_dna_bases("AACCCTA");
-    Pattern read2 = encode_dna_bases("CTA");
+    Sequence read1 = encode_dna_bases("AACCCTA");
+    Sequence read2 = encode_dna_bases("CTA");
 };
 
 TEST_F(Coverage_Nested_DoubleNesting, ReadEndsInsideNestedSite_CorrectCoverage){
@@ -908,7 +908,7 @@ TEST_F(Coverage_Nested_DoubleNesting, ReadMultiMaps_CorrectCoverage){
 class Coverage_Nested_SingleNestingPlusSNP : public ::testing::Test {
 protected:
     void SetUp() {
-        Patterns kmers = {
+        Sequences kmers = {
                 encode_dna_bases("C"),
                 encode_dna_bases("G"),
                 encode_dna_bases("T"),
@@ -918,9 +918,9 @@ protected:
     prg_setup setup;
     prg_positions positions{0, 2, 4, 7, 9, 11, 13, 17, 19, 21, 23}; // All the nodes in the cov graph with sequence
 
-    Pattern read1 = encode_dna_bases("ATTTTGC");
-    Pattern read2 = encode_dna_bases("TT");
-    Pattern read3 = encode_dna_bases("AAAGG");
+    Sequence read1 = encode_dna_bases("ATTTTGC");
+    Sequence read2 = encode_dna_bases("TT");
+    Sequence read3 = encode_dna_bases("AAAGG");
 };
 
 TEST_F(Coverage_Nested_SingleNestingPlusSNP, FullyCrossingRead_CorrectCoverage){

@@ -2,7 +2,7 @@
  * Defines coverage related operations for allele sum coverage.
  * `AlleleSumCoverage` stores the sum of all reads mapped for each allele of each variant site.
  */
-#include "genotype/quasimap/search_types.hpp"
+#include "genotype/quasimap/search/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
 #include "common.hpp"
 

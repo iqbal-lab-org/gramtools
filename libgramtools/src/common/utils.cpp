@@ -87,25 +87,25 @@ std::string  gram::decode_dna_base(const int_Base& base){
     }
 }
 
-Pattern gram::encode_dna_bases(const std::string &dna_str) {
-    Pattern pattern;
+Sequence gram::encode_dna_bases(const std::string &dna_str) {
+    Sequence pattern;
     for (const auto &base_str: dna_str) {
         int_Base encoded_base = encode_dna_base(base_str);
         if (encoded_base == 0)
-            return Pattern {};
+            return Sequence {};
         pattern.emplace_back(encoded_base);
     }
     return pattern;
 }
 
 
-Pattern gram::encode_dna_bases(const GenomicRead &read_sequence) {
+Sequence gram::encode_dna_bases(const GenomicRead &read_sequence) {
     const auto sequence_length = strlen(read_sequence.seq);
-    Pattern pattern;
+    Sequence pattern;
     for (uint64_t i = 0; i < sequence_length; i++) {
         int_Base encoded_base = encode_dna_base(read_sequence.seq[i]);
         if (encoded_base == 0)
-            return Pattern {};
+            return Sequence {};
         pattern.emplace_back(encoded_base);
     }
     return pattern;

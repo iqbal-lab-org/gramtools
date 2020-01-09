@@ -51,8 +51,8 @@ QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
  * Returns a vector of `Pattern`s: a `Pattern` being a vector of `Base`s, which are integer encoded.
  * The encoding of DNA letters to integers also performed in this function.
  */
-std::vector<Pattern> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &reads, const uint64_t &max_set_size) {
-    std::vector<Pattern> reads_buffer;
+std::vector<Sequence> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &reads, const uint64_t &max_set_size) {
+    std::vector<Sequence> reads_buffer;
     while (reads_it != reads.end() and reads_buffer.size() < max_set_size) {
         const auto *const raw_read = *reads_it;
         auto read = encode_dna_bases(*raw_read);
@@ -67,7 +67,7 @@ std::vector<Pattern> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &r
  */
 void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                          Coverage &coverage,
-                         const std::vector<Pattern> &reads_buffer,
+                         const std::vector<Sequence> &reads_buffer,
                          const Parameters &parameters,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info) {
@@ -129,7 +129,7 @@ void gram::handle_read_file(QuasimapReadsStats &quasimap_stats,
 
 void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
                                     Coverage &coverage,
-                                    const Pattern &read,
+                                    const Sequence &read,
                                     const Parameters &parameters,
                                     const KmerIndex &kmer_index,
                                     const PRG_Info &prg_info) {
@@ -149,7 +149,7 @@ void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
     }
 }
 
-bool gram::quasimap_read(const Pattern &read,
+bool gram::quasimap_read(const Sequence &read,
                          Coverage &coverage,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info,
@@ -173,15 +173,15 @@ bool gram::quasimap_read(const Pattern &read,
 }
 
 
-Pattern gram::get_kmer_from_read(const uint32_t &kmer_size, const Pattern &read) {
-    Pattern kmer;
+Sequence gram::get_kmer_from_read(const uint32_t &kmer_size, const Sequence &read) {
+    Sequence kmer;
     auto kmer_start_it = read.begin() + read.size() - kmer_size;
     kmer.assign(kmer_start_it, read.end());
     return kmer;
 }
 
-SearchStates gram::search_read_backwards(const Pattern &read,
-                                         const Pattern &kmer,
+SearchStates gram::search_read_backwards(const Sequence &read,
+                                         const Sequence &kmer,
                                          const KmerIndex &kmer_index,
                                          const PRG_Info &prg_info) {
     // Test if kmer has been indexed
@@ -249,8 +249,8 @@ int_Base complement_encoded_base(const int_Base &encoded_base) {
     }
 }
 
-Pattern gram::reverse_complement_read(const Pattern &read) {
-    Pattern reverse_read;
+Sequence gram::reverse_complement_read(const Sequence &read) {
+    Sequence reverse_read;
     reverse_read.reserve(read.size());
 
     for (auto it = read.rbegin(); it != read.rend(); ++it) {
