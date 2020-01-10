@@ -59,8 +59,9 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, coverage_Node const& node);
 
-    bool has_sequence() { return sequence.size() != 0; }
-    bool is_in_bubble() { return allele_ID != 0 && site_ID != 0;}
+    bool has_sequence() const { return sequence.size() != 0; }
+    bool is_in_bubble() const { return allele_ID != 0 && site_ID != 0;}
+    bool is_bubble_start() const { return next.size() > 1 && sequence.size() == 0;}
 
     /*
      * Getters
