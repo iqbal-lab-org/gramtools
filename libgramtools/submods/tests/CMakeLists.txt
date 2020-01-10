@@ -1,6 +1,6 @@
 include(ExternalProject)
 ExternalProject_Add(gtest
-        URL https://github.com/google/googletest/archive/release-1.8.0.zip
+        URL https://github.com/google/googletest/archive/release-1.10.0.zip
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
         INSTALL_COMMAND "")
 
@@ -13,7 +13,7 @@ add_dependencies(libgtest gtest)
 
 # Set libgtest properties
 set_target_properties(libgtest PROPERTIES
-        "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
+        "IMPORTED_LOCATION" "${binary_dir}/lib/libgtest.a"
         "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
 
 # Create a libgmock target to be used as a dependency by test programs
@@ -22,7 +22,7 @@ add_dependencies(libgmock gtest)
 
 # Set libgmock properties
 set_target_properties(libgmock PROPERTIES
-        "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
+        "IMPORTED_LOCATION" "${binary_dir}/lib/libgmock.a"
         "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libgramtools/include/gtest)
@@ -42,6 +42,7 @@ add_executable(test_main
 
 target_link_libraries(test_main
         gramtools
+        libgtest
         libgmock
         -lpthread
         -lm)

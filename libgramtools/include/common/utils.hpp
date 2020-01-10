@@ -30,6 +30,7 @@ namespace gram {
     using Marker = uint32_t ; /**< An integer >=5 describing a site or allele marker in the prg. */
     using marker_vec = std::vector<Marker>;
     using AlleleId = uint32_t; /**< An integer describing which allele is referred to within a given variant site. */
+    using AlleleIds = std::vector<AlleleId>;
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/
 
     using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */

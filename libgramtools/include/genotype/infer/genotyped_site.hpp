@@ -1,19 +1,14 @@
 #include "common/utils.hpp"
 #include "types.hpp"
 
+namespace gram::genotype::infer{
 class AbstractGenotypedSite{
-protected:
-    virtual ~AbstractGenotypedSite();
-    virtual allele_vector getGenotypedAlleles();
     allele_vector alleles;
-    std::vector<AlleleId> genotype;
+    AlleleIds genotype;
 
 public:
-    std::vector<AlleleId> const& get_genotype() const{
-        return genotype;
-    }
-    allele_vector const& get_alleles() const{
-        return alleles;
-    }
+    virtual ~AbstractGenotypedSite() {};
+    virtual AlleleIds const get_genotype() const = 0;
+    virtual allele_vector const get_alleles() const = 0;
 };
 }
