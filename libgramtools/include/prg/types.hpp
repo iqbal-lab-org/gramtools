@@ -1,6 +1,7 @@
 #ifndef PRG_TYPES_HPP
 #define PRG_TYPES_HPP
 
+#include "common/utils.hpp"
 #include <boost/shared_ptr.hpp>
 
 //Forward-declaration for making coverage_Graph available

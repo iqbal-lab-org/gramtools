@@ -48,6 +48,13 @@ namespace gram {
      */
     bool is_allele_marker(Marker const& variant_marker);
 
+    void ensure_is_site_marker(Marker const& site_ID);
+
+    /**
+     * Conversion of a site ID to a 0-based index, suitable for site array access.
+     * In other words maps 5 to 0, 7 to 1, etc.
+     */
+     std::size_t siteID_to_index(Marker const& site_ID);
 
     /******************************************
      * Characters to integers and vice-versa **

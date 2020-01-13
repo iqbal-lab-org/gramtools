@@ -67,6 +67,7 @@ public:
      * Getters
      */
     int get_pos() const { return pos; }
+    std::string get_sequence() const { return sequence; }
     int const get_sequence_size() const { return sequence.size(); }
     int const get_coverage_space() const { return coverage.size() ;}
     BaseCoverage const get_coverage() const { return coverage; }

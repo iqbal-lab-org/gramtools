@@ -23,7 +23,7 @@ std::string gram::full_path(const std::string &gram_dirpath,
  * Data typedefs **
  ******************/
 bool gram::is_site_marker(Marker const& variant_marker){
-    if (!(variant_marker > 4)) throw std::invalid_argument("The given marker is not a variant marker");
+    if (!(variant_marker > 4)) throw std::invalid_argument("The given marker is not a variant marker (>4)");
     return variant_marker % 2 == 1;
 }
 
@@ -31,6 +31,14 @@ bool gram::is_allele_marker(Marker const& variant_marker){
     return !is_site_marker(variant_marker);
 }
 
+void gram::ensure_is_site_marker(Marker const& site_ID){
+    if (!is_site_marker(site_ID)) throw std::invalid_argument("The given marker is not a site ID");
+}
+
+std::size_t gram::siteID_to_index(Marker const& site_ID){
+    ensure_is_site_marker(site_ID);
+    return (site_ID - 5) / 2;
+};
 
 /******************************************
  * Characters to integers and vice-versa **
