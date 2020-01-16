@@ -6,7 +6,7 @@
 
 using namespace gram;
 
-void run_quasimap(const Parameters &parameters) {
+ReadStats run_quasimap(const Parameters &parameters) {
     std::cout << "Executing quasimap command" << std::endl;
     auto timer = TimerReport();
 
@@ -37,10 +37,11 @@ void run_quasimap(const Parameters &parameters) {
     std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count << std::endl;
     std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count << std::endl;
     timer.stop();
-
     timer.report();
+
+    return readstats;
 }
 
 void commands::genotype::run(const Parameters &parameters){
-    run_quasimap(parameters);
+    auto readstats = std::move(run_quasimap(parameters));
 }

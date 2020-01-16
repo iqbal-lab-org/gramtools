@@ -59,24 +59,23 @@ void gram::ReadStats::compute_base_error_rate(const std::string &reads_fpath){
 };
 
 void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
-    std::vector<uint64_t> coverages;
     uint64_t this_site_cov;
     double total_coverage = 0;
     int64_t num_sites_noCov = 0;
-    int64_t num_sites_total = 0;
+    int64_t num_sites_total{coverage.grouped_allele_counts.size()};
+    std::vector<uint64_t> coverages(num_sites_total);
 
     double mean_coverage, variance_coverage;
 
+    int64_t site_index{0};
     for (const auto& site : coverage.grouped_allele_counts){ //`site` is an unordered_map associating alleleIDs with coverage.
-
-        num_sites_total++;
         this_site_cov = 0;
 
         for (const auto& entry : site){
             this_site_cov += entry.second;
         }
 
-        coverages.push_back(this_site_cov);
+        coverages.at(site_index++) = this_site_cov;
         total_coverage += this_site_cov;
         if (this_site_cov == 0) num_sites_noCov++;
     }

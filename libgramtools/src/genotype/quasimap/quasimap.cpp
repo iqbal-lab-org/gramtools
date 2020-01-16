@@ -34,7 +34,7 @@ QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
                          prg_info);
     }
     
-    //Compute read mapping statistics (used in `infer` command)
+    //Compute read mapping statistics (used in `infer` command). Can only be done after mapping!
     readstats.compute_coverage_depth(coverage);
 
     // Extract non-nested per base coverage
