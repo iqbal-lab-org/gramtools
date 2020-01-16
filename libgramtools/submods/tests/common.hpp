@@ -13,7 +13,7 @@ using covG_ptrPair = std::pair<covG_ptr, covG_ptr>;
  *
  * Useful for testing per base coverage recordings.
  */
-gram::AlleleCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions);
+gram::SitePbCoverage collect_coverage(coverage_Graph const& cov_graph, prg_positions positions);
 
 /**
  * Given a map of all bubbles and a `siteID` of interest, returns the pair of `covG_ptr` corresponding

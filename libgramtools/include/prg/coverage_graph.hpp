@@ -42,7 +42,7 @@ public:
     coverage_Node(std::string const seq, int const pos, int const site_ID = 0, int const allele_ID = 0) :
             sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false) {
         // No need to allocate coverage if outside a variant site, as only variant site coverage is used for genotyping
-        if (is_in_bubble()) this->coverage = BaseCoverage(seq.size(), 0);
+        if (is_in_bubble()) this->coverage = PerBaseCoverage(seq.size(), 0);
     }
 
     bool is_boundary() { return is_site_boundary; }
@@ -70,8 +70,8 @@ public:
     std::string get_sequence() const { return sequence; }
     int const get_sequence_size() const { return sequence.size(); }
     int const get_coverage_space() const { return coverage.size() ;}
-    BaseCoverage const get_coverage() const { return coverage; }
-    BaseCoverage& get_ref_to_coverage() { return coverage; }
+    PerBaseCoverage const get_coverage() const { return coverage; }
+    PerBaseCoverage& get_ref_to_coverage() { return coverage; }
     Marker get_site_ID() const { return site_ID ; }
     Marker get_allele_ID() const { return allele_ID ; }
     std::vector<covG_ptr> const& get_edges() const{return next;}
@@ -82,7 +82,7 @@ public:
      */
     void set_pos(int pos) { this->pos = pos; }
     void mark_as_boundary() { is_site_boundary = true; }
-    void set_coverage(BaseCoverage const& new_cov){
+    void set_coverage(PerBaseCoverage const& new_cov){
         assert(new_cov.size() == coverage.size() && new_cov.size() == sequence.size());
         coverage = new_cov;
     }
@@ -103,7 +103,7 @@ private:
     Marker site_ID;
     Marker allele_ID;
     seqPos pos;
-    BaseCoverage coverage;
+    PerBaseCoverage coverage;
     bool is_site_boundary;
     std::vector<covG_ptr> next;
 

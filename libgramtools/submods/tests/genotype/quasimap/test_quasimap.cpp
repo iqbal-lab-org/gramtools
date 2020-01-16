@@ -325,8 +325,8 @@ TEST(Coverage, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
 
     auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
     SitesAlleleBaseCoverage pbCovExpected{
-            AlleleCoverage{
-                    BaseCoverage{1, 1, 1, 1, 1, 0, 0, 0}, BaseCoverage{0}
+            SitePbCoverage{
+                    PerBaseCoverage{1, 1, 1, 1, 1, 0, 0, 0}, PerBaseCoverage{0}
             }
     };
     EXPECT_EQ(pbCovResult, pbCovExpected);
@@ -351,8 +351,8 @@ TEST(Coverage, ReadEndWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
     auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
     SitesAlleleBaseCoverage pbCovExpected{
-       AlleleCoverage{
-           BaseCoverage{1, 1, 0}, BaseCoverage{1, 1, 0}
+            SitePbCoverage{
+               PerBaseCoverage{1, 1, 0}, PerBaseCoverage{1, 1, 0}
        }
     };
     EXPECT_EQ(pbCovResult, pbCovExpected);
@@ -397,9 +397,9 @@ TEST(Coverage, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
 
     auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
     SitesAlleleBaseCoverage pbCovExpected{
-            AlleleCoverage{
-                    BaseCoverage{1, 1, 1, 1, 1, 0, 0, 0}, BaseCoverage{0},
-                    BaseCoverage{0, 0, 1, 1, 1, 1, 1}
+            SitePbCoverage{
+                    PerBaseCoverage{1, 1, 1, 1, 1, 0, 0, 0}, PerBaseCoverage{0},
+                    PerBaseCoverage{0, 0, 1, 1, 1, 1, 1}
             }
     };
     EXPECT_EQ(pbCovResult, pbCovExpected);
@@ -430,11 +430,11 @@ TEST(Coverage, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 
     auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
     SitesAlleleBaseCoverage pbCovExpected{
-            AlleleCoverage{
-                    BaseCoverage{0}, BaseCoverage{0}, BaseCoverage{2},
+            SitePbCoverage{
+                    PerBaseCoverage{0}, PerBaseCoverage{0}, PerBaseCoverage{2},
             },
-            AlleleCoverage{
-                    BaseCoverage{2}, BaseCoverage{0}
+            SitePbCoverage{
+                    PerBaseCoverage{2}, PerBaseCoverage{0}
             }
     };
     EXPECT_EQ(pbCovResult, pbCovExpected);
@@ -465,11 +465,11 @@ TEST(Coverage, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 
     auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
     SitesAlleleBaseCoverage pbCovExpected{
-            AlleleCoverage{
-                    BaseCoverage{1}, BaseCoverage{1}, BaseCoverage{1},
+            SitePbCoverage{
+                    PerBaseCoverage{1}, PerBaseCoverage{1}, PerBaseCoverage{1},
             },
-            AlleleCoverage{
-                    BaseCoverage{3}, BaseCoverage{0}
+            SitePbCoverage{
+                    PerBaseCoverage{3}, PerBaseCoverage{0}
             }
     };
     EXPECT_EQ(pbCovResult, pbCovExpected);
@@ -608,8 +608,8 @@ TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectCoverage) {
 
     auto const& pbCovResult = coverage::generate::allele_base_non_nested(setup.prg_info);
     SitesAlleleBaseCoverage pbCovExpected{
-            AlleleCoverage{
-                    BaseCoverage{0}, BaseCoverage{0}, BaseCoverage{1}
+            SitePbCoverage{
+                    PerBaseCoverage{0}, PerBaseCoverage{0}, PerBaseCoverage{1}
             }
     };
     EXPECT_EQ(pbCovResult, pbCovExpected);
@@ -874,10 +874,10 @@ TEST_F(Coverage_Nested_DoubleNesting, ReadEndsInsideNestedSite_CorrectCoverage){
     EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
 
     auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
-    AlleleCoverage expectedPbCov{
-      BaseCoverage{}, BaseCoverage{1}, BaseCoverage{1, 1, 1},
-      BaseCoverage{0}, BaseCoverage{0}, BaseCoverage{0},
-      BaseCoverage{}
+    SitePbCoverage expectedPbCov{
+            PerBaseCoverage{}, PerBaseCoverage{1}, PerBaseCoverage{1, 1, 1},
+            PerBaseCoverage{0}, PerBaseCoverage{0}, PerBaseCoverage{0},
+            PerBaseCoverage{}
     };
     EXPECT_EQ(PbCov, expectedPbCov);
 }
@@ -896,10 +896,10 @@ TEST_F(Coverage_Nested_DoubleNesting, ReadMultiMaps_CorrectCoverage){
     EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
 
     auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
-    AlleleCoverage expectedPbCov{
-            BaseCoverage{}, BaseCoverage{0}, BaseCoverage{0, 0, 1},
-            BaseCoverage{1}, BaseCoverage{0}, BaseCoverage{0},
-            BaseCoverage{}
+    SitePbCoverage expectedPbCov{
+            PerBaseCoverage{}, PerBaseCoverage{0}, PerBaseCoverage{0, 0, 1},
+            PerBaseCoverage{1}, PerBaseCoverage{0}, PerBaseCoverage{0},
+            PerBaseCoverage{}
     };
     EXPECT_EQ(PbCov, expectedPbCov);
 }
@@ -938,12 +938,12 @@ TEST_F(Coverage_Nested_SingleNestingPlusSNP, FullyCrossingRead_CorrectCoverage){
     EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
 
     auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
-    AlleleCoverage expectedPbCov{
-            BaseCoverage{},
-            BaseCoverage{1}, BaseCoverage{1, 1}, BaseCoverage{0}, BaseCoverage{1},
-            BaseCoverage{0}, BaseCoverage{0, 0}, BaseCoverage{0},
-            BaseCoverage{},
-            BaseCoverage{1}, BaseCoverage{0}
+    SitePbCoverage expectedPbCov{
+            PerBaseCoverage{},
+            PerBaseCoverage{1}, PerBaseCoverage{1, 1}, PerBaseCoverage{0}, PerBaseCoverage{1},
+            PerBaseCoverage{0}, PerBaseCoverage{0, 0}, PerBaseCoverage{0},
+            PerBaseCoverage{},
+            PerBaseCoverage{1}, PerBaseCoverage{0}
     };
     EXPECT_EQ(PbCov, expectedPbCov);
 }
@@ -966,12 +966,12 @@ TEST_F(Coverage_Nested_SingleNestingPlusSNP, VeryMultiMappingRead_CorrectCoverag
     EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
 
     auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
-    AlleleCoverage expectedPbCov{
-            BaseCoverage{},
-            BaseCoverage{1}, BaseCoverage{1, 1}, BaseCoverage{1}, BaseCoverage{1},
-            BaseCoverage{0}, BaseCoverage{0, 0}, BaseCoverage{0},
-            BaseCoverage{},
-            BaseCoverage{0}, BaseCoverage{0}
+    SitePbCoverage expectedPbCov{
+            PerBaseCoverage{},
+            PerBaseCoverage{1}, PerBaseCoverage{1, 1}, PerBaseCoverage{1}, PerBaseCoverage{1},
+            PerBaseCoverage{0}, PerBaseCoverage{0, 0}, PerBaseCoverage{0},
+            PerBaseCoverage{},
+            PerBaseCoverage{0}, PerBaseCoverage{0}
     };
     EXPECT_EQ(PbCov, expectedPbCov);
 }
@@ -990,12 +990,12 @@ TEST_F(Coverage_Nested_SingleNestingPlusSNP, MapThroughDirectDeletion_CorrectCov
     EXPECT_EQ(GpAlCounts, expectedGpAlCounts);
 
     auto PbCov = collect_coverage(setup.prg_info.coverage_graph, positions);
-    AlleleCoverage expectedPbCov{
-            BaseCoverage{},
-            BaseCoverage{0}, BaseCoverage{0, 0}, BaseCoverage{0}, BaseCoverage{0},
-            BaseCoverage{1}, BaseCoverage{0, 0}, BaseCoverage{1},
-            BaseCoverage{},
-            BaseCoverage{0}, BaseCoverage{1}
+    SitePbCoverage expectedPbCov{
+            PerBaseCoverage{},
+            PerBaseCoverage{0}, PerBaseCoverage{0, 0}, PerBaseCoverage{0}, PerBaseCoverage{0},
+            PerBaseCoverage{1}, PerBaseCoverage{0, 0}, PerBaseCoverage{1},
+            PerBaseCoverage{},
+            PerBaseCoverage{0}, PerBaseCoverage{1}
     };
     EXPECT_EQ(PbCov, expectedPbCov);
 }

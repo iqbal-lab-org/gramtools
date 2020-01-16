@@ -36,7 +36,9 @@ namespace gram {
     using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */
 
     // coverage-related
-    using BaseCoverage = std::vector<uint16_t>; /**< Number of reads mapped to each base of an allele */
+    using CovCount = uint16_t;
+    using PerBaseCoverage = std::vector<CovCount>; /**< Number of reads mapped to each base of an allele */
+    using PerAlleleCoverage = std::vector<CovCount>; /**< Number of reads mapped to each of several alleles */
 
     /**
      * Unified definition of a site marker

@@ -3,12 +3,12 @@
  * and call coverage recording functions on selection.
  * Also has functions to set up the coverage recording structures other than coverage_Graph
  */
-#include "genotype/quasimap/search/types.hpp"
-#include "genotype/quasimap/coverage/types.hpp"
-
 
 #ifndef GRAMTOOLS_COVERAGE_COMMON_HPP
 #define GRAMTOOLS_COVERAGE_COMMON_HPP
+
+#include "genotype/quasimap/search/types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 
 namespace gram {
 

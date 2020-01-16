@@ -22,12 +22,12 @@ SitesAlleleBaseCoverage gram::coverage::generate::allele_base_non_nested(const P
     for (auto const& bubble_entry : prg_info.coverage_graph.bubble_map){
         site_ID = bubble_entry.first->get_site_ID();
         auto site_ID_corresp_index = (site_ID - min_boundary_marker) / 2;
-        AlleleCoverage& referent = allele_base_coverage.at(site_ID_corresp_index);
+        SitePbCoverage& referent = allele_base_coverage.at(site_ID_corresp_index);
 
         for (auto const& allele_node : bubble_entry.first->get_edges()){
             assert(allele_node->is_in_bubble());
             // Add as many 0's in the allele as there are bases in the node
-           referent.emplace_back(BaseCoverage(allele_node->get_coverage()));
+           referent.emplace_back(PerBaseCoverage(allele_node->get_coverage()));
         }
     }
     return allele_base_coverage;
@@ -41,7 +41,7 @@ void coverage::record::allele_base(PRG_Info const &prg_info, const SearchStates 
 /**
  * String serialise the base coverages for one allele.
  */
-std::string dump_allele(const BaseCoverage &allele) {
+std::string dump_allele(const PerBaseCoverage &allele) {
     std::stringstream stream;
     stream << "[";
     auto i = 0;
@@ -58,7 +58,7 @@ std::string dump_allele(const BaseCoverage &allele) {
  * String serialise the alleles of a site.
  * @see dump_allele()
  */
-std::string dump_site(const AlleleCoverage &site) {
+std::string dump_site(const SitePbCoverage &site) {
     std::stringstream stream;
     auto i = 0;
     for (const auto &allele: site) {
@@ -215,7 +215,7 @@ void PbCovRecorder::write_coverage_from_dummy_nodes(){
    for (auto const& element : cov_mapping){ // Go through each dummy node
        cov_node = element.first;
        to_increment = element.second.get_coordinates();
-       BaseCoverage& cur_coverage = cov_node->get_ref_to_coverage(); // Modifiable in place
+       PerBaseCoverage& cur_coverage = cov_node->get_ref_to_coverage(); // Modifiable in place
        for (auto i = to_increment.first; i <= to_increment.second; i++) {
            if (cur_coverage[i] == UINT16_MAX) continue;
 #pragma omp atomic

@@ -15,13 +15,13 @@ using namespace gram::coverage::per_base;
 
 TEST(AlleleBaseCoverageDump, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {
     SitesAlleleBaseCoverage allele_base_coverage = {
-            AlleleCoverage{
-                    BaseCoverage{1, 12},
-                    BaseCoverage{0, 3, 0},
+            SitePbCoverage{
+                    PerBaseCoverage{1, 12},
+                    PerBaseCoverage{0, 3, 0},
             },
-            AlleleCoverage{
-                    BaseCoverage{0},
-                    BaseCoverage{0, 19, 0},
+            SitePbCoverage{
+                    PerBaseCoverage{0},
+                    PerBaseCoverage{0, 19, 0},
             },
     };
     auto result = dump_allele_base_coverage(allele_base_coverage);
@@ -32,9 +32,9 @@ TEST(AlleleBaseCoverageDump, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {
 
 TEST(AlleleBaseCoverageDump, GivenSingleSiteAlleleBaseCoverage_CorrectJsonDump) {
     SitesAlleleBaseCoverage allele_base_coverage = {
-            AlleleCoverage{
-                    BaseCoverage{1, 12},
-                    BaseCoverage{0, 3, 0},
+            SitePbCoverage{
+                    PerBaseCoverage{1, 12},
+                    PerBaseCoverage{0, 3, 0},
             }
     };
     auto result = dump_allele_base_coverage(allele_base_coverage);
@@ -64,9 +64,9 @@ TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphOneSite_CorrectStructure
     auto prg_info = generate_prg_info(prg_raw);
 
     SitesAlleleBaseCoverage expected{
-        AlleleCoverage{
-                BaseCoverage{0, 0}, BaseCoverage{0, 0},
-                BaseCoverage{0, 0, 0}, BaseCoverage{0}
+            SitePbCoverage{
+                PerBaseCoverage{0, 0}, PerBaseCoverage{0, 0},
+                PerBaseCoverage{0, 0, 0}, PerBaseCoverage{0}
         }
     };
     auto actual = coverage::generate::allele_base_non_nested(prg_info);
@@ -78,12 +78,12 @@ TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphTwoSites_CorrectStructur
     auto prg_info = generate_prg_info(prg_raw);
 
     SitesAlleleBaseCoverage expected{
-            AlleleCoverage{
-                    BaseCoverage{0}, BaseCoverage{0},
-                    BaseCoverage{0, 0}
+            SitePbCoverage{
+                    PerBaseCoverage{0}, PerBaseCoverage{0},
+                    PerBaseCoverage{0, 0}
             },
-            AlleleCoverage{
-                BaseCoverage{0, 0, 0, 0}, BaseCoverage{0}
+            SitePbCoverage{
+                    PerBaseCoverage{0, 0, 0, 0}, PerBaseCoverage{0}
             }
     };
     auto actual = coverage::generate::allele_base_non_nested(prg_info);
@@ -365,12 +365,12 @@ TEST_F(PbCovRecorder_TwoSitesNoNesting, ReadCoversTwoSites_CorrectCoverageNodes)
     PbCovRecorder{prg_info, SearchStates{read_1}, read1_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-            BaseCoverage{},
-            BaseCoverage{0}, BaseCoverage{1}, BaseCoverage{0},
-            BaseCoverage{},
-            BaseCoverage{0}, BaseCoverage{1, 0},
-            BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{},
+            PerBaseCoverage{0}, PerBaseCoverage{1}, PerBaseCoverage{0},
+            PerBaseCoverage{},
+            PerBaseCoverage{0}, PerBaseCoverage{1, 0},
+            PerBaseCoverage{}
     };
 
 EXPECT_EQ(expected_coverage, actual_coverage);
@@ -383,12 +383,12 @@ TEST_F(PbCovRecorder_TwoSitesNoNesting, ReadCoversTwoSites2_CorrectCoverageNodes
 PbCovRecorder{prg_info, SearchStates{read_2}, read2_size};
 auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-AlleleCoverage expected_coverage{
-        BaseCoverage{},
-        BaseCoverage{0}, BaseCoverage{0}, BaseCoverage{1},
-        BaseCoverage{},
-        BaseCoverage{0}, BaseCoverage{1, 1},
-        BaseCoverage{}
+SitePbCoverage expected_coverage{
+        PerBaseCoverage{},
+        PerBaseCoverage{0}, PerBaseCoverage{0}, PerBaseCoverage{1},
+        PerBaseCoverage{},
+        PerBaseCoverage{0}, PerBaseCoverage{1, 1},
+        PerBaseCoverage{}
 };
 
 EXPECT_EQ(expected_coverage, actual_coverage);
@@ -452,10 +452,10 @@ TEST_F(PbCovRecorder_WithRepeatsNoNesting, RepeatedMultiMappedRead_CoverageOnlyA
     PbCovRecorder{prg_info, read_1, read1_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-            BaseCoverage{},
-            BaseCoverage{1, 1, 1, 1}, BaseCoverage{0, 0},
-            BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{},
+            PerBaseCoverage{1, 1, 1, 1}, PerBaseCoverage{0, 0},
+            PerBaseCoverage{}
     };
 
     EXPECT_EQ(expected_coverage, actual_coverage);
@@ -467,10 +467,10 @@ TEST_F(PbCovRecorder_WithRepeatsNoNesting, MapAReadMultipleSeparateTimes_Coverag
     for (i = 0; i <= 2; i++) PbCovRecorder{prg_info, SearchStates{read_2}, read2_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-            BaseCoverage{},
-            BaseCoverage{0, 0, 0, 0}, BaseCoverage{i, i},
-            BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{},
+            PerBaseCoverage{0, 0, 0, 0}, PerBaseCoverage{i, i},
+            PerBaseCoverage{}
     };
 
     EXPECT_EQ(expected_coverage, actual_coverage);
@@ -572,10 +572,10 @@ TEST_F(PbCovRecorder_nestedDeletion, simpleRead1Mapped_correctRecordedPbCoverage
     PbCovRecorder recorder(prg_info, mapping, read_size);
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-            BaseCoverage{}, BaseCoverage{0, 1},
-            BaseCoverage{1, 1, 1}, BaseCoverage{0, 0, 0, 0},
-            BaseCoverage{0}, BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{}, PerBaseCoverage{0, 1},
+            PerBaseCoverage{1, 1, 1}, PerBaseCoverage{0, 0, 0, 0},
+            PerBaseCoverage{0}, PerBaseCoverage{}
     };
     EXPECT_EQ(expected_coverage, actual_coverage);
 }
@@ -605,10 +605,10 @@ TEST_F(PbCovRecorder_nestedDeletion, simpleRead2Mapped_correctRecordedPbCoverage
     PbCovRecorder recorder(prg_info, mapping, read_size);
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-            BaseCoverage{}, BaseCoverage{0, 0},
-            BaseCoverage{0, 0, 0}, BaseCoverage{0, 0, 0, 0},
-            BaseCoverage{1}, BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{}, PerBaseCoverage{0, 0},
+            PerBaseCoverage{0, 0, 0}, PerBaseCoverage{0, 0, 0, 0},
+            PerBaseCoverage{1}, PerBaseCoverage{}
     };
     EXPECT_EQ(expected_coverage, actual_coverage);
 }
@@ -619,10 +619,10 @@ TEST_F(PbCovRecorder_nestedDeletion, multiMappedReadDistinctSearchStates_correct
     PbCovRecorder{prg_info, multi_mapped_reads_1, read_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-        BaseCoverage{}, BaseCoverage{1, 1},
-        BaseCoverage{1, 1, 1}, BaseCoverage{1, 0, 0, 0},
-        BaseCoverage{0}, BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{}, PerBaseCoverage{1, 1},
+            PerBaseCoverage{1, 1, 1}, PerBaseCoverage{1, 0, 0, 0},
+            PerBaseCoverage{0}, PerBaseCoverage{}
     };
 
     EXPECT_EQ(expected_coverage, actual_coverage);
@@ -635,10 +635,10 @@ TEST_F(PbCovRecorder_nestedDeletion, multiMappedReadSingleSearchState_correctRec
     PbCovRecorder{prg_info, multi_mapped_reads_2, read_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
-    AlleleCoverage expected_coverage{
-            BaseCoverage{}, BaseCoverage{0, 0},
-            BaseCoverage{0, 0, 1}, BaseCoverage{0, 0, 0, 1},
-            BaseCoverage{0}, BaseCoverage{}
+    SitePbCoverage expected_coverage{
+            PerBaseCoverage{}, PerBaseCoverage{0, 0},
+            PerBaseCoverage{0, 0, 1}, PerBaseCoverage{0, 0, 0, 1},
+            PerBaseCoverage{0}, PerBaseCoverage{}
     };
 
     EXPECT_EQ(expected_coverage, actual_coverage);

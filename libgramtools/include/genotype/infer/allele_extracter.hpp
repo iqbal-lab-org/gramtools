@@ -3,41 +3,10 @@
 
 #include "common/utils.hpp"
 #include "types.hpp"
-#include "prg/coverage_graph.hpp"
 
 using namespace gram;
 
 namespace gram::genotype::infer {
-
-    struct Allele {
-        std::string sequence;
-        BaseCoverage pbCov;
-        AlleleId haplogroup; /**< Which ID in its site this allele is associated with */
-
-        /**
-         * Allele combination overload
-         * The left-hand side (= this object) argument's haplogroup is used, regardless of `other`'s haplogroup.
-         */
-        Allele operator+(Allele const &other) const {
-            BaseCoverage new_pbCov;
-            new_pbCov.reserve(pbCov.size() + other.pbCov.size());
-            new_pbCov.insert(new_pbCov.end(), pbCov.begin(), pbCov.end());
-            new_pbCov.insert(new_pbCov.end(), other.pbCov.begin(), other.pbCov.end());
-            return Allele{
-                    sequence + other.sequence,
-                    new_pbCov,
-                    haplogroup
-            };
-        }
-
-        bool operator==(Allele const& other) const{
-            return sequence == other.sequence &&
-            pbCov == other.pbCov &&
-            haplogroup == other.haplogroup;
-        }
-    };
-
-
 /**
  * Class in charge of producing the set of `Allele`s that get genotyped.
  * The procedure scans through each haplogroup of a site, pasting sequence & coverage
