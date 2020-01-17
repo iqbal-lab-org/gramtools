@@ -62,7 +62,7 @@ void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
     uint64_t this_site_cov;
     double total_coverage = 0;
     int64_t num_sites_noCov = 0;
-    int64_t num_sites_total{coverage.grouped_allele_counts.size()};
+    std::size_t num_sites_total{coverage.grouped_allele_counts.size()};
     std::vector<uint64_t> coverages(num_sites_total);
 
     double mean_coverage, variance_coverage;

@@ -46,7 +46,7 @@ namespace gram {
         double mean_depth;
         double variance_depth;
         int64_t num_sites_noCov;
-        int64_t num_sites_total;
+        std::size_t num_sites_total;
     };
 
 }
