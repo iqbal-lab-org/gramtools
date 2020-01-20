@@ -13,7 +13,7 @@
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
 
-class Genotyper{
+class LevelGenotyper{
    coverage_Graph const* cov_graph;
    SitesGroupedAlleleCounts const* gped_covs;
    likelihood_related_stats* l_stats;
@@ -22,9 +22,9 @@ class Genotyper{
    gt_sites genotyped_records;
 
 public:
-    Genotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
-    Genotyper(coverage_Graph const& cov_graph, SitesGroupedAlleleCounts const& gped_covs,
-            ReadStats const& read_stats);
+    LevelGenotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
+    LevelGenotyper(coverage_Graph const& cov_graph, SitesGroupedAlleleCounts const& gped_covs,
+                   ReadStats const& read_stats);
     CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
 };
 

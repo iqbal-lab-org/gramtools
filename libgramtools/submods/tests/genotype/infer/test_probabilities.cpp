@@ -42,7 +42,7 @@ TEST(PoissonLogPmf, GivenKnownProbability_LogPoissonValueIsCorrect){
 }
 
 TEST(MinCovMoreLikelyThanError, GivenMeanDepthAndErrorRate_CorrectMinCovThreshold){
-    Genotyper g;
+    LevelGenotyper g;
     std::vector<double> mean_depths{10, 10, 100};
     std::vector<double> pb_error_rates{0.0001, 0.001, 0.001};
     std::vector<CovCount> expected_min_cov_thresholds{1, 2, 10};

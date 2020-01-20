@@ -10,7 +10,7 @@ TEST(HaploidCoverages, GivenSingletonCountsOnly_CorrectHaploidAndSingletonCovs){
                    {{3}, 1}
    };
 
-   LevelGenotyper gtyper;
+   LevelGenotyperModel gtyper;
    gtyper.set_haploid_coverages(gp_covs, 4);
    PerAlleleCoverage expected_haploid_cov{5, 10, 0, 1};
    EXPECT_EQ(gtyper.get_haploid_covs(), expected_haploid_cov);
@@ -26,7 +26,7 @@ TEST(HaploidCoverages, GivenMultiAllelicClasses_CorrectHaploidAndSingletonCovs){
             {{2, 3}, 1}
     };
 
-    LevelGenotyper gtyper;
+    LevelGenotyperModel gtyper;
     gtyper.set_haploid_coverages(gp_covs, 4);
 
     PerAlleleCoverage expected_haploid_cov{9, 14, 1, 1};
@@ -50,7 +50,7 @@ TEST(DiploidCoverages, GivenMultiAllelicClasses_CorrectDiploidCovs){
     // We have 10 units uniquely on 0, 20 uniquely on 1, and 4 shared between them.
     // These 4 should get dispatched in ratio 1:2 to alleles 0:1 (cf iqbal-lab-org/minos)
 
-    LevelGenotyper gtyper;
+    LevelGenotyperModel gtyper;
     gtyper.set_haploid_coverages(gp_covs, 4);
     auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids);
     EXPECT_FLOAT_EQ(diploid_covs.first, 10 + 4/3.);
@@ -68,7 +68,7 @@ TEST(DiploidCoverages, GivenOnlyMultiAllelicClasses_CorrectDiploidCovs){
     // Edge case where singleton allele coverages are all 0
     // Then shared coverage should get dispatched equally (1:1 ratio)
 
-    LevelGenotyper gtyper;
+    LevelGenotyperModel gtyper;
     gtyper.set_haploid_coverages(gp_covs, 4);
     auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids);
     EXPECT_FLOAT_EQ(diploid_covs.first, 1.5);
@@ -82,7 +82,7 @@ TEST(CountCrediblePositions, GivenAlleleWithCredibleAndNonCrediblePositions_Retu
       0
    };
 
-   LevelGenotyper gtyper;
+   LevelGenotyperModel gtyper;
    auto num_credible = gtyper.count_credible_positions(3, test_allele);
    EXPECT_EQ(num_credible, 4);
 }

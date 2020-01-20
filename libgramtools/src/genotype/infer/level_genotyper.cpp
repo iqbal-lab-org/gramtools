@@ -3,7 +3,7 @@
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
 
-void LevelGenotyper::set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups){
+void LevelGenotyperModel::set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups){
     haploid_allele_coverages = singleton_allele_coverages = PerAlleleCoverage(num_haplogroups, 0);
 
     for (auto const& entry : gp_counts){
@@ -17,7 +17,7 @@ void LevelGenotyper::set_haploid_coverages(GroupedAlleleCounts const& gp_counts,
     }
 }
 
-std::pair<float, float> LevelGenotyper::compute_diploid_coverage(GroupedAlleleCounts const& gp_counts, AlleleIds ids){
+std::pair<float, float> LevelGenotyperModel::compute_diploid_coverage(GroupedAlleleCounts const& gp_counts, AlleleIds ids){
     assert(ids.size() == 2);
     AlleleId first_allele_id = ids.at(0), second_allele_id = ids.at(1);
     float first_allele_coverage = (float)(haploid_allele_coverages.at(first_allele_id));
@@ -50,7 +50,7 @@ std::pair<float, float> LevelGenotyper::compute_diploid_coverage(GroupedAlleleCo
 }
 
 
-numCredibleCounts LevelGenotyper::count_credible_positions(CovCount const& credible_cov_t, Allele const& allele){
+numCredibleCounts LevelGenotyperModel::count_credible_positions(CovCount const& credible_cov_t, Allele const& allele){
     numCredibleCounts c{0};
     for (auto const& pb_cov : allele.pbCov){
         if (pb_cov >= credible_cov_t) ++c;
@@ -58,8 +58,8 @@ numCredibleCounts LevelGenotyper::count_credible_positions(CovCount const& credi
     return c;
 }
 
-LevelGenotyper::LevelGenotyper(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
-poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats) :
+LevelGenotyperModel::LevelGenotyperModel(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
+                                         poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats) :
 alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), poisson_prob(poisson_prob), l_stats(l_stats){
-    ;
+    genotyped_site = std::make_shared<LevelGenotypedSite>();
 }

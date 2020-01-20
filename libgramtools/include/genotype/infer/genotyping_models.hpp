@@ -31,7 +31,7 @@ namespace gram::genotype::infer {
       * alternative alleles all at same nesting level
       * genotype confidence using likelihood ratios
     */
-    class LevelGenotyper : AbstractGenotypingModel {
+    class LevelGenotyperModel : AbstractGenotypingModel {
         allele_vector const* alleles;
         GroupedAlleleCounts const *gp_counts;
         Ploidy ploidy;
@@ -42,12 +42,14 @@ namespace gram::genotype::infer {
         PerAlleleCoverage haploid_allele_coverages; /**< Coverage counts compatible with single alleles */
         PerAlleleCoverage singleton_allele_coverages; /**< Coverage counts unique to single alleles */
 
+        // Computed at run time
+        std::multimap<double, AlleleIds> likelihoods;
         std::shared_ptr<LevelGenotypedSite> genotyped_site; // What the class will build
 
     public:
-        LevelGenotyper() : alleles(nullptr), gp_counts(nullptr) {}
-        LevelGenotyper(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
-                poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats);
+        LevelGenotyperModel() : alleles(nullptr), gp_counts(nullptr) {}
+        LevelGenotyperModel(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
+                            poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats);
 
         gt_site_ptr get_site() override { return std::static_pointer_cast<gt_site>(genotyped_site); }
 

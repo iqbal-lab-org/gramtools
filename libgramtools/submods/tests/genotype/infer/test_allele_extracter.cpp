@@ -58,7 +58,34 @@ TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
     EXPECT_EQ(result, expected);
 };
 
-TEST_F(AlleleCombineTest, TwoAllelesDiploidGenotype_FourCorrectCombinationAlleles){
+
+TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele){
+
+    EXPECT_CALL(site, get_genotype())
+            .WillOnce(Return(false)); // Null genotype: should take the first allele in the vector
+
+    EXPECT_CALL(site, get_alleles())
+            .WillOnce(Return(
+                    allele_vector{
+                        Allele{ "TTT", {1, 1, 1} },
+                        Allele{ "CCC", {0, 1, 1} }
+                    }));
+
+    allele_vector one_allele(existing_alleles.begin(), existing_alleles.begin() + 1);
+    auto result = test_extracter.allele_combine(one_allele, 0);
+    allele_vector expected {
+            {
+                    "ATTGTTT",
+                    {0, 1, 2, 3, 1, 1, 1},
+                    0
+            }
+    };
+
+    EXPECT_EQ(result, expected);
+};
+
+
+TEST_F(AlleleCombineTest, TwoAllelesHeterozygousGenotype_FourCorrectCombinationAlleles){
 
     EXPECT_CALL(site, get_genotype())
             .WillRepeatedly(Return(AlleleIds{0, 1}));

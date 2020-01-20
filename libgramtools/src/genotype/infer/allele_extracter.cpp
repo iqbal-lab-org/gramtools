@@ -22,7 +22,12 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing, std
     auto referent_genotype = referent_site->get_genotype();
     auto referent_alleles = referent_site->get_alleles();
 
-    std::set<AlleleId> distinct_genotypes(referent_genotype.begin(), referent_genotype.end());
+    std::set<AlleleId> distinct_genotypes;
+    if ( auto valid_gtype = std::get_if<AlleleIds>(&referent_genotype) ){
+        distinct_genotypes = std::set<AlleleId>(valid_gtype->begin(), valid_gtype->end());
+    }
+    else distinct_genotypes = std::set<AlleleId>{0}; // If null genotype, take the reference only
+
     allele_vector combinations(existing.size() * distinct_genotypes.size());
 
     std::size_t insertion_index{0};
