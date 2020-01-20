@@ -9,7 +9,9 @@
 #include "types.hpp"
 
 namespace gram::genotype::infer{
-using GenotypeOrNull = std::variant<AlleleIds, bool>;
+    using GtypedIndex = std::size_t;
+using GtypedIndices = std::vector<GtypedIndex>;
+using GenotypeOrNull = std::variant<GtypedIndices, bool>;
 
 class AbstractGenotypedSite{
 protected:
@@ -32,6 +34,12 @@ public:
     GenotypeOrNull const get_genotype() const override {return genotype;}
     allele_vector const get_alleles() const override {return alleles;}
     covG_ptr const get_site_end_node() const override {return site_end_node;}
+
+    void set_genotype(GtypedIndices const indices, double const gt_confidence){
+        genotype = indices;
+        gt_conf = gt_confidence;
+    };
+
 
     void make_null() {
         genotype = false;

@@ -73,25 +73,61 @@ std::size_t LevelGenotyperModel::count_num_haplogroups(allele_vector const& alle
     return unique_haplos.size();
 };
 
-void LevelGenotyperModel::compute_haploid_log_likelihoods(AlleleId const& allele){
+void LevelGenotyperModel::compute_haploid_log_likelihoods() {
+    std::size_t allele_index{0};
+    for ( auto const& allele : *alleles ){
+       double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
+       auto cov_not_on_allele = total_coverage - cov_on_allele;
+       auto num_non_error_positions = count_credible_positions(l_stats->credible_cov_t, allele);
+       double frac_non_error_positions = num_non_error_positions / allele.pbCov.size();
 
+       double likelihood = (
+              l_stats->poisson_full_depth.operator()(params{cov_on_allele}) +
+              l_stats->mean_pb_error * cov_not_on_allele +
+              frac_non_error_positions * l_stats->log_no_zero +
+              (1 - frac_non_error_positions) * l_stats->mean_cov_depth * -1
+              );
+       likelihoods.insert({likelihood, GtypedIndices{allele_index}});
+       ++allele_index;
+    }
 }
 
 
-LevelGenotyperModel::LevelGenotyperModel(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
-                                         poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats) :
-alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), poisson_prob(poisson_prob), l_stats(l_stats){
+LevelGenotyperModel::LevelGenotyperModel(allele_vector const *alleles, GroupedAlleleCounts const *gp_counts,
+                                         Ploidy ploidy,
+                                         likelihood_related_stats const *l_stats) :
+alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     genotyped_site = std::make_shared<LevelGenotypedSite>();
 
-    auto total_coverage = count_total_coverage(*gp_counts);
+    total_coverage = count_total_coverage(*gp_counts);
 
     if (total_coverage == 0 || l_stats->mean_cov_depth == 0){
         genotyped_site->make_null();
         return;
     }
 
-    auto num_haplogroups = count_num_haplogroups(alleles);
+    auto num_haplogroups = count_num_haplogroups(*alleles);
     set_haploid_coverages(*gp_counts, num_haplogroups);
 
-    //if (ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods();
+    if (ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods();
+    else if (ploidy == Ploidy::Diploid){
+       compute_homozygous_log_likelihoods();
+       compute_heterozygous_log_likelihoods();
+    }
+
+    auto it = likelihoods.begin();
+    auto chosen_gt = it->second;
+    auto best_likelihood = it->first;
+    ++it;
+    auto gt_confidence = best_likelihood - it->first;
+
+    genotyped_site->set_genotype(chosen_gt, gt_confidence);
+}
+
+void LevelGenotyperModel::compute_homozygous_log_likelihoods(){
+
+}
+
+void LevelGenotyperModel::compute_heterozygous_log_likelihoods(){
+
 }

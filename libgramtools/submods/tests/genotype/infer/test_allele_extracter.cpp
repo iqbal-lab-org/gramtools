@@ -35,7 +35,7 @@ protected:
 TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
 
     EXPECT_CALL(site, get_genotype())
-    .WillRepeatedly(Return(AlleleIds{0}));
+    .WillRepeatedly(Return(GtypedIndices{0}));
 
     EXPECT_CALL(site, get_alleles())
     .WillRepeatedly(Return(
@@ -88,7 +88,7 @@ TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele){
 TEST_F(AlleleCombineTest, TwoAllelesHeterozygousGenotype_FourCorrectCombinationAlleles){
 
     EXPECT_CALL(site, get_genotype())
-            .WillRepeatedly(Return(AlleleIds{0, 1}));
+            .WillRepeatedly(Return(GtypedIndices{0, 1}));
 
     EXPECT_CALL(site, get_alleles())
             .WillRepeatedly(Return(
@@ -201,7 +201,7 @@ TEST_F(AlleleExtracterTest, NestedBubble_CorrectAlleles){
 
 TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNestedBubble_CorrectAlleles){
     EXPECT_CALL(*second_site_ptr, get_genotype())
-    .WillOnce(Return(AlleleIds{0}));
+    .WillOnce(Return(GtypedIndices{0}));
 
     EXPECT_CALL(*second_site_ptr, get_alleles())
     .WillOnce(Return(allele_vector{
@@ -223,7 +223,7 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNestedBubble_CorrectAl
 
 TEST_F(AlleleExtracterTest, OuterBubbleEncompassingTriploidNestedBubble_CorrectAlleles){
     EXPECT_CALL(*second_site_ptr, get_genotype())
-            .WillOnce(Return(AlleleIds{0, 1, 2}));
+            .WillOnce(Return(GtypedIndices{0, 1, 2}));
 
     EXPECT_CALL(*second_site_ptr, get_alleles())
             .WillOnce(Return(allele_vector{
