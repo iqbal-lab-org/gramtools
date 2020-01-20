@@ -15,6 +15,11 @@ namespace gram::genotype::infer {
         PerBaseCoverage pbCov;
         AlleleId haplogroup; /**< Which ID in its site this allele is associated with */
 
+        Allele() : sequence(""), haplogroup(0) {}
+        Allele(std::string seq, PerBaseCoverage pb) : sequence(seq), pbCov(pb), haplogroup(0) {}
+        Allele(std::string seq, PerBaseCoverage pb, AlleleId haplo) :
+            sequence(seq), pbCov(pb), haplogroup(haplo) {}
+
         /**
          * Allele combination overload
          * The left-hand side (= this object) argument's haplogroup is used, regardless of `other`'s haplogroup.

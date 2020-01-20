@@ -23,13 +23,6 @@ public:
     virtual allele_vector const get_alleles() const = 0;
     virtual covG_ptr const get_site_end_node() const = 0;
 
-    void make_null() {genotype = false;}
-
-    /** Whether the site is null genotyped */
-    bool is_null() const {
-        if ( std::holds_alternative<bool>(genotype) ) return true;
-        else return false;
-    };
 };
 
 class LevelGenotypedSite : public AbstractGenotypedSite{
@@ -40,6 +33,16 @@ public:
     allele_vector const get_alleles() const override {return alleles;}
     covG_ptr const get_site_end_node() const override {return site_end_node;}
 
+    void make_null() {
+        genotype = false;
+        gt_conf = 0.;
+    }
+
+    /** Whether the site is null genotyped */
+    bool is_null() const {
+        if ( std::holds_alternative<bool>(genotype) ) return true;
+        else return false;
+    };
 };
 }
 

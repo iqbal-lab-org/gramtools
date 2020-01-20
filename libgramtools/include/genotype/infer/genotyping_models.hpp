@@ -53,14 +53,18 @@ namespace gram::genotype::infer {
 
         gt_site_ptr get_site() override { return std::static_pointer_cast<gt_site>(genotyped_site); }
 
-        numCredibleCounts count_credible_positions(CovCount const& credible_cov_t, Allele const& allele);
-
-        // Coverage
+        // Allele-level coverage
         void set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups);
         std::pair<float, float> compute_diploid_coverage(GroupedAlleleCounts const& gp_counts, AlleleIds ids);
+        std::size_t count_total_coverage(GroupedAlleleCounts const& gp_counts);
+
+        std::size_t count_num_haplogroups(allele_vector const& alleles);
+
+        // Per-base coverage
+        numCredibleCounts count_credible_positions(CovCount const& credible_cov_t, Allele const& allele);
 
         // log-likelihoods
-        void haploid_log_likelihood(AlleleId const& allele);
+        void compute_haploid_log_likelihoods(AlleleId const& allele);
         void diploid_log_likelihood(AlleleIds const& alleles);
 
         // Trivial Getters

@@ -86,3 +86,35 @@ TEST(CountCrediblePositions, GivenAlleleWithCredibleAndNonCrediblePositions_Retu
    auto num_credible = gtyper.count_credible_positions(3, test_allele);
    EXPECT_EQ(num_credible, 4);
 }
+
+TEST(CountTotalCov, GivenVariousCovStructures_CorrectTotalCoverages) {
+    GroupedAlleleCounts gp_covs{};
+    LevelGenotyperModel gtyper;
+    EXPECT_EQ(gtyper.count_total_coverage(gp_covs), 0);
+
+    GroupedAlleleCounts gp_covs2{
+            {{0},    5},
+            {{0, 1}, 4},
+            {{1},    10},
+            {{2, 3}, 1}
+    };
+    EXPECT_EQ(gtyper.count_total_coverage(gp_covs2), 20);
+}
+
+TEST(CountNumHaplogroups, GivenVariousAlleleVectors_CorrectNumHaplogroups){
+    // Haplogroup should default to the same thing, consistently.
+    allele_vector a1{
+        Allele{"", {}},
+        Allele{"", {}},
+    };
+
+    LevelGenotyperModel gtyper;
+    EXPECT_EQ(gtyper.count_num_haplogroups(a1), 1);
+
+    allele_vector a2{
+            Allele{"", {}, 0},
+            Allele{"", {}, 1},
+            Allele{"", {}, 1},
+    };
+    EXPECT_EQ(gtyper.count_num_haplogroups(a2), 2);
+}

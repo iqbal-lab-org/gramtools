@@ -58,8 +58,40 @@ numCredibleCounts LevelGenotyperModel::count_credible_positions(CovCount const& 
     return c;
 }
 
+std::size_t LevelGenotyperModel::count_total_coverage(GroupedAlleleCounts const& gp_counts){
+    std::size_t total_cov{0};
+    for (auto const& entry : gp_counts) total_cov += entry.second;
+    return total_cov;
+}
+
+std::size_t LevelGenotyperModel::count_num_haplogroups(allele_vector const& alleles){
+    std::set<AlleleId> unique_haplos;
+    for (auto const& allele : alleles) {
+        if (unique_haplos.find(allele.haplogroup) == unique_haplos.end())
+            unique_haplos.insert(allele.haplogroup);
+    }
+    return unique_haplos.size();
+};
+
+void LevelGenotyperModel::compute_haploid_log_likelihoods(AlleleId const& allele){
+
+}
+
+
 LevelGenotyperModel::LevelGenotyperModel(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
                                          poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats) :
 alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), poisson_prob(poisson_prob), l_stats(l_stats){
     genotyped_site = std::make_shared<LevelGenotypedSite>();
+
+    auto total_coverage = count_total_coverage(*gp_counts);
+
+    if (total_coverage == 0 || l_stats->mean_cov_depth == 0){
+        genotyped_site->make_null();
+        return;
+    }
+
+    auto num_haplogroups = count_num_haplogroups(alleles);
+    set_haploid_coverages(*gp_counts, num_haplogroups);
+
+    //if (ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods();
 }
