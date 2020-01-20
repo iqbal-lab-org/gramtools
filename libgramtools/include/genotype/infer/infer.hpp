@@ -13,19 +13,25 @@
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
 
-class LevelGenotyper{
-   coverage_Graph const* cov_graph;
-   SitesGroupedAlleleCounts const* gped_covs;
-   likelihood_related_stats* l_stats;
+namespace gram::genotype::infer {
 
-   PoissonLogPmf poisson_prob;
-   gt_sites genotyped_records;
+
+class LevelGenotyper {
+    coverage_Graph const *cov_graph;
+    SitesGroupedAlleleCounts const *gped_covs;
+    likelihood_related_stats l_stats;
+
+    gt_sites genotyped_records;
 
 public:
     LevelGenotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
-    LevelGenotyper(coverage_Graph const& cov_graph, SitesGroupedAlleleCounts const& gped_covs,
-                   ReadStats const& read_stats);
-    CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
+
+    LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
+                   ReadStats const &read_stats);
+
+    static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
+    static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
 };
+}
 
 #endif //GRAMTOOLS_INFER_HPP

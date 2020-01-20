@@ -23,7 +23,7 @@ namespace gram::genotype::infer {
 
         AlleleExtracter(gt_sites& sites) : genotyped_sites(&sites) {}
 
-        allele_vector get_alleles() const { return alleles; }
+        allele_vector const get_alleles() const { return alleles; }
 
         /**
          * Linear traversal of an allelic haplogroup, extracting all relevant combinations of alleles.

@@ -104,15 +104,15 @@ void LevelGenotyperModel::compute_homogeneous_log_likelihoods(bool haploid) {
        auto num_non_error_positions = count_credible_positions(l_stats->credible_cov_t, allele);
        double frac_non_error_positions = num_non_error_positions / allele.pbCov.size();
 
-       double likelihood = (
+       double log_likelihood = (
               l_stats->poisson_full_depth.operator()(params{cov_on_allele}) +
               l_stats->log_mean_pb_error * cov_not_on_allele +
               frac_non_error_positions * l_stats->log_no_zero +
               (1 - frac_non_error_positions) * l_stats->mean_cov_depth * -1
               );
 
-       if (haploid) likelihoods.insert({likelihood, GtypedIndices{allele_index}});
-       else likelihoods.insert({likelihood, GtypedIndices{allele_index, allele_index}});
+       if (haploid) likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
+       else likelihoods.insert({log_likelihood, GtypedIndices{allele_index, allele_index}});
 
        ++allele_index;
     }
@@ -131,13 +131,36 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(){
     auto all_diploid_combos = get_permutations(selected_indices, 2);
 
     for ( auto const& combo : all_diploid_combos ){
-        Allele first_allele = alleles->at(combo.at(0));
-        Allele second_allele = alleles->at(combo.at(1));
+        Allele allele_1 = alleles->at(combo.at(0));
+        Allele allele_2 = alleles->at(combo.at(1));
         AlleleIds haplogroups{
-                first_allele.haplogroup,
-                second_allele.haplogroup
+                allele_1.haplogroup,
+                allele_2.haplogroup
         };
-       auto coverages = compute_diploid_coverage(*gp_counts, haplogroups);
+        auto coverages = compute_diploid_coverage(*gp_counts, haplogroups);
+        auto allele_1_cov = coverages.first;
+        auto allele_2_cov = coverages.second;
+
+        auto allele_1_len = allele_1.pbCov.size();
+        auto allele_2_len = allele_2.pbCov.size();
+
+        double allele_1_frac_non_err_pos =
+                count_credible_positions(l_stats->credible_cov_t, allele_1) /
+                allele_1_len;
+
+        double allele_2_frac_non_err_pos =
+                count_credible_positions(l_stats->credible_cov_t, allele_2) /
+                allele_2_len;
+
+        double log_likelihood =
+                l_stats->poisson_half_depth.operator()(params{allele_1_cov}) +
+                l_stats->poisson_half_depth.operator()(params{allele_2_cov}) +
+                (total_coverage - allele_1_cov - allele_2_cov) * l_stats->log_mean_pb_error +
+                allele_1_frac_non_err_pos * l_stats->log_no_zero_half_depth +
+                allele_2_frac_non_err_pos * l_stats->log_no_zero_half_depth +
+                (1 - allele_1_frac_non_err_pos + 1 - allele_2_frac_non_err_pos) *
+                        (-1 * l_stats->mean_cov_depth / 2);
+        likelihoods.insert({log_likelihood, combo});
     }
 }
 

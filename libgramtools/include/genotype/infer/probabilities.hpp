@@ -21,11 +21,22 @@ namespace gram::genotype::infer::probabilities{
     };
 
     class PoissonLogPmf : public AbstractPmf{
-        double const lambda;
+        double lambda;
         double compute_prob(params const& query) const override;
     public:
         PoissonLogPmf() : lambda(0) {}
-        PoissonLogPmf& operator=(const PoissonLogPmf& other) {}
+        PoissonLogPmf& operator=(const PoissonLogPmf& other) {
+            probs = other.probs;
+            lambda = other.lambda;
+        }
+        PoissonLogPmf& operator=(const PoissonLogPmf&& other) {
+            probs = std::move(other.probs);
+            lambda = std::move(other.lambda);
+        }
+        PoissonLogPmf(PoissonLogPmf const& other){
+            probs = other.probs;
+            lambda = other.lambda;
+        }
         PoissonLogPmf(params const& parameterisation);
     };
 }
