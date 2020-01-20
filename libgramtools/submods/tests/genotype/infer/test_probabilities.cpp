@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "mocks.hpp"
+#include "genotype/infer/infer.hpp"
 
 using namespace gram::genotype::infer::probabilities;
 using namespace ::testing;
@@ -38,4 +39,19 @@ TEST(PoissonLogPmf, GivenKnownProbability_LogPoissonValueIsCorrect){
     float known_log_poisson2{-1.3605657168116352}; // = ln(Poisson(lambda = 2, count = 2.5))
     auto prob2 = pmf_float_mean(params{2});
     EXPECT_FLOAT_EQ(prob2, known_log_poisson2);
+}
+
+TEST(MinCovMoreLikelyThanError, GivenMeanDepthAndErrorRate_CorrectMinCovThreshold){
+    Genotyper g;
+    std::vector<double> mean_depths{10, 10, 100};
+    std::vector<double> pb_error_rates{0.0001, 0.001, 0.001};
+    std::vector<CovCount> expected_min_cov_thresholds{1, 2, 10};
+
+    std::size_t index{0};
+    while(index < mean_depths.size()) {
+        PoissonLogPmf pmf(params{mean_depths.at(index)});
+        auto min_cov_t = g.find_minimum_non_error_cov(pb_error_rates.at(index), &pmf);
+        EXPECT_EQ(min_cov_t, expected_min_cov_thresholds.at(index));
+        ++index;
+    }
 }

@@ -15,6 +15,6 @@ public:
 namespace gram::genotype::infer::probabilities{
     class MockPmf : public AbstractPmf{
     public:
-        MOCK_METHOD(float, compute_prob, (params const& query), (const, override));
+        MOCK_METHOD(double, compute_prob, (params const& query), (const, override));
     };
 }

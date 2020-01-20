@@ -55,7 +55,7 @@ void gram::ReadStats::compute_base_error_rate(const std::string &reads_fpath){
 
     this->num_bases_processed = num_bases_processed;
     this->no_qual_reads = no_qual_reads;
-    this->mean_error = mean_error;
+    this->mean_cov_depth = mean_error;
 };
 
 void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
@@ -91,7 +91,7 @@ void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
     variance_coverage = total_variance / coverages.size();
 
     // And record it all at the object level.
-    this->mean_depth = mean_coverage;
+    this->mean_pb_error = mean_coverage;
     this->variance_depth = variance_coverage;
     this->num_sites_noCov = num_sites_noCov;
     this->num_sites_total = num_sites_total;
@@ -105,7 +105,7 @@ void gram::ReadStats::serialise(const std::string &json_output_fpath){
     outf << R"(
 {
 "Read_depth":
-    {"Mean": )" << this->mean_depth << ",";
+    {"Mean": )" << this->mean_pb_error << ",";
 
     outf << R"(
     "Variance": )" << this->variance_depth << ",";
@@ -126,7 +126,7 @@ void gram::ReadStats::serialise(const std::string &json_output_fpath){
 
     outf << R"(
 "Quality":
-    {"Error_rate_mean": )" << this->mean_error << ",";
+    {"Error_rate_mean": )" << this->mean_cov_depth << ",";
 
     outf << R"(
     "Num_bases": )" << this->num_bases_processed << ",";

@@ -4,7 +4,6 @@
 #ifndef GENOTYPED_SITE
 #define GENOTYPED_SITE
 
-#include <prg/types.hpp>
 #include "common/utils.hpp"
 #include "types.hpp"
 

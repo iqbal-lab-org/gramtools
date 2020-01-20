@@ -1,6 +1,7 @@
 #include "genotype/infer/genotyping_models.hpp"
 
 using namespace gram::genotype::infer;
+using namespace gram::genotype::infer::probabilities;
 
 void LevelGenotyper::set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups){
     haploid_allele_coverages = singleton_allele_coverages = PerAlleleCoverage(num_haplogroups, 0);
@@ -48,10 +49,17 @@ std::pair<float, float> LevelGenotyper::compute_diploid_coverage(GroupedAlleleCo
     return std::make_pair(first_allele_coverage, second_allele_coverage);
 }
 
+
 numCredibleCounts LevelGenotyper::count_credible_positions(CovCount const& credible_cov_t, Allele const& allele){
     numCredibleCounts c{0};
     for (auto const& pb_cov : allele.pbCov){
         if (pb_cov >= credible_cov_t) ++c;
     }
     return c;
+}
+
+LevelGenotyper::LevelGenotyper(allele_vector const* alleles, GroupedAlleleCounts const* gp_counts, Ploidy ploidy,
+poisson_pmf_ptr poisson_prob, likelihood_related_stats const* l_stats) :
+alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), poisson_prob(poisson_prob), l_stats(l_stats){
+    ;
 }
