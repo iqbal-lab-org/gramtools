@@ -13,8 +13,9 @@ TEST(HaploidCoverages, GivenSingletonCountsOnly_CorrectHaploidAndSingletonCovs){
    LevelGenotyperModel gtyper;
    gtyper.set_haploid_coverages(gp_covs, 4);
    PerAlleleCoverage expected_haploid_cov{5, 10, 0, 1};
+   AlleleIdSet expected_singleton_cov{0, 1, 3};
    EXPECT_EQ(gtyper.get_haploid_covs(), expected_haploid_cov);
-   EXPECT_EQ(gtyper.get_singleton_covs(), expected_haploid_cov);
+   EXPECT_EQ(gtyper.get_singleton_covs(), expected_singleton_cov);
 }
 
 
@@ -30,7 +31,7 @@ TEST(HaploidCoverages, GivenMultiAllelicClasses_CorrectHaploidAndSingletonCovs){
     gtyper.set_haploid_coverages(gp_covs, 4);
 
     PerAlleleCoverage expected_haploid_cov{9, 14, 1, 1};
-    PerAlleleCoverage expected_singleton_cov{5, 10, 0, 0};
+    AlleleIdSet expected_singleton_cov{0, 1};
 
     EXPECT_EQ(gtyper.get_haploid_covs(), expected_haploid_cov);
     EXPECT_EQ(gtyper.get_singleton_covs(), expected_singleton_cov);
@@ -75,6 +76,23 @@ TEST(DiploidCoverages, GivenOnlyMultiAllelicClasses_CorrectDiploidCovs){
     EXPECT_FLOAT_EQ(diploid_covs.second, 1.5);
 }
 
+
+TEST(DiploidCoverages, GivenSameHaplogroupTwice_CorrectDiploidCovs){
+    // This can happen: when there is a nested site within, the extracted alleles have same haplogroup
+    AlleleIds ids{0, 0};
+
+    GroupedAlleleCounts  gp_covs{
+            {{0}, 8},
+            {{0, 1}, 4}, // This counts to 0 !
+    };
+
+    LevelGenotyperModel gtyper;
+    gtyper.set_haploid_coverages(gp_covs, 2);
+    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids);
+    EXPECT_FLOAT_EQ(diploid_covs.first, 6);
+    EXPECT_FLOAT_EQ(diploid_covs.second, 6);
+}
+
 TEST(CountCrediblePositions, GivenAlleleWithCredibleAndNonCrediblePositions_ReturnCrediblePositions){
    Allele test_allele{
       "ATCGCCG",
@@ -117,4 +135,23 @@ TEST(CountNumHaplogroups, GivenVariousAlleleVectors_CorrectNumHaplogroups){
             Allele{"", {}, 1},
     };
     EXPECT_EQ(gtyper.count_num_haplogroups(a2), 2);
+}
+
+TEST(MakePermutations,GivenVariousParameters_CorrectPermutations){
+    std::vector<GtypedIndices> expected;
+    LevelGenotyperModel g;
+
+    auto two_from_three = g.get_permutations(GtypedIndices{1,4,5}, 2);
+    std::sort(two_from_three.begin(), two_from_three.end());
+    expected = {
+            {1, 4},
+            {1, 5},
+            {4, 5}
+    };
+    EXPECT_EQ(two_from_three, expected);
+
+
+    auto two_from_one = g.get_permutations(GtypedIndices{1}, 2); // Invalid call
+    expected = {};
+    EXPECT_EQ(two_from_one, expected);
 }

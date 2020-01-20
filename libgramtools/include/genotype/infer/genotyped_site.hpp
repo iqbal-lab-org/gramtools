@@ -9,9 +9,9 @@
 #include "types.hpp"
 
 namespace gram::genotype::infer{
-    using GtypedIndex = std::size_t;
-using GtypedIndices = std::vector<GtypedIndex>;
-using GenotypeOrNull = std::variant<GtypedIndices, bool>;
+    using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
+    using GtypedIndices = std::vector<GtypedIndex>;
+    using GenotypeOrNull = std::variant<GtypedIndices, bool>;
 
 class AbstractGenotypedSite{
 protected:

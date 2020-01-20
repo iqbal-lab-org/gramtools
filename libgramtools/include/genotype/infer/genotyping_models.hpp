@@ -18,7 +18,9 @@ namespace gram::genotype::infer {
     using numCredibleCounts = std::size_t;
 
     struct likelihood_related_stats{
-        double mean_cov_depth, mean_pb_error, log_no_zero, log_no_zero_half_depth;
+        double mean_cov_depth,
+        mean_pb_error, log_mean_pb_error,
+        log_no_zero, log_no_zero_half_depth;
         CovCount credible_cov_t; /**< minimum coverage count to qualify as actual coverage (per-base)*/
         mutable poisson_pmf poisson_full_depth;
         mutable poisson_pmf poisson_half_depth;
@@ -42,7 +44,7 @@ namespace gram::genotype::infer {
 
         // Computed at construction time
         PerAlleleCoverage haploid_allele_coverages; /**< Coverage counts compatible with single alleles */
-        PerAlleleCoverage singleton_allele_coverages; /**< Coverage counts unique to single alleles */
+        AlleleIdSet singleton_allele_coverages; /**< Coverage counts unique to single alleles */
         std::size_t total_coverage;
 
         // Computed at run time
@@ -58,22 +60,41 @@ namespace gram::genotype::infer {
 
         // Allele-level coverage
         void set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups);
+        /**
+         *
+         * Note: Due to nesting, the alleles can be from the same haplogroup; in which case, they have the same
+         * haploid coverage, and they get assigned half of it each.
+         */
         std::pair<float, float> compute_diploid_coverage(GroupedAlleleCounts const& gp_counts, AlleleIds ids);
         std::size_t count_total_coverage(GroupedAlleleCounts const& gp_counts);
 
+        // Counting
         std::size_t count_num_haplogroups(allele_vector const& alleles);
+
+        // Permutations
+        /**
+         * Credit: https://stackoverflow.com/a/9430993/12519542
+         */
+        std::vector<GtypedIndices> get_permutations(const GtypedIndices &indices, std::size_t const subset_size);
 
         // Per-base coverage
         numCredibleCounts count_credible_positions(CovCount const& credible_cov_t, Allele const& allele);
 
-        // log-likelihoods
-        void compute_haploid_log_likelihoods();
-        void compute_homozygous_log_likelihoods();
+        /**
+         * Haploid OR diploid homozygous (same formula)
+         */
+        void compute_homogeneous_log_likelihoods(bool haploid);
+
+        /**
+         * Diploid. Because of the large possible number of diploid combinations,
+         * (eg for 10 alleles, 45), we only consider for combination those alleles
+         * that have at least one unit of coverage unique to them.
+         */
         void compute_heterozygous_log_likelihoods();
 
         // Trivial Getters
         PerAlleleCoverage const& get_haploid_covs() const {return haploid_allele_coverages;}
-        PerAlleleCoverage const& get_singleton_covs() const {return singleton_allele_coverages;}
+        AlleleIdSet const& get_singleton_covs() const {return singleton_allele_coverages;}
     };
 }
 #endif //GTYPING_MODELS
