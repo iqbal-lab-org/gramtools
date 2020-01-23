@@ -16,6 +16,7 @@ using poisson_pmf_ptr = poisson_pmf*;
 
 namespace gram::genotype::infer {
     using numCredibleCounts = std::size_t;
+    using multiplicities = std::vector<bool>;
 
     struct likelihood_related_stats{
         double mean_cov_depth,
@@ -48,7 +49,7 @@ namespace gram::genotype::infer {
         std::size_t total_coverage;
 
         // Computed at run time
-        std::multimap<double, GtypedIndices> likelihoods;
+        std::multimap<double, GtypedIndices, std::greater<double> > likelihoods; // Store highest likelihoods first
         std::shared_ptr<LevelGenotypedSite> genotyped_site; // What the class will build
 
     public:
@@ -65,11 +66,12 @@ namespace gram::genotype::infer {
          * Note: Due to nesting, the alleles can be from the same haplogroup; in which case, they have the same
          * haploid coverage, and they get assigned half of it each.
          */
-        std::pair<float, float> compute_diploid_coverage(GroupedAlleleCounts const& gp_counts, AlleleIds ids);
+        std::pair<double, double> compute_diploid_coverage(GroupedAlleleCounts const &gp_counts, AlleleIds ids,
+                                                         multiplicities const &haplogroup_multiplicities);
         std::size_t count_total_coverage(GroupedAlleleCounts const& gp_counts);
 
         // Counting
-        std::size_t count_num_haplogroups(allele_vector const& alleles);
+        std::vector<bool> count_num_haplogroups(allele_vector const& alleles);
 
         // Permutations
         /**
@@ -81,16 +83,21 @@ namespace gram::genotype::infer {
         numCredibleCounts count_credible_positions(CovCount const& credible_cov_t, Allele const& allele);
 
         /**
-         * Haploid OR diploid homozygous (same formula)
+         * Haploid
          */
-        void compute_homogeneous_log_likelihoods(bool haploid);
+        void compute_haploid_log_likelihoods();
+
+        /**
+         * Diploid homozygous
+         */
+        void compute_homozygous_log_likelihoods(multiplicities const &haplogroup_multiplicities);
 
         /**
          * Diploid. Because of the large possible number of diploid combinations,
          * (eg for 10 alleles, 45), we only consider for combination those alleles
          * that have at least one unit of coverage unique to them.
          */
-        void compute_heterozygous_log_likelihoods();
+        void compute_heterozygous_log_likelihoods(multiplicities const &haplogroup_multiplicities);
 
         // Trivial Getters
         PerAlleleCoverage const& get_haploid_covs() const {return haploid_allele_coverages;}

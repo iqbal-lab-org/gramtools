@@ -17,11 +17,21 @@ void LevelGenotyperModel::set_haploid_coverages(GroupedAlleleCounts const& gp_co
     }
 }
 
-std::pair<float, float> LevelGenotyperModel::compute_diploid_coverage(GroupedAlleleCounts const& gp_counts, AlleleIds ids){
+std::pair<double, double>
+LevelGenotyperModel::compute_diploid_coverage(GroupedAlleleCounts const &gp_counts, AlleleIds ids,
+                                              multiplicities const &haplogroup_multiplicities) {
     assert(ids.size() == 2);
     AlleleId first_allele_id = ids.at(0), second_allele_id = ids.at(1);
-    float first_allele_coverage = (float)(haploid_allele_coverages.at(first_allele_id));
-    float second_allele_coverage = (float)(haploid_allele_coverages.at(second_allele_id));
+
+    double first_allele_coverage = (double)(haploid_allele_coverages.at(first_allele_id));
+
+    // If same haplogroup, split coverage evenly
+    if (first_allele_id == second_allele_id) {
+        auto halved_cov = first_allele_coverage / 2;
+        return std::make_pair(halved_cov, halved_cov);
+    }
+
+    double second_allele_coverage = (double)(haploid_allele_coverages.at(second_allele_id));
     bool has_first_allele, has_second_allele;
     CovCount shared_coverage{0};
 
@@ -36,7 +46,7 @@ std::pair<float, float> LevelGenotyperModel::compute_diploid_coverage(GroupedAll
         second_allele_specific_cov = second_allele_coverage - shared_coverage;
 
     // Compute belonging factor (0 <= x <= 1)
-    float allele1_belonging;
+    double allele1_belonging;
     if (first_allele_specific_cov == 0 && second_allele_specific_cov == 0) {
         // No allele specific coverage: equal allocation
         allele1_belonging = 0.5;
@@ -45,6 +55,9 @@ std::pair<float, float> LevelGenotyperModel::compute_diploid_coverage(GroupedAll
 
     first_allele_coverage -= (1 - allele1_belonging) * shared_coverage;
     second_allele_coverage -= allele1_belonging * shared_coverage;
+
+    if (haplogroup_multiplicities.at(0)) first_allele_coverage /= 2;
+    if (haplogroup_multiplicities.at(1)) second_allele_coverage /= 2;
 
     return std::make_pair(first_allele_coverage, second_allele_coverage);
 }
@@ -64,13 +77,18 @@ std::size_t LevelGenotyperModel::count_total_coverage(GroupedAlleleCounts const&
     return total_cov;
 }
 
-std::size_t LevelGenotyperModel::count_num_haplogroups(allele_vector const& alleles){
-    std::set<AlleleId> unique_haplos;
+multiplicities LevelGenotyperModel::count_num_haplogroups(allele_vector const& alleles){
+    std::map<AlleleId, std::size_t> haplo_counts;
     for (auto const& allele : alleles) {
-        if (unique_haplos.find(allele.haplogroup) == unique_haplos.end())
-            unique_haplos.insert(allele.haplogroup);
+        if (haplo_counts.find(allele.haplogroup) == haplo_counts.end())
+            haplo_counts.insert({allele.haplogroup, 1});
+        else haplo_counts.at(allele.haplogroup) += 1;
     }
-    return unique_haplos.size();
+    multiplicities m(haplo_counts.size(), false);
+    for (auto const& entry : haplo_counts){
+        if (entry.second > 1) m.at(entry.first) = true;
+    }
+    return m;
 };
 
 std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(const GtypedIndices &indices, std::size_t const subset_size){
@@ -93,7 +111,7 @@ std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(const GtypedInd
 }
 
 
-void LevelGenotyperModel::compute_homogeneous_log_likelihoods(bool haploid) {
+void LevelGenotyperModel::compute_haploid_log_likelihoods() {
     std::size_t allele_index{0};
 
     for ( auto const& allele : *alleles ){
@@ -111,14 +129,40 @@ void LevelGenotyperModel::compute_homogeneous_log_likelihoods(bool haploid) {
               (1 - frac_non_error_positions) * l_stats->mean_cov_depth * -1
               );
 
-       if (haploid) likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
-       else likelihoods.insert({log_likelihood, GtypedIndices{allele_index, allele_index}});
-
+       likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
        ++allele_index;
     }
 }
 
-void LevelGenotyperModel::compute_heterozygous_log_likelihoods(){
+void LevelGenotyperModel::compute_homozygous_log_likelihoods(multiplicities const &haplogroup_multiplicities){
+    std::size_t allele_index{0};
+
+    for ( auto const& allele : *alleles ){
+
+        double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
+        // If we have a het call in this haplogroup, coverage on each allele of the haplogroup is assumed half the total
+        // consistent with the haplogroup.
+        if (haplogroup_multiplicities.at(allele.haplogroup)) cov_on_allele /= 2;
+        auto cov_not_on_allele = total_coverage - cov_on_allele;
+
+        cov_on_allele /= 2; // Call Poisson log-likelihood with half-depth on half the allele's coverage, twice.
+
+        auto num_non_error_positions = count_credible_positions(l_stats->credible_cov_t, allele);
+        double frac_non_error_positions = num_non_error_positions / allele.pbCov.size();
+
+        double log_likelihood = (
+                2 * l_stats->poisson_half_depth.operator()(params{cov_on_allele}) +
+                l_stats->log_mean_pb_error * cov_not_on_allele +
+                frac_non_error_positions * l_stats->log_no_zero +
+                (1 - frac_non_error_positions) * l_stats->mean_cov_depth * -1
+        );
+
+        likelihoods.insert({log_likelihood, GtypedIndices{allele_index, allele_index}});
+        ++allele_index;
+    }
+}
+
+void LevelGenotyperModel::compute_heterozygous_log_likelihoods(multiplicities const &haplogroup_multiplicities) {
     GtypedIndices selected_indices;
     GtypedIndex index{0};
     for (auto const& allele : *alleles){
@@ -137,7 +181,7 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(){
                 allele_1.haplogroup,
                 allele_2.haplogroup
         };
-        auto coverages = compute_diploid_coverage(*gp_counts, haplogroups);
+        auto coverages = compute_diploid_coverage(*gp_counts, haplogroups, haplogroup_multiplicities);
         auto allele_1_cov = coverages.first;
         auto allele_2_cov = coverages.second;
 
@@ -170,19 +214,21 @@ LevelGenotyperModel::LevelGenotyperModel(allele_vector const *alleles, GroupedAl
 alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     genotyped_site = std::make_shared<LevelGenotypedSite>();
 
+    assert(alleles->size() > 1);
+
     total_coverage = count_total_coverage(*gp_counts);
     if (total_coverage == 0 || l_stats->mean_cov_depth == 0){
         genotyped_site->make_null();
         return;
     }
 
-    auto num_haplogroups = count_num_haplogroups(*alleles);
-    set_haploid_coverages(*gp_counts, num_haplogroups);
+    auto haplogroup_multiplicities = count_num_haplogroups(*alleles);
+    set_haploid_coverages(*gp_counts, haplogroup_multiplicities.size());
 
-    if (ploidy == Ploidy::Haploid) compute_homogeneous_log_likelihoods(true);
+    if (ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods();
     else if (ploidy == Ploidy::Diploid){
-       compute_homogeneous_log_likelihoods(false);
-       compute_heterozygous_log_likelihoods();
+        compute_homozygous_log_likelihoods(haplogroup_multiplicities);
+        compute_heterozygous_log_likelihoods(haplogroup_multiplicities);
     }
 
     auto it = likelihoods.begin();

@@ -53,7 +53,8 @@ TEST(DiploidCoverages, GivenMultiAllelicClasses_CorrectDiploidCovs){
 
     LevelGenotyperModel gtyper;
     gtyper.set_haploid_coverages(gp_covs, 4);
-    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids);
+    multiplicities haplogroup_multiplicities(4, false);
+    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids, haplogroup_multiplicities);
     EXPECT_FLOAT_EQ(diploid_covs.first, 10 + 4/3.);
     EXPECT_FLOAT_EQ(diploid_covs.second, 20 + 8/3.);
 }
@@ -71,24 +72,42 @@ TEST(DiploidCoverages, GivenOnlyMultiAllelicClasses_CorrectDiploidCovs){
 
     LevelGenotyperModel gtyper;
     gtyper.set_haploid_coverages(gp_covs, 4);
-    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids);
+    multiplicities haplogroup_multiplicities(4, false);
+    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids, haplogroup_multiplicities);
     EXPECT_FLOAT_EQ(diploid_covs.first, 1.5);
     EXPECT_FLOAT_EQ(diploid_covs.second, 1.5);
 }
 
-
-TEST(DiploidCoverages, GivenSameHaplogroupTwice_CorrectDiploidCovs){
-    // This can happen: when there is a nested site within, the extracted alleles have same haplogroup
-    AlleleIds ids{0, 0};
+class DiploidCoveragesOneDominatingClass : public ::testing::Test {
+protected:
+    void SetUp(){
+        gtyper.set_haploid_coverages(gp_covs, 2);
+    }
 
     GroupedAlleleCounts  gp_covs{
             {{0}, 8},
-            {{0, 1}, 4}, // This counts to 0 !
+            {{0, 1}, 4},
     };
 
     LevelGenotyperModel gtyper;
-    gtyper.set_haploid_coverages(gp_covs, 2);
-    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids);
+};
+
+TEST_F(DiploidCoveragesOneDominatingClass, GivenDifferentHaplogroups_CorrectDiploidCovs){
+    // There is no unique coverage on haplogroup 1, thus all coverage goes to 0
+    AlleleIds ids{0, 1};
+
+    multiplicities haplogroup_multiplicities(2, false);
+    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids, haplogroup_multiplicities);
+    EXPECT_FLOAT_EQ(diploid_covs.first, 12);
+    EXPECT_FLOAT_EQ(diploid_covs.second, 0);
+}
+
+TEST_F(DiploidCoveragesOneDominatingClass, GivenSameHaplogroupTwice_CorrectDiploidCovs){
+    // This can happen: when there is a nested site within, the extracted alleles have same haplogroup
+    AlleleIds ids{0, 0};
+
+    multiplicities haplogroup_multiplicities({true}); // The two alleles have the same haplogroup
+    auto diploid_covs = gtyper.compute_diploid_coverage(gp_covs, ids, haplogroup_multiplicities);
     EXPECT_FLOAT_EQ(diploid_covs.first, 6);
     EXPECT_FLOAT_EQ(diploid_covs.second, 6);
 }
@@ -127,14 +146,17 @@ TEST(CountNumHaplogroups, GivenVariousAlleleVectors_CorrectNumHaplogroups){
     };
 
     LevelGenotyperModel gtyper;
-    EXPECT_EQ(gtyper.count_num_haplogroups(a1), 1);
+    multiplicities expected({true}); // Expect one entry, with more than one associated allele
+    EXPECT_EQ(gtyper.count_num_haplogroups(a1), expected);
 
     allele_vector a2{
             Allele{"", {}, 0},
             Allele{"", {}, 1},
             Allele{"", {}, 1},
     };
-    EXPECT_EQ(gtyper.count_num_haplogroups(a2), 2);
+
+    expected = multiplicities({false, true}); // Haplogroup 0 has 1 allele, haplogroup 1 has > 1 allele
+    EXPECT_EQ(gtyper.count_num_haplogroups(a2), expected);
 }
 
 TEST(MakePermutations,GivenVariousParameters_CorrectPermutations){
