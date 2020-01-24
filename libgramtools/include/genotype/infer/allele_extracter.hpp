@@ -7,15 +7,24 @@
 using namespace gram;
 
 namespace gram::genotype::infer {
+
+/**
+ * Used in allele extraction but also in level genotyper
+ */
+allele_vector prepend_allele(allele_vector const& original_alleles, Allele const& to_prepend);
+
 /**
  * Class in charge of producing the set of `Allele`s that get genotyped.
  * The procedure scans through each haplogroup of a site, pasting sequence & coverage
  * from previously genotyped (=nested) sites when encountered.
+ *
+ * It additionally always produced a REF allele by picking the first allele (haplogroup) of each site.
  */
     class AlleleExtracter {
     private:
         allele_vector alleles;
         gt_sites const *genotyped_sites;
+        bool _ref_allele_got_made_naturally; // Used for testing purposes only
     public:
         AlleleExtracter() : genotyped_sites(nullptr) {};
 
@@ -31,11 +40,6 @@ namespace gram::genotype::infer {
          */
         allele_vector extract_alleles(AlleleId const haplogroup, covG_ptr haplogroup_start, covG_ptr site_end);
 
-        /**
-         * Extracts a 'reference' for this bubble, by arbitrarily picking the first allele of each encountered site.
-         * // TODO
-         */
-        Allele extract_ref_allele(covG_ptr haplogroup_0_start, covG_ptr site_end);
 
         /**
          * From the set of genotypes of a site, combines them with existing alleles.
@@ -53,6 +57,8 @@ namespace gram::genotype::infer {
          * @return void because `existing` is modified in place
          */
         void allele_paste(allele_vector& existing, covG_ptr sequence_node);
+
+        bool ref_allele_got_made_naturally() const {return _ref_allele_got_made_naturally ;}
     };
 }
 

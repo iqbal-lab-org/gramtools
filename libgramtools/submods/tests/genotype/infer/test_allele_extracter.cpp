@@ -54,7 +54,6 @@ TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
                 0
             }
     };
-
     EXPECT_EQ(result, expected);
 };
 
@@ -196,6 +195,7 @@ TEST_F(AlleleExtracterTest, NestedBubble_CorrectAlleles){
             { "A", {0}, 1 },
             { "G", {0}, 2 }
     };
+    EXPECT_TRUE(extracter.ref_allele_got_made_naturally());
     EXPECT_EQ(extracter.get_alleles(), expected);
 }
 
@@ -204,7 +204,7 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNestedBubble_CorrectAl
     .WillOnce(Return(GtypedIndices{0}));
 
     EXPECT_CALL(*second_site_ptr, get_alleles())
-    .WillOnce(Return(allele_vector{
+    .WillRepeatedly(Return(allele_vector{
             {"C", {0}, 0}
     }));
 
@@ -226,7 +226,7 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingTriploidNestedBubble_CorrectA
             .WillOnce(Return(GtypedIndices{0, 1, 2}));
 
     EXPECT_CALL(*second_site_ptr, get_alleles())
-            .WillOnce(Return(allele_vector{
+            .WillRepeatedly(Return(allele_vector{
                     {"C", {0}, 0},
                     {"A", {0}, 1},
                     {"G", {0}, 2}
@@ -244,5 +244,32 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingTriploidNestedBubble_CorrectA
             { "TTA", {0, 0, 0}, 1 }
     };
 
+    EXPECT_TRUE(extracter.ref_allele_got_made_naturally());
+    EXPECT_EQ(extracter.get_alleles(), expected);
+}
+
+TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNonREFNestedBubble_REFGetsProduced){
+    EXPECT_CALL(*second_site_ptr, get_genotype())
+            .WillOnce(Return(GtypedIndices{1}));
+
+    EXPECT_CALL(*second_site_ptr, get_alleles())
+            .WillRepeatedly(Return(allele_vector{
+                    {"C", {0}, 0},
+                    {"G", {0}, 2}
+            }));
+
+    EXPECT_CALL(*second_site_ptr, get_site_end_node())
+            .WillOnce(Return(nested_bubble_nodes.second));
+
+    AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
+
+    // The REF (first allele in the site) needs to have gotten placed at index 0
+    allele_vector expected{
+            { "GCCCT", {0, 0, 0, 0, 0}, 0 },
+            { "GCCGT", {0, 0, 0, 0, 0}, 0 },
+            { "TTA", {0, 0, 0}, 1 }
+    };
+
+    EXPECT_FALSE(extracter.ref_allele_got_made_naturally());
     EXPECT_EQ(extracter.get_alleles(), expected);
 }

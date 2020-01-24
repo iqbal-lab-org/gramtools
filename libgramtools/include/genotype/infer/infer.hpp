@@ -2,6 +2,9 @@
  * @file
  * Interface to running personalised reference inference and
  * genotyping from coverage-annotated PRG.
+ *
+ * Although a PRG moves beyond a single reference genome, each site's first allele will consistently
+ * be the first allele (haplogroup) of the bubble in the graph, so that we can use that as REF if needed.
  */
 
 #ifndef GRAMTOOLS_INFER_HPP

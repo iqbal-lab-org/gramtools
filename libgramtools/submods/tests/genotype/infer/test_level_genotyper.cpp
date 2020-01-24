@@ -164,7 +164,6 @@ TEST(MakePermutations,GivenVariousParameters_CorrectPermutations){
     LevelGenotyperModel g;
 
     auto two_from_three = g.get_permutations(GtypedIndices{1,4,5}, 2);
-    std::sort(two_from_three.begin(), two_from_three.end());
     expected = {
             {1, 4},
             {1, 5},
@@ -172,6 +171,15 @@ TEST(MakePermutations,GivenVariousParameters_CorrectPermutations){
     };
     EXPECT_EQ(two_from_three, expected);
 
+    // Make sure result is internally sorted (at the genotype index level); needed for diploid coverage memoization
+    auto from_unsorted = g.get_permutations(GtypedIndices{4,3,2}, 2);
+    std::sort(from_unsorted.begin(), from_unsorted.end());
+    expected = {
+            {2, 3},
+            {2, 4},
+            {3, 4}
+    };
+    EXPECT_EQ(from_unsorted, expected);
 
     auto two_from_one = g.get_permutations(GtypedIndices{1}, 2); // Invalid call
     expected = {};
@@ -187,4 +195,9 @@ TEST(RescaleGenotypes, GivenVariousGenotypes_CorrectRescaling){
 
     GtypedIndices zero_and_repeated_gt{0, 4, 4};
     GtypedIndices  zero_and_repeated_gt_rescaled{0, 1, 1};
+    EXPECT_EQ(g.rescale_genotypes( zero_and_repeated_gt ), zero_and_repeated_gt_rescaled);
+
+    GtypedIndices shuffled_order{4, 2};
+    GtypedIndices  shuffled_order_rescaled{1, 2};
+    EXPECT_EQ(g.rescale_genotypes( shuffled_order ), shuffled_order_rescaled);
 }

@@ -6,7 +6,7 @@ allele_vector const get_unique_genotyped_alleles(allele_vector const &all_allele
 
     std::set<GtypedIndex> distinct_genotypes;
     if (auto valid_gtype = std::get_if<GtypedIndices>(&genotype)) {
-        // Note this also sorts the genotype (eg 1,0 goes to 0, 1)
+        // NOTE/CRUCIAL: this sorts the genotypes (eg 1,0 goes to 0, 1), which is REQUIRED for REF allele production
         distinct_genotypes = std::set<GtypedIndex>(valid_gtype->begin(), valid_gtype->end());
     } else distinct_genotypes = std::set<GtypedIndex>{0}; // If null genotype, take the reference only
 

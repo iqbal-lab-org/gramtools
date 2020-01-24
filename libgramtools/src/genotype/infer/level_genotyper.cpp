@@ -1,4 +1,5 @@
 #include "genotype/infer/genotyping_models.hpp"
+#include "genotype/infer/allele_extracter.hpp"
 
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
@@ -95,7 +96,9 @@ GtypedIndices LevelGenotyperModel::rescale_genotypes(GtypedIndices const& genoty
     // 0 always goes to 0 because we always add the 'REF' as an allele, even when not called.
     std::unordered_map<GtypedIndex, GtypedIndex> rescaler{{0, 0}};
 
-    GtypedIndices result;
+    GtypedIndices local_copy(genotypes), result;
+    std::sort(local_copy.begin(), local_copy.end());
+
     GtypedIndex rescaling_index{1};
 
     for(auto const& gt : genotypes){
@@ -119,6 +122,7 @@ std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(const GtypedInd
         for (int i = 0; i < num_elements; ++i){
             if (v[i]) combo_indices.push_back(indices.at(i));
         }
+        std::sort(combo_indices.begin(), combo_indices.end());
         result.push_back(combo_indices);
     } while (std::prev_permutation(v.begin(), v.end()));
 
@@ -255,9 +259,11 @@ alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     auto gt_confidence = best_likelihood - it->first;
 
     auto chosen_alleles = get_unique_genotyped_alleles(*alleles, chosen_gt);
-    genotyped_site->set_alleles(chosen_alleles);
-
     auto rescaled_gt = rescale_genotypes(chosen_gt);
     genotyped_site->set_genotype(rescaled_gt, gt_confidence);
+
+    // If REF allele has not been called, add it anyway. Note rescaled_gt is sorted so can query its first element.
+    if (rescaled_gt.at(0) != 0) chosen_alleles = prepend_allele(chosen_alleles, alleles->at(0));
+    genotyped_site->set_alleles(chosen_alleles);
 }
 

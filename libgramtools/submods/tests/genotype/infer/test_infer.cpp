@@ -46,6 +46,7 @@ class TestLevelGenotyperModel_TwoAllelesWithCoverage : public ::testing::Test {
 protected:
     allele_vector alleles{
         Allele{ "ATCACC", {0, 0, 1, 1, 2, 2}, 0 },
+        Allele{ "ATGACC", {0, 0, 0, 0, 1, 1}, 0 },
         Allele{ "GGGCC", {10, 12, 12, 14, 14}, 1 },
     };
 
@@ -63,9 +64,17 @@ protected:
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectHaploidCall) {
     auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats);
 
+    auto genotyped_alleles = genotyped.get_site()->get_alleles();
+    allele_vector expected_alleles{
+            alleles.at(0), // REF is not called, but still makes it in here
+            alleles.at(2),
+    };
+    EXPECT_EQ(genotyped_alleles, expected_alleles);
+
     auto gtype = genotyped.get_site()->get_genotype();
     EXPECT_TRUE(std::holds_alternative<GtypedIndices>(gtype));
 
+    // The genotype needs to get rescaled: it is index 2 in original allele vector, but 1 in retained alleles
     GtypedIndices expected_gtype{1};
     EXPECT_EQ(std::get<GtypedIndices>(gtype), expected_gtype);
 }
@@ -101,7 +110,6 @@ TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype){
 
     auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats);
     auto gtype = genotyped.get_site()->get_genotype();
-
     GtypedIndices expected_gtype{1, 1};
     EXPECT_EQ(std::get<GtypedIndices>(gtype), expected_gtype);
 }
@@ -129,8 +137,17 @@ protected:
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_CorrectGenotype){
 
     auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats);
+
+    auto genotyped_alleles = genotyped.get_site()->get_alleles();
+    allele_vector expected_alleles{
+            alleles.at(0), // REF is not called, but still makes it in here
+            alleles.at(2),
+            alleles.at(3),
+    };
+    EXPECT_EQ(genotyped_alleles, expected_alleles);
+
     auto gtype = genotyped.get_site()->get_genotype();
-    GtypedIndices expected_gtype{2, 3};
+    GtypedIndices expected_gtype{1, 2};
     EXPECT_EQ(std::get<GtypedIndices>(gtype), expected_gtype);
 }
 

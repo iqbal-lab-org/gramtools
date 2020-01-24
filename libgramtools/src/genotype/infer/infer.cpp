@@ -39,6 +39,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph, SitesGroupedAlle
     // Genotype each bubble in the PRG, in most nested to less nested order.
     for (auto const& bubble_pair : cov_graph.bubble_map){
         auto site_index = siteID_to_index(bubble_pair.first->get_site_ID());
+        // TODO : set end node of site here
         auto extracter = AlleleExtracter(bubble_pair.first, bubble_pair.second, genotyped_records);
         auto extracted_alleles = extracter.get_alleles();
         auto& gped_covs_for_site = gped_covs.at(site_index);
