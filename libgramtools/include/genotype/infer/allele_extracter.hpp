@@ -32,6 +32,12 @@ namespace gram::genotype::infer {
         allele_vector extract_alleles(AlleleId const haplogroup, covG_ptr haplogroup_start, covG_ptr site_end);
 
         /**
+         * Extracts a 'reference' for this bubble, by arbitrarily picking the first allele of each encountered site.
+         * // TODO
+         */
+        Allele extract_ref_allele(covG_ptr haplogroup_0_start, covG_ptr site_end);
+
+        /**
          * From the set of genotypes of a site, combines them with existing alleles.
          * @param existing the starting alleles
          * @param site_index the previously genotyped site

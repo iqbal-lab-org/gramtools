@@ -91,6 +91,21 @@ multiplicities LevelGenotyperModel::count_num_haplogroups(allele_vector const& a
     return m;
 };
 
+GtypedIndices LevelGenotyperModel::rescale_genotypes(GtypedIndices const& genotypes){
+    // 0 always goes to 0 because we always add the 'REF' as an allele, even when not called.
+    std::unordered_map<GtypedIndex, GtypedIndex> rescaler{{0, 0}};
+
+    GtypedIndices result;
+    GtypedIndex rescaling_index{1};
+
+    for(auto const& gt : genotypes){
+        if (rescaler.find(gt) == rescaler.end()) rescaler.insert(std::make_pair(gt, rescaling_index++));
+        result.push_back(rescaler.at(gt));
+    }
+
+    return result;
+}
+
 std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(const GtypedIndices &indices, std::size_t const subset_size){
     auto num_elements = indices.size();
     if (subset_size > num_elements) return {};
@@ -218,6 +233,8 @@ alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
 
     total_coverage = count_total_coverage(*gp_counts);
     if (total_coverage == 0 || l_stats->mean_cov_depth == 0){
+        // Give the null genotyped site the first allele for extraction to be possible
+        genotyped_site->set_alleles(allele_vector{alleles->at(0)});
         genotyped_site->make_null();
         return;
     }
@@ -237,6 +254,10 @@ alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     ++it;
     auto gt_confidence = best_likelihood - it->first;
 
-    genotyped_site->set_genotype(chosen_gt, gt_confidence);
+    auto chosen_alleles = get_unique_genotyped_alleles(*alleles, chosen_gt);
+    genotyped_site->set_alleles(chosen_alleles);
+
+    auto rescaled_gt = rescale_genotypes(chosen_gt);
+    genotyped_site->set_genotype(rescaled_gt, gt_confidence);
 }
 

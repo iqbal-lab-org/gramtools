@@ -13,6 +13,11 @@ namespace gram::genotype::infer{
     using GtypedIndices = std::vector<GtypedIndex>;
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
 
+    /**
+     * Pick out the alleles according to the given `genotype`
+     */
+    allele_vector const get_unique_genotyped_alleles(allele_vector const& all_alleles, GenotypeOrNull const& genotype);
+
 class AbstractGenotypedSite{
 protected:
     allele_vector alleles;
@@ -39,6 +44,10 @@ public:
         genotype = indices;
         gt_conf = gt_confidence;
     };
+
+    void set_alleles(allele_vector const& chosen_alleles){
+        alleles = chosen_alleles;
+    }
 
 
     void make_null() {

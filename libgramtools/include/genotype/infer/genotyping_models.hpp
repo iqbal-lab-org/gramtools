@@ -17,6 +17,7 @@ using poisson_pmf_ptr = poisson_pmf*;
 namespace gram::genotype::infer {
     using numCredibleCounts = std::size_t;
     using multiplicities = std::vector<bool>;
+    using likelihood_map = std::multimap<double, GtypedIndices, std::greater<double>>;
 
     struct likelihood_related_stats{
         double mean_cov_depth,
@@ -49,7 +50,7 @@ namespace gram::genotype::infer {
         std::size_t total_coverage;
 
         // Computed at run time
-        std::multimap<double, GtypedIndices, std::greater<double> > likelihoods; // Store highest likelihoods first
+        likelihood_map likelihoods; // Store highest likelihoods first
         std::shared_ptr<LevelGenotypedSite> genotyped_site; // What the class will build
 
     public:
@@ -72,6 +73,12 @@ namespace gram::genotype::infer {
 
         // Counting
         std::vector<bool> count_num_haplogroups(allele_vector const& alleles);
+        /**
+         * Express genotypes as relative to chosen alleles.
+         * For eg, {0, 2, 4} in the original set of possible alleles goes to {0, 1, 2} in the 3 called alleles (yes,
+         * this is Triploid example).
+         */
+        GtypedIndices rescale_genotypes(GtypedIndices const& genotypes);
 
         // Permutations
         /**
@@ -83,7 +90,7 @@ namespace gram::genotype::infer {
         numCredibleCounts count_credible_positions(CovCount const& credible_cov_t, Allele const& allele);
 
         /**
-         * Haploid
+         * Haploid genotype likelihood
          */
         void compute_haploid_log_likelihoods();
 
@@ -102,6 +109,7 @@ namespace gram::genotype::infer {
         // Trivial Getters
         PerAlleleCoverage const& get_haploid_covs() const {return haploid_allele_coverages;}
         AlleleIdSet const& get_singleton_covs() const {return singleton_allele_coverages;}
+        likelihood_map const& get_likelihoods() const { return likelihoods; }
     };
 }
 #endif //GTYPING_MODELS

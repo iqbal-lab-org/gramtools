@@ -177,3 +177,14 @@ TEST(MakePermutations,GivenVariousParameters_CorrectPermutations){
     expected = {};
     EXPECT_EQ(two_from_one, expected);
 }
+
+TEST(RescaleGenotypes, GivenVariousGenotypes_CorrectRescaling){
+    LevelGenotyperModel g;
+    GtypedIndices no_zero_gt{1, 3};
+    GtypedIndices no_zero_gt_rescaled{1, 2};
+
+    EXPECT_EQ(g.rescale_genotypes(no_zero_gt), no_zero_gt_rescaled);
+
+    GtypedIndices zero_and_repeated_gt{0, 4, 4};
+    GtypedIndices  zero_and_repeated_gt_rescaled{0, 1, 1};
+}

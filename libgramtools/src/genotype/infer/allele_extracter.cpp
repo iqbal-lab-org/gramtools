@@ -19,21 +19,17 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing, std
     // Sanity check: site_index refers to actual site
     assert( 0 <= site_index && site_index < genotyped_sites->size() );
     gt_site_ptr referent_site = genotyped_sites->at(site_index);
-    auto referent_genotype = referent_site->get_genotype();
+
     auto referent_alleles = referent_site->get_alleles();
+    auto referent_genotype = referent_site->get_genotype();
 
-    std::set<GtypedIndex> distinct_genotypes;
-    if ( auto valid_gtype = std::get_if<GtypedIndices>(&referent_genotype) ){
-        distinct_genotypes = std::set<GtypedIndex>(valid_gtype->begin(), valid_gtype->end());
-    }
-    else distinct_genotypes = std::set<GtypedIndex>{0}; // If null genotype, take the reference only
-
-    allele_vector combinations(existing.size() * distinct_genotypes.size());
+    allele_vector genotyped_alleles = get_unique_genotyped_alleles(referent_alleles, referent_genotype);
+    allele_vector combinations(existing.size() * genotyped_alleles.size());
 
     std::size_t insertion_index{0};
     for (auto const& allele : existing){
-        for (auto const& allele_id : distinct_genotypes){
-            combinations.at(insertion_index) = allele + referent_alleles.at(allele_id);
+        for (auto const& genotyped_allele : genotyped_alleles){
+            combinations.at(insertion_index) = allele + genotyped_allele;
             ++insertion_index;
         }
     }
