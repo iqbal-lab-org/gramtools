@@ -108,7 +108,7 @@ Sequence gram::encode_dna_bases(const std::string &dna_str) {
 
 
 Sequence gram::encode_dna_bases(const GenomicRead &read_sequence) {
-    const auto sequence_length = strlen(read_sequence.seq);
+    const auto sequence_length = read_sequence.seq.size();
     Sequence pattern;
     for (uint64_t i = 0; i < sequence_length; i++) {
         int_Base encoded_base = encode_dna_base(read_sequence.seq[i]);

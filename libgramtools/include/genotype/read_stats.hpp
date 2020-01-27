@@ -19,14 +19,24 @@ namespace gram {
     class ReadStats {
     public:
         // Default constructor: -1 initialisation to signal that attribute has not been computed.
-        ReadStats() : mean_cov_depth(-1), no_qual_reads(-1), max_read_length(-1), num_bases_processed(-1),
+        ReadStats() : mean_cov_depth(-1), no_qual_reads(-1), max_read_length(0), num_bases_processed(-1),
                       mean_pb_error(-1), variance_depth(-1), num_sites_noCov(-1), num_sites_total(-1) {};
 
         /**
-         * Compute probability of erroneous base from base Phred scores.
-         * @param reads_fpath File containing reads.
+         * From a file
          */
         void compute_base_error_rate(const std::string &reads_fpath);
+
+        /**
+         * From random access memory
+         */
+        void compute_base_error_rate(GenomicRead_vector const& reads);
+
+        /**
+         * Compute probability of erroneous base from base Phred scores.
+         */
+        void process_read_perbase_error_rates(AbstractGenomicReadIterator& reads_it);
+
 
         /**
          * Compute the depth of coverage using recorded coverage of reads over variant sites after `quasimap`.
@@ -38,12 +48,15 @@ namespace gram {
 
         double const& get_mean_cov_depth() const{ return mean_cov_depth; }
         double const& get_mean_pb_error() const{ return mean_pb_error; }
+        int64_t const& get_num_bases_processed() const{ return num_bases_processed; }
+        std::size_t const& get_max_read_len() const{ return max_read_length; }
+        int64_t const& get_num_no_qual_reads() const{ return no_qual_reads; }
 
 
     private:
         double mean_pb_error; // Pb sequencing error rate
         int64_t no_qual_reads;
-        double max_read_length;
+        std::size_t max_read_length;
         int64_t num_bases_processed;
 
         double mean_cov_depth; // Mean of total coverages at each variant site
