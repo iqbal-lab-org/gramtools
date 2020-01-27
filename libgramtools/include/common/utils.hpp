@@ -59,6 +59,11 @@ namespace gram {
      */
      std::size_t siteID_to_index(Marker const& site_ID);
 
+    /**
+     * Opposite conversion: 0-based array access index to site ID
+     */
+    Marker index_to_siteID(std::size_t const& idx);
+
     /******************************************
      * Characters to integers and vice-versa **
      ******************************************/

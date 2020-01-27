@@ -40,6 +40,10 @@ std::size_t gram::siteID_to_index(Marker const& site_ID){
     return (site_ID - 5) / 2;
 };
 
+Marker gram::index_to_siteID(std::size_t const& idx){
+    return idx * 2 + 5;
+}
+
 /******************************************
  * Characters to integers and vice-versa **
  ******************************************/

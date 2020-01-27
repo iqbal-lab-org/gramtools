@@ -1,5 +1,6 @@
 #include "genotype/read_stats.hpp"
 #include <math.h>
+#include <prg/coverage_graph.hpp>
 
 using namespace gram;
 
@@ -66,25 +67,31 @@ void gram::ReadStats::process_read_perbase_error_rates(AbstractGenomicReadIterat
         this->mean_pb_error = mean_error;
     }
 
-void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
+void gram::ReadStats::compute_coverage_depth(Coverage const& coverage, parental_map const &par_map) {
     uint64_t this_site_cov;
     double total_coverage = 0;
     int64_t num_sites_noCov = 0;
-    std::size_t num_sites_total = coverage.grouped_allele_counts.size();
-    std::vector<uint64_t> coverages(num_sites_total);
+    std::size_t num_sites_processed{0};
+    std::vector<uint64_t> coverages;
 
     double mean_coverage, variance_coverage;
 
-    int64_t site_index{0};
-    for (const auto& site : coverage.grouped_allele_counts){ //`site` is an unordered_map associating alleleIDs with coverage.
-        this_site_cov = 0;
+    std::size_t site_index{0};
+    //`site` is an unordered_map associating alleleIDs with coverage.
+    for (const auto& site : coverage.grouped_allele_counts ){
+        auto site_ID = index_to_siteID(site_index++);
 
+        // If the site is nested within another, we do not process its coverage
+        if (par_map.find(site_ID) != par_map.end()) continue;
+
+        this_site_cov = 0;
         for (const auto& entry : site){
             this_site_cov += entry.second;
         }
 
-        coverages.at(site_index++) = this_site_cov;
+        coverages.push_back(this_site_cov);
         total_coverage += this_site_cov;
+        num_sites_processed++;
         if (this_site_cov == 0) num_sites_noCov++;
     }
 
@@ -102,7 +109,7 @@ void gram::ReadStats::compute_coverage_depth(gram::Coverage &coverage) {
     this->mean_cov_depth = mean_coverage;
     this->variance_depth = variance_coverage;
     this->num_sites_noCov = num_sites_noCov;
-    this->num_sites_total = num_sites_total;
+    this->num_sites_total = num_sites_processed;
 }
 
 
