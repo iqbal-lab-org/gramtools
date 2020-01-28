@@ -9,7 +9,7 @@
 #include "sequence_read/seqread.hpp"
 
 #include "common/utils.hpp"
-#include "common/read_stats.hpp"
+#include "genotype/read_stats.hpp"
 
 #include "kmer_index/kmer_index_types.hpp"
 #include "coverage/types.hpp"

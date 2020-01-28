@@ -39,14 +39,21 @@ public:
     ReadStats read_stats;
 
     explicit prg_setup() {};
-    void setup(std::string raw_prg,
-               Sequences kmers){
+
+    /**
+     * Sets up a 'legacy'-style PRG string, with no nesting
+     */
+    void setup_numbered_prg(std::string raw_prg,
+                            Sequences kmers){
         auto encoded_prg = encode_prg(raw_prg);
         internal_setup(encoded_prg, kmers);
     }
 
-    void setup_nested(std::string raw_prg,
-                      Sequences kmers){
+    /**
+     * The bracketed format allows unambiguously encoding nested PRG strings.
+     */
+    void setup_bracketed_prg(std::string raw_prg,
+                             Sequences kmers){
         auto encoded_prg = prg_string_to_ints(raw_prg);
         internal_setup(encoded_prg, kmers);
     }

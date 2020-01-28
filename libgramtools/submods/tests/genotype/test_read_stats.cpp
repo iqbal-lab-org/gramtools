@@ -71,7 +71,7 @@ TEST(ReadMappingStats, GivenThreeMappedReadsNonNestedPRG_CorrectMappingRelatedSt
 
     prg_setup setup;
     Sequences kmers{ encode_dna_bases("AA") };
-    setup.setup("G5AAAA6AA6T7G8C8GGG", kmers);
+    setup.setup_numbered_prg("G5AAAA6AA6T7G8C8GGG", kmers);
     setup.quasimap_reads(reads);
 
     auto stats = setup.read_stats;
@@ -89,7 +89,7 @@ TEST(ReadMappingStats, GivenTwoMappedReadsNestedPRG_CorrectMappingRelatedStats){
 
     prg_setup setup;
     Sequences kmers{ encode_dna_bases("CC") };
-    setup.setup_nested("G[GG[G,A]G,C]CCC", kmers);
+    setup.setup_bracketed_prg("G[GG[G,A]G,C]CCC", kmers);
     setup.quasimap_reads(reads);
 
     auto stats = setup.read_stats;

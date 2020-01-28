@@ -1,3 +1,6 @@
+/**
+ * Tests the internals of LevelGenotyperModel
+ */
 #include "gtest/gtest.h"
 #include "genotype/infer/genotyping_models.hpp"
 
