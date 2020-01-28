@@ -25,10 +25,10 @@ CovCount LevelGenotyper::find_minimum_non_error_cov(double mean_pb_error, poisso
     return min_count;
 }
 
-LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph, SitesGroupedAlleleCounts const& gped_covs,
-                               ReadStats const& read_stats) :
-        cov_graph(&cov_graph), gped_covs(&gped_covs){
-    genotyped_records.reserve(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
+LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
+                               ReadStats const &read_stats, Ploidy const ploidy) :
+        cov_graph(&cov_graph), gped_covs(&gped_covs), ploidy(ploidy){
+    genotyped_records.resize(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
     auto mean_cov_depth = read_stats.get_mean_cov_depth();
     auto mean_pb_error = read_stats.get_mean_pb_error();
 
@@ -39,14 +39,16 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph, SitesGroupedAlle
     // Genotype each bubble in the PRG, in most nested to less nested order.
     for (auto const& bubble_pair : cov_graph.bubble_map){
         auto site_index = siteID_to_index(bubble_pair.first->get_site_ID());
-        // TODO : set end node of site here
         auto extracter = AlleleExtracter(bubble_pair.first, bubble_pair.second, genotyped_records);
         auto extracted_alleles = extracter.get_alleles();
         auto& gped_covs_for_site = gped_covs.at(site_index);
         auto genotyped = LevelGenotyperModel(&extracted_alleles, &gped_covs_for_site,
-                Ploidy::Haploid, &l_stats);
+                                             ploidy, &l_stats, ! extracter.ref_allele_got_made_naturally());
 
         genotyped_records.at(site_index) = genotyped.get_site();
+        // Line below is so that when allele extraction occurs and jumps through a previously
+        // genotyped site, it knows where in the graph to resume from.
+        genotyped_records.at(site_index)->set_site_end_node(bubble_pair.second);
 
         // TODO: invalidation
     }

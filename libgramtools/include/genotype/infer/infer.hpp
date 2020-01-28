@@ -11,7 +11,7 @@
 #define GRAMTOOLS_INFER_HPP
 
 #include "genotype/infer/genotyping_models.hpp"
-#include "common/read_stats.hpp"
+#include "genotype/read_stats.hpp"
 
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
@@ -24,13 +24,16 @@ class LevelGenotyper {
     SitesGroupedAlleleCounts const *gped_covs;
     likelihood_related_stats l_stats;
 
+    Ploidy ploidy;
     gt_sites genotyped_records;
 
 public:
     LevelGenotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
 
     LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
-                   ReadStats const &read_stats);
+                   ReadStats const &read_stats, Ploidy const ploidy);
+
+    gt_sites const& get_genotyped_records() const {return genotyped_records;}
 
     static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
     static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
