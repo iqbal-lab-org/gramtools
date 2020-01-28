@@ -2,7 +2,8 @@
 
 namespace gram::genotype::infer {
 
-allele_vector const get_unique_genotyped_alleles(allele_vector const &all_alleles, GenotypeOrNull const &genotype) {
+allele_vector const AbstractGenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
+                                                                        GenotypeOrNull const &genotype) const {
 
     std::set<GtypedIndex> distinct_genotypes;
     if (auto valid_gtype = std::get_if<GtypedIndices>(&genotype)) {

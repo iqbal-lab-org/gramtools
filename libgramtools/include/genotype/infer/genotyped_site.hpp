@@ -13,10 +13,6 @@ namespace gram::genotype::infer{
     using GtypedIndices = std::vector<GtypedIndex>;
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
 
-    /**
-     * Pick out the alleles according to the given `genotype`
-     */
-    allele_vector const get_unique_genotyped_alleles(allele_vector const& all_alleles, GenotypeOrNull const& genotype);
 
 class AbstractGenotypedSite{
 protected:
@@ -29,6 +25,30 @@ public:
     virtual GenotypeOrNull const get_genotype() const = 0;
     virtual allele_vector const get_alleles() const = 0;
     virtual covG_ptr const get_site_end_node() const = 0;
+
+    /**
+     * Given alleles and GT, return the alleles referred to by GT
+     */
+    allele_vector const get_unique_genotyped_alleles
+            (allele_vector const& all_alleles, GenotypeOrNull const& genotype) const;
+
+    /**
+     * Return site's called alleles directly, from its own alleles
+     */
+    allele_vector const get_unique_genotyped_alleles() const{
+        return get_unique_genotyped_alleles(alleles, genotype);
+    }
+
+    /**
+     * Return site's called alleles indirectly
+     * This version exists for allowing to use mocked alleles and genotypes
+     */
+    allele_vector const extract_unique_genotyped_alleles() const{
+        auto extracted_alleles = this->get_alleles();
+        auto extracted_gts = this->get_genotype();
+        return get_unique_genotyped_alleles(extracted_alleles, extracted_gts);
+    }
+    void set_site_end_node(covG_ptr const& end_node) {site_end_node = end_node;}
     bool const has_alleles() const { return alleles.size() > 0 ;}
     virtual bool is_null() const = 0;
 };
@@ -36,6 +56,7 @@ public:
 class LevelGenotypedSite : public AbstractGenotypedSite{
     double gt_conf; /**< Difference in log likelihood between most likely and next most likely genotype **/
 public:
+    LevelGenotypedSite() {}
     ~LevelGenotypedSite() = default;
     GenotypeOrNull const get_genotype() const override {return genotype;}
     allele_vector const get_alleles() const override {return alleles;}
