@@ -62,3 +62,11 @@ TEST(NonGenotypedHaplogroups, GivenGenotypedSite_CorrectNonGenotypedHaplogroups)
     AlleleIds expected{0, 2, 3, 4};
     EXPECT_EQ(result, expected);
 }
+
+TEST(GetAllHaploGroups, GivenSiteWithGivenHaplotypeNum_CorrectReturnedHaplos){
+    LevelGenotypedSite site;
+    site.set_num_haplogroups(5);
+    auto result = site.get_all_haplogroups();
+    AlleleIds expected{0, 1, 2, 3, 4};
+    EXPECT_EQ(result, expected);
+}

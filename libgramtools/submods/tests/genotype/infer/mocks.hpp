@@ -11,6 +11,7 @@ public:
     MOCK_METHOD(allele_vector const, get_alleles, (), (const, override));
     MOCK_METHOD(covG_ptr const, get_site_end_node, (), (const, override));
     MOCK_METHOD(bool, is_null, (), (const, override));
+    MOCK_METHOD(void, make_null, (), (override));
 };
 
 namespace gram::genotype::infer::probabilities{

@@ -251,6 +251,7 @@ gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     else alleles = input_alleles;
 
     auto haplogroup_multiplicities = count_num_haplogroups(*alleles);
+    genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size());
     set_haploid_coverages(*gp_counts, haplogroup_multiplicities.size());
 
     if (ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods();

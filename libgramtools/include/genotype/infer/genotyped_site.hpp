@@ -27,6 +27,7 @@ public:
     virtual allele_vector const get_alleles() const = 0;
     virtual covG_ptr const get_site_end_node() const = 0;
     virtual bool is_null() const = 0;
+    virtual void make_null() = 0;
 
     void set_site_end_node(covG_ptr const& end_node) {site_end_node = end_node;}
     std::size_t const& get_num_haplogroups() {return num_haplogroups;}
@@ -62,6 +63,13 @@ public:
      * site invalidation.
      */
     AlleleIds const get_nonGenotyped_haplogroups() const;
+
+    AlleleIds const get_all_haplogroups() const{
+        assert(num_haplogroups > 0);
+        AlleleIds result;
+        for (std::size_t idx{0}; idx < num_haplogroups; idx++) result.push_back(idx);
+        return result;
+    }
 };
 
 class LevelGenotypedSite : public AbstractGenotypedSite{
@@ -72,6 +80,10 @@ public:
     GenotypeOrNull const get_genotype() const override {return genotype;}
     allele_vector const get_alleles() const override {return alleles;}
     covG_ptr const get_site_end_node() const override {return site_end_node;}
+    void make_null() override {
+        genotype = false;
+        gt_conf = 0.;
+    }
 
 
     void set_genotype(GtypedIndices const indices, double const gt_confidence){
@@ -83,11 +95,6 @@ public:
         alleles = chosen_alleles;
     }
 
-
-    void make_null() {
-        genotype = false;
-        gt_conf = 0.;
-    }
 
     /** Whether the site is null genotyped */
     bool is_null() const override {

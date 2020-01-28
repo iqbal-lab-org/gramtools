@@ -26,9 +26,12 @@ class LevelGenotyper {
 
     Ploidy ploidy;
     gt_sites genotyped_records;
+    child_map child_m;
 
 public:
     LevelGenotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
+    LevelGenotyper(child_map const& ch, gt_sites const& sites) :
+        child_m(ch), genotyped_records(sites), cov_graph(nullptr), gped_covs(nullptr) {}
 
     LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                    ReadStats const &read_stats, Ploidy const ploidy);
@@ -37,6 +40,8 @@ public:
 
     static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
     static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
+    void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
+    AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
 };
 }
 
