@@ -1,9 +1,12 @@
+/**
+ * Tests full-round single-site genotyping:
+ * - i. LevelGenotyper based one-site genotyping
+ */
 #include "gtest/gtest.h"
-#include "genotype/infer/genotyping_models.hpp"
 #include "genotype/infer/infer.hpp"
 
 /**
- * LevelGenotyperModel tests
+ * LevelGenotyperModel tests (i.)
  */
 TEST(TestLevelGenotyperModel_Failure, GivenOneAlleleOnly_Breaks){
     // No likelihood ratio if only one allele. Note this should not present itself if allele extraction
@@ -13,7 +16,7 @@ TEST(TestLevelGenotyperModel_Failure, GivenOneAlleleOnly_Breaks){
     };
     GroupedAlleleCounts gp_counts;
     likelihood_related_stats l_stats;
-    EXPECT_DEATH(LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats), "");
+    EXPECT_DEATH(LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false), "");
 }
 
 class TestLevelGenotyperModel_NullGTs : public ::testing::Test {
@@ -30,13 +33,13 @@ protected:
 
 TEST_F(TestLevelGenotyperModel_NullGTs , Given0MeanCoverage_ReturnsNullGenotypedSite) {
     l_stats.mean_cov_depth = 0;
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats);
+    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
 
     EXPECT_TRUE(genotyped.get_site()->is_null());
 }
 
 TEST_F(TestLevelGenotyperModel_NullGTs , GivenNoCoverageOnAllAlleles_ReturnsNullGenotypedSite) {
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats);
+    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
 
     EXPECT_TRUE(genotyped.get_site()->is_null());
 }
@@ -62,7 +65,7 @@ protected:
 
 
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectHaploidCall) {
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats);
+    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
 
     auto genotyped_alleles = genotyped.get_site()->get_alleles();
     allele_vector expected_alleles{
@@ -81,7 +84,7 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorr
 
 
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectDiploidCall) {
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats);
+    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
 
     auto gtype = genotyped.get_site()->get_genotype();
     EXPECT_TRUE(std::holds_alternative<GtypedIndices>(gtype));
@@ -108,7 +111,7 @@ TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype){
 
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats);
+    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
     auto gtype = genotyped.get_site()->get_genotype();
     GtypedIndices expected_gtype{1, 1};
     EXPECT_EQ(std::get<GtypedIndices>(gtype), expected_gtype);
@@ -136,7 +139,7 @@ protected:
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_CorrectGenotype){
 
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats);
+    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
 
     auto genotyped_alleles = genotyped.get_site()->get_alleles();
     allele_vector expected_alleles{
@@ -152,14 +155,36 @@ TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_Co
 }
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenDifferentPloidies_CorrectNumberOfProducedGenotypes) {
-    auto haploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats);
+    auto haploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
     EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 4);
 
-    auto diploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats);
+    auto diploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
     // Expected number of genotypes: 4 diploid homozygous + (4 choose 2) diploid heterozygous
     EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 10);
 }
 
-/**
- * LevelGenotyper tests
- */
+TEST(TestLevelGenotyperModel_IgnoredREF, GivenSeveralAllelesAndIgnoredREF_CorrectNumberOfLikelihoods){
+    // Note this is only relevant to genotyping a site which contains a nested site
+    // Here we imagine we called one allele in each of haplogroups 0 and 1, and that a REF got prepended
+    allele_vector alleles{
+            Allele{ "A", {0}, 0 },
+            Allele{ "C", {8}, 0 },
+            Allele{ "G", {8}, 1 },
+    };
+
+    GroupedAlleleCounts gp_counts{
+            { {0}, 8 },
+            { {1}, 8 },
+    };
+    double mean_cov_depth{8}, mean_pb_error{0.01};
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+
+    // The last param to LevelGenotyperModel is whether to avoid using the REF
+    auto haploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, true);
+    EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 2);
+
+    auto diploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, true);
+    // Two homs and one het. Note this only works if you have singleton coverage on each haplogroup
+    EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 3);
+}
+

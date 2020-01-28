@@ -55,8 +55,14 @@ namespace gram::genotype::infer {
 
     public:
         LevelGenotyperModel() : alleles(nullptr), gp_counts(nullptr) {}
-        LevelGenotyperModel(allele_vector const *alleles, GroupedAlleleCounts const *gp_counts, Ploidy ploidy,
-                            likelihood_related_stats const *l_stats);
+        /**
+         *
+         * @param ignore_ref_allele if true, the ref allele was not produced naturally,
+         * and we do not consider it for genotyping
+         */
+        LevelGenotyperModel(allele_vector const *input_alleles, GroupedAlleleCounts const *gp_counts,
+                            Ploidy ploidy, likelihood_related_stats const *l_stats,
+                            bool ignore_ref_allele = false);
 
         gt_site_ptr get_site() override { return std::static_pointer_cast<gt_site>(genotyped_site); }
 

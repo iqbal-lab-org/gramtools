@@ -138,7 +138,7 @@ void LevelGenotyperModel::compute_haploid_log_likelihoods() {
        double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
        auto cov_not_on_allele = total_coverage - cov_on_allele;
 
-       auto num_non_error_positions = count_credible_positions(l_stats->credible_cov_t, allele);
+       double num_non_error_positions = count_credible_positions(l_stats->credible_cov_t, allele);
        double frac_non_error_positions = num_non_error_positions / allele.pbCov.size();
 
        double log_likelihood = (
@@ -227,21 +227,28 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(multiplicities co
     }
 }
 
-LevelGenotyperModel::LevelGenotyperModel(allele_vector const *alleles, GroupedAlleleCounts const *gp_counts,
-                                         Ploidy ploidy,
-                                         likelihood_related_stats const *l_stats) :
-alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
-    genotyped_site = std::make_shared<LevelGenotypedSite>();
+LevelGenotyperModel::LevelGenotyperModel(allele_vector const *input_alleles, GroupedAlleleCounts const *gp_counts,
+                                         Ploidy ploidy, likelihood_related_stats const *l_stats,
+                                         bool ignore_ref_allele) :
+gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
+    assert(input_alleles->size() > 1);
 
-    assert(alleles->size() > 1);
+    genotyped_site = std::make_shared<LevelGenotypedSite>();
 
     total_coverage = count_total_coverage(*gp_counts);
     if (total_coverage == 0 || l_stats->mean_cov_depth == 0){
         // Give the null genotyped site the first allele for extraction to be possible
-        genotyped_site->set_alleles(allele_vector{alleles->at(0)});
+        genotyped_site->set_alleles(allele_vector{input_alleles->at(0)});
         genotyped_site->make_null();
         return;
     }
+
+    allele_vector without_ref;
+    if (ignore_ref_allele){
+        without_ref = allele_vector{input_alleles->begin() + 1, input_alleles->end()};
+        alleles = &without_ref;
+    }
+    else alleles = input_alleles;
 
     auto haplogroup_multiplicities = count_num_haplogroups(*alleles);
     set_haploid_coverages(*gp_counts, haplogroup_multiplicities.size());
@@ -258,12 +265,17 @@ alleles(alleles), gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     ++it;
     auto gt_confidence = best_likelihood - it->first;
 
-    auto chosen_alleles = get_unique_genotyped_alleles(*alleles, chosen_gt);
     auto rescaled_gt = rescale_genotypes(chosen_gt);
-    genotyped_site->set_genotype(rescaled_gt, gt_confidence);
+    if (ignore_ref_allele) {
+        for (auto& gt : chosen_gt) gt++;
+        for (auto& gt : rescaled_gt) gt++;
+    }
+    // We use chosen_gt not rescaled_gt to get the right alleles
+    auto chosen_alleles = genotyped_site->get_unique_genotyped_alleles(*input_alleles, chosen_gt);
 
     // If REF allele has not been called, add it anyway. Note rescaled_gt is sorted so can query its first element.
-    if (rescaled_gt.at(0) != 0) chosen_alleles = prepend_allele(chosen_alleles, alleles->at(0));
+    if (rescaled_gt.at(0) != 0) chosen_alleles = prepend_allele(chosen_alleles, input_alleles->at(0));
     genotyped_site->set_alleles(chosen_alleles);
+    genotyped_site->set_genotype(rescaled_gt, gt_confidence);
 }
 
