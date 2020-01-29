@@ -19,12 +19,20 @@ protected:
     allele_vector alleles;
     GenotypeOrNull genotype;
     covG_ptr site_end_node;
+    std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
 public:
     virtual ~AbstractGenotypedSite() {};
     virtual GenotypeOrNull const get_genotype() const = 0;
     virtual allele_vector const get_alleles() const = 0;
     virtual covG_ptr const get_site_end_node() const = 0;
+    virtual bool is_null() const = 0;
+
+    void set_site_end_node(covG_ptr const& end_node) {site_end_node = end_node;}
+    std::size_t const& get_num_haplogroups() {return num_haplogroups;}
+    void set_num_haplogroups(std::size_t const& num_haps) {num_haplogroups = num_haps;}
+    bool const has_alleles() const { return alleles.size() > 0 ;}
+
 
     /**
      * Given alleles and GT, return the alleles referred to by GT
@@ -48,9 +56,12 @@ public:
         auto extracted_gts = this->get_genotype();
         return get_unique_genotyped_alleles(extracted_alleles, extracted_gts);
     }
-    void set_site_end_node(covG_ptr const& end_node) {site_end_node = end_node;}
-    bool const has_alleles() const { return alleles.size() > 0 ;}
-    virtual bool is_null() const = 0;
+
+    /**
+     * Produce the haplogroups that have not been genotyped, for use in nested
+     * site invalidation.
+     */
+    AlleleIds const get_nonGenotyped_haplogroups() const;
 };
 
 class LevelGenotypedSite : public AbstractGenotypedSite{
@@ -61,6 +72,7 @@ public:
     GenotypeOrNull const get_genotype() const override {return genotype;}
     allele_vector const get_alleles() const override {return alleles;}
     covG_ptr const get_site_end_node() const override {return site_end_node;}
+
 
     void set_genotype(GtypedIndices const indices, double const gt_confidence){
         genotype = indices;

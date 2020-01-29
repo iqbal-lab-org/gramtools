@@ -35,11 +35,22 @@ namespace gram {
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/
 
     using parental_map = std::unordered_map<Marker, VariantLocus>; /** Map of a site to its parental Locus */
+    using haplo_map = std::unordered_map<AlleleId, marker_vec>;
+    /**
+     * Opposite of parental_map. Used for associating a site's haplogroup to IDs of sites sitting inside it.
+     * The top-level key is a site ID, and you then access each haplogroup in the inner map.
+     */
+    using child_map = std::unordered_map<Marker, haplo_map >;
 
     // coverage-related
     using CovCount = uint16_t;
     using PerBaseCoverage = std::vector<CovCount>; /**< Number of reads mapped to each base of an allele */
     using PerAlleleCoverage = std::vector<CovCount>; /**< Number of reads mapped to each of several alleles */
+
+    /**
+     * Build child_map from parental_map
+     */
+     child_map build_child_map(parental_map const& par_map);
 
     /**
      * Unified definition of a site marker

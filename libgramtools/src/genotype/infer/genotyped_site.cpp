@@ -20,4 +20,22 @@ allele_vector const AbstractGenotypedSite::get_unique_genotyped_alleles(allele_v
     }
     return result;
 }
+
+AlleleIds const AbstractGenotypedSite::get_nonGenotyped_haplogroups() const{
+    assert(! is_null());
+    assert(alleles.size() > 0);
+    assert(num_haplogroups > 0);
+    AlleleIds result;
+
+    AlleleIdSet genotyped_haplogroups;
+    for (auto const& gt : std::get<GtypedIndices>(genotype)){
+       genotyped_haplogroups.insert(alleles.at(gt).haplogroup);
+    }
+
+    for (AlleleId i{0}; i < num_haplogroups; i++){
+        if (genotyped_haplogroups.find(i) == genotyped_haplogroups.end())
+            result.push_back(i);
+    }
+    return result;
+}
 }

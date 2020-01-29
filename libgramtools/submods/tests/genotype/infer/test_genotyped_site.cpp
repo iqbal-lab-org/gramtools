@@ -48,3 +48,17 @@ TEST_F(GetUniqueGenotypedAlleles, GivenUnorderedGenotype_ProducedAllelesAreOrder
     expected.push_back(site_alleles.at(2));
     EXPECT_EQ(extracted_alleles, expected);
 }
+
+TEST(NonGenotypedHaplogroups, GivenGenotypedSite_CorrectNonGenotypedHaplogroups){
+    LevelGenotypedSite site;
+    site.set_alleles(allele_vector{
+        Allele{"ACGT", {1, 1, 1, 1}, 0},
+        Allele{"TTTA", {1, 8, 1, 1}, 1},
+        Allele{"TATA", {1, 8, 2, 1}, 1},
+    });
+    site.set_genotype(GtypedIndices{1, 2}, 5); // Het call of 2 alleles in same haplogroup.
+    site.set_num_haplogroups(5);
+    auto result = site.get_nonGenotyped_haplogroups();
+    AlleleIds expected{0, 2, 3, 4};
+    EXPECT_EQ(result, expected);
+}

@@ -22,6 +22,26 @@ std::string gram::full_path(const std::string &gram_dirpath,
 /******************
  * Data typedefs **
  ******************/
+
+child_map gram::build_child_map(parental_map const& par_map){
+    child_map result;
+
+    Marker child_marker, parental_marker;
+    AlleleId parental_haplotype;
+    for (auto const& entry : par_map){
+        child_marker = entry.first;
+        // Parental locus: pair of (siteID, AlleleId)
+        parental_marker = entry.second.first;
+        parental_haplotype = entry.second.second;
+        // 1-based in par_map and we move to 0-based in child_map
+        assert(parental_haplotype >= 1);
+
+        result[parental_marker][parental_haplotype - 1].push_back(child_marker);
+    }
+    return result;
+}
+
+
 bool gram::is_site_marker(Marker const& variant_marker){
     if (!(variant_marker > 4)) throw std::invalid_argument("The given marker is not a variant marker (>4)");
     return variant_marker % 2 == 1;
