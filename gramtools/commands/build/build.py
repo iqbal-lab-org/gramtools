@@ -34,11 +34,16 @@ def run(args):
             build_report, "copy_existing_PRG_string", command_paths, args
         )
     else:
-        # Update the vcf path to a combined vcf from all those provided.
-        # We also do this if only a single one is provided, to deal with overlapping records.
-        command_paths["vcf"] = _cluster_vcf_records(
-            build_report, "vcf_record_clustering", command_paths
-        )
+        if args.no_vcf_clustering:
+            command_paths["vcf"] = _skip_cluster_vcf_records(
+                build_report, "skip_vcf_record_clustering", command_paths
+            )
+        else:
+            # Update the vcf path to a combined vcf from all those provided.
+            # We also do this if only a single one is provided, to deal with overlapping records.
+            command_paths["vcf"] = _cluster_vcf_records(
+                build_report, "vcf_record_clustering", command_paths
+            )
         _execute_command_generate_prg(
             build_report, "vcf_to_PRG_string_conversion", command_paths
         )
@@ -79,6 +84,17 @@ def _count_vcf_record_lines(vcf_file_path):
 
 def setup_command_parser(common_parser, subparsers):
     arguments.setup_build_parser(common_parser, subparsers)
+
+
+@report.with_report
+def _skip_cluster_vcf_records(report, action, command_paths):
+    if len(command_paths["vcf"]) > 1:
+        log.error(
+            "If you ask for no clustering, please provide a single vcf file as input"
+        )
+        exit(1)
+    shutil.copy(command_paths["vcf"][0], command_paths["built_vcf"])
+    return command_paths["built_vcf"]
 
 
 ## Combines records in one or more vcf files using external python utility.

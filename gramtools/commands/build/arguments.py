@@ -40,6 +40,7 @@ def setup_build_parser(common_parser, subparsers):
         required=False,
     )
 
+    # Hidden arguments, for legacy/special uses (minos)
     parser.add_argument(
         "--max-read-length",
         help=argparse.SUPPRESS,
@@ -47,6 +48,13 @@ def setup_build_parser(common_parser, subparsers):
         type=int,
         default=150,
         required=False,
+    )
+
+    parser.add_argument(
+        "--no-vcf-clustering",
+        help=argparse.SUPPRESS,
+        # help="Do not run vcf clustering on the input vcfs",
+        action="store_true",
     )
 
     parser.add_argument("--max-threads", help="", type=int, default=1, required=False)
