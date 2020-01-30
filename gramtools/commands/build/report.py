@@ -2,6 +2,7 @@ import time
 import logging
 import collections
 from ... import version
+from ... import paths
 import os
 import json
 
@@ -53,7 +54,11 @@ def with_report(f):
 
 
 def _save_report(
-    start_time, report, command_paths, command_hash_paths, report_file_path
+    start_time,
+    report,
+    command_paths: paths.ProjectPaths,
+    command_hash_paths,
+    report_file_path,
 ):
     end_time = str(time.time()).split(".")[0]
     _, report_dict = version.report()
@@ -71,7 +76,7 @@ def _save_report(
         collections.OrderedDict(
             [
                 ("current_working_directory", current_working_directory),
-                ("paths", command_paths),
+                ("paths", command_paths.dict()),
                 ("path_hashes", command_hash_paths),
                 ("version_report", report_dict),
             ]

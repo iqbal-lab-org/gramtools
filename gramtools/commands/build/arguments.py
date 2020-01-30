@@ -1,4 +1,9 @@
 import argparse
+from ...paths import BuildPaths, check_exists
+from pathlib import Path
+import logging
+
+log = logging.getLogger("gramtools")
 
 
 def setup_build_parser(common_parser, subparsers):
@@ -61,25 +66,34 @@ def setup_build_parser(common_parser, subparsers):
 
 
 def _check_build_args(args):
+    build_paths = BuildPaths(args.gram_dir)
+
     no_prg = args.prg is None
     no_vcf_and_no_ref = args.reference is None and args.vcf is None
     not_both_vcf_and_ref = args.reference is None or args.vcf is None
 
+    build_paths.make_root()
     if no_prg and no_vcf_and_no_ref:
-        print(
-            "Please provide known variation through either: \n* --prg \n* --vcf and --reference"
-        )
-        exit(1)
+        err_message = "Please provide known variation through either: \n* --prg \n* --vcf and --reference"
+        build_paths.raise_error(err_message)
 
     if args.kmer_size > 14:
-        print(
-            "--kmer-size must be 14 or less, because indexing currently produces all kmers of given size."
-        )
-        exit(1)
+        err_message = "--kmer-size must be 14 or less, because indexing currently produces all kmers of given size."
+        build_paths.raise_error(err_message)
 
     if not no_prg:
-        return
+        check_exists(Path(args.prg))
+        if not no_vcf_and_no_ref:
+            log.warning(
+                "You have provided a --prg and --reference/--vcf. Building using the --prg argument only."
+            )
+        return build_paths
 
     if not_both_vcf_and_ref:
-        print("Please provide both --reference and --vcf")
-        exit(1)
+        err_message = "Please provide both --reference and --vcf"
+        build_paths.raise_error(err_message)
+
+    # We have been given ref and vcf
+    build_paths.ready_ref_and_vcf(args.reference, args.vcf)
+
+    return build_paths

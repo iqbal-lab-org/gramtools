@@ -59,14 +59,12 @@ def hash_command_paths(command_paths):
         if isinstance(path_component, list):
             paths = path_component
             command_hash_paths[command] = {
-                p: _file_hash(p) for p in paths if os.path.isfile(p)
+                str(p): _file_hash(p) for p in paths if p.is_file()
             }
             continue
 
-        path = path_component
-        if not os.path.isfile(path):
-            continue
-        command_hash_paths[command] = _file_hash(path)
+        if path_component.is_file():
+            command_hash_paths[command] = _file_hash(path_component)
     return command_hash_paths
 
 

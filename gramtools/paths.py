@@ -3,77 +3,101 @@
 import os
 import logging
 import shutil
+from pathlib import Path
+from typing import List
 
 log = logging.getLogger("gramtools")
 
-## Defines the file names for all gramtools-related data files.
-# These data files are committed to disk by the `build` process, and some/all used in later commands.
-def _generate_project_paths(gram_dir):
 
-    # Make sure we work with absolute paths. This is particularly important for symlinking during quasimap 'run' setup.
-    gram_dir = os.path.abspath(gram_dir)
-
-    def gram_path(file_name):
-        return os.path.join(gram_dir, file_name)
-
-    paths = {
-        "gram_dir": gram_dir,
-        "original_reference": gram_path("original_reference.fasta"),
-        "prg": gram_path("prg"),
-        "variant_site_mask": gram_path("variant_site_mask"),
-        "allele_mask": gram_path("allele_mask"),
-        "fm_index": gram_path("fm_index"),
-        "prg_string": gram_path("prg"),
-        "build_report": gram_path("build_report.json"),
-        "built_vcf": gram_path("build.vcf"),
-    }
-    return paths
+def path_fact(base_dir):
+    """
+    Factory building functions which build paths from a base_dir.
+   """
+    return lambda fname: base_dir / fname
 
 
-def generate_build_paths(args):
-    paths = _generate_project_paths(args.gram_dir)
+def check_exists(fname: Path, file_description="File"):
+    if not fname.exists():
+        error_message = f"{file_description} required but not found: {fname}"
+        log.error(error_message)
+        exit(1)
 
-    ## Run checks before making gram dir ##
-    if args.reference is not None:
-        _check_exists(args.reference)
 
-    if args.vcf is not None:
-        vcf_files = [
-            vcf_file for arglist in args.vcf for vcf_file in arglist
-        ]  # Flattens out list of lists.
+class ProjectPaths:
+    all_vars = {}
+
+    def items(self):
+        all_vars = vars(self)
+        ProjectPaths.all_vars = {
+            var: entry for var, entry in all_vars.items() if isinstance(entry, Path)
+        }
+        return ProjectPaths.all_vars.items()
+
+    def dict(self):
+        all_vars = vars(self)
+        returned_vars = {}
+        for var, entry in all_vars.items():
+            if not isinstance(entry, Path):
+                continue
+            if isinstance(entry, list):
+                entry = [str(element) for element in entry]
+            else:
+                entry = str(entry)
+            returned_vars[var] = entry
+        return returned_vars
+
+
+class BuildPaths(ProjectPaths):
+    def __init__(self, gram_dir):
+        self.gram_dir = Path.resolve(Path(gram_dir))
+        self.path_maker = path_fact(self.gram_dir)
+
+        self.prg = self.path_maker("prg")
+        self.ref = self.path_maker("original_reference.fasta")
+        self.built_vcf = self.path_maker("build.vcf")
+        self.report = self.path_maker("build_report.json")
+        self.fm_index = self.path_maker("fm_index")
+        self.cov_graph = self.path_maker("cov_graph")
+        self.made_gram_dir = False
+
+    def make_root(self):
+        if not self.gram_dir.exists():
+            log.debug("Creating gram directory:\n%s", self.gram_dir)
+            self.gram_dir.mkdir()
+            self.made_gram_dir = True
+
+    def unmake_root(self):
+        if self.gram_dir.exists() and self.made_gram_dir:
+            self.gram_dir.rmdir()
+
+    def _check_ref_and_make_ref_link(self, ref_path):
+        resolved_ref_path = Path.resolve(Path(ref_path))
+        check_exists(resolved_ref_path)
+        if os.path.lexists(self.ref):
+            self.ref.unlink()
+        os.symlink(resolved_ref_path, self.ref)
+
+    def _check_and_flatten_vcf_filenames(self, vcf: List[List[str]]):
+        vcf_files = [Path(vcf_file) for arglist in vcf for vcf_file in arglist]
 
         for vcf_file in vcf_files:
-            _check_exists(vcf_file)
+            check_exists(vcf_file)
+        self.input_vcfs = vcf_files
 
-        # Right now, the path to the vcf is malformed; it is a list, to account for multiple input vcfs.
-        # We modify this to a single properly formed vcf subsequently.
-        paths["vcf"] = vcf_files
+    def ready_ref_and_vcf(self, reference: str, vcfs: List[List[str]]):
+        self._check_ref_and_make_ref_link(reference)
+        self._check_and_flatten_vcf_filenames(vcfs)
 
-    if args.prg is not None:
-        _check_exists(args.prg)
-
-    if not os.path.exists(paths["gram_dir"]):
-        os.mkdir(paths["gram_dir"])
-        log.debug("Creating gram directory:\n%s", paths["gram_dir"])
-
-    # Must run after gram_dir is guaranteed to exist
-    if args.reference is not None:
-        if os.path.lexists(paths["original_reference"]):
-            os.unlink(paths["original_reference"])
-        os.symlink(os.path.abspath(args.reference), paths["original_reference"])
-    return paths
+    def raise_error(self, err_message):
+        self.unmake_root()
+        log.error(err_message)
+        exit(1)
 
 
 ## Generates paths that will be shared between 'run' commands.
 def _generate_run_paths(run_dir):
 
     run_dir = os.path.abspath(run_dir)
-
-    def path_fact(base_dir):
-        """
-        Factory building functions which build paths from a base_dir.
-       """
-        return lambda fname: os.path.join(base_dir, fname)
 
     # Quasimap paths
     run_path = path_fact(run_dir)
@@ -227,10 +251,3 @@ def generate_discover_paths(args):
         all_paths.update({"reads_files": reads_files})
 
     return all_paths
-
-
-def _check_exists(fname, file_description="File"):
-    if not os.path.isfile(fname):
-        error_message = f"{file_description} required but not found: {fname}"
-        log.error(error_message)
-        exit(1)

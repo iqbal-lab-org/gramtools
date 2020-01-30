@@ -40,6 +40,7 @@ def _setup_parser():
         title="subcommands", dest="subparser_name", metavar=metavar
     )
 
+    # Will add a --debug mode for all commands
     common_parser = subparsers.add_parser("common", add_help=False)
     common_parser.add_argument("--debug", help="", action="store_true")
 
@@ -57,12 +58,11 @@ def run():
         print(report_json)
         return
 
-    try:
-        command = commands[args.subparser_name]
-    except KeyError:
+    if args.subparser_name is None:
         root_parser.print_help()
-    else:
-        command.run(args)
+        exit(1)
+    command = commands[args.subparser_name]
+    command.run(args)
 
 
 if __name__ == "__main__":
