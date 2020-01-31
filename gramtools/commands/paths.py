@@ -10,13 +10,6 @@ from abc import abstractmethod, ABCMeta
 log = logging.getLogger("gramtools")
 
 
-def check_exists(fname: Path, file_description="File"):
-    if not fname.exists():
-        error_message = f"{file_description} required but not found: {fname}"
-        log.error(error_message)
-        exit(1)
-
-
 class ProjectPaths(metaclass=ABCMeta):
     @staticmethod
     def path_fact(base_dir: Path):
@@ -27,9 +20,27 @@ class ProjectPaths(metaclass=ABCMeta):
 
     all_vars = {}
 
+    @classmethod
+    def check_exists(self, fname: Path, file_description="File"):
+        if not fname.exists():
+            error_message = f"{file_description} required but not found: {fname}"
+            log.error(error_message)
+            self.cleanup()
+            exit(1)
+
+    @abstractmethod
+    def initial_setup(self):
+        pass
+
     @abstractmethod
     def cleanup(self):
         pass
+
+    def isOutputtablePath(self, object):
+        if isinstance(object, Path) or isinstance(object, list(Path)):
+            return true
+        else:
+            return false
 
     def raise_error(self, err_message):
         self.cleanup()
@@ -39,15 +50,22 @@ class ProjectPaths(metaclass=ABCMeta):
     def items(self):
         all_vars = vars(self)
         ProjectPaths.all_vars = {
-            var: entry for var, entry in all_vars.items() if isinstance(entry, Path)
+            var: entry
+            for var, entry in all_vars.items()
+            if self.isOutputtablePath(entry)
         }
         return ProjectPaths.all_vars.items()
 
     def dict(self):
+        """
+        Like items() method but:
+        i)returns a dictionary, not its items
+        ii)the item Path entries are all stringified
+        """
         all_vars = vars(self)
         returned_vars = {}
         for var, entry in all_vars.items():
-            if not isinstance(entry, Path):
+            if not self.isOutputtablePath(entry):
                 continue
             if isinstance(entry, list):
                 entry = [str(element) for element in entry]
@@ -70,7 +88,9 @@ class BuildPaths(ProjectPaths):
         self.cov_graph = self.build_path("cov_graph")
         self.made_gram_dir = False
 
-    def make_root(self):
+        self.initial_setup()
+
+    def initial_setup(self):
         if not self.gram_dir.exists():
             log.debug("Creating gram directory:\n%s", self.gram_dir)
             self.gram_dir.mkdir()
@@ -82,7 +102,7 @@ class BuildPaths(ProjectPaths):
 
     def _check_ref_and_make_ref_link(self, ref_path):
         resolved_ref_path = Path.resolve(Path(ref_path))
-        check_exists(resolved_ref_path)
+        self.check_exists(resolved_ref_path)
         if os.path.lexists(self.ref):
             self.ref.unlink()
         os.symlink(resolved_ref_path, self.ref)
@@ -91,7 +111,7 @@ class BuildPaths(ProjectPaths):
         vcf_files = [Path(vcf_file) for arglist in vcf for vcf_file in arglist]
 
         for vcf_file in vcf_files:
-            check_exists(vcf_file)
+            self.check_exists(vcf_file)
         self.input_vcfs = vcf_files
 
     def ready_ref_and_vcf(self, reference: str, vcfs: List[List[str]]):
@@ -100,120 +120,59 @@ class BuildPaths(ProjectPaths):
 
 
 class GenotypePaths(ProjectPaths):
-    def __init__(self, genotype_dir):
+    def __init__(self, genotype_dir, force=False):
         self.geno_dir = Path.resolve(Path(genotype_dir))
         self.geno_path = ProjectPaths.path_fact(self.geno_dir)
 
         self.gram_dir = self.geno_path("gram_dir")
         self.reads_dir = self.geno_path("reads_dir")
-        self.mapping_stats = self.geno_path("stats.json")
+        self.report = self.geno_path("genotype_report.json")
 
+        # Quasimapping-related
+        self.read_stats = self.geno_path("read_stats.json")
+        self.gped_cov = self.geno_path("grouped_allele_counts_coverage.json")
 
-## Generates paths that will be shared between 'run' commands.
-def _generate_run_paths(run_dir):
+        self.force = force  # Whether to erase existing geno_dir
 
-    run_dir = os.path.abspath(run_dir)
+        self.initial_setup()
 
-    # Quasimap paths
-    run_path = path_fact(run_dir)
+    def initial_setup(self):
+        if self.geno_dir.exists():
+            if not self.force:
+                log.error(
+                    f"{self.geno_dir} already exists.\n"
+                    f"Pass --force at command-line to erase it."
+                )
+                exit(1)
+            shutil.rmtree(self.geno_dir)
+        self.geno_dir.mkdir()
+        self.reads_dir.mkdir()
 
-    paths = {
-        "run_dir": run_dir,
-        "build_dir": run_path(
-            "build_dir"
-        ),  #  This will be a symlink of the actual build dir
-        "reads_dir": run_path(
-            "reads"
-        ),  # This will contain symlinks to the actual reads
-        "quasimap_dir": run_path("quasimap_outputs"),
-        "infer_dir": run_path("infer_outputs"),
-        "discover_dir": run_path("discover_outputs"),
-    }
+    def cleanup(self):
+        shutil.rmtree(self.geno_dir)
 
-    quasimap_path = path_fact(paths["quasimap_dir"])
+    def _link_to_build(self, existing_gram_dir):
+        """
+        Make a reference to the gram_dir made in build. This avoids downstream commands
+        to require a --gram_dir argument.
+        """
+        target = Path(existing_gram_dir).resolve()
+        self.check_exists(target)
+        if os.path.lexists(self.gram_dir):
+            os.unlink(self.gram_dir)
+        self.gram_dir.symlink_to(target, target_is_directory=True)
 
-    paths.update(
-        {
-            "allele_base_coverage": quasimap_path("allele_base_coverage.json"),
-            "grouped_allele_counts_coverage": quasimap_path(
-                "grouped_allele_counts_coverage.json"
-            ),
-            "allele_sum_coverage": quasimap_path("allele_sum_coverage"),
-            "read_stats": quasimap_path("read_stats.json"),
-        }
-    )
+    def _link_to_reads(self, reads: List[List[str]]):
+        self.reads_files = [
+            Path(read_file).resolve() for arglist in reads for read_file in arglist
+        ]
 
-    # Infer paths
-    infer_path = path_fact(paths["infer_dir"])
-    paths.update(
-        {
-            "inferred_fasta": infer_path("inferred.fasta"),
-            "inferred_vcf": infer_path("inferred.vcf"),
-            "inferred_ref_size": infer_path("inferred_ref_size"),
-        }
-    )
-
-    # Discover paths
-    discover_path = path_fact(paths["discover_dir"])
-    paths.update(
-        {
-            "cortex_vcf": discover_path("cortex.vcf"),
-            "rebased_vcf": discover_path("rebased.vcf"),
-        }
-    )
-
-    return paths
-
-
-## Make quasimap-related file and directory paths.
-def generate_quasimap_paths(args):
-    all_paths = _generate_project_paths(args.gram_dir)
-    all_paths.update(_generate_run_paths(args.run_dir))
-
-    if not os.path.exists(all_paths["run_dir"]):
-        os.mkdir(all_paths["run_dir"])
-
-    if not os.path.exists(all_paths["quasimap_dir"]):
-        os.mkdir(all_paths["quasimap_dir"])
-
-    # Make a reference to the gram_dir made in build. This avoids downstream commands
-    # to require a --gram_dir argument.
-    if os.path.lexists(all_paths["build_dir"]):
-        os.unlink(all_paths["build_dir"])
-    os.symlink(all_paths["gram_dir"], all_paths["build_dir"], target_is_directory=True)
-
-    if os.path.exists(all_paths["reads_dir"]):
-        log.warning(
-            "Erasing reads directory {} and its contents to avoid accumulation".format(
-                all_paths["reads_dir"]
-            )
-        )
-        shutil.rmtree(all_paths["reads_dir"])
-
-    os.mkdir(all_paths["reads_dir"])
-
-    #  Make symlinks to the read files
-    reads_files = [
-        read_file for arglist in args.reads for read_file in arglist
-    ]  # Flattens out list of lists.
-    for read_file in reads_files:
-        read_file = os.path.abspath(
-            read_file
-        )  # So that symlinking does not need absolute fpaths passed at command line.
-
-        base = os.path.basename(read_file)
-        target = os.path.join(all_paths["reads_dir"], base)
-        if not os.path.exists(target):
-            os.symlink(read_file, target)
-
-    all_paths.update(
-        {
-            "report": os.path.join(all_paths["quasimap_dir"], "quasimap_report.json"),
-            "reads_files": reads_files,
-        }
-    )
-
-    return all_paths
+        #  Make symlinks to the read files
+        for read_file in self.reads_files:
+            target = (
+                self.reads_dir / read_file.name
+            )  # name attrib is the file's os.basename
+            target.symlink_to(read_file)
 
 
 def generate_infer_paths(args):
@@ -266,3 +225,51 @@ def generate_discover_paths(args):
         all_paths.update({"reads_files": reads_files})
 
     return all_paths
+
+
+## Generates paths that will be shared between 'run' commands.
+def _generate_run_paths(run_dir):
+
+    paths = {
+        "run_dir": run_dir,
+        "build_dir": run_path(
+            "build_dir"
+        ),  #  This will be a symlink of the actual build dir
+        "reads_dir": run_path(
+            "reads"
+        ),  # This will contain symlinks to the actual reads
+        "quasimap_dir": run_path("quasimap_outputs"),
+        "infer_dir": run_path("infer_outputs"),
+        "discover_dir": run_path("discover_outputs"),
+    }
+
+    quasimap_path = path_fact(paths["quasimap_dir"])
+
+    paths.update(
+        {
+            "allele_base_coverage": quasimap_path("allele_base_coverage.json"),
+            "allele_sum_coverage": quasimap_path("allele_sum_coverage"),
+            "read_stats": quasimap_path("read_stats.json"),
+        }
+    )
+
+    # Infer paths
+    infer_path = path_fact(paths["infer_dir"])
+    paths.update(
+        {
+            "inferred_fasta": infer_path("inferred.fasta"),
+            "inferred_vcf": infer_path("inferred.vcf"),
+            "inferred_ref_size": infer_path("inferred_ref_size"),
+        }
+    )
+
+    # Discover paths
+    discover_path = path_fact(paths["discover_dir"])
+    paths.update(
+        {
+            "cortex_vcf": discover_path("cortex.vcf"),
+            "rebased_vcf": discover_path("rebased.vcf"),
+        }
+    )
+
+    return paths

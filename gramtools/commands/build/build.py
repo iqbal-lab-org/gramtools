@@ -15,14 +15,14 @@ from ... import common
 from .. import report
 
 from . import vcf_to_prg_string
-from . import arguments
+from . import command_setup
 
 log = logging.getLogger("gramtools")
 build_report = collections.OrderedDict()
 
 
 def run(args):
-    build_paths = arguments._check_build_args(args)
+    build_paths = command_setup.setup_files(args)
     log.info("Start process: build")
     start_time = str(time.time()).split(".")[0]
 
@@ -57,10 +57,6 @@ def _count_vcf_record_lines(vcf_file_path):
             if line[0] != "#":
                 num_recs += 1
     return num_recs
-
-
-def setup_command_parser(common_parser, subparsers):
-    arguments.setup_build_parser(common_parser, subparsers)
 
 
 def _prepare_prg(args, build_paths):

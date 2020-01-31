@@ -1,12 +1,12 @@
 import argparse
-from ..paths import BuildPaths, check_exists
+from ..paths import ProjectPaths, BuildPaths
 from pathlib import Path
 import logging
 
 log = logging.getLogger("gramtools")
 
 
-def setup_build_parser(common_parser, subparsers):
+def setup_parser(common_parser, subparsers):
     parser = subparsers.add_parser("build", parents=[common_parser])
     parser.add_argument(
         "-o",
@@ -66,14 +66,16 @@ def setup_build_parser(common_parser, subparsers):
     )
 
 
-def _check_build_args(args):
+def setup_files(args) -> ProjectPaths:
+    """
+    We also do some extra argument checking here.
+    """
     build_paths = BuildPaths(args.gram_dir)
 
     no_prg = args.prg is None
     no_vcf_and_no_ref = args.reference is None and args.vcf is None
     not_both_vcf_and_ref = args.reference is None or args.vcf is None
 
-    build_paths.make_root()
     if no_prg and no_vcf_and_no_ref:
         err_message = "Please provide known variation through either: \n* --prg \n* --vcf and --reference"
         build_paths.raise_error(err_message)
@@ -83,7 +85,7 @@ def _check_build_args(args):
         build_paths.raise_error(err_message)
 
     if not no_prg:
-        check_exists(Path(args.prg))
+        build_paths.check_exists(Path(args.prg))
         if not no_vcf_and_no_ref:
             log.warning(
                 "You have provided a --prg and --reference/--vcf. Building using the --prg argument only."

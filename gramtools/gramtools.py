@@ -5,8 +5,8 @@ import argparse
 import collections
 
 from . import version
-from .commands.build import build
-from .commands.genotype import genotype
+from .commands.build import command_setup as build_setup, build
+from .commands.genotype import command_setup as genotype_setup, genotype
 from .commands import discover
 from .commands import simulate
 
@@ -27,6 +27,9 @@ def _setup_logging(args):
 
 
 root_parser = argparse.ArgumentParser(prog="gramtools")
+command_setups = collections.OrderedDict(
+    [("build", build_setup), ("genotype", genotype_setup), ("discover", discover)]
+)
 commands = collections.OrderedDict(
     [("build", build), ("genotype", genotype), ("discover", discover)]
 )
@@ -34,7 +37,7 @@ commands = collections.OrderedDict(
 
 def _setup_parser():
     root_parser.add_argument("--version", help="", action="store_true")
-    metavar = "{{{commands}}}".format(commands=", ".join(commands.keys()))
+    metavar = "{{{commands}}}".format(commands=", ".join(command_setups.keys()))
     subparsers = root_parser.add_subparsers(
         title="subcommands", dest="subparser_name", metavar=metavar
     )
@@ -43,8 +46,8 @@ def _setup_parser():
     common_parser = subparsers.add_parser("common", add_help=False)
     common_parser.add_argument("--debug", help="", action="store_true")
 
-    for command in commands.values():
-        command.setup_command_parser(common_parser, subparsers)
+    for command_setup in command_setups.values():
+        command_setup.setup_parser(common_parser, subparsers)
 
 
 def run():
