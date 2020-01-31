@@ -6,8 +6,7 @@ import collections
 
 from . import version
 from .commands.build import build
-from .commands import quasimap
-from .commands.infer import infer
+from .commands.genotype import genotype
 from .commands import discover
 from .commands import simulate
 
@@ -29,7 +28,7 @@ def _setup_logging(args):
 
 root_parser = argparse.ArgumentParser(prog="gramtools")
 commands = collections.OrderedDict(
-    [("build", build), ("quasimap", quasimap), ("infer", infer), ("discover", discover)]
+    [("build", build), ("genotype", genotype), ("discover", discover)]
 )
 
 

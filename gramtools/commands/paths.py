@@ -5,15 +5,9 @@ import logging
 import shutil
 from pathlib import Path
 from typing import List
+from abc import abstractmethod, ABCMeta
 
 log = logging.getLogger("gramtools")
-
-
-def path_fact(base_dir):
-    """
-    Factory building functions which build paths from a base_dir.
-   """
-    return lambda fname: base_dir / fname
 
 
 def check_exists(fname: Path, file_description="File"):
@@ -23,8 +17,24 @@ def check_exists(fname: Path, file_description="File"):
         exit(1)
 
 
-class ProjectPaths:
+class ProjectPaths(metaclass=ABCMeta):
+    @staticmethod
+    def path_fact(base_dir: Path):
+        """
+        Factory building functions which build paths from a base_dir.
+       """
+        return lambda fname: base_dir / fname
+
     all_vars = {}
+
+    @abstractmethod
+    def cleanup(self):
+        pass
+
+    def raise_error(self, err_message):
+        self.cleanup()
+        log.error(err_message)
+        exit(1)
 
     def items(self):
         all_vars = vars(self)
@@ -50,14 +60,14 @@ class ProjectPaths:
 class BuildPaths(ProjectPaths):
     def __init__(self, gram_dir):
         self.gram_dir = Path.resolve(Path(gram_dir))
-        self.path_maker = path_fact(self.gram_dir)
+        self.build_path = ProjectPaths.path_fact(self.gram_dir)
 
-        self.prg = self.path_maker("prg")
-        self.ref = self.path_maker("original_reference.fasta")
-        self.built_vcf = self.path_maker("build.vcf")
-        self.report = self.path_maker("build_report.json")
-        self.fm_index = self.path_maker("fm_index")
-        self.cov_graph = self.path_maker("cov_graph")
+        self.prg = self.build_path("prg")
+        self.ref = self.build_path("original_reference.fasta")
+        self.built_vcf = self.build_path("build.vcf")
+        self.report = self.build_path("build_report.json")
+        self.fm_index = self.build_path("fm_index")
+        self.cov_graph = self.build_path("cov_graph")
         self.made_gram_dir = False
 
     def make_root(self):
@@ -66,7 +76,7 @@ class BuildPaths(ProjectPaths):
             self.gram_dir.mkdir()
             self.made_gram_dir = True
 
-    def unmake_root(self):
+    def cleanup(self):
         if self.gram_dir.exists() and self.made_gram_dir:
             self.gram_dir.rmdir()
 
@@ -88,10 +98,15 @@ class BuildPaths(ProjectPaths):
         self._check_ref_and_make_ref_link(reference)
         self._check_and_flatten_vcf_filenames(vcfs)
 
-    def raise_error(self, err_message):
-        self.unmake_root()
-        log.error(err_message)
-        exit(1)
+
+class GenotypePaths(ProjectPaths):
+    def __init__(self, genotype_dir):
+        self.geno_dir = Path.resolve(Path(genotype_dir))
+        self.geno_path = ProjectPaths.path_fact(self.geno_dir)
+
+        self.gram_dir = self.geno_path("gram_dir")
+        self.reads_dir = self.geno_path("reads_dir")
+        self.mapping_stats = self.geno_path("stats.json")
 
 
 ## Generates paths that will be shared between 'run' commands.

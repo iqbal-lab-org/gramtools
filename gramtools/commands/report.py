@@ -1,8 +1,8 @@
 import time
 import logging
 import collections
-from ... import version
-from ... import paths
+from .. import version
+from . import paths
 import os
 import json
 

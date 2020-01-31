@@ -1,5 +1,5 @@
 import argparse
-from ...paths import BuildPaths, check_exists
+from ..paths import BuildPaths, check_exists
 from pathlib import Path
 import logging
 
@@ -9,9 +9,9 @@ log = logging.getLogger("gramtools")
 def setup_build_parser(common_parser, subparsers):
     parser = subparsers.add_parser("build", parents=[common_parser])
     parser.add_argument(
-        "--gram-dir",
-        "--gram-directory",
-        help="",
+        "-o",
+        "--gram_dir",
+        help="Directory containing the built prg.",
         dest="gram_dir",
         type=str,
         required=True,
@@ -32,12 +32,12 @@ def setup_build_parser(common_parser, subparsers):
     )
     parser.add_argument(
         "--prg",
-        help="A prg can be passed in directly instead of a vcf/reference combination.",
+        help="A prg can be passed in directly instead of a combination of vcf/reference.",
         type=str,
     )
 
     parser.add_argument(
-        "--kmer-size",
+        "--kmer_size",
         help="Kmer size for indexing the prg. Defaults to 10. "
         "Higher k speeds quasimapping. Currently capped at 14 (268 million kmers), because of all kmers enumeration.",
         type=int,
@@ -45,9 +45,12 @@ def setup_build_parser(common_parser, subparsers):
         required=False,
     )
 
+    # TODO: there is no multi-threading yet
+    # parser.add_argument("--max_threads", help="", type=int, default=1, required=False)
+
     # Hidden arguments, for legacy/special uses (minos)
     parser.add_argument(
-        "--max-read-length",
+        "--max_read_length",
         help=argparse.SUPPRESS,
         # help="Used to determine which kmers overlap variant sites",
         type=int,
@@ -56,13 +59,11 @@ def setup_build_parser(common_parser, subparsers):
     )
 
     parser.add_argument(
-        "--no-vcf-clustering",
+        "--no_vcf_clustering",
         help=argparse.SUPPRESS,
         # help="Do not run vcf clustering on the input vcfs",
         action="store_true",
     )
-
-    parser.add_argument("--max-threads", help="", type=int, default=1, required=False)
 
 
 def _check_build_args(args):

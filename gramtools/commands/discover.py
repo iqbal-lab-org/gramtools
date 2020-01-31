@@ -13,7 +13,7 @@ import collections
 import vcf
 import cortex
 
-from .. import paths
+from . import paths
 
 log = logging.getLogger("gramtools")
 
@@ -22,13 +22,13 @@ def setup_command_parser(common_parser, subparsers):
     parser = subparsers.add_parser("discover", parents=[common_parser])
 
     parser.add_argument(
-        "--run-dir",
-        "--run-directory",
+        "-i",
+        "--genotype_dir",
         help="Common directory for gramtools running commands. Will contain discover outputs."
         "The outputs are: the vcf files from the variant callers,"
         "[their adjucated combination], both native and rebased "
         "(=expressed in original reference coordinates).",
-        dest="run_dir",
+        dest="geno_dir",
         type=str,
         required=True,
     )

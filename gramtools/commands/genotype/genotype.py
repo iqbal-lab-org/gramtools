@@ -1,5 +1,7 @@
 ## @file
-# Executes `gram quasimap` backend for variant aware backward searching.
+# Executes `gram genotype` backend which:
+# - maps reads to prg using vBWT-based (quasi)mapping and annotates it with coverage
+# - genotypes the prg using the annotated coverage
 import os
 import time
 import json
@@ -7,19 +9,18 @@ import logging
 import subprocess
 import collections
 
-from .. import version
-from .. import common
+from ... import common
 from .. import paths
-
+from .. import report
 
 log = logging.getLogger("gramtools")
 
 
 def setup_command_parser(common_parser, subparsers):
-    parser = subparsers.add_parser("quasimap", parents=[common_parser])
+    parser = subparsers.add_parser("genotype", parents=[common_parser])
     parser.add_argument(
-        "--gram-dir",
-        "--gram-directory",
+        "-i",
+        "--gram_dir",
         help="Directory containing outputs from gramtools `build`",
         dest="gram_dir",
         type=str,
@@ -27,12 +28,11 @@ def setup_command_parser(common_parser, subparsers):
     )
 
     parser.add_argument(
-        "--run-dir",
-        "--run-directory",
-        help="Common directory for gramtools running commands. Will contain quasimap outputs."
-        "These are JSON formatted files describing read coverage over variant sites in the prg.",
+        "--o",
+        "--genotype_dir",
+        help="Directory to hold this command's outputs.",
         type=str,
-        dest="run_dir",
+        dest="geno_dir",
         required=True,
     )
 
@@ -49,9 +49,8 @@ def setup_command_parser(common_parser, subparsers):
     )
 
     parser.add_argument(
-        "--max-threads",
-        help="Read quasimapping to the prg can be multi-threaded."
-        "By default, uses just one thread.",
+        "--max_threads",
+        help="Run with more threads than the default of one.",
         type=int,
         default=1,
         required=False,
@@ -59,19 +58,10 @@ def setup_command_parser(common_parser, subparsers):
 
     parser.add_argument(
         "--seed",
-        help="Use this for fixing seed. Fixing seed will produce consistent coverage output across different runs."
-        "By default, seed is randomly generated.",
+        help="Fixing the seed will produce the same read mappings across different runs."
+        "By default, seed is randomly generated so this is not the case.",
         type=int,
         default=0,
-        required=False,
-    )
-
-    parser.add_argument(
-        "--output-directory",
-        help="[Deprecated: use --run-dir instead].\n"
-        "Directory where outputs of quasimap will be stored."
-        "Defaults to 'quasimap_outputs' inside 'gram-dir'.",
-        type=str,
         required=False,
     )
 
@@ -83,7 +73,7 @@ def _execute_command(quasimap_paths, report, args):
 
     command = [
         common.gramtools_exec_fpath,
-        "quasimap",
+        "genotype",
         "--gram",
         quasimap_paths["gram_dir"],
         "--reads",
@@ -125,36 +115,6 @@ def _execute_command(quasimap_paths, report, args):
     return report
 
 
-def _save_report(
-    start_time, reports, command_paths, command_hash_paths, report_file_path
-):
-    end_time = str(time.time()).split(".")[0]
-    _, report_dict = version.report()
-    current_working_directory = os.getcwd()
-
-    _report = collections.OrderedDict(
-        [
-            ("start_time", start_time),
-            ("end_time", end_time),
-            ("total_runtime", int(end_time) - int(start_time)),
-        ]
-    )
-    _report.update(reports)
-    _report.update(
-        collections.OrderedDict(
-            [
-                ("current_working_directory", current_working_directory),
-                ("paths", command_paths),
-                ("path_hashes", command_hash_paths),
-                ("version_report", report_dict),
-            ]
-        )
-    )
-
-    with open(report_file_path, "w") as fhandle:
-        json.dump(_report, fhandle, indent=4)
-
-
 def _load_build_report(project_paths):
     try:
         with open(project_paths["build_report"]) as fhandle:
@@ -176,12 +136,6 @@ def _check_build_success(build_report):
 def run(args):
     log.info("Start process: quasimap")
 
-    if args.output_directory is not None:
-        log.warning(
-            "DEPRECATED Option: '--output-directory'. Please use '--run-dir' in the future instead."
-        )
-        args.run_dir = args.output_directory
-
     start_time = str(time.time()).split(".")[0]
     _paths = paths.generate_quasimap_paths(args)
 
@@ -191,8 +145,8 @@ def run(args):
     kmer_size = build_report["kmer_size"]
     setattr(args, "kmer_size", kmer_size)
 
-    report = collections.OrderedDict()
-    report = _execute_command(_paths, report, args)
+    genotype_report = collections.OrderedDict()
+    genotype_report = _execute_command(_paths, genotype_report, args)
 
     ## Get the read statistics; report if most variant sites have no coverage.
     with open(_paths["read_stats"]) as f:
@@ -214,7 +168,9 @@ def run(args):
     command_hash_paths = common.hash_command_paths(_paths)
 
     log.debug("Saving command report:\n%s", _paths["report"])
-    _save_report(start_time, report, _paths, command_hash_paths, _paths["report"])
+    report._save_report(
+        start_time, genotype_report, _paths, command_hash_paths, _paths["report"]
+    )
     log.info("End process: quasimap")
 
     if report.get("return_value_is_0") is False:

@@ -12,11 +12,10 @@ import collections
 import cluster_vcf_records
 
 from ... import common
-from ... import paths
-from . import vcf_to_prg_string
+from .. import report
 
+from . import vcf_to_prg_string
 from . import arguments
-from . import report
 
 log = logging.getLogger("gramtools")
 build_report = collections.OrderedDict()
