@@ -12,7 +12,7 @@ namespace gram {
 
     enum class Commands {
         build,
-        quasimap
+        genotype
     };
 
     // The number of bytes to use for each integer going on disk representing PRG string `Marker`s

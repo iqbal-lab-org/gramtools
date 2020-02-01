@@ -120,7 +120,7 @@ void gram::ReadStats::serialise(const std::string &json_output_fpath){
     outf << R"(
 {
 "Read_depth":
-    {"Mean": )" << this->mean_pb_error << ",";
+    {"Mean": )" << this->mean_cov_depth << ",";
 
     outf << R"(
     "Variance": )" << this->variance_depth << ",";
@@ -141,7 +141,7 @@ void gram::ReadStats::serialise(const std::string &json_output_fpath){
 
     outf << R"(
 "Quality":
-    {"Error_rate_mean": )" << this->mean_cov_depth << ",";
+    {"Error_rate_mean": )" << this->mean_pb_error << ",";
 
     outf << R"(
     "Num_bases": )" << this->num_bases_processed << ",";

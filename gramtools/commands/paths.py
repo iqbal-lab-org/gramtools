@@ -20,7 +20,6 @@ class ProjectPaths(metaclass=ABCMeta):
 
     all_vars = {}
 
-    @classmethod
     def check_exists(self, fname: Path, file_description="File"):
         if not fname.exists():
             error_message = f"{file_description} required but not found: {fname}"
@@ -37,10 +36,14 @@ class ProjectPaths(metaclass=ABCMeta):
         pass
 
     def isOutputtablePath(self, object):
-        if isinstance(object, Path) or isinstance(object, list(Path)):
-            return true
-        else:
-            return false
+        if isinstance(object, list):
+            for el in object:
+                if not isinstance(el, Path):
+                    return False
+        if not isinstance(object, Path):
+            return False
+
+        return True
 
     def raise_error(self, err_message):
         self.cleanup()
@@ -229,21 +232,6 @@ def generate_discover_paths(args):
 
 ## Generates paths that will be shared between 'run' commands.
 def _generate_run_paths(run_dir):
-
-    paths = {
-        "run_dir": run_dir,
-        "build_dir": run_path(
-            "build_dir"
-        ),  #  This will be a symlink of the actual build dir
-        "reads_dir": run_path(
-            "reads"
-        ),  # This will contain symlinks to the actual reads
-        "quasimap_dir": run_path("quasimap_outputs"),
-        "infer_dir": run_path("infer_outputs"),
-        "discover_dir": run_path("discover_outputs"),
-    }
-
-    quasimap_path = path_fact(paths["quasimap_dir"])
 
     paths.update(
         {

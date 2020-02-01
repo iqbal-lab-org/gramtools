@@ -1,17 +1,16 @@
 #include "genotype/genotype.hpp"
 #include "genotype/quasimap/quasimap.hpp"
+#include "genotype/infer/infer.hpp"
 
 #include "common/timer_report.hpp"
 #include "kmer_index/load.hpp"
 
 using namespace gram;
-
-ReadStats run_quasimap(const Parameters &parameters) {
+void run_quasimap_and_infer(const Parameters &parameters){
     std::cout << "Executing quasimap command" << std::endl;
     auto timer = TimerReport();
 
     ReadStats readstats;
-
     std::string first_reads_fpath = parameters.reads_fpaths[0];
     readstats.compute_base_error_rate(first_reads_fpath);
 
@@ -39,9 +38,11 @@ ReadStats run_quasimap(const Parameters &parameters) {
     timer.stop();
     timer.report();
 
-    return readstats;
+
+    LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
+                             readstats, Ploidy::Haploid};
 }
 
 void commands::genotype::run(const Parameters &parameters){
-    auto readstats = std::move(run_quasimap(parameters));
+    run_quasimap_and_infer(parameters);
 }

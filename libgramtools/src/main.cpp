@@ -38,7 +38,7 @@ int main(int argc, const char *const *argv) {
         case Commands::build:
             commands::build::run(parameters);
             break;
-        case Commands::quasimap:
+        case Commands::genotype:
             commands::genotype::run(parameters);
             break;
     }
@@ -84,7 +84,7 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
         return std::make_pair(parameters, Commands::build);
     } else if (cmd == "genotype") {
         auto parameters = commands::genotype::parse_parameters(vm, parsed);
-        return std::make_pair(parameters, Commands::quasimap);
+        return std::make_pair(parameters, Commands::genotype);
     }
     else {
         std::cout << "Unrecognised command: " << cmd << std::endl;

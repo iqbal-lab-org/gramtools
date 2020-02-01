@@ -46,7 +46,9 @@ def setup_parser(common_parser, subparsers):
     )
 
     # TODO: there is no multi-threading yet
-    # parser.add_argument("--max_threads", help="", type=int, default=1, required=False)
+    parser.add_argument(
+        "--max_threads", help=argparse.SUPPRESS, type=int, default=1, required=False
+    )
 
     # Hidden arguments, for legacy/special uses (minos)
     parser.add_argument(

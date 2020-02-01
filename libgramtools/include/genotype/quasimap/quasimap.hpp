@@ -10,9 +10,8 @@
 
 #include "common/utils.hpp"
 #include "genotype/read_stats.hpp"
-
 #include "kmer_index/kmer_index_types.hpp"
-#include "coverage/types.hpp"
+#include "coverage/common.hpp"
 
 #include "search/encapsulated_search.hpp"
 
@@ -23,6 +22,7 @@ namespace gram {
         uint64_t all_reads_count = 0;
         uint64_t skipped_reads_count = 0;
         uint64_t mapped_reads_count = 0;
+        Coverage coverage = {};
     };
 
     /**
@@ -36,18 +36,16 @@ namespace gram {
     /**
      * Load and process (ie map) reads from a given read file using a buffer to reduce disk I/O calls
      */
-    void handle_read_file(QuasimapReadsStats &quasimap_stats, Coverage &coverage, const std::string &reads_fpath,
-                          const Parameters &parameters, const KmerIndex &kmer_index, const PRG_Info &prg_info);
+    void
+    handle_read_file(QuasimapReadsStats &quasimap_stats, const std::string &reads_fpath, const Parameters &parameters,
+                     const KmerIndex &kmer_index, const PRG_Info &prg_info);
 
     /**
      * Calls quasimapping routine on a given read (forward mapping), and its reverse complement (reverse mapping)
      */
-    void quasimap_forward_reverse(QuasimapReadsStats &quasimap_reads_stats,
-                                  Coverage &coverage,
-                                  const Sequence &read,
-                                  const Parameters &parameters,
-                                  const KmerIndex &kmer_index,
-                                  const PRG_Info &prg_info);
+    void
+    quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats, const Sequence &read, const Parameters &parameters,
+                             const KmerIndex &kmer_index, const PRG_Info &prg_info);
 
     /**
      * Map a read to the prg, starting from the precomputed set of search states using the rightmost kmer in the read.
