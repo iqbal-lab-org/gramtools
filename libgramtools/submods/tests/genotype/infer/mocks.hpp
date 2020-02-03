@@ -1,5 +1,5 @@
-#include "genotype/infer/genotyped_site.hpp"
-#include "genotype/infer/probabilities.hpp"
+#include "genotype/infer/interfaces.hpp"
+#include "genotype/infer/level_genotyping/probabilities.hpp"
 #include "gmock/gmock.h"
 
 using namespace gram;

@@ -6,9 +6,6 @@
 
 namespace gram::genotype::infer {
     class AbstractGenotypedSite;
-    using gt_site = AbstractGenotypedSite;
-    using gt_site_ptr = std::shared_ptr<AbstractGenotypedSite>;
-    using gt_sites = std::vector<gt_site_ptr>;
 
     struct Allele {
         std::string sequence;

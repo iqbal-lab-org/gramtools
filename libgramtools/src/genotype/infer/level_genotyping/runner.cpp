@@ -1,5 +1,5 @@
 #include <cmath>
-#include "genotype/infer/infer.hpp"
+#include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 
 likelihood_related_stats

@@ -1,6 +1,6 @@
 #include <cmath>
 #include <assert.h>
-#include "genotype/infer/probabilities.hpp"
+#include "genotype/infer/level_genotyping/probabilities.hpp"
 
 namespace gram::genotype::infer::probabilities{
     double AbstractPmf::operator()(params const& query){

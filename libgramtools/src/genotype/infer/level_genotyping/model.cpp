@@ -1,4 +1,4 @@
-#include "genotype/infer/genotyping_models.hpp"
+#include "genotype/infer/level_genotyping/model.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 
 using namespace gram::genotype::infer;

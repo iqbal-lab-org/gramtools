@@ -1,12 +1,12 @@
 /** @file
- * High-level `infer` command tests:
+ * High-level tests:
  *  builds a coverage graph & gram index, maps reads to it, calls a genotyper, and tests the results!!
  */
 
 #include "gtest/gtest.h"
 #include "tests/common.hpp"
 #include "genotype/quasimap/quasimap.hpp"
-#include "genotype/infer/infer.hpp"
+#include "genotype/infer/level_genotyping/runner.hpp"
 
 /**
  * Test the following Genotyping approach: Level Genotyping (LG)

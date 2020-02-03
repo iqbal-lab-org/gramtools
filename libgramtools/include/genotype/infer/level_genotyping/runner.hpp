@@ -7,10 +7,10 @@
  * be the first allele (haplogroup) of the bubble in the graph, so that we can use that as REF if needed.
  */
 
-#ifndef GRAMTOOLS_INFER_HPP
-#define GRAMTOOLS_INFER_HPP
+#ifndef LVLGT_RUNNER
+#define LVLGT_RUNNER
 
-#include "genotype/infer/genotyping_models.hpp"
+#include "model.hpp"
 #include "genotype/read_stats.hpp"
 
 using namespace gram::genotype::infer;
@@ -45,4 +45,4 @@ public:
 };
 }
 
-#endif //GRAMTOOLS_INFER_HPP
+#endif //LVLGT_RUNNER

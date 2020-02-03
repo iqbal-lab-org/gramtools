@@ -1,6 +1,6 @@
 #include "genotype/genotype.hpp"
 #include "genotype/quasimap/quasimap.hpp"
-#include "genotype/infer/infer.hpp"
+#include "genotype/infer/level_genotyping/runner.hpp"
 
 #include "common/timer_report.hpp"
 #include "kmer_index/load.hpp"

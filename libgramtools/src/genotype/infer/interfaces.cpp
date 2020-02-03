@@ -1,6 +1,10 @@
-#include "genotype/infer/genotyped_site.hpp"
+#include "genotype/infer/interfaces.hpp"
 
 namespace gram::genotype::infer {
+
+    /*
+     * Sites
+     */
 
 allele_vector const AbstractGenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
                                                                         GenotypeOrNull const &genotype) const {

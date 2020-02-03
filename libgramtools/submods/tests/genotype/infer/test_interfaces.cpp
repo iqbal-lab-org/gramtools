@@ -1,6 +1,9 @@
+/** @file
+ *  - Tests genotyped site common interface routines
+ */
 #include "gtest/gtest.h"
 #include "mocks.hpp"
-#include "genotype/infer/genotyped_site.hpp"
+#include "genotype/infer/level_genotyping/site.hpp"
 
 using ::testing::Return;
 

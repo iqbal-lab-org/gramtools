@@ -1,4 +1,4 @@
-#include "genotype/infer/genotyped_site.hpp"
+#include "genotype/infer/interfaces.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 
 using namespace gram::genotype::infer;

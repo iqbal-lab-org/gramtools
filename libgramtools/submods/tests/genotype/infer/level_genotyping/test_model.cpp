@@ -2,8 +2,8 @@
  * Tests the internals of LevelGenotyperModel and of LevelGenotyper
  */
 #include "gtest/gtest.h"
-#include "mocks.hpp"
-#include "genotype/infer/infer.hpp"
+#include "../mocks.hpp"
+#include "genotype/infer/level_genotyping/runner.hpp"
 
 using namespace gram::genotype::infer;
 

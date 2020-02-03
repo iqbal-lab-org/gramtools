@@ -1,14 +1,9 @@
-/**
- * @file Interfaces to genotyping models
- * They work on single sites: see `genotyped_site.hpp`.
- */
-#ifndef GTYPING_MODELS
-#define GTYPING_MODELS
+#ifndef LVLGT_MODEL
+#define LVLGT_MODEL
 
-#include "types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
-#include "genotype/infer/genotyped_site.hpp"
-#include "genotype/infer/probabilities.hpp"
+#include "site.hpp"
+#include "probabilities.hpp"
 
 using namespace gram;
 using poisson_pmf = gram::genotype::infer::probabilities::PoissonLogPmf;
@@ -19,17 +14,13 @@ namespace gram::genotype::infer {
     using multiplicities = std::vector<bool>;
     using likelihood_map = std::multimap<double, GtypedIndices, std::greater<double>>;
 
-    struct likelihood_related_stats{
+    struct likelihood_related_stats {
         double mean_cov_depth,
-        mean_pb_error, log_mean_pb_error,
-        log_no_zero, log_no_zero_half_depth;
+                mean_pb_error, log_mean_pb_error,
+                log_no_zero, log_no_zero_half_depth;
         CovCount credible_cov_t; /**< minimum coverage count to qualify as actual coverage (per-base)*/
         mutable poisson_pmf poisson_full_depth;
         mutable poisson_pmf poisson_half_depth;
-    };
-
-    class AbstractGenotypingModel {
-        virtual gt_site_ptr get_site() = 0;
     };
 
     /**
@@ -39,10 +30,10 @@ namespace gram::genotype::infer {
       * genotype confidence using likelihood ratios
     */
     class LevelGenotyperModel : AbstractGenotypingModel {
-        allele_vector* alleles;
+        allele_vector *alleles;
         GroupedAlleleCounts const *gp_counts;
         Ploidy ploidy;
-        likelihood_related_stats const* l_stats;
+        likelihood_related_stats const *l_stats;
 
         // Computed at construction time
         PerAlleleCoverage haploid_allele_coverages; /**< Coverage counts compatible with single alleles */
@@ -51,10 +42,11 @@ namespace gram::genotype::infer {
 
         // Computed at run time
         likelihood_map likelihoods; // Store highest likelihoods first
-        std::shared_ptr<LevelGenotypedSite> genotyped_site; // What the class will build
+        std::shared_ptr <LevelGenotypedSite> genotyped_site; // What the class will build
 
     public:
         LevelGenotyperModel() : gp_counts(nullptr) {}
+
         /**
          *
          * @param ignore_ref_allele if true, the ref allele was not produced naturally,
@@ -67,7 +59,7 @@ namespace gram::genotype::infer {
         gt_site_ptr get_site() override { return std::static_pointer_cast<gt_site>(genotyped_site); }
 
         // Allele-level coverage
-        void set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups);
+        void set_haploid_coverages(GroupedAlleleCounts const &gp_counts, AlleleId num_haplogroups);
 
         /**
          * Alleles with no sequence correspond to direct deletions.
@@ -82,26 +74,28 @@ namespace gram::genotype::infer {
          * haploid coverage, and they get assigned half of it each.
          */
         std::pair<double, double> compute_diploid_coverage(GroupedAlleleCounts const &gp_counts, AlleleIds ids,
-                                                         multiplicities const &haplogroup_multiplicities);
-        std::size_t count_total_coverage(GroupedAlleleCounts const& gp_counts);
+                                                           multiplicities const &haplogroup_multiplicities);
+
+        std::size_t count_total_coverage(GroupedAlleleCounts const &gp_counts);
 
         // Counting
-        std::vector<bool> count_num_haplogroups(allele_vector const& alleles);
+        std::vector<bool> count_num_haplogroups(allele_vector const &alleles);
+
         /**
          * Express genotypes as relative to chosen alleles.
          * For eg, {0, 2, 4} in the original set of possible alleles goes to {0, 1, 2} in the 3 called alleles (yes,
          * this is Triploid example).
          */
-        GtypedIndices rescale_genotypes(GtypedIndices const& genotypes);
+        GtypedIndices rescale_genotypes(GtypedIndices const &genotypes);
 
         // Permutations
         /**
          * Credit: https://stackoverflow.com/a/9430993/12519542
          */
-        std::vector<GtypedIndices> get_permutations(const GtypedIndices &indices, std::size_t const subset_size);
+        std::vector <GtypedIndices> get_permutations(const GtypedIndices &indices, std::size_t const subset_size);
 
         // Per-base coverage
-        numCredibleCounts count_credible_positions(CovCount const& credible_cov_t, Allele const& allele);
+        numCredibleCounts count_credible_positions(CovCount const &credible_cov_t, Allele const &allele);
 
         /**
          * Haploid genotype likelihood
@@ -121,9 +115,12 @@ namespace gram::genotype::infer {
         void compute_heterozygous_log_likelihoods(multiplicities const &haplogroup_multiplicities);
 
         // Trivial Getters
-        PerAlleleCoverage const& get_haploid_covs() const {return haploid_allele_coverages;}
-        AlleleIdSet const& get_singleton_covs() const {return singleton_allele_coverages;}
-        likelihood_map const& get_likelihoods() const { return likelihoods; }
+        PerAlleleCoverage const &get_haploid_covs() const { return haploid_allele_coverages; }
+
+        AlleleIdSet const &get_singleton_covs() const { return singleton_allele_coverages; }
+
+        likelihood_map const &get_likelihoods() const { return likelihoods; }
     };
 }
-#endif //GTYPING_MODELS
+
+#endif //LVLGT_MODEL
