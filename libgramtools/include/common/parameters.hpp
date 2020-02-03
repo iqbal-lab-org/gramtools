@@ -15,6 +15,8 @@ namespace gram {
         genotype
     };
 
+    enum class Ploidy{Haploid, Diploid};
+
     // The number of bytes to use for each integer going on disk representing PRG string `Marker`s
     constexpr uint8_t num_bytes_per_integer{4};
     /**
@@ -41,6 +43,7 @@ namespace gram {
         std::string sa_intervals_fpath;
         std::string paths_fpath;
 
+        Ploidy ploidy;
         uint32_t kmers_size;
         uint32_t max_read_size;
         bool all_kmers_flag;

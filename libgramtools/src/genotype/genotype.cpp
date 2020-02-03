@@ -6,9 +6,13 @@
 #include "kmer_index/load.hpp"
 
 using namespace gram;
-void run_quasimap_and_infer(const Parameters &parameters){
-    std::cout << "Executing quasimap command" << std::endl;
+
+void commands::genotype::run(const Parameters &parameters){
     auto timer = TimerReport();
+    /**
+     * Quasimap
+     */
+    std::cout << "Executing genotype command" << std::endl;
 
     ReadStats readstats;
     std::string first_reads_fpath = parameters.reads_fpaths[0];
@@ -36,13 +40,16 @@ void run_quasimap_and_infer(const Parameters &parameters){
     std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count << std::endl;
     std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count << std::endl;
     timer.stop();
-    timer.report();
 
 
+    /**
+     * Infer
+     */
+    std::cout << "Running genotyping" << std::endl;
+    timer.start("Genotyping");
     LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
-                             readstats, Ploidy::Haploid};
+                             readstats, parameters.ploidy};
+    timer.stop();
+    timer.report();
 }
 
-void commands::genotype::run(const Parameters &parameters){
-    run_quasimap_and_infer(parameters);
-}

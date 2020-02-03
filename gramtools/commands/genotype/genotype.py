@@ -73,15 +73,17 @@ def _execute_command(geno_paths, geno_report, args):
     command = [
         common.gramtools_exec_fpath,
         "genotype",
-        "--gram",
+        "--gram_dir",
         str(geno_paths.gram_dir),
         "--reads",
         "".join([str(read_file) for read_file in geno_paths.reads_files]),
-        "--kmer-size",
+        "--ploidy",
+        args.ploidy,
+        "--kmer_size",
         str(args.kmer_size),
-        "--run-directory",
+        "--genotype_dir",
         str(geno_paths.geno_dir),
-        "--max-threads",
+        "--max_threads",
         str(args.max_threads),
         "--seed",
         str(args.seed),
@@ -119,7 +121,9 @@ def _execute_command(geno_paths, geno_report, args):
 
 
 def _check_read_stats(geno_paths: GenotypePaths):
-    ## Get the read statistics; report if most variant sites have no coverage.
+    """
+    Get the read statistics; report if most variant sites have no coverage.
+    """
     with open(geno_paths.read_stats) as f:
         read_stats = json.load(f)
 

@@ -45,7 +45,6 @@ namespace gram::genotype::infer {
 
     using allele_vector = std::vector<Allele>;
 
-    enum class Ploidy{Haploid, Diploid};
 
 }
 

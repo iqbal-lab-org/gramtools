@@ -34,6 +34,14 @@ def setup_parser(common_parser, subparsers):
     )
 
     parser.add_argument(
+        "--ploidy",
+        help="The expected ploidy of the sample.\n" "Default: diploid",
+        choices=["haploid", "diploid"],
+        required=False,
+        default="diploid",
+    )
+
+    parser.add_argument(
         "--max_threads",
         help="Run with more threads than the default of one.",
         type=int,
