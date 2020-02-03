@@ -453,3 +453,24 @@ TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying
     // And this call to invalidate site 7, without attempting to invalidate site 9 which was already so by above call.
     g.invalidate_if_needed(5, AlleleIds{0});
 }
+
+TEST(LevelGenotyperModelDirectDeletion, GivenEmptyAllele_AssignsCoverage){
+    allele_vector alleles{
+            Allele{ "C", {8}, 0 },
+            Allele{ "G", {8}, 0 },
+            Allele{ "", {}, 1 },
+    };
+
+    GroupedAlleleCounts gp_counts{
+            { {0}, 8 },
+            { {1}, 8 },
+            { {0, 1}, 1 },
+    };
+    auto expected = alleles;
+    expected.at(2).pbCov = PerBaseCoverage{9};
+
+    LevelGenotyperModel m;
+    m.set_haploid_coverages(gp_counts, 2);
+    m.assign_coverage_to_empty_alleles(alleles);
+    EXPECT_EQ(alleles, expected);
+}

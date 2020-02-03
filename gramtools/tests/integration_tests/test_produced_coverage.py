@@ -141,14 +141,16 @@ class OneRead_SNPNestedInsideDeletion(unittest.TestCase):
 
         cls.integrator = IntegrationRunner(cls.test_data_dir)
 
-        # No expected per base cov: it gets captured in a graph
-
         # Expect the 'nested' read to match to first allele of both sites,
         # and the 'deletion' read to match the second allele of the first site.
         cls.expected_grouped_counts = [{"0": 1, "1": 1}, {"1": 1}]
 
     def test_all(self):
         self.integrator.run_all()
+
+        # The PRG has nested sites, so no expected per base coverage recorded
+        pb_cov = self.integrator.get_pb_cov()
+        self.assertEqual(pb_cov, [])
 
         allele_groups, all_groups_site_counts = self.integrator.get_gped_allele_counts()
         self.assertEqual(allele_groups["0"], {0, 1})

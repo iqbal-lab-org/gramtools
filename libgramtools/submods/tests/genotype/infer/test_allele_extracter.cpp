@@ -170,7 +170,7 @@ TEST(AllelePasteTest, TwoAllelesOneCoverageNode_CorrectlyAppendedSequenceandCove
     EXPECT_EQ(existing_alleles, expected);
 }
 
-class AlleleExtracterTest : public ::testing::Test{
+class AlleleExtracter_NestedPRG : public ::testing::Test{
 protected:
     std::shared_ptr<MockGenotypedSite> first_site_ptr = std::make_shared<MockGenotypedSite>();
     std::shared_ptr<MockGenotypedSite> second_site_ptr = std::make_shared<MockGenotypedSite>();
@@ -187,7 +187,7 @@ protected:
     covG_ptrPair outer_bubble_nodes = get_bubble_nodes(cov_graph.bubble_map, 5);
 };
 
-TEST_F(AlleleExtracterTest, NestedBubble_CorrectAlleles){
+TEST_F(AlleleExtracter_NestedPRG, NestedBubble_CorrectAlleles){
     AlleleExtracter extracter{nested_bubble_nodes.first, nested_bubble_nodes.second, genotyped_sites};
 
     allele_vector expected{
@@ -199,7 +199,7 @@ TEST_F(AlleleExtracterTest, NestedBubble_CorrectAlleles){
     EXPECT_EQ(extracter.get_alleles(), expected);
 }
 
-TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNestedBubble_CorrectAlleles){
+TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNestedBubble_CorrectAlleles){
     EXPECT_CALL(*second_site_ptr, get_genotype())
     .WillOnce(Return(GtypedIndices{0}));
 
@@ -221,7 +221,7 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNestedBubble_CorrectAl
     EXPECT_EQ(extracter.get_alleles(), expected);
 }
 
-TEST_F(AlleleExtracterTest, OuterBubbleEncompassingTriploidNestedBubble_CorrectAlleles){
+TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingTriploidNestedBubble_CorrectAlleles){
     EXPECT_CALL(*second_site_ptr, get_genotype())
             .WillOnce(Return(GtypedIndices{0, 1, 2}));
 
@@ -248,7 +248,7 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingTriploidNestedBubble_CorrectA
     EXPECT_EQ(extracter.get_alleles(), expected);
 }
 
-TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNonREFNestedBubble_REFGetsProduced){
+TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNonREFNestedBubble_REFGetsProduced){
     EXPECT_CALL(*second_site_ptr, get_genotype())
             .WillOnce(Return(GtypedIndices{1}));
 
@@ -271,5 +271,23 @@ TEST_F(AlleleExtracterTest, OuterBubbleEncompassingHaploidNonREFNestedBubble_REF
     };
 
     EXPECT_FALSE(extracter.ref_allele_got_made_naturally());
+    EXPECT_EQ(extracter.get_alleles(), expected);
+}
+
+TEST(AlleleExtracter_DirectDeletionPRG, GivenOneBubble_DirectDeletionAlleleIsPresent){
+    marker_vec v = prg_string_to_ints("AT[GCC,TTA,]T");
+    PRG_String prg_string{v};
+    coverage_Graph cov_graph{prg_string};
+
+    covG_ptrPair bubble_nodes = get_bubble_nodes(cov_graph.bubble_map, 5);
+    gt_sites genotyped_sites;
+    AlleleExtracter extracter{bubble_nodes.first, bubble_nodes.second, genotyped_sites};
+
+    allele_vector expected{
+        Allele{"GCC", {0, 0, 0}, 0},
+        Allele{"TTA", {0, 0, 0}, 1},
+        Allele{"", {}, 2},
+    };
+
     EXPECT_EQ(extracter.get_alleles(), expected);
 }

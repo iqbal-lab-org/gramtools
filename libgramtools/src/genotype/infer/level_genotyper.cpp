@@ -18,6 +18,15 @@ void LevelGenotyperModel::set_haploid_coverages(GroupedAlleleCounts const& gp_co
     }
 }
 
+void LevelGenotyperModel::assign_coverage_to_empty_alleles(allele_vector &alleles) {
+    for (auto& allele : alleles){
+        if (allele.sequence.size() == 0){
+            auto assigned_cov = haploid_allele_coverages.at(allele.haplogroup);
+            allele.pbCov = PerBaseCoverage{assigned_cov};
+        }
+    }
+}
+
 std::pair<double, double>
 LevelGenotyperModel::compute_diploid_coverage(GroupedAlleleCounts const &gp_counts, AlleleIds ids,
                                               multiplicities const &haplogroup_multiplicities) {
@@ -93,7 +102,7 @@ multiplicities LevelGenotyperModel::count_num_haplogroups(allele_vector const& a
 };
 
 GtypedIndices LevelGenotyperModel::rescale_genotypes(GtypedIndices const& genotypes){
-    // 0 always goes to 0 because we always add the 'REF' as an allele, even when not called.
+    // The rescaling does not affect allele 0, because that allele is always placed in the site
     std::unordered_map<GtypedIndex, GtypedIndex> rescaler{{0, 0}};
 
     GtypedIndices local_copy(genotypes), result;
@@ -243,16 +252,16 @@ gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
         return;
     }
 
-    allele_vector without_ref;
-    if (ignore_ref_allele){
-        without_ref = allele_vector{input_alleles->begin() + 1, input_alleles->end()};
-        alleles = &without_ref;
-    }
-    else alleles = input_alleles;
+    allele_vector used_alleles;
+    if (ignore_ref_allele)
+        used_alleles = allele_vector{input_alleles->begin() + 1, input_alleles->end()};
+    else used_alleles = *input_alleles;
+    this->alleles = &used_alleles;
 
     auto haplogroup_multiplicities = count_num_haplogroups(*alleles);
     genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size());
     set_haploid_coverages(*gp_counts, haplogroup_multiplicities.size());
+    assign_coverage_to_empty_alleles(*alleles);
 
     if (ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods();
     else if (ploidy == Ploidy::Diploid){
@@ -266,16 +275,14 @@ gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     ++it;
     auto gt_confidence = best_likelihood - it->first;
 
-    auto rescaled_gt = rescale_genotypes(chosen_gt);
-    if (ignore_ref_allele) {
-        for (auto& gt : chosen_gt) gt++;
-        for (auto& gt : rescaled_gt) gt++;
-    }
-    // We use chosen_gt not rescaled_gt to get the right alleles
-    auto chosen_alleles = genotyped_site->get_unique_genotyped_alleles(*input_alleles, chosen_gt);
+    // Correct the genotype indices if needed
+    if (ignore_ref_allele) for (auto& gt : chosen_gt) gt++;
 
-    // If REF allele has not been called, add it anyway. Note rescaled_gt is sorted so can query its first element.
+    auto chosen_alleles = genotyped_site->get_unique_genotyped_alleles(*input_alleles, chosen_gt);
+    auto rescaled_gt = rescale_genotypes(chosen_gt);
+    // Add the REF allele to the set of chosen alleles if it was not called
     if (rescaled_gt.at(0) != 0) chosen_alleles = prepend_allele(chosen_alleles, input_alleles->at(0));
+
     genotyped_site->set_alleles(chosen_alleles);
     genotyped_site->set_genotype(rescaled_gt, gt_confidence);
 }

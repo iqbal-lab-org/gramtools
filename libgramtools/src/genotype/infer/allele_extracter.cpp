@@ -54,6 +54,7 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
             {"", {}, haplogroup}
     }; // Make one empty allele as starting point
     covG_ptr cur_Node{haplogroup_start};
+    bool first_advance{true};
 
     Allele ref_allele{"", {}, 0};
     Allele to_paste_allele;
@@ -72,7 +73,10 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
                 to_paste_allele = ref_containing_alleles.at(0);
             }
         }
-        else if (cur_Node->has_sequence()) {
+        else if (! first_advance && cur_Node->is_bubble_end()) ;
+
+        // We have an allele. Note this condition allows for a direct deletion, which will paste an empty sequence
+        else {
             allele_paste(haplogroup_alleles, cur_Node);
             if (haplogroup == 0) to_paste_allele = Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
         }
@@ -81,6 +85,7 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
 
         assert(cur_Node->get_num_edges() == 1); // The only nodes with >1 neighbour are bubble starts and we skipped past those.
         cur_Node = *(cur_Node->get_edges().begin()); // Advance to the next node
+        if (first_advance) first_advance = false;
     }
 
     if (haplogroup == 0) {

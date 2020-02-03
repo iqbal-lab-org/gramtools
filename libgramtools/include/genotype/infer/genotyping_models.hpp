@@ -39,7 +39,7 @@ namespace gram::genotype::infer {
       * genotype confidence using likelihood ratios
     */
     class LevelGenotyperModel : AbstractGenotypingModel {
-        allele_vector const* alleles;
+        allele_vector* alleles;
         GroupedAlleleCounts const *gp_counts;
         Ploidy ploidy;
         likelihood_related_stats const* l_stats;
@@ -54,7 +54,7 @@ namespace gram::genotype::infer {
         std::shared_ptr<LevelGenotypedSite> genotyped_site; // What the class will build
 
     public:
-        LevelGenotyperModel() : alleles(nullptr), gp_counts(nullptr) {}
+        LevelGenotyperModel() : gp_counts(nullptr) {}
         /**
          *
          * @param ignore_ref_allele if true, the ref allele was not produced naturally,
@@ -68,6 +68,14 @@ namespace gram::genotype::infer {
 
         // Allele-level coverage
         void set_haploid_coverages(GroupedAlleleCounts const& gp_counts, AlleleId num_haplogroups);
+
+        /**
+         * Alleles with no sequence correspond to direct deletions.
+         * In this case they get assigned coverage by this function,
+         * using the grouped allele coverages, as if they had a single base.
+         */
+        void assign_coverage_to_empty_alleles(allele_vector &alleles);
+
         /**
          *
          * Note: Due to nesting, the alleles can be from the same haplogroup; in which case, they have the same

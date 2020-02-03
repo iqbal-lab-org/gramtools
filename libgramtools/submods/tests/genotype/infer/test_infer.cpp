@@ -72,6 +72,28 @@ TEST(LevelGenotyping, Given2SiteNestedPRG_CorrectGenotypes){
     EXPECT_EQ(gt_alleles, expected_alleles);
 }
 
+TEST(LevelGenotyper, GivenPRGWithDirectDeletion_CorrectlyCalledEmptyAllele){
+    std::string prg{"GGGGG[CCC,]GG"};
+    Sequences kmers{encode_dna_bases("GG")};
+    prg_setup setup;
+    setup.setup_bracketed_prg(prg, kmers);
+
+    allele_vector gt_alleles;
+    GenomicRead_vector reads;
+    // Reads going through direct deletion
+    for (int i = 0; i < 5; i++) reads.push_back(GenomicRead("Read", "GGGGGG", "??????"));
+    setup.quasimap_reads(reads);
+
+    LevelGenotyper genotyper(setup.prg_info.coverage_graph, setup.coverage.grouped_allele_counts,
+                             setup.read_stats, Ploidy::Haploid);
+    auto gt_recs = genotyper.get_genotyped_records();
+
+    gt_alleles = gt_recs.at(0)->get_unique_genotyped_alleles();
+    allele_vector expected_alleles{
+            Allele{"", {}, 1}
+    };
+    EXPECT_EQ(gt_alleles, expected_alleles);
+}
 
 class LG_SnpsNestedInTwoHaplotypes : public ::testing::Test {
 protected:

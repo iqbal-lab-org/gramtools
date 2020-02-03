@@ -75,12 +75,13 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
     for (auto const& bubble_pair : cov_graph.bubble_map){
         auto site_ID = bubble_pair.first->get_site_ID();
         auto site_index = siteID_to_index(site_ID);
+
         auto extracter = AlleleExtracter(bubble_pair.first, bubble_pair.second, genotyped_records);
-        auto extracted_alleles = extracter.get_alleles();
         auto& gped_covs_for_site = gped_covs.at(site_index);
+        auto extracted_alleles = extracter.get_alleles();
+
         auto genotyped = LevelGenotyperModel(&extracted_alleles, &gped_covs_for_site,
                                              ploidy, &l_stats, ! extracter.ref_allele_got_made_naturally());
-
         auto genotyped_site = genotyped.get_site();
         genotyped_records.at(site_index) = genotyped_site;
         // Line below is so that when allele extraction occurs and jumps through a previously
