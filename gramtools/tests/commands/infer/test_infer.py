@@ -6,8 +6,8 @@ import os
 
 
 from gramtools.utils import prg_local_parser
-from gramtools.commands.infer import genotyper
-from gramtools.commands.infer import fasta_from_vcf
+from gramtools.commands.genotype import fasta_from_vcf
+from gramtools.commands.genotype.legacy import genotyper
 from ...utils import _MockVcfRecord
 
 

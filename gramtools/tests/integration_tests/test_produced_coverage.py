@@ -8,17 +8,16 @@ Words of caution:
 """
 
 from gramtools import gramtools
-from gramtools import paths
+from gramtools.commands import paths
 from gramtools.commands.build import build
-from gramtools.commands import quasimap
-from gramtools.commands.infer import infer
+from gramtools.commands.genotype import genotype, utils
 
 import tempfile
 import shutil
 from pathlib import Path
 import unittest
 
-base_dir = Path(__file__).parent.parent.parent
+base_dir = Path(__file__ + "/../../../").resolve()
 data_dir = base_dir / "tests" / "data" / "prgs"
 
 gramtools._setup_parser()
@@ -34,39 +33,35 @@ class IntegrationRunner:
         self.reads_file = str(data_dir / test_data_dir / "reads.fastq")
 
         self.gram_dir = tempfile.mkdtemp()
-        self.run_dir = str(Path(self.gram_dir) / "run")
+        self.geno_dir = str(Path(self.gram_dir) / "run")
+        self.geno_paths = paths.GenotypePaths(self.geno_dir)
 
     def __del__(self):
         shutil.rmtree(self.gram_dir)
 
     def run_build(self):
         args = gramtools.root_parser.parse_args(
-            f"build --gram-dir {self.gram_dir} --prg {self.prg_file} --kmer-size 5".split()
+            f"build --gram_dir {self.gram_dir} --prg {self.prg_file} --kmer_size 5".split()
         )
         build.run(args)
 
-    def run_quasimap(self):
+    def run_genotype(self):
         args = gramtools.root_parser.parse_args(
-            f"quasimap --gram-dir {self.gram_dir} --run-dir {self.run_dir} --reads {self.reads_file}".split()
+            f"genotype --gram_dir {self.gram_dir} --genotype_dir {self.geno_dir} --reads {self.reads_file}".split()
         )
-        quasimap.run(args)
-
-        ## Make paths to the produced coverage ##
-        self.coverage_paths = paths.generate_quasimap_paths(args)
+        genotype.run(args)
 
     def run_all(self):
         self.run_build()
-        self.run_quasimap()
+        self.run_genotype()
 
     def get_pb_cov(self):
-        all_per_base_coverage = infer._load_per_base_coverage(
-            self.coverage_paths["allele_base_coverage"]
-        )
+        all_per_base_coverage = utils._load_per_base_coverage(self.geno_paths.pb_cov)
         return all_per_base_coverage
 
     def get_gped_allele_counts(self):
-        allele_groups, all_groups_site_counts = infer._load_grouped_allele_coverage(
-            self.coverage_paths["grouped_allele_counts_coverage"]
+        allele_groups, all_groups_site_counts = utils._load_grouped_allele_coverage(
+            self.geno_paths.gped_cov
         )
         return allele_groups, all_groups_site_counts
 

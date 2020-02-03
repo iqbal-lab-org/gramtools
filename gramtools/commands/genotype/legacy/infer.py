@@ -11,8 +11,9 @@ import vcf
 import collections
 
 from . import genotyper
-from . import fasta_from_vcf
-from gramtools import paths
+from .. import fasta_from_vcf
+from .. import utils
+from gramtools.commands import paths
 from gramtools import version
 
 # For reference of vcf record attributes: cf https://pyvcf.readthedocs.io/en/latest/API.html#vcf-model-record
@@ -91,8 +92,10 @@ def run(args):
         error_rate = float(read_stats["Quality"]["Error_rate_mean"])
 
     # Load coverage stats
-    all_per_base_coverage = _load_per_base_coverage(_paths["allele_base_coverage"])
-    allele_groups, all_groups_site_counts = _load_grouped_allele_coverage(
+    all_per_base_coverage = utils._load_per_base_coverage(
+        _paths["allele_base_coverage"]
+    )
+    allele_groups, all_groups_site_counts = utils._load_grouped_allele_coverage(
         _paths["grouped_allele_counts_coverage"]
     )
 
@@ -417,23 +420,3 @@ def _extract_allele_index(gtyper):
         raise ValueError("Genotyper likelihoods does not have any valid haploid data")
 
     return allele_index
-
-
-def _load_grouped_allele_coverage(fpath):
-    with open(fpath, "r") as fhandle:
-        data = json.load(fhandle)
-    groups_coverage = data["grouped_allele_counts"]
-
-    allele_groups = groups_coverage["allele_groups"]
-    for key, value in allele_groups.items():
-        allele_groups[key] = set(value)
-
-    groups_site_counts = groups_coverage["site_counts"]
-    return allele_groups, groups_site_counts
-
-
-def _load_per_base_coverage(fpath):
-    with open(fpath, "r") as fhandle:
-        data = json.load(fhandle)
-    data = data["allele_base_counts"]
-    return data

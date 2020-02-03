@@ -1,6 +1,6 @@
 import unittest
 
-from gramtools.commands.infer import genotyper
+from gramtools.commands.genotype.legacy import genotyper
 
 
 class TestGenotyper(unittest.TestCase):

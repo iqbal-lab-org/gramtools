@@ -91,8 +91,6 @@ class BuildPaths(ProjectPaths):
         self.cov_graph = self.build_path("cov_graph")
         self.made_gram_dir = False
 
-        self.initial_setup()
-
     def initial_setup(self):
         if not self.gram_dir.exists():
             log.debug("Creating gram directory:\n%s", self.gram_dir)
@@ -134,10 +132,9 @@ class GenotypePaths(ProjectPaths):
         # Quasimapping-related
         self.read_stats = self.geno_path("read_stats.json")
         self.gped_cov = self.geno_path("grouped_allele_counts_coverage.json")
+        self.pb_cov = self.geno_path("allele_base_coverage.json")
 
         self.force = force  # Whether to erase existing geno_dir
-
-        self.initial_setup()
 
     def initial_setup(self):
         if self.geno_dir.exists():
