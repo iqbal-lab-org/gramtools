@@ -8,6 +8,7 @@
 namespace gram::genotype::infer {
     class LevelGenotypedSite : public AbstractGenotypedSite {
         double gt_conf; /**< Difference in log likelihood between most likely and next most likely genotype **/
+        std::size_t total_coverage; /**< Total coverage on this site */
     public:
         LevelGenotypedSite() {}
 
@@ -29,6 +30,8 @@ namespace gram::genotype::infer {
             genotype = indices;
             gt_conf = gt_confidence;
         };
+
+        void set_total_cov(std::size_t const &t_c) { total_coverage = t_c; }
 
         void set_alleles(allele_vector const &chosen_alleles) {
             alleles = chosen_alleles;

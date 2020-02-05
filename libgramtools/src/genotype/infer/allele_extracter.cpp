@@ -3,14 +3,6 @@
 
 using namespace gram::genotype::infer;
 
-allele_vector gram::genotype::infer::prepend_allele(allele_vector const& original_alleles, Allele const& to_prepend){
-    allele_vector result;
-    result.reserve(original_alleles.size() + 1);
-    result.insert(result.end(), to_prepend);
-    result.insert(result.end(), original_alleles.begin(), original_alleles.end());
-
-    return result;
-}
 
 
 AlleleExtracter::AlleleExtracter(covG_ptr site_start, covG_ptr site_end, gt_sites& sites)
@@ -91,7 +83,7 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
     if (haplogroup == 0) {
         _ref_allele_got_made_naturally = ref_allele == haplogroup_alleles.at(0);
         if (! _ref_allele_got_made_naturally )
-            haplogroup_alleles = prepend_allele(haplogroup_alleles, ref_allele);
+            haplogroup_alleles = prepend(haplogroup_alleles, ref_allele);
     }
 
     return haplogroup_alleles;

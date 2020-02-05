@@ -13,6 +13,7 @@ namespace gram::genotype::infer {
     using numCredibleCounts = std::size_t;
     using multiplicities = std::vector<bool>;
     using likelihood_map = std::multimap<double, GtypedIndices, std::greater<double>>;
+    using memoised_coverages = std::map<AlleleIds, allele_coverages>;
 
     struct likelihood_related_stats {
         double mean_cov_depth,
@@ -37,7 +38,8 @@ namespace gram::genotype::infer {
 
         // Computed at construction time
         PerAlleleCoverage haploid_allele_coverages; /**< Coverage counts compatible with single alleles */
-        AlleleIdSet singleton_allele_coverages; /**< Coverage counts unique to single alleles */
+        PerAlleleCoverage singleton_allele_coverages; /**< Coverage counts unique to single alleles */
+        memoised_coverages computed_coverages;
         std::size_t total_coverage;
 
         // Computed at run time
@@ -79,6 +81,7 @@ namespace gram::genotype::infer {
         std::size_t count_total_coverage(GroupedAlleleCounts const &gp_counts);
 
         // Counting
+        AlleleIds get_haplogroups(allele_vector const &alleles, GtypedIndices const &gtype) const;
         std::vector<bool> count_num_haplogroups(allele_vector const &alleles);
 
         /**
@@ -117,7 +120,7 @@ namespace gram::genotype::infer {
         // Trivial Getters
         PerAlleleCoverage const &get_haploid_covs() const { return haploid_allele_coverages; }
 
-        AlleleIdSet const &get_singleton_covs() const { return singleton_allele_coverages; }
+        PerAlleleCoverage const &get_singleton_covs() const { return singleton_allele_coverages; }
 
         likelihood_map const &get_likelihoods() const { return likelihoods; }
     };

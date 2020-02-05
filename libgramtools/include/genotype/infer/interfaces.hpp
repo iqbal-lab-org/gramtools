@@ -11,9 +11,23 @@
 
 namespace gram::genotype::infer {
 
+    /**
+     * Used in allele extraction but also in level genotyper
+     */
+     template <typename T>
+     std::vector<T> prepend(std::vector<T> const& original_object, T const& to_prepend){
+        std::vector<T> result;
+        result.reserve(original_object.size() + 1);
+        result.insert(result.end(), to_prepend);
+        result.insert(result.end(), original_object.begin(), original_object.end());
+
+        return result;
+     }
+
     using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
     using GtypedIndices = std::vector<GtypedIndex>;
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
+    using allele_coverages = std::vector<double>;
 
     class AbstractGenotypedSite;
     using gt_site = AbstractGenotypedSite;
@@ -43,13 +57,11 @@ namespace gram::genotype::infer {
 
         virtual void make_null() = 0;
 
-        void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
-
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
-
-        void set_num_haplogroups(std::size_t const &num_haps) { num_haplogroups = num_haps; }
-
         bool const has_alleles() const { return alleles.size() > 0; }
+
+        void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
+        void set_num_haplogroups(std::size_t const &num_haps) { num_haplogroups = num_haps; }
 
 
         /**

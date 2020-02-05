@@ -1,16 +1,15 @@
 /** @file
- * High-level tests:
- *  builds a coverage graph & gram index, maps reads to it, calls a genotyper, and tests the results!!
+ * Test Level Genotyping (LG).
+ * These are high-level tests:
+ *  build a coverage graph & gram index, map reads to it, call a genotyper; all those are required to work.
  */
 
 #include "gtest/gtest.h"
+#include "../mocks.hpp"
 #include "tests/common.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 
-/**
- * Test the following Genotyping approach: Level Genotyping (LG)
- */
 TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes){
     std::string prg{"AATAA5C6G6AA7C8G8AA"};
     Sequences kmers{encode_dna_bases("AA")};
@@ -158,3 +157,61 @@ TEST_F(LG_SnpsNestedInTwoHaplotypes, MapReads_CorrectlyInvalidatedSites){
     EXPECT_TRUE(gt_recs.at(siteID_to_index(9))->is_null());
 }
 
+TEST(LevelGenotyperInvalidation, GivenChildMapAndCandidateHaplos_CorrectHaplosWithSites){
+    // site 7 lives on haplogroup 0 of site 5, and sites 9 and 11 live on its haplogroup 1.
+    parental_map par_map{
+            {7, VariantLocus{5, 1}},
+            {9, VariantLocus{5, 2}},
+            {11, VariantLocus{5, 2}},
+    };
+    child_map child_m = build_child_map(par_map);
+    LevelGenotyper g{child_m, gt_sites{}};
+
+    AlleleIds expected_haplogroups{0, 1}; // Expected in 0-based
+    auto haplos_with_sites = g.get_haplogroups_with_sites(5, {0, 1, 2, 3});
+    EXPECT_EQ(haplos_with_sites, expected_haplogroups);
+
+    auto empty_query = g.get_haplogroups_with_sites(7, {0, 1, 2, 3});
+    EXPECT_EQ(empty_query, AlleleIds{});
+}
+
+using ::testing::InSequence;
+using ::testing::Return;
+TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying){
+    parental_map par_map{
+            {7, VariantLocus{5, 1}},
+            {9, VariantLocus{7, 2}},
+    };
+    child_map child_m = build_child_map(par_map);
+
+    gt_sites sites(3);
+    auto site1 = std::make_shared<MockGenotypedSite>();
+    EXPECT_CALL(*site1, make_null())
+            .Times(1);
+    EXPECT_CALL(*site1, is_null())
+            .WillOnce(Return(false));
+    site1->set_num_haplogroups(5);
+    sites.at(1) = site1;
+
+    // SiteID 9 will get nulled by site 7.
+    // Then when site 5 nulls site 7, I want site 9 to signal it is already nulled.
+    auto site2 = std::make_shared<MockGenotypedSite>();
+    {
+        InSequence seq;
+        EXPECT_CALL(*site2, is_null())
+                .WillOnce(Return(false));
+        EXPECT_CALL(*site2, make_null())
+                .Times(1);
+        EXPECT_CALL(*site2, is_null())
+                .WillOnce(Return(true));
+    }
+    site2->set_num_haplogroups(5);
+    sites.at(2) = site2;
+
+    LevelGenotyper g{child_m, sites};
+
+    // I want site 9 to be invalidated in this call
+    g.invalidate_if_needed(7, AlleleIds{1});
+    // And this call to invalidate site 7, without attempting to invalidate site 9 which was already so by above call.
+    g.invalidate_if_needed(5, AlleleIds{0});
+}

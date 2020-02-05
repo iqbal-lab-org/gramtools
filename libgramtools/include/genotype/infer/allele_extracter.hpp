@@ -8,10 +8,6 @@ using namespace gram;
 
 namespace gram::genotype::infer {
 
-/**
- * Used in allele extraction but also in level genotyper
- */
-allele_vector prepend_allele(allele_vector const& original_alleles, Allele const& to_prepend);
 
 /**
  * Class in charge of producing the set of `Allele`s that get genotyped.
