@@ -149,7 +149,7 @@ TEST(CountNumHaplogroups, GivenVariousAlleleVectors_CorrectNumHaplogroups){
 
     LevelGenotyperModel gtyper;
     multiplicities expected({true}); // Expect one entry, with more than one associated allele
-    EXPECT_EQ(gtyper.count_num_haplogroups(a1), expected);
+    EXPECT_EQ(gtyper.get_haplogroup_multiplicities(a1), expected);
 
     allele_vector a2{
             Allele{"", {}, 0},
@@ -158,7 +158,7 @@ TEST(CountNumHaplogroups, GivenVariousAlleleVectors_CorrectNumHaplogroups){
     };
 
     expected = multiplicities({false, true}); // Haplogroup 0 has 1 allele, haplogroup 1 has > 1 allele
-    EXPECT_EQ(gtyper.count_num_haplogroups(a2), expected);
+    EXPECT_EQ(gtyper.get_haplogroup_multiplicities(a2), expected);
 }
 
 TEST(MakePermutations,GivenVariousParameters_CorrectPermutations){
@@ -244,6 +244,31 @@ TEST_F(TestLevelGenotyperModel_NullGTs , GivenNoCoverageOnAllAlleles_ReturnsNull
     EXPECT_TRUE(genotyped.get_site()->is_null());
 }
 
+TEST(TestLevelGenotyperModel_Coverage, GivenTwoAlleles_CorrectCoverages){
+    allele_vector alleles{
+        Allele{"", {}, 0},
+        Allele{"", {}, 1},
+    };
+    GroupedAlleleCounts gp_counts{
+            {{0}, 1},
+            {{0, 1}, 4},
+            {{1}, 30}
+    };
+
+    double mean_cov_depth{30}, mean_pb_error{0.01};
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+
+    auto haploid = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    auto hap_gt = haploid.get_site_gtype_info();
+    allele_coverages hap_exp{1, 34}; // The REF should get its singleton (= specific) coverage (value 1)
+    EXPECT_EQ(hap_gt.allele_covs, hap_exp);
+
+    auto diploid = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    auto dip_gt = diploid.get_site_gtype_info();
+    GtypedIndices expected_diploid_gt{1, 1};
+    EXPECT_EQ(std::get<GtypedIndices>(dip_gt.genotype), expected_diploid_gt);
+    EXPECT_EQ(dip_gt.allele_covs, hap_exp); // All coverage is also placed on allele 1
+}
 
 class TestLevelGenotyperModel_TwoAllelesWithCoverage : public ::testing::Test {
 protected:
@@ -267,19 +292,20 @@ protected:
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectHaploidCall) {
     auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
 
-    auto genotyped_alleles = genotyped.get_site()->get_alleles();
+    auto gt_info = genotyped.get_site_gtype_info();
     allele_vector expected_alleles{
             alleles.at(0), // REF is not called, but still makes it in here
             alleles.at(2),
     };
-    EXPECT_EQ(genotyped_alleles, expected_alleles);
+    EXPECT_EQ(gt_info.alleles, expected_alleles);
 
-    auto gtype = genotyped.get_site()->get_genotype();
-    EXPECT_TRUE(std::holds_alternative<GtypedIndices>(gtype));
+    allele_coverages expected_covs{0.5, 14};
+    for (int i{0}; i < expected_alleles.size(); i++) EXPECT_DOUBLE_EQ(gt_info.allele_covs.at(i), expected_covs.at(i));
 
+    EXPECT_TRUE(std::holds_alternative<GtypedIndices>(gt_info.genotype));
     // The genotype needs to get rescaled: it is index 2 in original allele vector, but 1 in retained alleles
     GtypedIndices expected_gtype{1};
-    EXPECT_EQ(std::get<GtypedIndices>(gtype), expected_gtype);
+    EXPECT_EQ(std::get<GtypedIndices>(gt_info.genotype), expected_gtype);
 }
 
 
@@ -340,18 +366,20 @@ protected:
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_CorrectGenotype){
 
     auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
-
-    auto genotyped_alleles = genotyped.get_site()->get_alleles();
+    auto gtype_info = genotyped.get_site_gtype_info();
     allele_vector expected_alleles{
             alleles.at(0), // REF is not called, but still makes it in here
             alleles.at(2),
             alleles.at(3),
     };
-    EXPECT_EQ(genotyped_alleles, expected_alleles);
+    EXPECT_EQ(gtype_info.alleles, expected_alleles);
 
-    auto gtype = genotyped.get_site()->get_genotype();
+    allele_coverages expected_covs{7.5, 15, 15};
+    for (int i{0}; i < expected_alleles.size(); ++i)
+        EXPECT_DOUBLE_EQ(gtype_info.allele_covs.at(i), expected_covs.at(i));
+
     GtypedIndices expected_gtype{1, 2};
-    EXPECT_EQ(std::get<GtypedIndices>(gtype), expected_gtype);
+    EXPECT_EQ(std::get<GtypedIndices>(gtype_info.genotype), expected_gtype);
 }
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenDifferentPloidies_CorrectNumberOfProducedGenotypes) {
