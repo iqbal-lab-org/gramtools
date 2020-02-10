@@ -2,10 +2,6 @@
 
 namespace gram::genotype::infer {
 
-    /*
-     * Sites
-     */
-
 allele_vector const AbstractGenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
                                                                         GenotypeOrNull const &genotype) const {
 
@@ -39,6 +35,15 @@ AlleleIds const AbstractGenotypedSite::get_nonGenotyped_haplogroups() const{
     for (AlleleId i{0}; i < num_haplogroups; i++){
         if (genotyped_haplogroups.find(i) == genotyped_haplogroups.end())
             result.push_back(i);
+    }
+    return result;
+}
+
+AlleleIds AbstractGenotypedSite::get_genotyped_haplogroups(allele_vector const& input_alleles,
+                                                           GtypedIndices const& input_gts) const{
+    AlleleIds result;
+    for (auto const& gt : input_gts){
+       result.push_back(input_alleles.at(gt).haplogroup);
     }
     return result;
 }

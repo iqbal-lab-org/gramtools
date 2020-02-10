@@ -73,3 +73,15 @@ TEST(GetAllHaploGroups, GivenSiteWithGivenHaplotypeNum_CorrectReturnedHaplos){
     AlleleIds expected{0, 1, 2, 3, 4};
     EXPECT_EQ(result, expected);
 }
+
+TEST(GetGenotypedHaplogroups, GivenAllelesAndGT_CorrectHaplos){
+    LevelGenotypedSite site;
+    allele_vector alleles{
+            Allele{"ACGT", {1, 1, 1, 1}, 0},
+            Allele{"TTTA", {1, 8, 1, 1}, 1},
+            Allele{"TATA", {1, 8, 2, 1}, 4},
+    };
+    GtypedIndices gt{0, 2};
+    AlleleIds expected{0, 4};
+    EXPECT_EQ(site.get_genotyped_haplogroups(alleles, gt), expected);
+}

@@ -8,7 +8,9 @@
 
 #include <variant>
 #include "genotype/infer/types.hpp"
+#include <nlohmann/json.hpp>
 
+using JSON = nlohmann::json;
 namespace gram::genotype::infer {
 
     /**
@@ -41,21 +43,23 @@ namespace gram::genotype::infer {
     protected:
         allele_vector alleles;
         GenotypeOrNull genotype;
+        AlleleIds haplogroups;
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
+        JSON site_json{
+                {"Alleles", JSON::array()},
+                {"GT", JSON::array()}
+        };
+
     public:
         virtual ~AbstractGenotypedSite() {};
-
         virtual GenotypeOrNull const get_genotype() const = 0;
-
         virtual allele_vector const get_alleles() const = 0;
-
         virtual covG_ptr const get_site_end_node() const = 0;
-
         virtual bool is_null() const = 0;
-
         virtual void make_null() = 0;
+        virtual JSON get_JSON() = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
         bool const has_alleles() const { return alleles.size() > 0; }
@@ -63,22 +67,15 @@ namespace gram::genotype::infer {
         void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
         void set_num_haplogroups(std::size_t const &num_haps) { num_haplogroups = num_haps; }
 
-
         /**
          * Given alleles and GT, return the alleles referred to by GT
          */
         allele_vector const get_unique_genotyped_alleles
                 (allele_vector const &all_alleles, GenotypeOrNull const &genotype) const;
-
-        /**
-         * Return site's called alleles directly, from its own alleles
-         */
         allele_vector const get_unique_genotyped_alleles() const {
             return get_unique_genotyped_alleles(alleles, genotype);
         }
-
         /**
-         * Return site's called alleles indirectly
          * This version exists for allowing to use mocked alleles and genotypes
          */
         allele_vector const extract_unique_genotyped_alleles() const {
@@ -99,6 +96,8 @@ namespace gram::genotype::infer {
             for (std::size_t idx{0}; idx < num_haplogroups; idx++) result.push_back(idx);
             return result;
         }
+
+        AlleleIds get_genotyped_haplogroups(allele_vector const& input_alleles, GtypedIndices const& input_gts) const;
     };
 
 

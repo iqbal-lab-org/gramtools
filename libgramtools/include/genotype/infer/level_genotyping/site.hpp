@@ -12,6 +12,7 @@ namespace gram::genotype::infer {
         allele_coverages allele_covs;
         double gt_conf;
         std::size_t total_coverage;
+        AlleleIds haplogroups;
     };
 
     class LevelGenotypedSite : public AbstractGenotypedSite {
@@ -47,6 +48,7 @@ namespace gram::genotype::infer {
             this->allele_covs = gtype_info.allele_covs;
             this->gt_conf = gtype_info.gt_conf;
             this->total_coverage = gtype_info.total_coverage;
+            this->haplogroups = gtype_info.haplogroups;
         }
 
         void set_alleles(allele_vector const& alleles){ this->alleles = alleles; };
@@ -61,6 +63,8 @@ namespace gram::genotype::infer {
             if (std::holds_alternative<bool>(genotype)) return true;
             else return false;
         };
+
+        JSON get_JSON() override;
     };
 }
 

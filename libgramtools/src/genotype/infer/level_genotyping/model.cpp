@@ -305,7 +305,8 @@ void LevelGenotyperModel::CallGenotype(allele_vector const *input_alleles, bool 
             rescaled_gt,
             allele_covs,
             gt_confidence,
-            total_coverage
+            total_coverage,
+            genotyped_site->get_genotyped_haplogroups(chosen_alleles, rescaled_gt)
     });
 }
 
@@ -341,6 +342,5 @@ gp_counts(gp_counts), ploidy(ploidy), l_stats(l_stats){
     }
 
     CallGenotype(input_alleles, ignore_ref_allele, haplogroup_multiplicities);
-
 }
 

@@ -23,6 +23,7 @@ include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
+include(${PROJECT_SOURCE_DIR}/libgramtools/lib/json.cmake)
 add_dependencies(htslib zlib)
 
 ## Boost ##
@@ -91,11 +92,12 @@ set_target_properties(gramtools
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 add_dependencies(gramtools
-        sdsl
-        zlib
-        htslib
         boost
-        py_git_version)
+        htslib
+        nlohmann_json
+        py_git_version
+        sdsl
+        zlib)
 add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/lib
@@ -118,11 +120,7 @@ target_include_directories(gram PUBLIC
         ${EXTERNAL_INCLUDE_DIR}
         ${BZIP_INCLUDE_DIRS}
         ${LZMA_INCLUDE_DIR})
-target_link_libraries(gram LINK_PUBLIC
-        gramtools
-        ${EXTERN_LIBS}
-        ${BZIP2_LIBRARIES}
-        ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
+target_link_libraries(gram LINK_PUBLIC gramtools )
 set_target_properties(gram
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
