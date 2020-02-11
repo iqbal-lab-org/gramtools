@@ -62,7 +62,8 @@ namespace gram::genotype::infer {
         virtual covG_ptr const get_site_end_node() const = 0;
         virtual bool is_null() const = 0;
         virtual void make_null() = 0;
-        virtual JSON get_JSON() = 0;
+        JSON get_JSON();
+        virtual void add_JSON() = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
         bool const has_alleles() const { return alleles.size() > 0; }
@@ -127,7 +128,7 @@ namespace gram::genotype::infer {
 
         void add_json_sites(){
             for (auto const& site : genotyped_records)
-                json_prg.at("Sites").push_back({site->get_JSON()});
+                json_prg.at("Sites").push_back(site->get_JSON());
         }
     public:
         virtual JSON get_JSON() = 0;

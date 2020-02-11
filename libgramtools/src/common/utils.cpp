@@ -187,13 +187,13 @@ std::string gram::ints_to_prg_string(std::vector<Marker> const& int_vec){
     return readable_string;
 }
 
-std::vector<Marker> gram::prg_string_to_ints(std::string const& string_prg) {
+marker_vec gram::prg_string_to_ints(std::string const& string_prg) {
     int_Base base;
     std::stack<int> marker_stack;
     int max_var_marker{3};
     int char_count{0};
 
-    std::vector<Marker> encoded_prg(string_prg.size());
+    marker_vec encoded_prg(string_prg.size());
     for (std::size_t i = 0; i < string_prg.size(); ++i){
         const auto &c = string_prg[i];
 

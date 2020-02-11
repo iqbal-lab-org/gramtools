@@ -47,4 +47,19 @@ AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_al
     }
     return result;
 }
+
+JSON GenotypedSite::get_JSON(){
+    if (! site_json.at("GT").empty()) return site_json;
+
+    for (int i{0}; i < alleles.size(); ++i) site_json.at("ALS").push_back(alleles.at(i).sequence);
+
+    if (is_null()) site_json.at("GT").push_back(JSON::array({nullptr}));
+    else site_json.at("GT").push_back(JSON(std::get<GtypedIndices>(genotype)));
+
+    site_json.at("HAPG").push_back(JSON(haplogroups));
+
+    this->add_JSON();
+
+    return site_json;
+}
 }

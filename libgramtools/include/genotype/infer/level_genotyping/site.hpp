@@ -65,7 +65,7 @@ namespace gram::genotype::infer {
             else return false;
         };
 
-        JSON get_JSON() override;
+        void add_JSON() override;
     };
 }
 

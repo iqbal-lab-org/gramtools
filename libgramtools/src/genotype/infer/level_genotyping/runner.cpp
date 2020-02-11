@@ -60,6 +60,33 @@ void LevelGenotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleId
     }
 }
 
+
+JSON LevelGenotyper::get_JSON(){
+    if (! json_prg.at("Sites").empty()) return json_prg;
+    add_json_sites();
+    json_prg.at("Model") = "LevelGenotyper";
+    // Nesting information
+    if (! cov_graph->is_nested) json_prg.at("Lvl1_Sites").push_back("all");
+    else {
+        for (int i{0}; i < genotyped_records.size(); ++i)
+            if (cov_graph->par_map.find(index_to_siteID(i)) ==
+                cov_graph->par_map.end()) json_prg.at("Lvl1_Sites").push_back(i);
+
+        for (const auto& child_entry : child_m){
+            auto site_index = std::to_string(siteID_to_index(child_entry.first));
+            json_prg.at("Child_map").emplace(site_index, JSON::object());
+            for (const auto& hapg_entry : child_entry.second){
+                auto copy = hapg_entry.second;
+                for (auto& el : copy) el = siteID_to_index(el);
+                json_prg.at("Child_map").at(site_index)[std::to_string(hapg_entry.first)] =
+                        JSON(copy);
+            }
+        }
+
+    }
+    return json_prg;
+}
+
 LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                                ReadStats const &read_stats, Ploidy const ploidy) : ploidy(ploidy){
     this->cov_graph = &cov_graph;
@@ -99,18 +126,3 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
     }
 }
 
-JSON LevelGenotyper::get_JSON(){
-    if (! json_prg.at("Sites").empty()) return json_prg;
-    add_json_sites();
-    json_prg.at("Model") = "LevelGenotyper";
-    // Nesting information
-    if (! cov_graph->is_nested) json_prg.at("Lvl1_Sites").push_back("all");
-    else {
-        for (int i{0}; i < genotyped_records.size(); ++i)
-            if (cov_graph->par_map.find(index_to_siteID(i)) ==
-                cov_graph->par_map.end()) json_prg.at("Lvl1_sites").push_back(i);
-
-        json_prg.at("Child_map") = JSON(child_m);
-    }
-    return json_prg;
-}
