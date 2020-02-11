@@ -31,7 +31,7 @@ namespace gram::genotype::infer {
       * genotype confidence using likelihood ratios
       * invalidation of nested bubbles
     */
-    class LevelGenotyperModel : AbstractGenotypingModel {
+    class LevelGenotyperModel : GenotypingModel {
         allele_vector *alleles;
         GroupedAlleleCounts const *gp_counts;
         Ploidy ploidy;

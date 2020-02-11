@@ -15,7 +15,7 @@ namespace gram::genotype::infer {
         AlleleIds haplogroups;
     };
 
-    class LevelGenotypedSite : public AbstractGenotypedSite {
+    class LevelGenotypedSite : public GenotypedSite {
         allele_coverages allele_covs;
         double gt_conf; /**< Difference in log likelihood between most likely and next most likely genotype **/
         std::size_t total_coverage; /**< Total coverage on this site */
@@ -40,6 +40,7 @@ namespace gram::genotype::infer {
         void make_null() override {
             this->genotype = false;
             this->gt_conf = 0.;
+            this->total_coverage = 0;
         }
 
         void populate_site(gtype_information const& gtype_info){

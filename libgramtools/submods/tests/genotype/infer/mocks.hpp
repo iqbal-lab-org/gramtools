@@ -5,7 +5,7 @@
 using namespace gram;
 using namespace gram::genotype::infer;
 
-class MockGenotypedSite : public AbstractGenotypedSite{
+class MockGenotypedSite : public GenotypedSite{
 public:
     MOCK_METHOD(GenotypeOrNull const, get_genotype, (), (const, override));
     MOCK_METHOD(allele_vector const, get_alleles, (), (const, override));

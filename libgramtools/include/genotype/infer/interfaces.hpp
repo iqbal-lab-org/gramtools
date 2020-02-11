@@ -8,15 +8,15 @@
 
 #include <variant>
 #include "genotype/infer/types.hpp"
-#include <nlohmann/json.hpp>
+#include "genotype/quasimap/coverage/types.hpp"
+#include "json_spec.hpp"
 
-using JSON = nlohmann::json;
 namespace gram::genotype::infer {
 
     /**
      * Used in allele extraction but also in level genotyper
      */
-     template <typename T>
+    template <typename T>
      std::vector<T> prepend(std::vector<T> const& original_object, T const& to_prepend){
         std::vector<T> result;
         result.reserve(original_object.size() + 1);
@@ -31,15 +31,16 @@ namespace gram::genotype::infer {
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
     using allele_coverages = std::vector<double>;
 
-    class AbstractGenotypedSite;
-    using gt_site = AbstractGenotypedSite;
-    using gt_site_ptr = std::shared_ptr<AbstractGenotypedSite>;
+    class GenotypedSite;
+    using gt_site = GenotypedSite;
+    using gt_site_ptr = std::shared_ptr<GenotypedSite>;
     using gt_sites = std::vector<gt_site_ptr>;
+
 
     /**
      * Genotyped site interface
      */
-    class AbstractGenotypedSite {
+    class GenotypedSite {
     protected:
         allele_vector alleles;
         GenotypeOrNull genotype;
@@ -47,13 +48,15 @@ namespace gram::genotype::infer {
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
-        JSON site_json{
-                {"Alleles", JSON::array()},
-                {"GT", JSON::array()}
-        };
+        JSON site_json;
 
     public:
-        virtual ~AbstractGenotypedSite() {};
+        GenotypedSite() {
+           for (const auto& element : json_::spec::site_fields.items()){
+               site_json.emplace(element.key(), JSON::array());
+           }
+        }
+        virtual ~GenotypedSite() {};
         virtual GenotypeOrNull const get_genotype() const = 0;
         virtual allele_vector const get_alleles() const = 0;
         virtual covG_ptr const get_site_end_node() const = 0;
@@ -105,8 +108,29 @@ namespace gram::genotype::infer {
      * Genotyping model interface.
      * Each derived model implements the production of an abstract site.
      */
-    class AbstractGenotypingModel {
+    class GenotypingModel {
         virtual gt_site_ptr get_site() = 0;
+    };
+
+
+    class Genotyper {
+    protected:
+        gt_sites genotyped_records;
+        coverage_Graph const *cov_graph;
+        SitesGroupedAlleleCounts const *gped_covs;
+
+        Genotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
+        Genotyper(gt_sites const& sites) :
+                genotyped_records(sites), cov_graph(nullptr), gped_covs(nullptr) {}
+
+        JSON json_prg{json_::spec::json_prg};
+
+        void add_json_sites(){
+            for (auto const& site : genotyped_records)
+                json_prg["Sites"].push_back({site->get_JSON()});
+        }
+    public:
+        virtual JSON get_JSON() = 0;
     };
 
 }

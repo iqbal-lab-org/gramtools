@@ -5,7 +5,7 @@
 #include "prg/coverage_graph.hpp"
 
 namespace gram::genotype::infer {
-    class AbstractGenotypedSite;
+    class GenotypedSite;
 
     struct Allele {
         std::string sequence;

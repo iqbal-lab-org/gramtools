@@ -61,8 +61,9 @@ void LevelGenotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleId
 }
 
 LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
-                               ReadStats const &read_stats, Ploidy const ploidy) :
-        cov_graph(&cov_graph), gped_covs(&gped_covs), ploidy(ploidy){
+                               ReadStats const &read_stats, Ploidy const ploidy) : ploidy(ploidy){
+    this->cov_graph = &cov_graph;
+    this->gped_covs = &gped_covs;
     child_m = build_child_map(cov_graph.par_map); // Required for site invalidation
     genotyped_records.resize(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
 
@@ -96,4 +97,20 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
             invalidate_if_needed(site_ID, haplogroups_with_sites);
         }
     }
+}
+
+JSON LevelGenotyper::get_JSON(){
+    if (! json_prg.at("Sites").empty()) return json_prg;
+    add_json_sites();
+    json_prg.at("Model") = "LevelGenotyper";
+    // Nesting information
+    if (! cov_graph->is_nested) json_prg.at("Lvl1_Sites").push_back("all");
+    else {
+        for (int i{0}; i < genotyped_records.size(); ++i)
+            if (cov_graph->par_map.find(index_to_siteID(i)) ==
+                cov_graph->par_map.end()) json_prg.at("Lvl1_sites").push_back(i);
+
+        json_prg.at("Child_map") = JSON(child_m);
+    }
+    return json_prg;
 }

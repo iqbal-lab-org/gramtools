@@ -19,19 +19,14 @@ using namespace gram::genotype::infer::probabilities;
 namespace gram::genotype::infer {
 
 
-class LevelGenotyper {
-    coverage_Graph const *cov_graph;
-    SitesGroupedAlleleCounts const *gped_covs;
+class LevelGenotyper : public Genotyper {
     likelihood_related_stats l_stats;
-
     Ploidy ploidy;
-    gt_sites genotyped_records;
     child_map child_m;
 
 public:
-    LevelGenotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
-    LevelGenotyper(child_map const& ch, gt_sites const& sites) :
-        child_m(ch), genotyped_records(sites), cov_graph(nullptr), gped_covs(nullptr) {}
+    LevelGenotyper() = default;
+    LevelGenotyper(child_map const& ch, gt_sites const& sites) : Genotyper(sites), child_m(ch) {}
 
     LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                    ReadStats const &read_stats, Ploidy const ploidy);
@@ -42,6 +37,8 @@ public:
     static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
     AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
     void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
+
+    JSON get_JSON() override;
 };
 }
 

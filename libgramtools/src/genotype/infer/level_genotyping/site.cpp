@@ -3,24 +3,19 @@
 using namespace gram::genotype::infer;
 
 JSON LevelGenotypedSite::get_JSON() {
-    if (! site_json["GT"].empty()) return site_json;
-    JSON result;
+    if (! site_json.at("GT").empty()) return site_json;
 
-    for (int i{0}; i < alleles.size(); ++i) result["alleles"].push_back(alleles.at(i).sequence);
+    for (int i{0}; i < alleles.size(); ++i) site_json.at("ALS").push_back(alleles.at(i).sequence);
 
-    if (is_null()) result["GT"].push_back(JSON::array({nullptr}));
-    else result["GT"].push_back(JSON::array({std::get<GtypedIndices>(genotype)}));
+    if (is_null()) site_json.at("GT").push_back(JSON::array({nullptr}));
+    else site_json.at("GT").push_back(JSON::array({std::get<GtypedIndices>(genotype)}));
 
-    result["GT_CONF"] = JSON::array({gt_conf});
+    site_json.at("HAPG").push_back(JSON::array({haplogroups}));
 
-    result["HAPG"] = JSON::array();
-    result["HAPG"].push_back(JSON::array({haplogroups}));
+    site_json.at("COVS").push_back(JSON::array({allele_covs}));
 
-    result["COVS"] = JSON::array();
-    result["COVS"].push_back(JSON::array({allele_covs}));
+    site_json.at("DP").push_back(total_coverage);
 
-    result["DP"] = JSON::array({total_coverage});
-
-    site_json = result;
-    return result;
+    site_json["GT_CONF"] = JSON::array({gt_conf});
+    return site_json;
 }
