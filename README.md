@@ -3,7 +3,11 @@
 # gramtools
 **TL;DR** Genome inference using prior information encoded as a reference graph.
 
-Gramtools builds a directed acyclical graph (DAG) of genetic variation from a population of genomes. Given sequence data from a haploid individual, alleles on the graph are annotated with coverage information. A personalised reference genome for the sample being studied can then be inferred from the annotated graph.
+Gramtools builds a population reference genome (PRG) from a set of variants. 
+Given sequence data from an individual, the graph is annotated with coverage and genotyped. 
+ 
+ A personalised reference genome for the sample can be inferred and new variation discovered 
+ against it. You can then build a new PRG from the initial + the new variants, and carry on forever!
 
 ## Install
 ```
@@ -18,14 +22,17 @@ python3 -m venv gram_ve && source gram_ve/bin/activate
 Note: installation fails with `virtualenv`.
 
 ## Usage
-Gramtools currently consists of four commands. These commands are documented in the wiki (see links below). In dependency order, they are:
-1) [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - given a VCF and reference, construct the graph
+Gramtools currently consists of three commands. These commands are documented in the wiki 
+(see links below). In the order you typically run them:
+1) [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - 
+given a VCF and reference, construct the graph.
 
-2) [quasimap](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-quasimap) - map reads to a graph generated in `build`
+2) [genotype](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-quasimap) - 
+    map reads to a graph generated in `build` and genotype the graph.
 
-3) [infer](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-infer) - infer a maximum likelihood personalised reference genome from the mapping coverage generated in `quasimap`
-
-4) [discover](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-discover) - find new variation against the personalised reference genome using 1+ standard variant callers (currently: cortex)
+3) (TODO) [discover](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-discover) - 
+infers a personalised reference genome for the sample and discovers new variation against it using
+ one or more standard variant callers (currently: cortex).
 
 Examples, documentation, and planned future enhancements can be found in the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
 
@@ -33,19 +40,18 @@ Examples, documentation, and planned future enhancements can be found in the [wi
 Gramtools
 
 Usage:
-  gramtools build --gram-dir --vcf --reference --kmer-size [--all-kmers]
-  gramtools quasimap --gram-dir --reads --run-dir
-  gramtools infer --run-dir [--infer-mode]
-  gramtools discover --run-dir
+  gramtools build --gram_dir --vcf --reference --kmer_size 
+  gramtools genotype --gram_dir --genotype_dir --reads [--ploidy {haploid,diploid}]
+  gramtools discover --genotype_dir
 
   gramtools (-h | --help)
   gramtools --version
 
 Options:
-  --gram-dir 	Gramtools directory containing outputs of `build` 
+  --gram_dir 	Gramtools directory containing outputs of `build` 
   --kmer-size 	Kmer size at which to build the graph (used for seeding reads in `quasimap`)	
 
-  --run-dir 	Run directory; stores outputs of `quasimap`, `infer`, `discover`
+  --genotype_dir 	Stores outputs of `genotype` and `discover`
   --reads 	1+ reads file, in (fasta/fastq/sam/bam/cram) format
 
   -h --help             Show this screen
@@ -53,9 +59,8 @@ Options:
 
 Subcommands:
   build         Construct the graph and supporting data structures
-  quasimap      Map reads to graph
-  infer         Infer a maximum likelihood personalised reference genome
-  discover	Discover new variation against personalised reference genome
+  genotype      Map reads to graph and genotype the graph
+  discover	Discover new variation against inferred personalised reference genome
 ```
 
 ## Reference documentation

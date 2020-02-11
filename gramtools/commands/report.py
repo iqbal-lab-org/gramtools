@@ -11,7 +11,7 @@ log = logging.getLogger("gramtools")
 
 def with_report(f):
     """
-    Decorator to add logging and reporting to build procedures
+    Decorator to add logging and reporting to gramtools procedures
     To signal that something went wrong in decorated function call, that function needs to raise an Exception.
     """
 
@@ -20,7 +20,7 @@ def with_report(f):
             report[action] = {"success": False}
             return report
 
-        success, error, command, stdout = True, None, None, None
+        success, error = True, None
         timer_start = time.time()
 
         try:
@@ -38,7 +38,7 @@ def with_report(f):
             [
                 ("success", success),
                 ("error_message", error),
-                ("Run time", int(timer_end) - int(timer_start)),
+                ("run_time", int(timer_end) - int(timer_start)),
             ]
         )
 
@@ -46,7 +46,10 @@ def with_report(f):
         if action not in report:
             report[action] = action_report
         else:
-            report[action].update(action_report)
+            report[action] = {
+                **action_report,
+                **report[action],
+            }  # Place success status at very top
 
         return original_result
 
@@ -71,8 +74,8 @@ def _save_report(
             ("total_runtime", int(end_time) - int(start_time)),
         ]
     )
-    _report.update(report)
-    _report.update(
+    report.update(_report)
+    report.update(
         collections.OrderedDict(
             [
                 ("current_working_directory", current_working_directory),
@@ -84,4 +87,4 @@ def _save_report(
     )
 
     with open(report_file_path, "w") as fhandle:
-        json.dump(_report, fhandle, indent=4)
+        json.dump(report, fhandle, indent=4)

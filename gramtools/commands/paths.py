@@ -123,7 +123,10 @@ class BuildPaths(ProjectPaths):
 class GenotypePaths(ProjectPaths):
     def __init__(self, genotype_dir, force=False):
         self.geno_dir = Path.resolve(Path(genotype_dir))
+
         self.geno_path = ProjectPaths.path_fact(self.geno_dir)
+        self.cov_path = ProjectPaths.path_fact(self.geno_dir / "coverage")
+        self.results_path = ProjectPaths.path_fact(self.geno_dir / "genotype")
 
         self.gram_dir = self.geno_path("gram_dir")
         self.reads_dir = self.geno_path("reads_dir")
@@ -131,9 +134,8 @@ class GenotypePaths(ProjectPaths):
 
         # Quasimapping-related
         self.read_stats = self.geno_path("read_stats.json")
-        self.gped_cov = self.geno_path("grouped_allele_counts_coverage.json")
-        self.pb_cov = self.geno_path("allele_base_coverage.json")
-
+        self.gped_cov = self.cov_path("grouped_allele_counts_coverage.json")
+        self.pb_cov = self.cov_path("allele_base_coverage.json")
         self.force = force  # Whether to erase existing geno_dir
 
     def initial_setup(self):
@@ -229,14 +231,6 @@ def generate_discover_paths(args):
 
 ## Generates paths that will be shared between 'run' commands.
 def _generate_run_paths(run_dir):
-
-    paths.update(
-        {
-            "allele_base_coverage": quasimap_path("allele_base_coverage.json"),
-            "allele_sum_coverage": quasimap_path("allele_sum_coverage"),
-            "read_stats": quasimap_path("read_stats.json"),
-        }
-    )
 
     # Infer paths
     infer_path = path_fact(paths["infer_dir"])

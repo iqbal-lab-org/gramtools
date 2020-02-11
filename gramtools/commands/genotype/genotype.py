@@ -24,51 +24,52 @@ def run(args):
     geno_paths = command_setup.setup_files(args)
 
     build_report = _load_build_report(geno_paths)
-    _check_build_success(build_report)
 
     kmer_size = build_report["kmer_size"]
     setattr(args, "kmer_size", kmer_size)
 
-    geno_report = collections.OrderedDict()
-    geno_report = _execute_command(geno_paths, geno_report, args)
+    geno_report = collections.OrderedDict({"processes": collections.OrderedDict()})
+    _execute_command(geno_report["processes"], "gramtools_genotype", geno_paths, args)
 
-    _check_read_stats(geno_paths)
+    _check_read_stats(geno_report["processes"], "check_read_stats", geno_paths)
 
     log.debug("Computing sha256 hash of project paths")
     command_hash_paths = common.hash_command_paths(geno_paths)
 
     log.debug("Saving command report:\n%s", geno_paths.report)
+    success_status = {"success": geno_report["processes"].pop("success")}
+    geno_report = {**success_status, **geno_report}
     report._save_report(
         start_time, geno_report, geno_paths, command_hash_paths, geno_paths.report
     )
-    log.info("End process: genotype")
 
-    if geno_report.get("return_value_is_0") is False:
+    if geno_report["success"] is False:
+        log.error(f"Unsuccessful genotyping. Process reported to {geno_paths.report}")
         exit(1)
+    else:
+        log.info(f"Success! Genotyping process report in {geno_paths.report}")
 
 
 def _load_build_report(geno_paths):
     build_path = geno_paths.gram_dir / "build_report.json"
-    try:
-        with open(build_path) as fhandle:
-            return json.load(fhandle)
-    except FileNotFoundError:
+
+    if not build_path.exists():
         log.error(
             f"Build report not found: {build_path}. Try re-running gramtools `build`?"
         )
         exit(1)
 
+    with open(build_path) as fhandle:
+        build_report = json.load(fhandle)
+        if not build_report["success"]:
+            log.error(f"Build was not completed successfully: see {build_path}")
+            exit(1)
 
-def _check_build_success(build_report):
-    if not build_report["success"]:
-        log.error("Build was not completed successfully (see: build report)")
-        exit(1)
+    return build_report
 
 
-def _execute_command(geno_paths, geno_report, args):
-    if geno_report.get("return_value_is_0") is False:
-        geno_report["gramtools_cpp_genotype"] = {"return_value_is_0": False}
-        return geno_report
+@report.with_report
+def _execute_command(geno_report, action, geno_paths, args):
 
     command = [
         common.gramtools_exec_fpath,
@@ -103,24 +104,18 @@ def _execute_command(geno_paths, geno_report, args):
     )
 
     command_result, entire_stdout = common.handle_process_result(process_handle)
-    log.info("Output run directory:\n%s", geno_paths.geno_dir)
+    log.debug("Output run directory:\n%s", geno_paths.geno_dir)
 
-    geno_report["return_value_is_0"] = command_result
-    geno_report["gramtools_cpp_genotype"] = collections.OrderedDict(
-        [
-            ("command", command_str),
-            ("return_value_is_0", command_result),
-            ("stdout", entire_stdout),
-        ]
+    # Add extra reporting
+    geno_report[action] = collections.OrderedDict(
+        [("command", command_str), ("stdout", entire_stdout)]
     )
-
     if command_result == False:
         raise Exception("Error running gramtools genotype.")
 
-    return geno_report
 
-
-def _check_read_stats(geno_paths: GenotypePaths):
+@report.with_report
+def _check_read_stats(geno_report, action, geno_paths: GenotypePaths):
     """
     Get the read statistics; report if most variant sites have no coverage.
     """

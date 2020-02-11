@@ -18,7 +18,6 @@ from . import vcf_to_prg_string
 from . import command_setup
 
 log = logging.getLogger("gramtools")
-build_report = collections.OrderedDict()
 
 
 def run(args):
@@ -26,8 +25,11 @@ def run(args):
     log.info("Start process: build")
     start_time = str(time.time()).split(".")[0]
 
-    _prepare_prg(args, build_paths)
-    _execute_gramtools_cpp_build(build_report, "gramtools_build", build_paths, args)
+    build_report = collections.OrderedDict({"processes": collections.OrderedDict()})
+    _prepare_prg(build_report, build_paths, args)
+    _execute_gramtools_cpp_build(
+        build_report["processes"], "gramtools_build", build_paths, args
+    )
 
     log.debug("Computing sha256 hash of project paths")
     command_hash_paths = common.hash_command_paths(build_paths)
@@ -39,6 +41,8 @@ def run(args):
     )
 
     log.debug("Saving command report:\n%s", build_paths.report)
+    success_status = {"success": build_report["processes"].pop("success")}
+    build_report = {**success_status, **build_report}
     report._save_report(
         start_time, build_report, build_paths, command_hash_paths, build_paths.report
     )
@@ -59,22 +63,24 @@ def _count_vcf_record_lines(vcf_file_path):
     return num_recs
 
 
-def _prepare_prg(args, build_paths):
+def _prepare_prg(build_report, build_paths, args):
     if args.prg is not None:
         _skip_prg_construction(
-            build_report, "copy_existing_PRG_string", build_paths, args
+            build_report["processes"], "copy_existing_PRG_string", build_paths, args
         )
     else:
         if args.no_vcf_clustering:
             _skip_cluster_vcf_records(
-                build_report, "skip_vcf_record_clustering", build_paths
+                build_report["processes"], "skip_vcf_record_clustering", build_paths
             )
         else:
             # Update the vcf path to a combined vcf from all those provided.
             # We also do this if only a single one is provided, to deal with overlapping records.
-            _cluster_vcf_records(build_report, "vcf_record_clustering", build_paths)
+            _cluster_vcf_records(
+                build_report["processes"], "vcf_record_clustering", build_paths
+            )
         _execute_command_generate_prg(
-            build_report, "vcf_to_PRG_string_conversion", build_paths
+            build_report["processes"], "vcf_to_PRG_string_conversion", build_paths
         )
 
 
@@ -139,7 +145,7 @@ def _skip_prg_construction(report, action, build_paths, args):
 
 ## Executes `gram build` backend.
 @report.with_report
-def _execute_gramtools_cpp_build(report, action, build_paths, args):
+def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
     command = [
         common.gramtools_exec_fpath,
         "build",
@@ -175,7 +181,7 @@ def _execute_gramtools_cpp_build(report, action, build_paths, args):
     command_result, entire_stdout = process_result
 
     # Add extra reporting
-    report[action] = collections.OrderedDict(
+    build_report[action] = collections.OrderedDict(
         [("command", command_str), ("stdout", entire_stdout)]
     )
     if command_result == False:
