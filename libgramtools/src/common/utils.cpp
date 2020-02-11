@@ -19,6 +19,15 @@ std::string gram::full_path(const std::string &gram_dirpath,
     return full_path.string();
 }
 
+std::string gram::mkdir(std::string const& parent_dirpath, std::string const& child_dirpath){
+    fs::path dir1(parent_dirpath), dir2(child_dirpath);
+    assert(fs::exists(dir1));
+    fs::path full_path = dir1 / dir2;
+    if (! fs::exists(full_path)) fs::create_directory(full_path);
+    return full_path.string();
+}
+
+
 /******************
  * Data typedefs **
  ******************/

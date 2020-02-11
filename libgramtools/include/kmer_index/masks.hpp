@@ -14,7 +14,6 @@
 
 #include "common/parameters.hpp"
 #include "prg/make_data_structures.hpp"
-#include "common/utils.hpp"
 
 
 #ifndef GRAMTOOLS_MASKS_H

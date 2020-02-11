@@ -20,6 +20,8 @@ namespace gram {
     std::string full_path(const std::string &gram_dirpath,
                           const std::string &file_name);
 
+    std::string mkdir(std::string const& parent_dirpath, std::string const& child_dirpath);
+
     /******************
      * Data typedefs **
      ******************/

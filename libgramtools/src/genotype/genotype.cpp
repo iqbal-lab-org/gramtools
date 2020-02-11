@@ -50,9 +50,9 @@ void commands::genotype::run(const Parameters &parameters){
     LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
                              readstats, parameters.ploidy};
     timer.stop();
-    timer.start("JSON serialisation");
-    std::cout << std::setw(4) << genotyper.get_JSON() << std::endl;
-    timer.stop();
+    std::ofstream geno_json_file_handle(parameters.genotyped_json);
+    geno_json_file_handle << std::setw(4) << genotyper.get_JSON() << std::endl;
+    geno_json_file_handle.close();
     timer.report();
 }
 

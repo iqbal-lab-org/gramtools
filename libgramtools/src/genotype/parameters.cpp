@@ -1,9 +1,11 @@
 #include "common/utils.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/parameters.hpp"
+#include <boost/filesystem.hpp>
 
 
 using namespace gram;
+namespace fs = boost::filesystem;
 
 struct ploidy_argument{
     Ploidy ploidy;
@@ -41,7 +43,7 @@ void validate(boost::any& v,
 Parameters commands::genotype::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
     std::string gram_dirpath;
-    std::string geno_dir;
+    std::string run_dirpath;
     ploidy_argument ploidy;
     uint32_t kmer_size;
     std::vector<std::string> reads;
@@ -56,7 +58,7 @@ Parameters commands::genotype::parse_parameters(po::variables_map &vm,
                                         "expected ploidy of the sample. Choices: {haploid, diploid}")
                                 ("kmer_size", po::value<uint32_t>(&kmer_size)->required(),
                                  "kmer size that got used in build step")
-                                ("genotype_dir", po::value<std::string>(&geno_dir)->required(),
+                                ("genotype_dir", po::value<std::string>(&run_dirpath)->required(),
                                  "output directory")
                                 ("max_threads", po::value<uint32_t>()->default_value(1),
                                  "maximum number of threads used")
@@ -95,14 +97,16 @@ Parameters commands::genotype::parse_parameters(po::variables_map &vm,
     parameters.kmers_size = kmer_size;
     parameters.reads_fpaths = reads;
 
-    std::string run_dirpath = geno_dir;
+    std::string cov_dirpath = mkdir(run_dirpath, "coverage");
+    std::string geno_dirpath = mkdir(run_dirpath, "genotype");
     parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
-
-    parameters.allele_sum_coverage_fpath = full_path(run_dirpath, "allele_sum_coverage");
-    parameters.allele_base_coverage_fpath = full_path(run_dirpath, "allele_base_coverage.json");
-    parameters.grouped_allele_counts_fpath = full_path(run_dirpath, "grouped_allele_counts_coverage.json");
-    
     parameters.read_stats_fpath = full_path(run_dirpath, "read_stats.json");
+
+    parameters.allele_sum_coverage_fpath = full_path(cov_dirpath, "allele_sum_coverage");
+    parameters.allele_base_coverage_fpath = full_path(cov_dirpath, "allele_base_coverage.json");
+    parameters.grouped_allele_counts_fpath = full_path(cov_dirpath, "grouped_allele_counts_coverage.json");
+
+    parameters.genotyped_json = full_path(geno_dirpath, "genotyped.json");
 
     parameters.maximum_threads = vm["max_threads"].as<uint32_t>();
     parameters.seed = vm["seed"].as<uint32_t>();

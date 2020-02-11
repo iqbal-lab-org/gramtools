@@ -123,11 +123,11 @@ namespace gram::genotype::infer {
         Genotyper(gt_sites const& sites) :
                 genotyped_records(sites), cov_graph(nullptr), gped_covs(nullptr) {}
 
-        JSON json_prg{json_::spec::json_prg};
+        JSON json_prg = json_::spec::json_prg;
 
         void add_json_sites(){
             for (auto const& site : genotyped_records)
-                json_prg["Sites"].push_back({site->get_JSON()});
+                json_prg.at("Sites").push_back({site->get_JSON()});
         }
     public:
         virtual JSON get_JSON() = 0;
