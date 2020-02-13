@@ -27,8 +27,6 @@ namespace gram::genotype::infer {
         return result;
      }
 
-    using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
-    using GtypedIndices = std::vector<GtypedIndex>;
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
     using allele_coverages = std::vector<double>;
 

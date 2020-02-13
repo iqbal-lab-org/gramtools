@@ -2,8 +2,15 @@
 #define JSON_SPEC
 
 #include <nlohmann/json.hpp>
+#include <iostream>
+#include "common/utils.hpp"
 
 using JSON = nlohmann::json;
+
+namespace gram::genotype::infer{
+    using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
+    using GtypedIndices = std::vector<GtypedIndex>;
+}
 
 namespace gram::json::spec {
     const JSON site_fields{
@@ -36,11 +43,31 @@ namespace gram::json::spec {
             {"Samples", JSON::object()},
             {"Sites", JSON::array()},
             {"Lvl1_Sites", JSON::array()},
-            {"Child_map", JSON::object()}
+            {"Child_Map", JSON::object()}
     };
 }
 
 namespace gram::json{
+
+    class JSONParseException : public std::exception{
+    protected:
+        std::string msg;
+    public:
+        virtual char const* what() const throw(){ return msg.c_str(); }
+    };
+
+    class JSONCombineException : public JSONParseException{
+    public:
+        JSONCombineException(std::string msg) {
+            this->msg = std::string("JSONCombineException: "+ msg); }
+    };
+
+    class JSONConsistencyException : public JSONParseException{
+    public:
+        JSONConsistencyException(std::string msg) {
+            this->msg = std::string("JSONConsistencyException: "+ msg); }
+    };
+
     class Json_Prg;
     class Json_Site;
     using json_prg_ptr = std::shared_ptr<Json_Prg>;
@@ -51,9 +78,10 @@ namespace gram::json{
     protected:
         JSON json_prg;
         json_site_vec sites;
-        void combine_with(const Json_Prg& other);
     public:
         Json_Prg() : json_prg(gram::json::spec::json_prg) {}
+        void combine_with(const Json_Prg& other);
+
         void add_site(json_site_ptr json_site);
         JSON const& get_prg() const {return json_prg;}
         JSON get_prg_copy() const {return json_prg;}
@@ -71,12 +99,18 @@ namespace gram::json{
         }
     };
 
+    struct site_rescaler{
+        std::size_t index;
+        AlleleId hapg;
+    };
+    using allele_combi_map = std::map<std::string, site_rescaler>;
+
     class Json_Site {
     protected:
         JSON json_site;
 
-        void combine_with(const Json_Site &other);
-        // virtual void add_model_specific_part(const Json_Site &other) = 0;
+        void build_allele_combi_map(JSON const& json_site, allele_combi_map& m);
+        virtual void add_model_specific_part(const Json_Site &other) = 0;
 
     public:
         Json_Site() {
@@ -84,6 +118,9 @@ namespace gram::json{
                 json_site.emplace(element.key(), JSON::array());
             }
         }
+        void combine_with(const Json_Site &other);
+
+        JSON const& get_site() const {return json_site;}
         JSON get_site_copy() const {return json_site;}
         void set_site(JSON const& json_site) {this->json_site = json_site;}
     };
@@ -93,6 +130,8 @@ namespace gram::json{
         LevelGenotyped_Json_Site() : Json_Site(){
            json_site.emplace("GT_CONF", JSON::array());
         }
+
+        void add_model_specific_part(const Json_Site &other) override {};
     };
 }
 
