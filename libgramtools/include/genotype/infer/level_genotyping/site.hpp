@@ -16,11 +16,12 @@ namespace gram::genotype::infer {
     };
 
     class LevelGenotypedSite : public GenotypedSite {
-        allele_coverages allele_covs;
         double gt_conf; /**< Difference in log likelihood between most likely and next most likely genotype **/
-        std::size_t total_coverage; /**< Total coverage on this site */
     public:
-        LevelGenotypedSite() {}
+        LevelGenotypedSite() {
+            auto json_site_ptr = std::make_shared<LevelGenotyped_Json_Site>();
+            json_site = json_site_ptr;
+        }
 
         ~LevelGenotypedSite() override = default;
 
@@ -52,12 +53,10 @@ namespace gram::genotype::infer {
             this->haplogroups = gtype_info.haplogroups;
         }
 
-        void set_alleles(allele_vector const& alleles){ this->alleles = alleles; };
         void set_genotype(GtypedIndices const& gtype, double gt_conf){
             this->genotype = gtype;
             this->gt_conf = gt_conf;
         };
-        void set_total_coverage(std::size_t const& total_cov){total_coverage = total_cov;}
 
         /** Whether the site is null genotyped */
         bool is_null() const override {
@@ -65,7 +64,7 @@ namespace gram::genotype::infer {
             else return false;
         };
 
-        void add_JSON() override;
+        void add_model_specific_JSON(JSON& input_json) override;
     };
 }
 

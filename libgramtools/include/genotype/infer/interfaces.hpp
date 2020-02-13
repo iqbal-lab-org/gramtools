@@ -11,6 +11,7 @@
 #include "genotype/quasimap/coverage/types.hpp"
 #include "json_spec.hpp"
 
+using namespace gram::json;
 namespace gram::genotype::infer {
 
     /**
@@ -45,25 +46,28 @@ namespace gram::genotype::infer {
         allele_vector alleles;
         GenotypeOrNull genotype;
         AlleleIds haplogroups;
+        allele_coverages allele_covs;
+        std::size_t total_coverage; /**< Total coverage on this site */
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
-        JSON site_json;
+        json_site_ptr json_site;
 
     public:
-        GenotypedSite() {
-           for (const auto& element : json_::spec::site_fields.items()){
-               site_json.emplace(element.key(), JSON::array());
-           }
-        }
+        GenotypedSite() = default;
         virtual ~GenotypedSite() {};
+        // These are virtualised to allow for mocking using gmock
         virtual GenotypeOrNull const get_genotype() const = 0;
         virtual allele_vector const get_alleles() const = 0;
         virtual covG_ptr const get_site_end_node() const = 0;
         virtual bool is_null() const = 0;
         virtual void make_null() = 0;
-        JSON get_JSON();
-        virtual void add_JSON() = 0;
+
+        void set_alleles(allele_vector const& alleles){ this->alleles = alleles; };
+        void set_total_coverage(std::size_t const& total_cov){total_coverage = total_cov;}
+
+        json_site_ptr get_JSON();
+        virtual void add_model_specific_JSON(JSON& input_json) = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
         bool const has_alleles() const { return alleles.size() > 0; }
@@ -119,19 +123,25 @@ namespace gram::genotype::infer {
         gt_sites genotyped_records;
         coverage_Graph const *cov_graph;
         SitesGroupedAlleleCounts const *gped_covs;
+        child_map child_m;
+
+        json_prg_ptr json_prg;
 
         Genotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
-        Genotyper(gt_sites const& sites) :
-                genotyped_records(sites), cov_graph(nullptr), gped_covs(nullptr) {}
+        Genotyper(gt_sites const& sites, child_map const& ch) :
+                genotyped_records(sites), child_m(ch), cov_graph(nullptr), gped_covs(nullptr) {}
 
-        JSON json_prg = json_::spec::json_prg;
+        /**
+         * Populates the PRG-related entries (Lvl1_sites, child map) of this objects's json_prg.
+         */
+        void populate_prg();
 
         void add_json_sites(){
             for (auto const& site : genotyped_records)
-                json_prg.at("Sites").push_back(site->get_JSON());
+                json_prg->add_site(site->get_JSON());
         }
     public:
-        virtual JSON get_JSON() = 0;
+        JSON get_JSON();
     };
 
 }

@@ -2,6 +2,37 @@
 
 namespace gram::genotype::infer {
 
+void Genotyper::populate_prg() {
+    JSON json_prg_copy = json_prg->get_prg_copy();
+    if (! cov_graph->is_nested) json_prg_copy.at("Lvl1_Sites").push_back("all");
+    else {
+        for (int i{0}; i < genotyped_records.size(); ++i)
+            if (cov_graph->par_map.find(index_to_siteID(i)) ==
+                cov_graph->par_map.end())
+                json_prg_copy.at("Lvl1_Sites").push_back(i);
+
+        for (const auto &child_entry : child_m) {
+            auto site_index = std::to_string(siteID_to_index(child_entry.first));
+            json_prg_copy.at("Child_map").emplace(site_index, JSON::object());
+            for (const auto &hapg_entry : child_entry.second) {
+                auto copy = hapg_entry.second;
+                for (auto &el : copy) el = siteID_to_index(el);
+                json_prg_copy.at("Child_map").at(site_index)[std::to_string(hapg_entry.first)] =
+                        JSON(copy);
+            }
+        }
+    }
+    json_prg->set_prg(json_prg_copy);
+}
+
+JSON Genotyper::get_JSON() {
+    if (json_prg->get_prg().at("Sites").empty()){
+        populate_prg();
+        add_json_sites();
+    }
+    return json_prg->get_prg();
+}
+
 allele_vector const GenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
                                                                 GenotypeOrNull const &genotype) const {
 
@@ -48,18 +79,23 @@ AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_al
     return result;
 }
 
-JSON GenotypedSite::get_JSON(){
-    if (! site_json.at("GT").empty()) return site_json;
+json_site_ptr GenotypedSite::get_JSON(){
+    auto json_site_copy = json_site->get_site_copy();
+    if (! json_site_copy.at("GT").empty()) return json_site;
 
-    for (int i{0}; i < alleles.size(); ++i) site_json.at("ALS").push_back(alleles.at(i).sequence);
+    for (int i{0}; i < alleles.size(); ++i) json_site_copy.at("ALS").push_back(alleles.at(i).sequence);
 
-    if (is_null()) site_json.at("GT").push_back(JSON::array({nullptr}));
-    else site_json.at("GT").push_back(JSON(std::get<GtypedIndices>(genotype)));
+    if (is_null()) json_site_copy.at("GT").push_back(JSON::array({nullptr}));
+    else json_site_copy.at("GT").push_back(JSON(std::get<GtypedIndices>(genotype)));
 
-    site_json.at("HAPG").push_back(JSON(haplogroups));
+    json_site_copy.at("HAPG").push_back(JSON(haplogroups));
 
-    this->add_JSON();
+    json_site_copy.at("COVS").push_back(JSON(allele_covs));
+    json_site_copy.at("DP").push_back(total_coverage);
 
-    return site_json;
+    this->add_model_specific_JSON(json_site_copy);
+    json_site->set_site(json_site_copy);
+
+    return json_site;
 }
 }
