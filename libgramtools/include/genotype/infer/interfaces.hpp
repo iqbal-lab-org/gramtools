@@ -28,7 +28,6 @@ namespace gram::genotype::infer {
      }
 
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
-    using allele_coverages = std::vector<double>;
 
     class GenotypedSite;
     using gt_site = GenotypedSite;

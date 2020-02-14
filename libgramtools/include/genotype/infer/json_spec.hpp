@@ -10,6 +10,7 @@ using JSON = nlohmann::json;
 namespace gram::genotype::infer{
     using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
     using GtypedIndices = std::vector<GtypedIndex>;
+    using allele_coverages = std::vector<double>;
 }
 
 namespace gram::json::spec {
@@ -104,12 +105,12 @@ namespace gram::json{
         AlleleId hapg;
     };
     using allele_combi_map = std::map<std::string, site_rescaler>;
+    using allele_vec = std::vector<std::string>;
 
     class Json_Site {
     protected:
         JSON json_site;
 
-        void build_allele_combi_map(JSON const& json_site, allele_combi_map& m);
         virtual void add_model_specific_part(const Json_Site &other) = 0;
 
     public:
@@ -118,6 +119,13 @@ namespace gram::json{
                 json_site.emplace(element.key(), JSON::array());
             }
         }
+        Json_Site(Json_Site const& other) : json_site(other.json_site) {}
+
+        // Functions implementing site combining
+        void build_allele_combi_map(JSON const& json_site, allele_combi_map& m);
+        void append_entries_from(JSON const& json_site);
+        allele_vec get_all_alleles(allele_combi_map& m);
+        JSON rescale_entries(allele_combi_map const &m) const;
         void combine_with(const Json_Site &other);
 
         JSON const& get_site() const {return json_site;}
