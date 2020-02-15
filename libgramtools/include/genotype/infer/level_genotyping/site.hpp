@@ -4,6 +4,7 @@
 #include <variant>
 #include "common/utils.hpp"
 #include "genotype/infer/interfaces.hpp"
+#include "genotype/infer/json_spec/site_spec.hpp"
 
 namespace gram::genotype::infer {
     struct gtype_information{

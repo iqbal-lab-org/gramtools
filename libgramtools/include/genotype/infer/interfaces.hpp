@@ -9,7 +9,7 @@
 #include <variant>
 #include "genotype/infer/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
-#include "json_spec.hpp"
+#include "json_spec/common.hpp"
 
 using namespace gram::json;
 namespace gram::genotype::infer {
@@ -133,10 +133,7 @@ namespace gram::genotype::infer {
          */
         void populate_prg();
 
-        void add_json_sites(){
-            for (auto const& site : genotyped_records)
-                json_prg->add_site(site->get_JSON());
-        }
+        void add_json_sites();
     public:
         JSON get_JSON();
     };

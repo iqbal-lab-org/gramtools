@@ -1,32 +1,10 @@
-#include "genotype/infer/json_spec.hpp"
+#include "genotype/infer/json_spec/site_spec.hpp"
 
 using namespace gram::json;
 using namespace gram::genotype::infer;
 
-void Json_Prg::add_site(json_site_ptr json_site){
-   sites.push_back(json_site);
-   json_prg.at("Sites").push_back(json_site->get_site_copy());
-}
-
-void Json_Prg::combine_with(const Json_Prg& other){
-    auto other_prg = other.get_prg();
-    if (json_prg.at("Model") != other_prg.at("Model"))
-        throw JSONCombineException("JSONs have different models");
-
-    auto bad_prg = json_prg.at("Lvl1_Sites") != other_prg.at("Lvl1_Sites");
-    bad_prg |= json_prg.at("Child_Map") != other_prg.at("Child_Map");
-
-    if (bad_prg) throw JSONCombineException("Incompatible PRGs (Check Child_Map and Lvl1_Sites)");
-
-    if (json_prg.at("Site_Fields") != other_prg.at("Site_Fields"))
-        throw JSONCombineException("Incompatible Site Fields");
-
-    if (sites.size() != other.sites.size())
-        throw JSONCombineException("JSONs do not have the same number of sites");
-}
-
 void add_or_check_allele(std::string const& allele, gram::AlleleId const& hapg, allele_combi_map& m,
-        std::size_t& insertion_index){
+                         std::size_t& insertion_index){
     if (m.find(allele) == m.end()){
         m.insert({allele, site_rescaler{insertion_index++, hapg}});
     }
@@ -61,11 +39,11 @@ void Json_Site::build_allele_combi_map(JSON const& json_site, allele_combi_map& 
 }
 
 allele_vec Json_Site::get_all_alleles(allele_combi_map& m){
-   allele_vec result(m.size());
-   for (auto const& entry : m){
-      result.at(entry.second.index) = entry.first;
-   }
-   return result;
+    allele_vec result(m.size());
+    for (auto const& entry : m){
+        result.at(entry.second.index) = entry.first;
+    }
+    return result;
 }
 
 JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
@@ -89,6 +67,8 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
         }
         for (int j{0}; j < covs.size(); j++){
             auto const allele = json_site.at("ALS").at(j);
+            // The allele is not called in any sample, so we ignore it
+            if (m.find(allele) == m.end()) continue;
             auto const rescaled_idx = m.at(allele).index;
             new_covs.at(rescaled_idx) = covs.at(j);
         }
@@ -113,7 +93,7 @@ void Json_Site::combine_with(const Json_Site &other){
     if (this_ref != other_json.at("ALS").at(0)){
         std::string msg("Sites do not have same 'reference' allele: ");
         msg = msg + std::string(json_site.at("ALS").at(0)) + std::string(" vs ") +
-                std::string(other_json.at("ALS").at(0));
+              std::string(other_json.at("ALS").at(0));
         throw JSONCombineException(msg);
     }
 

@@ -1,4 +1,6 @@
 #include "genotype/infer/interfaces.hpp"
+#include "genotype/infer/json_spec/prg_spec.hpp"
+#include "genotype/infer/json_spec/site_spec.hpp"
 
 namespace gram::genotype::infer {
 
@@ -25,7 +27,12 @@ void Genotyper::populate_prg() {
     json_prg->set_prg(json_prg_copy);
 }
 
-JSON Genotyper::get_JSON() {
+void Genotyper::add_json_sites(){
+    for (auto const& site : genotyped_records)
+        json_prg->add_site(site->get_JSON());
+}
+
+    JSON Genotyper::get_JSON() {
     if (json_prg->get_prg().at("Sites").empty()){
         populate_prg();
         add_json_sites();

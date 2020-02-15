@@ -1,6 +1,7 @@
 #include <cmath>
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
+#include "genotype/infer/json_spec/prg_spec.hpp"
 
 likelihood_related_stats
 LevelGenotyper::make_l_stats(double mean_cov_depth, double mean_pb_error){
