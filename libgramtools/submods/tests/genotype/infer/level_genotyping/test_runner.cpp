@@ -186,32 +186,24 @@ TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying
 
     gt_sites sites(3);
     auto site1 = std::make_shared<MockGenotypedSite>();
-    EXPECT_CALL(*site1, make_null())
-            .Times(1);
-    EXPECT_CALL(*site1, is_null())
-            .WillOnce(Return(false));
     site1->set_num_haplogroups(5);
     sites.at(1) = site1;
 
     // SiteID 9 will get nulled by site 7.
     // Then when site 5 nulls site 7, I want site 9 to signal it is already nulled.
     auto site2 = std::make_shared<MockGenotypedSite>();
-    {
-        InSequence seq;
-        EXPECT_CALL(*site2, is_null())
-                .WillOnce(Return(false));
-        EXPECT_CALL(*site2, make_null())
-                .Times(1);
-        EXPECT_CALL(*site2, is_null())
-                .WillOnce(Return(true));
-    }
     site2->set_num_haplogroups(5);
     sites.at(2) = site2;
 
     LevelGenotyper g{child_m, sites};
 
+    EXPECT_FALSE(site2->is_null());
     // I want site 9 to be invalidated in this call
     g.invalidate_if_needed(7, AlleleIds{1});
+    EXPECT_TRUE(site2->is_null());
+
+    EXPECT_FALSE(site1->is_null());
     // And this call to invalidate site 7, without attempting to invalidate site 9 which was already so by above call.
     g.invalidate_if_needed(5, AlleleIds{0});
+    EXPECT_TRUE(site1->is_null());
 }

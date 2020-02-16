@@ -34,16 +34,12 @@ protected:
 
 TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
 
-    EXPECT_CALL(site, get_genotype())
-    .WillRepeatedly(Return(GtypedIndices{0}));
+    site.set_genotype(GtypedIndices{0});
+    site.set_alleles(allele_vector{Allele{
+            "CCC",
+            {1, 1, 1} }
+    });
 
-    EXPECT_CALL(site, get_alleles())
-    .WillRepeatedly(Return(
-            allele_vector{Allele{
-                    "CCC",
-                    {1, 1, 1}
-            }
-    }));
 
     allele_vector one_allele(existing_alleles.begin(), existing_alleles.begin() + 1);
     auto result = test_extracter.allele_combine(one_allele, 0);
@@ -60,15 +56,11 @@ TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
 
 TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele){
 
-    EXPECT_CALL(site, get_genotype())
-            .WillOnce(Return(false)); // Null genotype: should take the first allele in the vector
-
-    EXPECT_CALL(site, get_alleles())
-            .WillOnce(Return(
-                    allele_vector{
-                        Allele{ "TTT", {1, 1, 1} },
-                        Allele{ "CCC", {0, 1, 1} }
-                    }));
+    site.set_genotype(false);
+    site.set_alleles(allele_vector{
+                Allele{ "TTT", {1, 1, 1} },
+                Allele{ "CCC", {0, 1, 1} }
+        });
 
     allele_vector one_allele(existing_alleles.begin(), existing_alleles.begin() + 1);
     auto result = test_extracter.allele_combine(one_allele, 0);
@@ -86,12 +78,9 @@ TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele){
 
 TEST_F(AlleleCombineTest, TwoAllelesHeterozygousGenotype_FourCorrectCombinationAlleles){
 
-    EXPECT_CALL(site, get_genotype())
-            .WillRepeatedly(Return(GtypedIndices{0, 1}));
+    site.set_genotype(GtypedIndices{0, 1});
 
-    EXPECT_CALL(site, get_alleles())
-            .WillRepeatedly(Return(
-                    allele_vector{
+    site.set_alleles(allele_vector{
                         Allele{
                             "CCC",
                             {1, 1, 1},
@@ -102,7 +91,7 @@ TEST_F(AlleleCombineTest, TwoAllelesHeterozygousGenotype_FourCorrectCombinationA
                             {5, 5, 5},
                             1 // Note the pasted allele's haplogroup should get ignored
                         }
-                    }));
+                    });
 
     auto result = test_extracter.allele_combine(existing_alleles, 0);
     allele_vector expected {
@@ -200,16 +189,12 @@ TEST_F(AlleleExtracter_NestedPRG, NestedBubble_CorrectAlleles){
 }
 
 TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNestedBubble_CorrectAlleles){
-    EXPECT_CALL(*second_site_ptr, get_genotype())
-    .WillOnce(Return(GtypedIndices{0}));
-
-    EXPECT_CALL(*second_site_ptr, get_alleles())
-    .WillRepeatedly(Return(allele_vector{
-            {"C", {0}, 0}
-    }));
-
-    EXPECT_CALL(*second_site_ptr, get_site_end_node())
-    .WillOnce(Return(nested_bubble_nodes.second));
+    second_site_ptr->set_genotype(GtypedIndices{0});
+    second_site_ptr->set_alleles(
+           allele_vector{
+                   {"C", {0}, 0}
+           });
+    second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 
@@ -222,18 +207,14 @@ TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNestedBubble_Cor
 }
 
 TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingTriploidNestedBubble_CorrectAlleles){
-    EXPECT_CALL(*second_site_ptr, get_genotype())
-            .WillOnce(Return(GtypedIndices{0, 1, 2}));
-
-    EXPECT_CALL(*second_site_ptr, get_alleles())
-            .WillRepeatedly(Return(allele_vector{
+    second_site_ptr->set_genotype(GtypedIndices{0, 1, 2});
+    second_site_ptr->set_alleles(
+            allele_vector{
                     {"C", {0}, 0},
                     {"A", {0}, 1},
                     {"G", {0}, 2}
-            }));
-
-    EXPECT_CALL(*second_site_ptr, get_site_end_node())
-            .WillOnce(Return(nested_bubble_nodes.second));
+            });
+    second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 
@@ -249,17 +230,13 @@ TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingTriploidNestedBubble_Co
 }
 
 TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNonREFNestedBubble_REFGetsProduced){
-    EXPECT_CALL(*second_site_ptr, get_genotype())
-            .WillOnce(Return(GtypedIndices{1}));
-
-    EXPECT_CALL(*second_site_ptr, get_alleles())
-            .WillRepeatedly(Return(allele_vector{
+    second_site_ptr->set_genotype(GtypedIndices{1});
+    second_site_ptr->set_alleles(
+            allele_vector{
                     {"C", {0}, 0},
                     {"G", {0}, 2}
-            }));
-
-    EXPECT_CALL(*second_site_ptr, get_site_end_node())
-            .WillOnce(Return(nested_bubble_nodes.second));
+            });
+    second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 

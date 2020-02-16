@@ -22,7 +22,7 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing, std
     assert( 0 <= site_index && site_index < genotyped_sites->size() );
     gt_site_ptr referent_site = genotyped_sites->at(site_index);
 
-    allele_vector genotyped_alleles = referent_site->extract_unique_genotyped_alleles();
+    allele_vector genotyped_alleles = referent_site->get_unique_genotyped_alleles();
     allele_vector combinations(existing.size() * genotyped_alleles.size());
 
     std::size_t insertion_index{0};

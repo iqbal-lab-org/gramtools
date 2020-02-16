@@ -53,15 +53,25 @@ namespace gram::genotype::infer {
     public:
         GenotypedSite() = default;
         virtual ~GenotypedSite() {};
-        // These are virtualised to allow for mocking using gmock
-        virtual GenotypeOrNull const get_genotype() const = 0;
-        virtual allele_vector const get_alleles() const = 0;
-        virtual covG_ptr const get_site_end_node() const = 0;
-        virtual bool is_null() const = 0;
-        virtual void make_null() = 0;
+
+        GenotypeOrNull const get_genotype() const { return genotype; }
+        allele_vector const get_alleles() const { return alleles; }
+        covG_ptr const get_site_end_node() const { return site_end_node; }
+
+        /** Whether the site is null genotyped */
+        bool is_null() const {
+            if (std::holds_alternative<bool>(genotype)) return true;
+            else return false;
+        };
+
+        void make_null() {
+            this->genotype = false;
+            this->total_coverage = 0;
+        }
 
         void set_alleles(allele_vector const& alleles){ this->alleles = alleles; };
         void set_total_coverage(std::size_t const& total_cov){total_coverage = total_cov;}
+        void set_genotype(GenotypeOrNull const& gtype){ this->genotype = gtype; }
 
         json_site_ptr get_JSON();
         virtual void add_model_specific_JSON(JSON& input_json) = 0;
@@ -79,14 +89,6 @@ namespace gram::genotype::infer {
                 (allele_vector const &all_alleles, GenotypeOrNull const &genotype) const;
         allele_vector const get_unique_genotyped_alleles() const {
             return get_unique_genotyped_alleles(alleles, genotype);
-        }
-        /**
-         * This version exists for allowing to use mocked alleles and genotypes
-         */
-        allele_vector const extract_unique_genotyped_alleles() const {
-            auto extracted_alleles = this->get_alleles();
-            auto extracted_gts = this->get_genotype();
-            return get_unique_genotyped_alleles(extracted_alleles, extracted_gts);
         }
 
         /**
@@ -131,13 +133,17 @@ namespace gram::genotype::infer {
         /**
          * Populates the PRG-related entries (Lvl1_sites, child map) of this objects's json_prg.
          */
-        void populate_prg();
+        void populate_json_prg();
 
         void add_json_sites();
+
     public:
         JSON get_JSON();
-    };
+        gt_sites const& get_genotyped_records() const {return genotyped_records;}
 
+        AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
+        void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
+    };
 }
 
 #endif //INFER_IFC

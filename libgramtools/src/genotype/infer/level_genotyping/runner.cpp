@@ -26,40 +26,6 @@ CovCount LevelGenotyper::find_minimum_non_error_cov(double mean_pb_error, poisso
     return min_count;
 }
 
-AlleleIds LevelGenotyper::get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const{
-    AlleleIds result{};
-    if (child_m.find(site_ID) == child_m.end()) return result;
-    auto child_entry = child_m.at(site_ID);
-    for (auto const& candidate : candidate_haplogroups){
-       if (child_entry.find(candidate) != child_entry.end()) result.push_back(candidate);
-    }
-    return result;
-}
-
-void LevelGenotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups){
-    if (haplogroups.size() == 0) return;
-
-    std::vector<VariantLocus> to_process;
-    for (auto const& haplogroup : haplogroups) to_process.push_back(VariantLocus{parent_site_ID, haplogroup});
-
-    VariantLocus cur_locus;
-    while (to_process.size() > 0){
-        cur_locus = to_process.back();
-        to_process.pop_back();
-
-        // We know the site/haplogroup combination bears 1+ site so use .at() .
-        auto sites_on_haplogroup = child_m.at(cur_locus.first).at(cur_locus.second);
-        for (auto const& child_marker : sites_on_haplogroup){
-            auto referent_site = genotyped_records.at(siteID_to_index(child_marker));
-            if (referent_site->is_null()) continue;
-            referent_site->make_null();
-
-            auto all_haplos = referent_site->get_all_haplogroups();
-            auto haplos_with_sites = get_haplogroups_with_sites(child_marker, all_haplos);
-            for (auto const& h : haplos_with_sites) to_process.push_back(VariantLocus{child_marker,h});
-        }
-    }
-}
 
 
 LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,

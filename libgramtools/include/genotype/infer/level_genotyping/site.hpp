@@ -17,7 +17,7 @@ namespace gram::genotype::infer {
     };
 
     class LevelGenotypedSite : public GenotypedSite {
-        double gt_conf; /**< Difference in log likelihood between most likely and next most likely genotype **/
+        double gt_conf = 0.; /**< Difference in log likelihood between most likely and next most likely genotype **/
     public:
         LevelGenotypedSite() {
             auto json_site_ptr = std::make_shared<LevelGenotyped_Json_Site>();
@@ -26,9 +26,6 @@ namespace gram::genotype::infer {
 
         ~LevelGenotypedSite() override = default;
 
-        GenotypeOrNull const get_genotype() const override { return genotype; }
-        allele_vector const get_alleles() const override { return alleles; }
-        covG_ptr const get_site_end_node() const override { return site_end_node; }
         gtype_information get_all_gtype_info() const{
             return gtype_information{
                 this->alleles,
@@ -39,12 +36,6 @@ namespace gram::genotype::infer {
             };
         }
 
-        void make_null() override {
-            this->genotype = false;
-            this->gt_conf = 0.;
-            this->total_coverage = 0;
-        }
-
         void populate_site(gtype_information const& gtype_info){
             this->alleles = gtype_info.alleles;
             this->genotype = gtype_info.genotype;
@@ -53,17 +44,6 @@ namespace gram::genotype::infer {
             this->total_coverage = gtype_info.total_coverage;
             this->haplogroups = gtype_info.haplogroups;
         }
-
-        void set_genotype(GtypedIndices const& gtype, double gt_conf){
-            this->genotype = gtype;
-            this->gt_conf = gt_conf;
-        };
-
-        /** Whether the site is null genotyped */
-        bool is_null() const override {
-            if (std::holds_alternative<bool>(genotype)) return true;
-            else return false;
-        };
 
         void add_model_specific_JSON(JSON& input_json) override;
     };

@@ -30,12 +30,9 @@ public:
     LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                    ReadStats const &read_stats, Ploidy const ploidy);
 
-    gt_sites const& get_genotyped_records() const {return genotyped_records;}
 
     static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
     static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
-    AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
-    void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
 
 };
 }
