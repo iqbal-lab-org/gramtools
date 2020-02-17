@@ -56,6 +56,7 @@ namespace gram {
         std::string grouped_allele_counts_fpath;
 
         std::string genotyped_json;
+        std::string personalised_reference;
 
         std::string read_stats_fpath;
 

@@ -2,10 +2,13 @@
 #define GT_INFER_TYPES
 
 #include <memory>
-#include "prg/coverage_graph.hpp"
+#include "prg/types.hpp"
 
 namespace gram::genotype::infer {
     class GenotypedSite;
+    using gt_site = GenotypedSite;
+    using gt_site_ptr = std::shared_ptr<GenotypedSite>;
+    using gt_sites = std::vector<gt_site_ptr>;
 
     struct Allele {
         std::string sequence;

@@ -1,11 +1,14 @@
 #include "genotype/genotype.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
+#include "genotype/infer/personalised_reference.hpp"
+#include "genotype/infer/json_spec/prg_spec.hpp"
 
 #include "common/timer_report.hpp"
 #include "kmer_index/load.hpp"
 
 using namespace gram;
+using namespace gram::genotype;
 
 void commands::genotype::run(const Parameters &parameters){
     auto timer = TimerReport();
@@ -50,9 +53,18 @@ void commands::genotype::run(const Parameters &parameters){
     LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
                              readstats, parameters.ploidy};
     timer.stop();
-    std::ofstream geno_json_file_handle(parameters.genotyped_json);
-    geno_json_file_handle << std::setw(4) << genotyper.get_JSON() << std::endl;
-    geno_json_file_handle.close();
+    std::ofstream geno_json_fhandle(parameters.genotyped_json);
+    auto sample_json = genotyper.get_JSON();
+    //sample_json->set_sample_info();
+    geno_json_fhandle << std::setw(4) << sample_json << std::endl;
+    geno_json_fhandle.close();
+
+    auto sites = genotyper.get_genotyped_records();
+    auto p_refs = get_personalised_ref(prg_info.coverage_graph.root, sites);
+    std::ofstream pers_ref_fhandle(parameters.personalised_reference);
+    for (auto const& p_ref : p_refs) pers_ref_fhandle << p_ref << std::endl;
+    pers_ref_fhandle.close();
+
     timer.report();
 }
 

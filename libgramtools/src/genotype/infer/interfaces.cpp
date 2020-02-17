@@ -1,6 +1,7 @@
 #include "genotype/infer/interfaces.hpp"
 #include "genotype/infer/json_spec/prg_spec.hpp"
 #include "genotype/infer/json_spec/site_spec.hpp"
+#include "prg/coverage_graph.hpp"
 
 namespace gram::genotype::infer {
 
@@ -15,11 +16,11 @@ void Genotyper::populate_json_prg() {
 
         for (const auto &child_entry : child_m) {
             auto site_index = std::to_string(siteID_to_index(child_entry.first));
-            json_prg_copy.at("Child_map").emplace(site_index, JSON::object());
+            json_prg_copy.at("Child_Map").emplace(site_index, JSON::object());
             for (const auto &hapg_entry : child_entry.second) {
                 auto copy = hapg_entry.second;
                 for (auto &el : copy) el = siteID_to_index(el);
-                json_prg_copy.at("Child_map").at(site_index)[std::to_string(hapg_entry.first)] =
+                json_prg_copy.at("Child_Map").at(site_index)[std::to_string(hapg_entry.first)] =
                         JSON(copy);
             }
         }
@@ -32,12 +33,12 @@ void Genotyper::add_json_sites(){
         json_prg->add_site(site->get_JSON());
 }
 
-    JSON Genotyper::get_JSON() {
+    json_prg_ptr Genotyper::get_JSON() {
     if (json_prg->get_prg().at("Sites").empty()){
         populate_json_prg();
         add_json_sites();
     }
-    return json_prg->get_prg();
+    return json_prg;
 }
 
 allele_vector const GenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,

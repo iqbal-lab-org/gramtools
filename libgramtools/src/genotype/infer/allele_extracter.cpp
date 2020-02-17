@@ -1,5 +1,6 @@
 #include "genotype/infer/interfaces.hpp"
 #include "genotype/infer/allele_extracter.hpp"
+#include "prg/coverage_graph.hpp"
 
 using namespace gram::genotype::infer;
 

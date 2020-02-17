@@ -29,12 +29,6 @@ namespace gram::genotype::infer {
 
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
 
-    class GenotypedSite;
-    using gt_site = GenotypedSite;
-    using gt_site_ptr = std::shared_ptr<GenotypedSite>;
-    using gt_sites = std::vector<gt_site_ptr>;
-
-
     /**
      * Genotyped site interface
      */
@@ -138,7 +132,7 @@ namespace gram::genotype::infer {
         void add_json_sites();
 
     public:
-        JSON get_JSON();
+        json_prg_ptr get_JSON();
         gt_sites const& get_genotyped_records() const {return genotyped_records;}
 
         AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
