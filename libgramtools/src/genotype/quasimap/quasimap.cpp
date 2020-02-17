@@ -9,7 +9,7 @@
 
 using namespace gram;
 
-QuasimapReadsStats gram::quasimap_reads(const Parameters &parameters,
+QuasimapReadsStats gram::quasimap_reads(const GenotypeParams &parameters,
                                         const KmerIndex &kmer_index,
                                         const PRG_Info &prg_info,
                                         ReadStats &readstats) {
@@ -64,7 +64,7 @@ std::vector<Sequence> get_reads_buffer(SeqRead::SeqIterator &reads_it, SeqRead &
  * Calls the (forward_reverse) mapping routine for each read in the read buffer, in parallel (if the CL option has been specified).
  */
 void handle_reads_buffer(QuasimapReadsStats &quasimap_stats, const std::vector<Sequence> &reads_buffer,
-                         const Parameters &parameters, const KmerIndex &kmer_index, const PRG_Info &prg_info) {
+                         const GenotypeParams &parameters, const KmerIndex &kmer_index, const PRG_Info &prg_info) {
     uint64_t last_count_reported = 0;
 
     //  Parallelise loop below
@@ -100,7 +100,7 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats, const std::vector<S
 }
 
 void
-gram::handle_read_file(QuasimapReadsStats &quasimap_stats, const std::string &reads_fpath, const Parameters &parameters,
+gram::handle_read_file(QuasimapReadsStats &quasimap_stats, const std::string &reads_fpath, const GenotypeParams &parameters,
                        const KmerIndex &kmer_index, const PRG_Info &prg_info) {
     //  Number of reads to load in memory; is upper limit of number of reads that can be mapped in parallel
     uint64_t max_set_size = 5000;
@@ -117,7 +117,7 @@ gram::handle_read_file(QuasimapReadsStats &quasimap_stats, const std::string &re
 }
 
 void
-gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats, const Sequence &read, const Parameters &parameters,
+gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats, const Sequence &read, const GenotypeParams &parameters,
                                const KmerIndex &kmer_index, const PRG_Info &prg_info) {
     // Forward mapping
     bool read_mapped_exactly = quasimap_read(read, quasimap_stats.coverage,
@@ -141,7 +141,7 @@ bool gram::quasimap_read(const Sequence &read,
                          Coverage &coverage,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info,
-                         const Parameters &parameters) {
+                         const GenotypeParams &parameters) {
     auto kmer = get_kmer_from_read(parameters.kmers_size, read); // Gets last k bases of read
 
     auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);

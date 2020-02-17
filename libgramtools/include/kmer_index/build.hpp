@@ -9,6 +9,7 @@
  */
 #include "common/utils.hpp"
 #include "common/parameters.hpp"
+#include "build/parameters.hpp"
 #include "prg/prg_info.hpp"
 #include "prg/make_data_structures.hpp"
 #include "genotype/quasimap/search/types.hpp"
@@ -49,7 +50,7 @@ namespace gram {
     KmerIndex index_kmers(const Sequences &kmers, const int kmer_size, const PRG_Info &prg_info);
 
     namespace kmer_index {
-        KmerIndex build(const Parameters &parameters,
+        KmerIndex build(BuildParams const &parameters,
                         const PRG_Info &prg_info);
     }
 

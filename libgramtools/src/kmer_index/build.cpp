@@ -158,7 +158,7 @@ KmerIndex gram::index_kmers(const Sequences &kmer_prefix_diffs,
  * @see get_kmer_prefix_diffs()
  * @see index_kmers()
  */
-KmerIndex gram::kmer_index::build(const Parameters &parameters,
+KmerIndex gram::kmer_index::build(BuildParams const &parameters,
                                   const PRG_Info &prg_info) {
     // Extract all relevant kmers and generate the minimal differences between them.
     Sequences kmer_prefix_diffs = get_all_kmer_and_compute_prefix_diffs(parameters,

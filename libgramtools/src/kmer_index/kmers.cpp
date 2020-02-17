@@ -1,3 +1,4 @@
+#include <build/parameters.hpp>
 #include "kmer_index/kmers.hpp"
 
 
@@ -833,7 +834,7 @@ std::vector<PrgIndexRange> gram::combine_overlapping_regions(const std::vector<P
 }
 
 
-ordered_vector_set<Sequence> gram::get_prg_reverse_kmers(const Parameters &parameters,
+ordered_vector_set<Sequence> gram::get_prg_reverse_kmers(BuildParams const &parameters,
                                                          const PRG_Info &prg_info) {
     auto boundary_marker_indexes = get_boundary_marker_indexes(prg_info);
     auto kmer_region_ranges = get_kmer_region_ranges(boundary_marker_indexes,
@@ -900,7 +901,7 @@ ordered_vector_set<Sequence> gram::generate_all_kmers(const uint64_t &kmer_size)
     return all_kmers;
 }
 
-std::vector<Sequence> gram::get_all_kmers(const Parameters &parameters,
+std::vector<Sequence> gram::get_all_kmers(gram::BuildParams const &parameters,
                                           const PRG_Info &prg_info) {
     ordered_vector_set<Sequence> ordered_reverse_kmers = {};
     if (parameters.all_kmers_flag) {
@@ -948,7 +949,7 @@ std::vector<Sequence> gram::get_prefix_diffs(const std::vector<Sequence> &kmers)
     return prefix_diffs;
 }
 
-std::vector<Sequence> gram::get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
+std::vector<Sequence> gram::get_all_kmer_and_compute_prefix_diffs(BuildParams const &parameters,
                                                                   const PRG_Info &prg_info) {
     std::cout << "Getting all kmers" << std::endl;
     auto kmers = get_all_kmers(parameters, prg_info);

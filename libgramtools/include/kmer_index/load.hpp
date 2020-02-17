@@ -34,18 +34,18 @@ namespace gram {
     void parse_sa_intervals(KmerIndex &kmer_index,
                             const sdsl::int_vector<3> &all_kmers,
                             const sdsl::int_vector<> &kmers_stats,
-                            const Parameters &parameters);
+                            CommonParameters const &parameters);
 
     void parse_paths(KmerIndex &kmer_index,
                      const sdsl::int_vector<3> &all_kmers,
                      const sdsl::int_vector<> &kmers_stats,
-                     const Parameters &parameters);
+                     CommonParameters const &parameters);
 
     namespace kmer_index {
         /**
          * Rebuild a `gram::KmerIndex` from serialised file in a gramtools `build` produced directory.
          */
-        KmerIndex load(const Parameters &parameters);
+        KmerIndex load(CommonParameters const &parameters);
     }
 
 }

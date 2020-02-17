@@ -1,10 +1,5 @@
 #include <iostream>
 
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/variant/variant.hpp>
-#include <boost/variant/get.hpp>
-#include <boost/filesystem.hpp>
 
 #include <sdsl/bit_vectors.hpp>
 #include <omp.h>
@@ -18,35 +13,56 @@
 #include "genotype/genotype.hpp"
 #include "genotype/parameters.hpp"
 
-#include "main.hpp"
+#include "common/parameters.hpp"
 
 
-namespace po = boost::program_options;
-namespace fs = boost::filesystem;
 using namespace gram;
 
+namespace gram {
+    enum class Command {
+        build,
+        genotype
+    };
+
+    struct top_level_params{
+        po::variables_map vm;
+        po::parsed_options parsed;
+        Command command;
+    };
+
+   top_level_params parse_command_line_parameters(int argc, const char *const *argv);
+}
 
 int main(int argc, const char *const *argv) {
-    Parameters parameters = {};
-    Commands command;
-    std::tie(parameters, command) = parse_command_line_parameters(argc, argv);
-    
-    std::cout << "maximum thread count: " << parameters.maximum_threads << std::endl;
-    omp_set_num_threads(parameters.maximum_threads);
+    auto command_params = parse_command_line_parameters(argc, argv);
 
-    switch (command) {
-        case Commands::build:
-            commands::build::run(parameters);
+    CommonParameters common_params;
+    BuildParams build_params;
+    GenotypeParams geno_params;
+
+    switch(command_params.command){
+        case Command::build:
+            build_params =
+                    commands::build::parse_parameters(command_params.vm, command_params.parsed);
+            common_params = build_params;
+            commands::build::run(build_params);
             break;
-        case Commands::genotype:
-            commands::genotype::run(parameters);
+
+        case Command::genotype:
+            geno_params =
+                    commands::genotype::parse_parameters(command_params.vm, command_params.parsed);
+            common_params = geno_params;
+            commands::genotype::run(geno_params);
             break;
     }
+
+    std::cout << "maximum thread count: " << common_params.maximum_threads << std::endl;
+    omp_set_num_threads(common_params.maximum_threads);
     return 0;
 }
 
 
-std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, const char *const *argv) {
+top_level_params gram::parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description global("Gramtools! Global options");
     global.add_options()
                   ("command", po::value<std::string>(), "command to execute: {build, genotype}")
@@ -62,8 +78,7 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
 
     po::variables_map vm;
 
-    po::parsed_options parsed =
-            po::command_line_parser(argc, argv)
+    po::parsed_options parsed = po::command_line_parser(argc, argv)
                     .options(global)
                     .positional(pos)
                     .allow_unregistered() // Allows passing of subargs to command specific parser.
@@ -77,19 +92,16 @@ std::pair<Parameters, Commands> gram::parse_command_line_parameters(int argc, co
         exit(1);
     }
 
-    std::string cmd = vm["command"].as<std::string>();
+    std::string cmd_string = vm["command"].as<std::string>();
 
-    if (cmd == "build") {
-        auto parameters = commands::build::parse_parameters(vm, parsed);
-        return std::make_pair(parameters, Commands::build);
-    } else if (cmd == "genotype") {
-        auto parameters = commands::genotype::parse_parameters(vm, parsed);
-        return std::make_pair(parameters, Commands::genotype);
-    }
+    Command cmd;
+    if (cmd_string == "build") cmd = Command::build;
+    else if (cmd_string == "genotype") cmd = Command::genotype;
     else {
-        std::cout << "Unrecognised command: " << cmd << std::endl;
+        std::cout << "Unrecognised command: " << cmd_string << std::endl;
         std::cout << global << std::endl;
         exit(1);
     }
 
+    return top_level_params{vm, parsed, cmd};
 }

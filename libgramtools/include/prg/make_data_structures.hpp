@@ -11,6 +11,7 @@
 #include <sdsl/wavelet_trees.hpp>
 
 #include <common/utils.hpp>
+#include <build/parameters.hpp>
 #include "common/parameters.hpp"
 #include "coverage_graph.hpp"
 
@@ -26,11 +27,11 @@ namespace gram {
      * FM index is built using sdsl library.
      * Memory footprint of index construction is logged to disk.
      */
-    FM_Index generate_fm_index(const Parameters &parameters);
+    FM_Index generate_fm_index(BuildParams const &parameters);
 
-    FM_Index load_fm_index(const Parameters &parameters);
+    FM_Index load_fm_index(CommonParameters const &parameters);
 
-    coverage_Graph generate_cov_graph(const Parameters &parameters, PRG_String const &prg_string);
+    coverage_Graph generate_cov_graph(CommonParameters const &parameters, PRG_String const &prg_string);
 
 
     /**************
@@ -52,10 +53,10 @@ namespace gram {
      * Generate BWT bit vector masks for each of A,C,G and T in the BWT of the prg.
      */
     DNA_BWT_Masks generate_bwt_masks(FM_Index const& fm_index,
-                                     const Parameters &parameters);
+                                     CommonParameters const &parameters);
 
     DNA_BWT_Masks load_dna_bwt_masks(const FM_Index &fm_index,
-                                     const Parameters &parameters);
+                                     CommonParameters const &parameters);
 
 
     /**

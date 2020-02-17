@@ -140,7 +140,7 @@ std::string gram::dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sit
 
 
 void coverage::dump::grouped_allele_counts(const Coverage &coverage,
-                                           const Parameters &parameters) {
+                                           const GenotypeParams &parameters) {
     std::string json_string = dump_grouped_allele_counts(coverage.grouped_allele_counts);
     std::ofstream file;
     file.open(parameters.grouped_allele_counts_fpath);

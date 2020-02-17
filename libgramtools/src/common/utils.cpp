@@ -11,14 +11,6 @@
 namespace fs = boost::filesystem;
 using namespace gram;
 
-std::string gram::full_path(const std::string &gram_dirpath,
-                            const std::string &file_name) {
-    fs::path dir(gram_dirpath);
-    fs::path file(file_name);
-    fs::path full_path = dir / file;
-    return full_path.string();
-}
-
 std::string gram::mkdir(std::string const& parent_dirpath, std::string const& child_dirpath){
     fs::path dir1(parent_dirpath), dir2(child_dirpath);
     assert(fs::exists(dir1));

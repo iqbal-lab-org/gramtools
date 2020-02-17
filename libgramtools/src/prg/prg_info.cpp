@@ -4,7 +4,7 @@
 
 using namespace gram;
 
-PRG_Info gram::load_prg_info(const Parameters &parameters) {
+PRG_Info gram::load_prg_info(CommonParameters const &parameters) {
     PRG_Info prg_info;
 
     PRG_String ps{parameters.encoded_prg_fpath};

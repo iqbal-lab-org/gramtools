@@ -8,11 +8,11 @@
 
 #include "build/parameters.hpp"
 
-
 using namespace gram;
+using namespace gram::commands::build;
 
 
-Parameters commands::build::parse_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
+BuildParams commands::build::parse_parameters(po::variables_map &vm, const po::parsed_options &parsed) {
 
     std::string gram_dirpath;
     uint32_t kmer_size;
@@ -44,25 +44,14 @@ Parameters commands::build::parse_parameters(po::variables_map &vm, const po::pa
         exit(1);
     }
 
-    Parameters parameters = {};
-    parameters.gram_dirpath = gram_dirpath;
-    parameters.encoded_prg_fpath = full_path(gram_dirpath, "prg");
-    parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
-    parameters.cov_graph_fpath = full_path(gram_dirpath, "cov_graph");
-    parameters.sites_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
-    parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
+    BuildParams parameters = {};
+    fill_common_parameters(parameters, gram_dirpath);
+
     parameters.sdsl_memory_log_fpath = full_path(gram_dirpath, "sdsl_memory_log");
-
-    parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
-    parameters.kmers_fpath = full_path(gram_dirpath, "kmers");
-    parameters.kmers_stats_fpath = full_path(gram_dirpath, "kmers_stats");
-    parameters.sa_intervals_fpath = full_path(gram_dirpath, "sa_intervals");
-    parameters.paths_fpath = full_path(gram_dirpath, "paths");
-
     parameters.kmers_size = kmer_size;
     parameters.max_read_size = max_read_size;
+
     parameters.all_kmers_flag = vm["all-kmers"].as<bool>();
-    
     parameters.maximum_threads = vm["max-threads"].as<uint32_t>();
     return parameters;
 }

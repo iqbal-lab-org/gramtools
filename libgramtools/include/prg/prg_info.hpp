@@ -53,7 +53,7 @@ namespace gram {
      * Note that the fm_index contains the bwt, and that **it** has rank support.
      * @see PRG_Info()
      */
-    PRG_Info load_prg_info(const Parameters &parameters);
+    PRG_Info load_prg_info(CommonParameters const &parameters);
 
 }
 

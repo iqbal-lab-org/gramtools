@@ -1,11 +1,12 @@
 #include "prg/make_data_structures.hpp"
 #include <boost/filesystem.hpp>
+#include <build/parameters.hpp>
 
 
 using namespace gram;
 
 
-FM_Index gram::generate_fm_index(const Parameters &parameters) {
+FM_Index gram::generate_fm_index(BuildParams const &parameters) {
     FM_Index fm_index;
 
     sdsl::memory_monitor::start();
@@ -23,14 +24,14 @@ FM_Index gram::generate_fm_index(const Parameters &parameters) {
 }
 
 
-FM_Index gram::load_fm_index(const Parameters &parameters) {
+FM_Index gram::load_fm_index(CommonParameters const &parameters) {
     FM_Index fm_index;
     sdsl::load_from_file(fm_index, parameters.fm_index_fpath);
     return fm_index;
 }
 
 
-coverage_Graph gram::generate_cov_graph(const Parameters &parameters, PRG_String const &prg_string){
+coverage_Graph gram::generate_cov_graph(CommonParameters const &parameters, PRG_String const &prg_string){
     coverage_Graph c_g{prg_string};
 
     // Serialise the cov graph
@@ -74,7 +75,7 @@ void populate_dna_bwt_masks(FM_Index const& fm_index, DNA_BWT_Masks& d_m) {
  * @see generate_base_bwt_mask()
  */
 std::string bwt_mask_fname(const std::string &base_char,
-                           const Parameters &parameters) {
+                           CommonParameters const &parameters) {
     auto handling_unit_tests = parameters.gram_dirpath[0] == '@';
     if (handling_unit_tests) {
         return parameters.gram_dirpath
@@ -89,7 +90,7 @@ std::string bwt_mask_fname(const std::string &base_char,
 }
 
 DNA_BWT_Masks gram::generate_bwt_masks(FM_Index const& fm_index,
-                                       const Parameters &parameters) {
+                                       CommonParameters const &parameters) {
     auto bwt_size = fm_index.bwt.size();
     DNA_BWT_Masks d_m;
     // Set storage for the bit masks
@@ -118,7 +119,7 @@ DNA_BWT_Masks gram::generate_bwt_masks(FM_Index const& fm_index,
 
 
 sdsl::bit_vector load_base_bwt_mask(const std::string &base_char,
-                                    const Parameters &parameters) {
+                                    CommonParameters const &parameters) {
     auto fpath = bwt_mask_fname(base_char, parameters);
     sdsl::bit_vector mask;
     sdsl::load_from_file(mask, fpath);
@@ -127,7 +128,7 @@ sdsl::bit_vector load_base_bwt_mask(const std::string &base_char,
 
 
 DNA_BWT_Masks gram::load_dna_bwt_masks(const FM_Index &fm_index,
-                                       const Parameters &parameters) {
+                                       CommonParameters const &parameters) {
     DNA_BWT_Masks dna_bwt_masks;
     dna_bwt_masks.mask_a = load_base_bwt_mask("a", parameters);
     dna_bwt_masks.mask_c = load_base_bwt_mask("c", parameters);

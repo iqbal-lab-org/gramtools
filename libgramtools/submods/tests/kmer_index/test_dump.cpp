@@ -11,7 +11,7 @@ using namespace gram;
 
 
 TEST(DumpKmers, GivenTwoKmers_CorrectAllKmersStructure) {
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 4;
     parameters.kmers_fpath = "@kmers_fpath";
 
@@ -28,7 +28,7 @@ TEST(DumpKmers, GivenTwoKmers_CorrectAllKmersStructure) {
 
 
 TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 4;
     parameters.kmers_fpath = "@kmers_fpath";
     parameters.sa_intervals_fpath = "@sa_intervals_fpath";
@@ -70,7 +70,7 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
 
 
 TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 4;
     parameters.kmers_fpath = "@kmers_fpath";
     parameters.paths_fpath = "@paths_fpath";
@@ -115,7 +115,7 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
 
 
 TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats) {
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 4;
     parameters.kmers_stats_fpath = "@kmers_stats_fpath";
     parameters.kmers_fpath = "@kmers_fpath";
@@ -188,7 +188,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
 }
 
 TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 4;
     parameters.kmers_stats_fpath = "@kmers_stats_fpath";
     parameters.kmers_fpath = "@kmers_fpath";

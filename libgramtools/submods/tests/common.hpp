@@ -34,7 +34,7 @@ class prg_setup{
 public:
     PRG_Info prg_info;
     Coverage coverage;
-    Parameters parameters;
+    GenotypeParams parameters;
     KmerIndex kmer_index;
     ReadStats read_stats;
 

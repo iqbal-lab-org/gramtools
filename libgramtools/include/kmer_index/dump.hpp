@@ -28,7 +28,7 @@ namespace gram {
      * Builds a binary file of integers ranging 0-3 representing each base of each indexed kmer.
      */
     sdsl::int_vector<3> dump_kmers(const KmerIndex &kmer_index,
-                                   const Parameters &parameters);
+                                   const BuildParams &parameters);
 
     /**
      * Builds a binary file containing statistics for each indexed kmers.
@@ -41,7 +41,7 @@ namespace gram {
     void dump_kmers_stats(const KmerIndexStats &stats,
                           const sdsl::int_vector<3> &all_kmers,
                           const KmerIndex &kmer_index,
-                          const Parameters &parameters);
+                          const BuildParams &parameters);
 
     /**
      * Builds a binary file containing the start and end SA index of each `gram::SA_Interval` for all indexed kmers.
@@ -49,7 +49,7 @@ namespace gram {
     void dump_sa_intervals(const KmerIndexStats &stats,
                            const sdsl::int_vector<3> &all_kmers,
                            const KmerIndex &kmer_index,
-                           const Parameters &parameters);
+                           const BuildParams &parameters);
 
     /**
      * Builds a binary file containing the variant site marker(s) and variant site allele(s) traversed for each `gram::SA_interval`.
@@ -57,13 +57,13 @@ namespace gram {
     void dump_paths(const KmerIndexStats &stats,
                     const sdsl::int_vector<3> &all_kmers,
                     const KmerIndex &kmer_index,
-                    const Parameters &parameters);
+                    const BuildParams &parameters);
 
     namespace kmer_index {
         /**
          * Dumps to disk the indexed kmers, their `gram::SearchStates`, their `gram::VariantSitePath`s and kmer statistics.
          */
-        void dump(const KmerIndex &kmer_index, const Parameters &parameters);
+        void dump(const KmerIndex &kmer_index, const BuildParams &parameters);
     }
 
 }

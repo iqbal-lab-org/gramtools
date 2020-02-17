@@ -54,7 +54,7 @@ TEST(ParseSaIntervals, GivenOneKmerThreeSaIntervals_CorrectSearchStates) {
     sdsl::int_vector<3> all_kmers = {1, 2, 3, 4};
     sdsl::int_vector<> kmers_stats = {3, 0, 0, 0};
 
-    Parameters parameters = {};
+    CommonParameters parameters = {};
     parameters.sa_intervals_fpath = "@sa_intervals_fpath";
     parameters.kmers_size = 4;
 
@@ -91,7 +91,7 @@ TEST(ParsePaths, GivenTwoPathsDifferentLengths_CorrectKmerIndex) {
     sdsl::int_vector<3> all_kmers = {1, 2, 3, 4};
     sdsl::int_vector<> kmers_stats = {2, 1, 2};
 
-    Parameters parameters = {};
+    CommonParameters parameters = {};
     parameters.paths_fpath = "@paths_fpath";
     parameters.kmers_size = 4;
 
@@ -129,7 +129,7 @@ TEST(ParsePaths, GivenTwoPathsDifferentLengths_CorrectKmerIndex) {
 
 
 TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
-    Parameters parameters = {};
+    CommonParameters parameters = {};
     parameters.kmers_size = 4;
 
     parameters.kmers_fpath = "@kmers_fpath";
@@ -181,7 +181,7 @@ TEST(ParseKmerIndex, GivenSingleKmerWithTwoSearchStates_CorrectKmerIndex) {
 
 
 TEST(ParseKmerIndex, GivenTwoKmersWithMultipleSearchStates_CorrectKmerIndex) {
-    Parameters parameters = {};
+    CommonParameters parameters = {};
     parameters.kmers_size = 4;
 
     parameters.kmers_fpath = "@kmers_fpath";

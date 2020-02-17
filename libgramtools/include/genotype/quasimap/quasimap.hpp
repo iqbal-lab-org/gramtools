@@ -28,7 +28,7 @@ namespace gram {
     /**
      * For each read file, quasimap reads.
      */
-    QuasimapReadsStats quasimap_reads(const Parameters &parameters,
+    QuasimapReadsStats quasimap_reads(const GenotypeParams &parameters,
                                       const KmerIndex &kmer_index,
                                       const PRG_Info &prg_info,
                                       ReadStats &readstats);
@@ -37,14 +37,14 @@ namespace gram {
      * Load and process (ie map) reads from a given read file using a buffer to reduce disk I/O calls
      */
     void
-    handle_read_file(QuasimapReadsStats &quasimap_stats, const std::string &reads_fpath, const Parameters &parameters,
+    handle_read_file(QuasimapReadsStats &quasimap_stats, const std::string &reads_fpath, const GenotypeParams &parameters,
                      const KmerIndex &kmer_index, const PRG_Info &prg_info);
 
     /**
      * Calls quasimapping routine on a given read (forward mapping), and its reverse complement (reverse mapping)
      */
     void
-    quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats, const Sequence &read, const Parameters &parameters,
+    quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats, const Sequence &read, const GenotypeParams &parameters,
                              const KmerIndex &kmer_index, const PRG_Info &prg_info);
 
     /**
@@ -55,7 +55,7 @@ namespace gram {
      * @return
      */
     bool quasimap_read(const Sequence &read, Coverage &coverage, const KmerIndex &kmer_index, const PRG_Info &prg_info,
-                       const Parameters &parameters);
+                       const GenotypeParams &parameters);
 
     Sequence get_kmer_from_read(const uint32_t &kmer_size, const Sequence &read);
 

@@ -1,7 +1,7 @@
 #ifndef LVLGT_MODEL
 #define LVLGT_MODEL
 
-#include "common/parameters.hpp"
+#include "genotype/parameters.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
 #include "site.hpp"
 #include "probabilities.hpp"

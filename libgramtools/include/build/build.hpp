@@ -16,9 +16,10 @@
 
 #include "kmer_index/build.hpp"
 #include "kmer_index/dump.hpp"
+#include "parameters.hpp"
 
 namespace gram::commands::build {
-    void run(const Parameters &parameters);
+    void run(BuildParams const &parameters);
 }
 
 #endif //GRAMTOOLS_BUILD_HPP

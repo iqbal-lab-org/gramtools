@@ -32,7 +32,7 @@ namespace gram::coverage {
 
     namespace dump {
         void allele_sum(const Coverage &coverage,
-                        const Parameters &parameters);
+                        const GenotypeParams &parameters);
     }
 }
 

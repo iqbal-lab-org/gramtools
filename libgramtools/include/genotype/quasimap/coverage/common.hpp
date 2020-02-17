@@ -8,6 +8,7 @@
 #define GRAMTOOLS_COVERAGE_COMMON_HPP
 
 #include "genotype/quasimap/search/types.hpp"
+#include "genotype/parameters.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
 
 namespace gram {
@@ -39,7 +40,7 @@ namespace coverage::dump {
      * Write coverage information to disk.
      */
     void all(const Coverage &coverage,
-             const Parameters &parameters);
+             const GenotypeParams &parameters);
 }
 
 

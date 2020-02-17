@@ -34,7 +34,7 @@
 #include <boost/functional/hash.hpp>
 
 #include "prg/prg_info.hpp"
-#include "common/parameters.hpp"
+#include "build/parameters.hpp"
 #include "common/utils.hpp"
 
 
@@ -202,14 +202,14 @@ namespace gram {
      * @return all the kmers to index, in reverse sorted order. The kmers are maintained in reverse (first kmer position == last position in prg)
      * so that they get inserted in sorted (dictionary) order.
      */
-    ordered_vector_set<Sequence> get_prg_reverse_kmers(const Parameters &parameters,
+    ordered_vector_set<Sequence> get_prg_reverse_kmers(BuildParams const &parameters,
                                                        const PRG_Info &prg_info);
 
     /**
      * High-level routine for extracting all kmers of interest and computing the prefix differences.
      * @see gram::kmer_index::build()
      */
-    std::vector<Sequence> get_all_kmer_and_compute_prefix_diffs(const Parameters &parameters,
+    std::vector<Sequence> get_all_kmer_and_compute_prefix_diffs(BuildParams const &parameters,
                                                                 const PRG_Info &prg_info);
 
     /**
@@ -218,7 +218,7 @@ namespace gram {
      * variant sites in the prg.
      * If it is set, produces all the kmers of given size.
      */
-    std::vector<Sequence> get_all_kmers(const Parameters &parameters,
+    std::vector<Sequence> get_all_kmers(BuildParams const &parameters,
                                         const PRG_Info &prg_info);
 
     /**

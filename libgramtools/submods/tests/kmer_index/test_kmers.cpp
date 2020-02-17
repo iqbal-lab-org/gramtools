@@ -564,7 +564,7 @@ TEST(GetReverseKmersFromRegion, GivenKmerRegion_CorrectReverseKmerFound) {
     auto prg_raw = encode_prg("atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
     PrgIndexRange kmer_region_range = {11, 41};
@@ -1290,7 +1290,7 @@ TEST(GetAllReverseKmers, GivenOverkillMaxReadSize_AllPossibleKmersReturned) {
     auto prg_raw = encode_prg("ta5g6a6acgt");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 3;
     parameters.max_read_size = 10;
 
@@ -1314,7 +1314,7 @@ TEST(GetAllReverseKmers, KmerPossibleAfterVariantSite_ReverseKmerIncludedInResul
     auto prg_raw = encode_prg("cta5g6a6acgt");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 3;
     parameters.max_read_size = 10;
 
@@ -1339,7 +1339,7 @@ TEST(GetAllReverseKmers, SecondVariantSiteEndsAtPrgEnd_CorrectReverseKmers) {
     auto prg_raw = encode_prg("cta5g6a6acgt7cc8t8");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 3;
     parameters.max_read_size = 10;
 
@@ -1370,7 +1370,7 @@ TEST(GetAllReverseKmers, KmersOverlappingTwoVariantSites_CorrectReverseKmers) {
     auto prg_raw = encode_prg("cta5g6a6cgt7cc8t8");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 5;
     parameters.max_read_size = 10;
 
@@ -1397,7 +1397,7 @@ TEST(GetAllReverseKmers, TwoLeftMostKmersWithinRange_TwoLeftMostKmersIncluded) {
     auto prg_raw = encode_prg("ta5g6a6acgt");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 3;
     parameters.max_read_size = 3;
 
@@ -1418,7 +1418,7 @@ TEST(GetAllReverseKmers, MaxReadSizeLessThanKmerSize_AlleleKmersReturned) {
     auto prg_raw = encode_prg("ta5g6a6acgt");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 3;
     parameters.max_read_size = 1;
 
@@ -1444,7 +1444,7 @@ TEST(GetAllReverseKmers, GivenPrg_CorrectReverseKmerFound) {
     auto prg_raw = encode_prg("atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
 
@@ -1461,7 +1461,7 @@ TEST(GetAllReverseKmers, GivenPrgWithLongNonVariantTail_PreviouslyAbsentKmerFoun
     auto prg_raw = encode_prg("atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgattccccgacga");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 20;
 
@@ -1478,7 +1478,7 @@ TEST(GetAllOrderedKmers, GivenPrg_CorrectForwardKmerFound) {
     auto prg_raw = encode_prg("atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
 
@@ -1495,7 +1495,7 @@ TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound
     auto prg_raw = encode_prg("atggaacggct5cg6cc6tg6tc6cg7g8a8tccccgacgat");
     auto prg_info = generate_prg_info(prg_raw);
 
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 15;
     parameters.max_read_size = 150;
 
@@ -1516,7 +1516,7 @@ TEST(GetKmerPrefixDiffs, GivenPrgAndTargetKmer_CorrespondingPrefixDiffEntryFound
 TEST(GetAllKmers, GenerateAllKmersLengthThree_CorrectOrder) {
     auto prg_raw = encode_prg("acgt");
     auto prg_info = generate_prg_info(prg_raw);
-    Parameters parameters = {};
+    BuildParams parameters = {};
     parameters.kmers_size = 3;
 
     auto result = get_all_kmers(parameters,

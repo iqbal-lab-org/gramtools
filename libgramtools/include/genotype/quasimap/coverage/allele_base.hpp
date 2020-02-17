@@ -37,7 +37,7 @@ namespace gram {
              * String serialise the coverage information in JSON format and write it to disk.
              */
             void allele_base(const Coverage &coverage,
-                             const Parameters &parameters);
+                             const GenotypeParams &parameters);
         }
     }
 

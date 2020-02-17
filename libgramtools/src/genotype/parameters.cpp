@@ -5,6 +5,7 @@
 
 
 using namespace gram;
+using namespace gram::commands::genotype;
 namespace fs = boost::filesystem;
 
 struct ploidy_argument{
@@ -40,7 +41,7 @@ void validate(boost::any& v,
     v = boost::any(ploidy_argument(s));
 }
 
-Parameters commands::genotype::parse_parameters(po::variables_map &vm,
+GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
     std::string gram_dirpath;
     std::string run_dirpath;
@@ -79,19 +80,8 @@ Parameters commands::genotype::parse_parameters(po::variables_map &vm,
         exit(1);
     }
 
-    Parameters parameters = {};
-    parameters.gram_dirpath = gram_dirpath;
-    parameters.encoded_prg_fpath = full_path(gram_dirpath, "prg");
-    parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
-    parameters.cov_graph_fpath = full_path(gram_dirpath, "cov_graph");
-    parameters.sites_mask_fpath = full_path(gram_dirpath, "variant_site_mask");
-    parameters.allele_mask_fpath = full_path(gram_dirpath, "allele_mask");
-
-    parameters.kmer_index_fpath = full_path(gram_dirpath, "kmer_index");
-    parameters.kmers_fpath = full_path(gram_dirpath, "kmers");
-    parameters.kmers_stats_fpath = full_path(gram_dirpath, "kmers_stats");
-    parameters.sa_intervals_fpath = full_path(gram_dirpath, "sa_intervals");
-    parameters.paths_fpath = full_path(gram_dirpath, "paths");
+    GenotypeParams parameters = {};
+    fill_common_parameters(parameters, gram_dirpath);
 
     parameters.ploidy = ploidy.get();
     parameters.kmers_size = kmer_size;
@@ -99,15 +89,14 @@ Parameters commands::genotype::parse_parameters(po::variables_map &vm,
 
     std::string cov_dirpath = mkdir(run_dirpath, "coverage");
     std::string geno_dirpath = mkdir(run_dirpath, "genotype");
-    parameters.sdsl_memory_log_fpath = full_path(run_dirpath, "sdsl_memory_log");
     parameters.read_stats_fpath = full_path(run_dirpath, "read_stats.json");
 
     parameters.allele_sum_coverage_fpath = full_path(cov_dirpath, "allele_sum_coverage");
     parameters.allele_base_coverage_fpath = full_path(cov_dirpath, "allele_base_coverage.json");
     parameters.grouped_allele_counts_fpath = full_path(cov_dirpath, "grouped_allele_counts_coverage.json");
 
-    parameters.genotyped_json = full_path(geno_dirpath, "genotyped.json");
-    parameters.personalised_reference = full_path(geno_dirpath, "personalised_reference.fasta");
+    parameters.genotyped_json_fpath = full_path(geno_dirpath, "genotyped.json");
+    parameters.personalised_ref_fpath = full_path(geno_dirpath, "personalised_reference.fasta");
 
     parameters.maximum_threads = vm["max_threads"].as<uint32_t>();
     parameters.seed = vm["seed"].as<uint32_t>();

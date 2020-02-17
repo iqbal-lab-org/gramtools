@@ -6,6 +6,7 @@
 #define GRAMTOOLS_COVERAGE_TYPES_HPP
 
 #include "common/utils.hpp"
+#include "genotype/parameters.hpp"
 
 namespace gram {
     using AlleleSumCoverage = std::vector<PerAlleleCoverage>; /**<Number of reads mapped per allele for each variant site.*/

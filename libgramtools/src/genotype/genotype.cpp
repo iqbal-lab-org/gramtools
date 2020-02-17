@@ -10,7 +10,7 @@
 using namespace gram;
 using namespace gram::genotype;
 
-void commands::genotype::run(const Parameters &parameters){
+void gram::commands::genotype::run(GenotypeParams const& parameters){
     auto timer = TimerReport();
     /**
      * Quasimap
@@ -53,7 +53,7 @@ void commands::genotype::run(const Parameters &parameters){
     LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
                              readstats, parameters.ploidy};
     timer.stop();
-    std::ofstream geno_json_fhandle(parameters.genotyped_json);
+    std::ofstream geno_json_fhandle(parameters.genotyped_json_fpath);
     auto sample_json = genotyper.get_JSON();
     //sample_json->set_sample_info();
     geno_json_fhandle << std::setw(4) << sample_json << std::endl;
@@ -61,7 +61,7 @@ void commands::genotype::run(const Parameters &parameters){
 
     auto sites = genotyper.get_genotyped_records();
     auto p_refs = get_personalised_ref(prg_info.coverage_graph.root, sites);
-    std::ofstream pers_ref_fhandle(parameters.personalised_reference);
+    std::ofstream pers_ref_fhandle(parameters.personalised_ref_fpath);
     for (auto const& p_ref : p_refs) pers_ref_fhandle << p_ref << std::endl;
     pers_ref_fhandle.close();
 

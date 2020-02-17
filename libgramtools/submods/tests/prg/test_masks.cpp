@@ -12,7 +12,7 @@ TEST(LoadAlleleMask, GivenComplexAlleleMask_SaveAndLoadFromFileCorrectly) {
     auto prg_info = generate_prg_info(prg_raw);
     auto allele_mask = generate_allele_mask(prg_info.encoded_prg);
 
-    Parameters parameters = {};
+    CommonParameters parameters = {};
     parameters.allele_mask_fpath = "@allele_mask";
     sdsl::store_to_file(allele_mask, parameters.allele_mask_fpath);
 

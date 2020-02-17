@@ -27,7 +27,7 @@ namespace gram {
      */
     sdsl::int_vector<> generate_allele_mask(const marker_vec &encoded_prg);
 
-    sdsl::int_vector<> load_allele_mask(const Parameters &parameters);
+    sdsl::int_vector<> load_allele_mask(CommonParameters const &parameters);
 
 
     /**
@@ -36,7 +36,7 @@ namespace gram {
      */
     sdsl::int_vector<> generate_sites_mask(const marker_vec &encoded_prg);
 
-    sdsl::int_vector<> load_sites_mask(const Parameters &parameters);
+    sdsl::int_vector<> load_sites_mask(CommonParameters const &parameters);
 
 
     /**

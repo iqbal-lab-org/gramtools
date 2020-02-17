@@ -7,7 +7,7 @@ using namespace gram;
 
 
 PRG_Info generate_prg_info(const marker_vec &prg_raw) {
-    Parameters parameters = {};
+    BuildParams parameters = {};
    parameters.encoded_prg_fpath = "encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";
     parameters.gram_dirpath = "@gram_dir";

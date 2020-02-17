@@ -72,7 +72,7 @@ void handle_sa_interval(SearchStates &search_states,
 void gram::parse_sa_intervals(KmerIndex &kmer_index,
                               const sdsl::int_vector<3> &all_kmers,
                               const sdsl::int_vector<> &kmers_stats,
-                              const Parameters &parameters) {
+                              CommonParameters const &parameters) {
     uint64_t sa_interval_index = 0;
     sdsl::int_vector<> sa_intervals;
     load_from_file(sa_intervals, parameters.sa_intervals_fpath);
@@ -128,7 +128,7 @@ void handle_path_element(SearchStates &search_states,
 void gram::parse_paths(KmerIndex &kmer_index,
                        const sdsl::int_vector<3> &all_kmers,
                        const sdsl::int_vector<> &kmers_stats,
-                       const Parameters &parameters) {
+                       CommonParameters const &parameters) {
     uint64_t paths_index = 0;
     sdsl::int_vector<> paths;
     load_from_file(paths, parameters.paths_fpath);
@@ -157,7 +157,7 @@ void gram::parse_paths(KmerIndex &kmer_index,
 }
 
 
-KmerIndex gram::kmer_index::load(const Parameters &parameters) {
+KmerIndex gram::kmer_index::load(CommonParameters const &parameters) {
     KmerIndex kmer_index;
 
     sdsl::int_vector<3> all_kmers;

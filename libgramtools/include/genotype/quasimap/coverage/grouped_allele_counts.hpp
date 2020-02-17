@@ -35,7 +35,7 @@ namespace gram {
              * Write grouped allele coverage to disk in JSON format.
              */
             void grouped_allele_counts(const Coverage &coverage,
-                                       const Parameters &parameters);
+                                       const GenotypeParams &parameters);
         }
     }
 

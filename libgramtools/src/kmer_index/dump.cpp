@@ -28,7 +28,7 @@ KmerIndexStats gram::calculate_stats(const KmerIndex &kmer_index) {
 
 
 sdsl::int_vector<3> gram::dump_kmers(const KmerIndex &kmer_index,
-                                     const Parameters &parameters) {
+                                     const BuildParams &parameters) {
     //Constructor parameter passed: total number of bases to store.
     sdsl::int_vector<3> all_kmers(kmer_index.size() * parameters.kmers_size);
     uint64_t i = 0;
@@ -49,7 +49,7 @@ sdsl::int_vector<3> gram::dump_kmers(const KmerIndex &kmer_index,
 void gram::dump_kmers_stats(const KmerIndexStats &stats,
                             const sdsl::int_vector<3> &all_kmers,
                             const KmerIndex &kmer_index,
-                            const Parameters &parameters) {
+                            const BuildParams &parameters) {
     // Makes room for storing for each kmer: number of search states, path length, path length...
     const auto &count_distinct_paths = stats.count_search_states;
     // For each kmer, we will write the number of search states it has,
@@ -81,7 +81,7 @@ void gram::dump_kmers_stats(const KmerIndexStats &stats,
 void gram::dump_sa_intervals(const KmerIndexStats &stats,
                              const sdsl::int_vector<3> &all_kmers,
                              const KmerIndex &kmer_index,
-                             const Parameters &parameters) {
+                             const BuildParams &parameters) {
     sdsl::int_vector<> sa_intervals(stats.count_search_states * 2, 0, 32);
     uint64_t i = 0;
 
@@ -107,7 +107,7 @@ void gram::dump_sa_intervals(const KmerIndexStats &stats,
 void gram::dump_paths(const KmerIndexStats &stats,
                       const sdsl::int_vector<3> &all_kmers,
                       const KmerIndex &kmer_index,
-                      const Parameters &parameters) {
+                      const BuildParams &parameters) {
     sdsl::int_vector<> paths(stats.count_total_path_elements, 0, 32);
     uint64_t i = 0;
 
@@ -138,7 +138,7 @@ void gram::dump_paths(const KmerIndexStats &stats,
 
 
 void gram::kmer_index::dump(const KmerIndex &kmer_index,
-                            const Parameters &parameters) {
+                            const BuildParams &parameters) {
     sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
     auto stats = calculate_stats(kmer_index);
     dump_kmers_stats(stats, all_kmers, kmer_index, parameters);

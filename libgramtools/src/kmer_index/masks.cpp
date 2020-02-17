@@ -43,7 +43,7 @@ sdsl::int_vector<> gram::generate_allele_mask(const marker_vec &encoded_prg) {
 }
 
 
-sdsl::int_vector<> gram::load_allele_mask(const Parameters &parameters) {
+sdsl::int_vector<> gram::load_allele_mask(CommonParameters const &parameters) {
     sdsl::int_vector<> allele_mask;
     sdsl::load_from_file(allele_mask, parameters.allele_mask_fpath);
     return allele_mask;
@@ -83,7 +83,7 @@ sdsl::int_vector<> gram::generate_sites_mask(const marker_vec &encoded_prg) {
     return sites_mask;
 }
 
-sdsl::int_vector<> gram::load_sites_mask(const Parameters &parameters) {
+sdsl::int_vector<> gram::load_sites_mask(CommonParameters const &parameters) {
     sdsl::int_vector<> sites_mask;
     sdsl::load_from_file(sites_mask, parameters.sites_mask_fpath);
     return sites_mask;
