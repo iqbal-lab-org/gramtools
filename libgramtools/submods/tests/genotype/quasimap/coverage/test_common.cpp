@@ -1,9 +1,8 @@
 #include <cctype>
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
-
 #include "src_common/generate_prg.hpp"
 #include "genotype/quasimap/coverage/common.hpp"
+#include "tests/common/mocks.hpp"
 
 using namespace gram;
 
@@ -397,10 +396,6 @@ TEST_F(MappingInstanceSelector_addSearchStates, addAllSearchStates_correctlyRegi
     EXPECT_EQ(selector.usps, expected_map);
 }
 
-class MockRandomGenerator : public RandomGenerator{
-public:
-    MOCK_METHOD2(generate, uint32_t(uint32_t, uint32_t));
-};
 
 class MappingInstanceSelector_select : public ::testing::Test {
     /*

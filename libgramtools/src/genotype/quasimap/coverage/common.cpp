@@ -1,32 +1,13 @@
-#include <boost/random.hpp>
-#include <boost/nondet_random.hpp>
-
 #include "genotype/quasimap/coverage/allele_sum.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
 
 #include "genotype/quasimap/coverage/common.hpp"
+#include "common/random.hpp"
 
 
 using namespace gram;
 
-RandomInclusiveInt::RandomInclusiveInt(uint32_t const& random_seed){
-    if (random_seed == 0){
-        boost::random_device seed_generator;
-        this->random_seed = seed_generator();
-    }
-    else this->random_seed = random_seed;
-}
-
-
-uint32_t RandomInclusiveInt::generate(uint32_t min, uint32_t max){
-    boost::mt19937 random_number_generator(random_seed);
-
-    boost::uniform_int<> range(min, max);
-    using Generator = boost::variate_generator<boost::mt19937, boost::uniform_int<>>;
-    Generator generate_random_number(random_number_generator, range);
-    return generate_random_number();
-};
 
 LocusFinder::LocusFinder(SearchState const search_state, info_ptr prg_info)
 : search_state(search_state), prg_info(prg_info){

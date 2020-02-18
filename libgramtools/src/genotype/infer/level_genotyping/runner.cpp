@@ -51,8 +51,8 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
         auto site_index = siteID_to_index(site_ID);
 
         auto extracter = AlleleExtracter(bubble_pair.first, bubble_pair.second, genotyped_records);
-        auto& gped_covs_for_site = gped_covs.at(site_index);
         auto extracted_alleles = extracter.get_alleles();
+        auto& gped_covs_for_site = gped_covs.at(site_index);
 
         auto genotyped = LevelGenotyperModel(&extracted_alleles, &gped_covs_for_site,
                                              ploidy, &l_stats, ! extracter.ref_allele_got_made_naturally());
@@ -62,13 +62,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
         // genotyped site, it knows where in the graph to resume from.
         genotyped_records.at(site_index)->set_site_end_node(bubble_pair.second);
 
-        // Invalidation process attempted only if this site contains 1+ site
-        if (! genotyped_site->is_null() && child_m.find(site_ID) != child_m.end()){
-            auto candidate_haplogroups =
-                    genotyped_site->get_nonGenotyped_haplogroups();
-            auto haplogroups_with_sites = get_haplogroups_with_sites(site_ID, candidate_haplogroups);
-            invalidate_if_needed(site_ID, haplogroups_with_sites);
-        }
+        run_invalidation_process(genotyped_site, site_ID);
     }
 }
 

@@ -87,6 +87,16 @@ AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_al
     return result;
 }
 
+void Genotyper::run_invalidation_process(gt_site_ptr const& genotyped_site, Marker const& site_ID) {
+    // Invalidation process attempted only if this site contains 1+ site
+    if (!genotyped_site->is_null() && child_m.find(site_ID) != child_m.end()) {
+        auto candidate_haplogroups =
+                genotyped_site->get_nonGenotyped_haplogroups();
+        auto haplogroups_with_sites = get_haplogroups_with_sites(site_ID, candidate_haplogroups);
+        invalidate_if_needed(site_ID, haplogroups_with_sites);
+    }
+}
+
 AlleleIds Genotyper::get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const{
     AlleleIds result{};
     if (child_m.find(site_ID) == child_m.end()) return result;

@@ -5,11 +5,15 @@
 
 namespace gram{
 
+    using Seed = uint32_t;
+
     class SimulateParams : public CommonParameters {
     public:
+        std::string json_out_fpath;
+        std::string fasta_out_fpath;
         std::string sample_id;
         uint64_t max_num_paths;
-        uint32_t seed;
+        Seed seed;
     };
 
     namespace commands::simulate {

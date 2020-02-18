@@ -45,18 +45,8 @@ namespace gram::genotype {
         return ploidy;
     }
 
-    void set_fasta_descriptions(Fastas& p_refs, std::string const& sample_id){
-        int ref_number{1};
-        for (auto& p_ref : p_refs){
-            std::string desc = "personalised reference #" + std::to_string(ref_number) +
-                               std::string(" made by gramtools genotype");
-            p_ref.set_sample_info(sample_id, desc);
-            ref_number++;
-        }
-    }
-
-    unique_Fastas
-    get_personalised_ref(covG_ptr graph_root, gt_sites const &genotyped_records, std::string const &sample_id) {
+    Fastas
+    get_personalised_ref(covG_ptr graph_root, gt_sites const &genotyped_records) {
         auto ploidy = get_ploidy(genotyped_records);
         Fastas p_refs(ploidy);
         gram::covG_ptr cur_Node{graph_root};
@@ -80,10 +70,8 @@ namespace gram::genotype {
            assert(cur_Node->get_edges().size() == 1);
            cur_Node = cur_Node->get_edges().at(0);
         }
-        set_fasta_descriptions(p_refs, sample_id);
-        unique_Fastas unique_p_refs(p_refs.begin(), p_refs.end());
 
-        return unique_p_refs;
+        return p_refs;
     }
 
 
@@ -107,5 +95,21 @@ namespace gram::genotype {
         }
 
         out_stream.write(seq_write, remaining);
+    }
+
+    void set_sample_info(Fastas& p_refs, std::string const& sample_id, std::string const& desc){
+        int ref_number{1};
+        for (auto& p_ref : p_refs) {
+            std::string specific_id = sample_id +
+                                      std::string("_") + std::to_string(ref_number);
+            p_ref.set_sample_info(specific_id, desc);
+            ref_number++;
+        }
+    }
+    void write_deduped_p_refs(Fastas const& p_refs, std::string const& fpath){
+        unique_Fastas deduped_p_refs{p_refs.begin(), p_refs.end()};
+        std::ofstream pers_ref_fhandle(fpath);
+        for (auto& p_ref : deduped_p_refs) pers_ref_fhandle << p_ref << std::endl;
+        pers_ref_fhandle.close();
     }
 }

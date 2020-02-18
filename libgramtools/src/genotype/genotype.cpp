@@ -60,10 +60,11 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     geno_json_fhandle.close();
 
     auto sites = genotyper.get_genotyped_records();
-    auto p_refs = get_personalised_ref(prg_info.coverage_graph.root, sites, parameters.sample_id);
-    std::ofstream pers_ref_fhandle(parameters.personalised_ref_fpath);
-    for (auto& p_ref : p_refs) pers_ref_fhandle << p_ref << std::endl;
-    pers_ref_fhandle.close();
+    auto p_refs = get_personalised_ref(prg_info.coverage_graph.root, sites);
+    std::string desc = "personalised reference made by gramtools genotype";
+    set_sample_info(p_refs, parameters.sample_id, desc);
+
+    write_deduped_p_refs(p_refs, parameters.personalised_ref_fpath);
 
     timer.report();
 }

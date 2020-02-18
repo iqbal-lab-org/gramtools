@@ -32,6 +32,12 @@ namespace gram::json{
         }
     };
 
+    class Simulated_Json : public Json_Prg{
+    public:
+        Simulated_Json() : Json_Prg() {
+            json_prg.at("Model") = "Simulated_Path";
+        }
+    };
 }
 
 #endif //PRG_JSON_SPEC

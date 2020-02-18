@@ -134,6 +134,7 @@ namespace gram::genotype::infer {
         json_prg_ptr get_JSON();
         gt_sites const& get_genotyped_records() const {return genotyped_records;}
 
+        void run_invalidation_process(gt_site_ptr const& genotyped_site, Marker const& site_ID);
         AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
         void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
     };

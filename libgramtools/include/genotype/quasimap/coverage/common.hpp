@@ -44,26 +44,10 @@ namespace coverage::dump {
 }
 
 
-/**
- * Abstract base class used for mocking in unit tests
- */
-class RandomGenerator{
-public:
-    virtual ~RandomGenerator() {};
-    virtual uint32_t generate(uint32_t min, uint32_t max) = 0;
-};
-
-class RandomInclusiveInt : public RandomGenerator{
-public:
-    RandomInclusiveInt() = default;
-    RandomInclusiveInt(uint32_t const& random_seed = 0);
-
-    uint32_t generate(uint32_t min, uint32_t max) override;
-private:
-    uint32_t random_seed;
-};
-
 using SitePath = std::set<Marker>;
+class RandomGenerator;
+using rand_ptr = RandomGenerator *const;
+
 /**
  * A set of site marker IDs signalling non-nested bubbles. One set defines an equivalence class.
  */
@@ -71,7 +55,6 @@ using level0_Sites = std::set<Marker>;
 using uniqueLoci = std::set<VariantLocus>;
 
 using info_ptr = PRG_Info const* const;
-using rand_ptr = RandomGenerator *const;
 
 /**
  * Finds the set of (nested) Loci supported by a `SearchState`.
