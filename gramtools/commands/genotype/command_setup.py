@@ -72,7 +72,6 @@ def setup_parser(common_parser, subparsers):
 ## Make quasimap-related file and directory paths.
 def setup_files(args) -> ProjectPaths:
     geno_paths = GenotypePaths(args.geno_dir, args.force)
-    geno_paths.initial_setup()
 
     geno_paths._link_to_build(args.gram_dir)
     geno_paths._link_to_reads(args.reads)

@@ -2,11 +2,9 @@
 # Executes `gram genotype` backend which:
 # - maps reads to prg using vBWT-based (quasi)mapping and annotates it with coverage
 # - genotypes the prg using the annotated coverage
-import os
 import time
 import json
 import logging
-import subprocess
 import collections
 
 from ... import common
@@ -18,10 +16,10 @@ log = logging.getLogger("gramtools")
 
 
 def run(args):
-    log.info("Start process: genotype")
-
-    start_time = str(time.time()).split(".")[0]
     geno_paths = command_setup.setup_files(args)
+
+    log.info("Start process: genotype")
+    start_time = str(time.time()).split(".")[0]
 
     build_report = _load_build_report(geno_paths)
 
@@ -29,7 +27,9 @@ def run(args):
     setattr(args, "kmer_size", kmer_size)
 
     geno_report = collections.OrderedDict({"processes": collections.OrderedDict()})
-    _execute_command(geno_report["processes"], "gramtools_genotype", geno_paths, args)
+    _execute_command_cpp_genotype(
+        geno_report["processes"], "gramtools_genotype", geno_paths, args
+    )
 
     _check_read_stats(geno_report["processes"], "check_read_stats", geno_paths)
 
@@ -69,7 +69,7 @@ def _load_build_report(geno_paths):
 
 
 @report.with_report
-def _execute_command(geno_report, action, geno_paths, args):
+def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
 
     command = [
         common.gramtools_exec_fpath,
@@ -92,25 +92,15 @@ def _execute_command(geno_report, action, geno_paths, args):
         str(args.seed),
     ]
 
-    command_str = " ".join(command)
-    log.debug("Executing command:\n\n%s\n", command_str)
+    if args.debug:
+        command += ["--debug"]
 
-    current_working_directory = os.getcwd()
-    process_handle = subprocess.Popen(
-        command_str,
-        cwd=current_working_directory,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env={"LD_LIBRARY_PATH": common.lib_paths},
-    )
-
-    command_result, entire_stdout = common.handle_process_result(process_handle)
+    command_result, entire_stdout = common.run_subprocess(command)
     log.debug("Output run directory:\n%s", geno_paths.geno_dir)
 
     # Add extra reporting
     geno_report[action] = collections.OrderedDict(
-        [("command", command_str), ("stdout", entire_stdout)]
+        [("command", "".join(command)), ("stdout", entire_stdout)]
     )
     if command_result == False:
         raise Exception("Error running gramtools genotype.")

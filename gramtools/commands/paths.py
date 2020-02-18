@@ -91,6 +91,8 @@ class BuildPaths(ProjectPaths):
         self.cov_graph = self.build_path("cov_graph")
         self.made_gram_dir = False
 
+        self.initial_setup()
+
     def initial_setup(self):
         if not self.gram_dir.exists():
             log.debug("Creating gram directory:\n%s", self.gram_dir)
@@ -138,6 +140,8 @@ class GenotypePaths(ProjectPaths):
         self.pb_cov = self.cov_path("allele_base_coverage.json")
         self.force = force  # Whether to erase existing geno_dir
 
+        self.initial_setup()
+
     def initial_setup(self):
         if self.geno_dir.exists():
             if not self.force:
@@ -177,8 +181,37 @@ class GenotypePaths(ProjectPaths):
             target.symlink_to(read_file)
 
 
-def generate_infer_paths(args):
+class SimulatePaths(ProjectPaths):
+    def __init__(self, output_dir, sample_id: str, prg_filepath):
+        self.output_dir = Path(output_dir).resolve()
+        self.made_output_dir = False
 
+        self.prg_fpath = Path(prg_filepath).resolve()
+        self.json_out = self.output_dir / f"{sample_id}.json"
+        self.fasta_out = self.output_dir / f"{sample_id}.fasta"
+
+        self.initial_setup()
+
+    def initial_setup(self):
+        self.check_exists(self.prg_fpath)
+
+        if not self.output_dir.exists():
+            self.output_dir.mkdir()
+            self.made_output_dir = True
+        else:
+            for path in [self.json_out, self.fasta_out]:
+                if path.exists():
+                    self.raise_error(
+                        f"{path} already exists.\n"
+                        f"Use a different --output_dir name or a different --sample_id."
+                    )
+
+    def cleanup(self):
+        if self.made_output_dir:
+            shutil.rmtree(self.output_dir)
+
+
+def generate_infer_paths(args):
     all_paths = _generate_run_paths(args.run_dir)
     build_dir = all_paths[
         "build_dir"

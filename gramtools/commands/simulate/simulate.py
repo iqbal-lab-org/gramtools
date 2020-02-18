@@ -1,90 +1,85 @@
 import logging
-import itertools
-import collections
+import time
+from ..paths import SimulatePaths
+from ... import common
 
-from . import prg_regions_parser
 
 log = logging.getLogger("gramtools")
 
 
-def setup_command_parser(common_parser, subparsers):
+def setup_parser(common_parser, subparsers):
     parser = subparsers.add_parser("simulate", parents=[common_parser])
-    parser.add_argument("--max-num-reads", help="", type=int, default=None)
-    parser.add_argument("--read-length", help="", type=int)
-    parser.add_argument("--reference", help="", type=str)
-    parser.add_argument("--output-fpath", help="", type=str)
-
-
-def _read_regions(read_length, start_region, regions):
-    read_regions = collections.deque()
-
-    bases_count = start_region.min_allele_len
-    for region in regions.range(start_region, reverse=True):
-        read_regions.appendleft(region)
-        if bases_count >= read_length:
-            break
-        bases_count += region.min_allele_len
-
-    read_regions.append(start_region)
-    return read_regions
-
-
-def _variants_read_regions(read_length, genome_regions):
-    variant_regions = (region for region in genome_regions if region.is_variant_site)
-
-    for start_region in variant_regions:
-        read_regions = _read_regions(read_length, start_region, genome_regions)
-        yield read_regions
-
-
-def _generate_genome_paths(read_regions):
-    for regions in read_regions:
-        all_alleles = (region.alleles for region in regions)
-        for alleles in itertools.product(*all_alleles):
-            genome_path = []
-            for allele in alleles:
-                for base in allele:
-                    genome_path.append(base)
-            yield tuple(genome_path)
-
-
-def _generate_reads(read_length, genome_regions, max_num_reads=None):
-    reads = set()
-    all_read_regions = _variants_read_regions(read_length, genome_regions)
-    for genome_path in _generate_genome_paths(all_read_regions):
-        if max_num_reads is not None and len(reads) == max_num_reads:
-            break
-
-        read = genome_path[-read_length:]
-        if len(read) != read_length:
-            continue
-        if read not in reads:
-            reads.add(read)
-            yield "".join(read)
-    log.debug("Number of reads generated: %s", len(reads))
-
-
-def _dump_random_reads(reads, quality, output_fpath):
-    with open(output_fpath, "w") as fhandle:
-        for i, read in enumerate(reads):
-            fastq_line = "@{read_num}\n{read}\n+\n{quality}\n".format(
-                read_num=i, read=read, quality=quality
-            )
-            fhandle.write(fastq_line)
+    parser.add_argument(
+        "--prg",
+        help="A prg as made by (or passed to) gramtools build",
+        type=str,
+        required=True,
+    )
+    parser.add_argument(
+        "--max_num_paths",
+        "-n",
+        help="Number of paths through the prg to simulate. \n"
+        "Duplicates are removed, so this is an upper bound.",
+        type=int,
+        required=False,
+        default=100,
+    )
+    parser.add_argument(
+        "--sample_id",
+        help="A name for your sampled paths.\n"
+        "Prefixes the output filenames and used in the sample entries of the outputs.",
+        required=False,
+        default="sim",
+    )
+    parser.add_argument(
+        "--output_dir",
+        "-o",
+        help="directory containing outputs",
+        type=str,
+        required=False,
+        default=".",
+    )
+    parser.add_argument(
+        "--seed",
+        help="Fixing the seed will produce the same simulated paths across different runs."
+        "By default, seed is randomly generated.",
+        type=int,
+        default=0,
+        required=False,
+    )
 
 
 def run(args):
+    simu_paths = SimulatePaths(args.output_dir, args.sample_id, args.prg)
+
     log.info("Start process: simulate")
+    start_time = str(time.time()).split(".")[0]
 
-    log.debug("Parsing PRG")
-    with open(args.reference, "r") as file_handle:
-        prg_seq = file_handle.read()
-
-    regions = prg_regions_parser.parse(prg_seq)
-
-    log.debug("Generating reads")
-    reads = _generate_reads(args.read_length, regions, args.max_num_reads)
-    read_qualities = "H" * args.read_length
-    _dump_random_reads(reads, read_qualities, args.output_fpath)
+    _execute_command_cpp_simulate(simu_paths, args)
 
     log.info("End process: simulate")
+
+
+def _execute_command_cpp_simulate(simu_paths, args):
+    command = [
+        common.gramtools_exec_fpath,
+        "simulate",
+        "--prg",
+        str(simu_paths.prg_fpath),
+        "--n",
+        str(args.max_num_paths),
+        "--sample_id",
+        args.sample_id,
+        "--o",
+        str(simu_paths.output_dir),
+        "--seed",
+        str(args.seed),
+    ]
+
+    if args.debug:
+        command += ["--debug"]
+
+    command_result, entire_stdout = common.run_subprocess(command)
+
+    if command_result == False:
+        exit(1)

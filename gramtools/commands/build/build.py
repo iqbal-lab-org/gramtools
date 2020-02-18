@@ -6,7 +6,6 @@ import os
 import time
 import shutil
 import logging
-import subprocess
 import collections
 
 import cluster_vcf_records
@@ -22,6 +21,7 @@ log = logging.getLogger("gramtools")
 
 def run(args):
     build_paths = command_setup.setup_files(args)
+
     log.info("Start process: build")
     start_time = str(time.time()).split(".")[0]
 
@@ -162,27 +162,12 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
 
     if args.debug:
         command += ["--debug"]
-    command_str = " ".join(command)
 
-    log.debug("Executing command:\n\n%s\n", command_str)
-    current_working_directory = os.getcwd()
-    log.debug("Using current working directory:\n%s", current_working_directory)
-
-    process_handle = subprocess.Popen(
-        command_str,
-        cwd=current_working_directory,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env={"LD_LIBRARY_PATH": common.lib_paths},
-    )
-
-    process_result = common.handle_process_result(process_handle)
-    command_result, entire_stdout = process_result
+    command_result, entire_stdout = common.run_subprocess(command)
 
     # Add extra reporting
     build_report[action] = collections.OrderedDict(
-        [("command", command_str), ("stdout", entire_stdout)]
+        [("command", "".join(command)), ("stdout", entire_stdout)]
     )
     if command_result == False:
         raise Exception("Error running gramtools build.")

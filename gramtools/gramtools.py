@@ -8,7 +8,7 @@ from . import version
 from .commands.build import command_setup as build_setup, build
 from .commands.genotype import command_setup as genotype_setup, genotype
 from .commands import discover
-from .commands import simulate
+from .commands.simulate import simulate
 
 
 def _setup_logging(args):
@@ -31,7 +31,12 @@ command_setups = collections.OrderedDict(
     [("build", build_setup), ("genotype", genotype_setup), ("discover", discover)]
 )
 commands = collections.OrderedDict(
-    [("build", build), ("genotype", genotype), ("discover", discover)]
+    [
+        ("build", build),
+        ("genotype", genotype),
+        ("discover", discover),
+        ("simulate", simulate),
+    ]
 )
 
 
@@ -48,6 +53,7 @@ def _setup_parser():
 
     for command_setup in command_setups.values():
         command_setup.setup_parser(common_parser, subparsers)
+    simulate.setup_parser(common_parser, subparsers)
 
 
 def run():

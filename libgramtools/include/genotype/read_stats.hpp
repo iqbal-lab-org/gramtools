@@ -5,7 +5,6 @@
  *  sites with no coverage.
  */
 #include "genotype/quasimap/coverage/types.hpp"
-#include "prg/coverage_graph.hpp"
 
 #ifndef GRAMTOOLS_READSTATS_HPP
 #define GRAMTOOLS_READSTATS_HPP

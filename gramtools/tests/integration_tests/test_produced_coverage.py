@@ -47,7 +47,8 @@ class IntegrationRunner:
 
     def run_genotype(self):
         args = gramtools.root_parser.parse_args(
-            f"genotype --gram_dir {self.gram_dir} --genotype_dir {self.geno_dir} --reads {self.reads_file}".split()
+            f"genotype --gram_dir {self.gram_dir} --genotype_dir "
+            f"{self.geno_dir} --reads {self.reads_file} --sample_id test --force".split()
         )
         genotype.run(args)
 

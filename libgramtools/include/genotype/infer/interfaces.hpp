@@ -64,7 +64,6 @@ namespace gram::genotype::infer {
         }
 
         void set_alleles(allele_vector const& alleles){ this->alleles = alleles; };
-        void set_total_coverage(std::size_t const& total_cov){total_coverage = total_cov;}
         void set_genotype(GenotypeOrNull const& gtype){ this->genotype = gtype; }
 
         json_site_ptr get_JSON();

@@ -1,7 +1,7 @@
 import unittest
 
-from gramtools.commands.simulate import prg_regions_parser
-from gramtools.commands.simulate import simulate
+from gramtools.commands.simulate.legacy import prg_regions_parser
+from gramtools.commands.simulate.legacy import main
 from ... import common
 
 
@@ -9,7 +9,7 @@ class TestGenerateReads(unittest.TestCase):
     def _analyse_case(self, read_length, prg_structure, expected, max_num_reads=None):
         prg_seq = common.compose_prg(prg_structure)
         regions = prg_regions_parser.parse(prg_seq)
-        reads = set(simulate._generate_reads(read_length, regions, max_num_reads))
+        reads = set(main._generate_reads(read_length, regions, max_num_reads))
         self.assertEqual(reads, expected)
 
     def test_variantSiteManyLengths_readLengthsCorrect(self):

@@ -3,6 +3,8 @@
 import os
 import hashlib
 import logging
+import subprocess
+from typing import List
 
 
 log = logging.getLogger("gramtools")
@@ -18,22 +20,35 @@ _old_ld_library_path = (
 lib_paths = os.path.join(base_install_path, "lib") + ":" + _old_ld_library_path
 
 
+def run_subprocess(command: List):
+    command_str = " ".join(command)
+    log.debug("Executing command:\n\n%s\n", command_str)
+
+    current_working_directory = os.getcwd()
+    log.debug("Using current working directory:\n%s", current_working_directory)
+
+    process_handle = subprocess.Popen(
+        command_str,
+        cwd=current_working_directory,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        env={"LD_LIBRARY_PATH": lib_paths},
+    )
+
+    command_result, entire_stdout = handle_process_result(process_handle)
+    return command_result, entire_stdout
+
+
 def handle_process_result(process_handle):
     """Report process results to logging."""
     if process_handle.stdout is None:
         return True
 
-    uses_stdout = False
     entire_stdout = []
     for line in iter(process_handle.stdout.readline, b""):
-        if not uses_stdout:
-            log.info("stdout:\n")
-            uses_stdout = True
         formatted_line = line.decode("ascii")[:-1]
-        print(formatted_line)
         entire_stdout.append(formatted_line)
-    if uses_stdout:
-        print("")
 
     stdout, termination_message = process_handle.communicate()
     error_code = process_handle.returncode
@@ -44,13 +59,15 @@ def handle_process_result(process_handle):
         )
         log.info("Process termination code: %s", error_code)
 
-    if stdout:
-        log.info("stdout:\n%s", stdout.decode("utf-8"))
-
     if error_code != 0:
         log.error("Error code != 0")
+        log.error("stdout:\n")
+        print("\n".join(entire_stdout))
         return False, entire_stdout
-    return True, entire_stdout
+    else:
+        log.info("stdout:\n")
+        print("\n".join(entire_stdout))
+        return True, entire_stdout
 
 
 def hash_command_paths(command_paths):

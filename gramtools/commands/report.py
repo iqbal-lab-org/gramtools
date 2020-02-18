@@ -31,7 +31,8 @@ def with_report(f):
             original_result = None
         timer_end = time.time()
 
-        log.debug(f"Ran {action} in: {timer_end - timer_start} seconds")
+        if success:
+            log.debug(f"Ran {action} in: {timer_end - timer_start} seconds")
 
         report["success"] = success
         action_report = collections.OrderedDict(
