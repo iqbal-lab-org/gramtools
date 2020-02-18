@@ -13,8 +13,6 @@
 #include "genotype/genotype.hpp"
 #include "genotype/parameters.hpp"
 
-#include "common/parameters.hpp"
-
 
 using namespace gram;
 

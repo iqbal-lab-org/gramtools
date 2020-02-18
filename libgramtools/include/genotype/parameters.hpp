@@ -22,10 +22,9 @@ namespace gram{
         std::string read_stats_fpath;
 
         Ploidy ploidy;
+        std::string sample_id;
         std::string genotyped_json_fpath;
         std::string personalised_ref_fpath;
-
-        std::string sample_id;
 
         uint32_t seed;
     };

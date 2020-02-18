@@ -34,6 +34,12 @@ def setup_parser(common_parser, subparsers):
     )
 
     parser.add_argument(
+        "--sample_id",
+        help="A name for your dataset.\n" "Appears in the genotyping outputs.",
+        required=True,
+    )
+
+    parser.add_argument(
         "--ploidy",
         help="The expected ploidy of the sample.\n" "Default: diploid",
         choices=["haploid", "diploid"],

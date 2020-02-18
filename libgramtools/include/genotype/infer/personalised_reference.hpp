@@ -34,7 +34,8 @@ namespace gram::genotype{
     };
 
     allele_vector get_all_alleles_to_paste(gt_site_ptr const& site, std::size_t ploidy);
-    unique_Fastas get_personalised_ref(covG_ptr graph_root, gt_sites const& genotyped_records);
+    unique_Fastas
+    get_personalised_ref(covG_ptr graph_root, gt_sites const &genotyped_records, std::string const &sample_id);
 }
 
 #endif //GRAM_PERSONALISED_REF_H

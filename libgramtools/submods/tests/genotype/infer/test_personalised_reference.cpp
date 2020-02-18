@@ -84,7 +84,7 @@ protected:
 TEST_F(Personalised_Reference, GivenAllNullGts_CorrectInferredRef){
     // When all gts are null, ploidy is set to 1
     for (auto const& site : sites) site->set_genotype(false);
-    auto result_map = get_personalised_ref(graph_root, sites);
+    auto result_map = get_personalised_ref(graph_root, sites, <#initializer#>);
     auto result = *result_map.begin();
     std::string expected{"ATCGCTTTAT"};
     EXPECT_EQ(result.get_sequence(), expected);
@@ -93,7 +93,7 @@ TEST_F(Personalised_Reference, GivenAllNullGts_CorrectInferredRef){
 TEST_F(Personalised_Reference, GivenHaploidGts_CorrectInferredRef){
     sites.at(0)->set_genotype(GtypedIndices{2});
     sites.at(2)->set_genotype(GtypedIndices{1});
-    auto result_map = get_personalised_ref(graph_root, sites);
+    auto result_map = get_personalised_ref(graph_root, sites, <#initializer#>);
     auto result = *result_map.begin();
     std::string expected{"ATCTTTT"};
     EXPECT_EQ(result.get_sequence(), expected);
@@ -102,7 +102,7 @@ TEST_F(Personalised_Reference, GivenHaploidGts_CorrectInferredRef){
 TEST_F(Personalised_Reference, GivenHetDiploidGts_CorrectTwoInferredRefs){
     sites.at(0)->set_genotype(GtypedIndices{1, 2});
     sites.at(2)->set_genotype(GtypedIndices{0, 1});
-    auto result_map = get_personalised_ref(graph_root, sites);
+    auto result_map = get_personalised_ref(graph_root, sites, <#initializer#>);
     EXPECT_EQ(result_map.size(), 2);
     auto iterator = result_map.begin();
 
@@ -120,7 +120,7 @@ TEST_F(Personalised_Reference, GivenHetDiploidGts_CorrectTwoInferredRefs){
 TEST_F(Personalised_Reference, GivenHetSameGts_CorrectSingleInferredRef) {
     sites.at(0)->set_genotype(GtypedIndices{0, 0});
     sites.at(2)->set_genotype(GtypedIndices{1, 1});
-    auto result_map = get_personalised_ref(graph_root, sites);
+    auto result_map = get_personalised_ref(graph_root, sites, <#initializer#>);
     EXPECT_EQ(result_map.size(), 1);
 
     auto first_ref = *result_map.begin();

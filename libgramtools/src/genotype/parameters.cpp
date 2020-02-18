@@ -45,6 +45,7 @@ GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
     std::string gram_dirpath;
     std::string run_dirpath;
+    std::string sample_id;
     ploidy_argument ploidy;
     uint32_t kmer_size;
     std::vector<std::string> reads;
@@ -55,6 +56,7 @@ GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
                                  "gramtools directory")
                                 ("reads", po::value<std::vector<std::string>>(&reads)->multitoken()->required(),
                                  "file containing reads (FASTA or FASTQ)")
+                                ("sample_id", po::value<std::string>(&sample_id)->required())
                                 ("ploidy", po::value<ploidy_argument>(&ploidy)->required(),
                                         "expected ploidy of the sample. Choices: {haploid, diploid}")
                                 ("kmer_size", po::value<uint32_t>(&kmer_size)->required(),
@@ -84,6 +86,7 @@ GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
     fill_common_parameters(parameters, gram_dirpath);
 
     parameters.ploidy = ploidy.get();
+    parameters.sample_id = sample_id;
     parameters.kmers_size = kmer_size;
     parameters.reads_fpaths = reads;
 

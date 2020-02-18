@@ -78,6 +78,8 @@ def _execute_command(geno_report, action, geno_paths, args):
         str(geno_paths.gram_dir),
         "--reads",
         "".join([str(read_file) for read_file in geno_paths.reads_files]),
+        "--sample_id",
+        args.sample_id,
         "--ploidy",
         args.ploidy,
         "--kmer_size",

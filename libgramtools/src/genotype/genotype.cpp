@@ -55,14 +55,14 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     timer.stop();
     std::ofstream geno_json_fhandle(parameters.genotyped_json_fpath);
     auto sample_json = genotyper.get_JSON();
-    //sample_json->set_sample_info();
-    geno_json_fhandle << std::setw(4) << sample_json << std::endl;
+    sample_json->set_sample_info(parameters.sample_id, "made by gramtools genotype");
+    geno_json_fhandle << std::setw(4) << sample_json->get_prg() << std::endl;
     geno_json_fhandle.close();
 
     auto sites = genotyper.get_genotyped_records();
-    auto p_refs = get_personalised_ref(prg_info.coverage_graph.root, sites);
+    auto p_refs = get_personalised_ref(prg_info.coverage_graph.root, sites, parameters.sample_id);
     std::ofstream pers_ref_fhandle(parameters.personalised_ref_fpath);
-    for (auto const& p_ref : p_refs) pers_ref_fhandle << p_ref << std::endl;
+    for (auto& p_ref : p_refs) pers_ref_fhandle << p_ref << std::endl;
     pers_ref_fhandle.close();
 
     timer.report();

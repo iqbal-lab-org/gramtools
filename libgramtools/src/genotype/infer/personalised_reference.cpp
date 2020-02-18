@@ -7,8 +7,16 @@ namespace gram::genotype {
     void Fasta::set_sample_info(std::string const& name, std::string const& desc){
         std::string to_assign_header{name};
         to_assign_header += std::string(" ") += desc;
-        this->header = to_assign_header;
-    };
+
+        // Remove any '>' in the header
+        while (true){
+            auto n = to_assign_header.find('>');
+            if (n != std::string::npos) to_assign_header.replace(n, 1, "_");
+            else break;
+        }
+
+        header = to_assign_header;
+    }
 
     allele_vector get_all_alleles_to_paste(gt_site_ptr const &site, std::size_t ploidy) {
         allele_vector result(ploidy);
@@ -37,7 +45,18 @@ namespace gram::genotype {
         return ploidy;
     }
 
-    unique_Fastas get_personalised_ref(gram::covG_ptr graph_root, gt_sites const &genotyped_records) {
+    void set_fasta_descriptions(Fastas& p_refs, std::string const& sample_id){
+        int ref_number{1};
+        for (auto& p_ref : p_refs){
+            std::string desc = "personalised reference #" + std::to_string(ref_number) +
+                               std::string(" made by gramtools genotype");
+            p_ref.set_sample_info(sample_id, desc);
+            ref_number++;
+        }
+    }
+
+    unique_Fastas
+    get_personalised_ref(covG_ptr graph_root, gt_sites const &genotyped_records, std::string const &sample_id) {
         auto ploidy = get_ploidy(genotyped_records);
         Fastas p_refs(ploidy);
         gram::covG_ptr cur_Node{graph_root};
@@ -61,18 +80,19 @@ namespace gram::genotype {
            assert(cur_Node->get_edges().size() == 1);
            cur_Node = cur_Node->get_edges().at(0);
         }
-
+        set_fasta_descriptions(p_refs, sample_id);
         unique_Fastas unique_p_refs(p_refs.begin(), p_refs.end());
 
         return unique_p_refs;
     }
+
 
     bool operator <(const Fasta& first, const Fasta& second){
         return first.sequence < second.sequence;
     }
 
    std::ostream& operator<<(std::ostream& out_stream, const Fasta& input){
-       out_stream << input.header;
+       out_stream << '>' << input.header;
         if (input.header.back() != '\n'){
            out_stream << std::endl;
         }
