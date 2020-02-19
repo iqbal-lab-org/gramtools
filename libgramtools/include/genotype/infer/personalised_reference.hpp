@@ -38,7 +38,6 @@ namespace gram::genotype{
     get_personalised_ref(covG_ptr graph_root, gt_sites const &genotyped_records);
 
     void set_sample_info(Fastas& p_refs, std::string const& sample_id, std::string const& desc);
-    void write_deduped_p_refs(Fastas const& p_refs, std::string const& fpath);
 }
 
 #endif //GRAM_PERSONALISED_REF_H

@@ -76,20 +76,25 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
 
     std::string desc{"path through prg made by gramtools simulate"};
     unique_Fastas unique_simu_paths;
+    Fastas ordered_simu_paths;
     json_prg_ptr simu_json;
     bool first{true};
     std::string sample_id;
 
     uint64_t num_runs{0};
+    uint64_t num_sampled{0};
     while (num_runs < parameters.max_num_paths){
        RandomGenotyper gtyper(cov_g);
        auto genotyped_records = gtyper.get_genotyped_records();
        auto new_p_ref = get_personalised_ref(cov_g.root, genotyped_records).at(0);
 
        if (unique_simu_paths.find(new_p_ref) == unique_simu_paths.end()){
+           num_sampled++;
+           sample_id = parameters.sample_id + std::string("_") + std::to_string(num_sampled);
+           new_p_ref.set_sample_info(sample_id, desc);
            unique_simu_paths.insert(new_p_ref);
+           ordered_simu_paths.push_back(new_p_ref);
            auto new_json = gtyper.get_JSON();
-           sample_id = parameters.sample_id + std::string("_") + std::to_string(num_runs + 1);
            if (first){
                simu_json = new_json;
                simu_json->set_sample_info(sample_id, desc);
@@ -103,12 +108,12 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
         num_runs++;
     }
 
-    Fastas simu_paths{unique_simu_paths.begin(), unique_simu_paths.end()};
-    std::cout << "Made " << simu_paths.size() << " simulated paths." << std::endl;
+    std::cout << "Made " << unique_simu_paths.size() << " simulated paths." << std::endl;
 
     // Write fasta
-    set_sample_info(simu_paths, parameters.sample_id, desc);
-    write_deduped_p_refs(simu_paths, parameters.fasta_out_fpath);
+    std::ofstream fasta_fhandle(parameters.fasta_out_fpath);
+    for (auto& simu_path : ordered_simu_paths) fasta_fhandle << simu_path << std::endl;
+    fasta_fhandle.close();
 
     // Write JSON
     std::ofstream geno_json_fhandle(parameters.json_out_fpath);

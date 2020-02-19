@@ -10,6 +10,15 @@
 using namespace gram;
 using namespace gram::genotype;
 
+namespace gram::genotype{
+    void write_deduped_p_refs(Fastas const& p_refs, std::string const& fpath){
+        unique_Fastas deduped_p_refs{p_refs.begin(), p_refs.end()};
+        std::ofstream pers_ref_fhandle(fpath);
+        for (auto& p_ref : deduped_p_refs) pers_ref_fhandle << p_ref << std::endl;
+        pers_ref_fhandle.close();
+    }
+}
+
 void gram::commands::genotype::run(GenotypeParams const& parameters){
     auto timer = TimerReport();
     /**
