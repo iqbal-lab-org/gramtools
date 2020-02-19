@@ -67,6 +67,7 @@ namespace gram::genotype::infer {
         void make_null() {
             gtype_info.genotype = false;
             gtype_info.total_coverage = 0;
+            this->null_model_specific_entries();
         }
 
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
@@ -74,6 +75,7 @@ namespace gram::genotype::infer {
 
         json_site_ptr get_JSON();
         virtual void add_model_specific_JSON(JSON& input_json) = 0;
+        virtual void null_model_specific_entries() = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
         bool const has_alleles() const { return gtype_info.alleles.size() > 0; }

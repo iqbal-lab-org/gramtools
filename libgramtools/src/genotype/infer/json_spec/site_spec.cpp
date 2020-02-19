@@ -24,6 +24,10 @@ void Json_Site::build_allele_combi_map(JSON const& json_site, allele_combi_map& 
 
     std::size_t sample_num{0};
     while (sample_num < num_samples){
+        if (json_site.at("GT").at(sample_num).at(0) == nullptr) {
+            sample_num++;
+            continue;
+        }
         GtypedIndices const& gts = json_site.at("GT").at(sample_num);
         AlleleIds const& hapgs = json_site.at("HAPG").at(sample_num);
         if (gts.size() != hapgs.size())
@@ -52,6 +56,10 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
 
     std::size_t sample_num{0};
     while (sample_num < num_samples){
+        if (json_site.at("GT").at(sample_num).at(0) == nullptr) {
+            sample_num++;
+            continue;
+        }
         GtypedIndices gts = result.at("GT").at(sample_num);
 
         allele_coverages const covs = json_site.at("COVS").at(sample_num);

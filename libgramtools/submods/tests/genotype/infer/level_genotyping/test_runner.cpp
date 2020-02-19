@@ -155,6 +155,9 @@ TEST_F(LG_SnpsNestedInTwoHaplotypes, MapReads_CorrectlyInvalidatedSites){
     MapReadsAndHaploidGenotype();
 
     EXPECT_TRUE(gt_recs.at(siteID_to_index(9))->is_null());
+
+    auto json_result = gt_recs.at(siteID_to_index(9))->get_JSON()->get_site();
+    EXPECT_FLOAT_EQ(json_result.at("GT_CONF").at(0), 0.);
 }
 
 TEST(LevelGenotyperInvalidation, GivenChildMapAndCandidateHaplos_CorrectHaplosWithSites){

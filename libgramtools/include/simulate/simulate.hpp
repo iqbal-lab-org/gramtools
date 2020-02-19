@@ -12,6 +12,7 @@ namespace gram::simulate {
     public:
         RandomGenotypedSite();
         void add_model_specific_JSON(JSON &input_json) override {}
+        void null_model_specific_entries() override {}
     };
 
     using Seed = uint32_t;

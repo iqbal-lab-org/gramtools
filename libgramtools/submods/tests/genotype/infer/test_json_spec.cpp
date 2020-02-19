@@ -16,8 +16,15 @@ namespace gram::json{
 class MockJsonSite : public Json_Site {
 public:
     MockJsonSite() : Json_Site() {}
-    MockJsonSite(const MockJsonSite& other){
+    MockJsonSite(MockJsonSite const& other){
         this->json_site = other.json_site;
+    }
+
+    void set_json(JSON const& json){ this->json_site = json;}
+
+    void make_null(){
+        if (json_site.at("GT").size() != 1) return;
+        json_site.at("GT").at(0) = JSON::array({nullptr});
     }
 
     MockJsonSite(allele_vec als, GtypedIndices gts, AlleleIds hapgs,
@@ -149,17 +156,34 @@ TEST(Site_Json_RescaleEntries, GivenCombiMap_CorrectRescaledJSON){
     EXPECT_EQ(result, expected_site.get_site());
 }
 
-TEST(Site_Json_AppendEntries, GivenTwoSites_CorrectAppending){
+TEST(Site_Json_AppendEntries, GivenTwoGtedSites_CorrectAppending){
     //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
     //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11});
     JSON_data_store data;
     auto sample1 = data.site1_samples.at(0), sample2 = data.site1_samples.at(1);
-    sample1->append_entries_from(sample2->get_site());
 
+    sample1->combine_with(*sample2);
     MockJsonSite expected({"CTCCT", "CTT"}, {{0, 0}, {1, 1}},
                           {{0, 0}, {1, 1}}, {{10, 2}, {2, 10}}, {11, 11});
     EXPECT_EQ(sample1->get_site(), expected.get_site());
 }
+
+TEST(Site_Combine_Success, GivenOneNullGtSite_Succeeds){
+    //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
+    JSON_data_store data;
+    auto sample1 = data.site1_samples.at(0);
+    MockJsonSite to_null_site;
+    to_null_site.set_json(sample1->get_site());
+    to_null_site.make_null();
+    auto sample2 = std::make_shared<MockJsonSite>(to_null_site);
+    sample1->combine_with(*sample2);
+
+    auto json_result = sample1->get_site();
+    auto expected_gt_first = GtypedIndices{0, 0};
+    EXPECT_EQ(json_result.at("GT").at(0), expected_gt_first);
+    EXPECT_EQ(json_result.at("GT").at(1), JSON::array({nullptr}));
+}
+
 
 TEST(Site_Combine_Success, GivenThreeSites_CorrectCombinedSite){
     //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
