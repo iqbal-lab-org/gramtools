@@ -27,7 +27,7 @@ def setup_parser(common_parser, subparsers):
     parser.add_argument(
         "--sample_id",
         help="A name for your sampled paths.\n"
-        "Prefixes the output filenames and used in the sample entries of the outputs.",
+        "Prefixes the output filenames and sample IDs in output files.",
         required=False,
         default="sim",
     )
@@ -40,17 +40,12 @@ def setup_parser(common_parser, subparsers):
         default=".",
     )
     parser.add_argument(
-        "--seed",
-        help="Fixing the seed will produce the same simulated paths across different runs."
-        "By default, seed is randomly generated.",
-        type=int,
-        default=0,
-        required=False,
+        "--force", help="Overwrite existing results files", action="store_true"
     )
 
 
 def run(args):
-    simu_paths = SimulatePaths(args.output_dir, args.sample_id, args.prg)
+    simu_paths = SimulatePaths(args.output_dir, args.sample_id, args.prg, args.force)
 
     log.info("Start process: simulate")
     start_time = str(time.time()).split(".")[0]
@@ -72,8 +67,6 @@ def _execute_command_cpp_simulate(simu_paths, args):
         args.sample_id,
         "--o",
         str(simu_paths.output_dir),
-        "--seed",
-        str(args.seed),
     ]
 
     if args.debug:

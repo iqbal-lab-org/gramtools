@@ -3,6 +3,8 @@
 #include "genotype/parameters.hpp"
 #include <boost/filesystem.hpp>
 
+#include <omp.h>
+
 
 using namespace gram;
 using namespace gram::commands::genotype;
@@ -101,7 +103,11 @@ GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
     parameters.genotyped_json_fpath = full_path(geno_dirpath, "genotyped.json");
     parameters.personalised_ref_fpath = full_path(geno_dirpath, "personalised_reference.fasta");
 
-    parameters.maximum_threads = vm["max_threads"].as<uint32_t>();
     parameters.seed = vm["seed"].as<uint32_t>();
+
+    parameters.maximum_threads = vm["max_threads"].as<uint32_t>();
+    std::cout << "maximum thread count: " << parameters.maximum_threads << std::endl;
+    omp_set_num_threads(parameters.maximum_threads);
+
     return parameters;
 }

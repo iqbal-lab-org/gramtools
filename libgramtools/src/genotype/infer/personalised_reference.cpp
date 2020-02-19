@@ -106,6 +106,7 @@ namespace gram::genotype {
             ref_number++;
         }
     }
+
     void write_deduped_p_refs(Fastas const& p_refs, std::string const& fpath){
         unique_Fastas deduped_p_refs{p_refs.begin(), p_refs.end()};
         std::ofstream pers_ref_fhandle(fpath);

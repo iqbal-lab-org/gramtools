@@ -304,10 +304,10 @@ void LevelGenotyperModel::CallGenotype(allele_vector const *input_alleles, bool 
             chosen_alleles,
             rescaled_gt,
             allele_covs,
-            gt_confidence,
             total_coverage,
             genotyped_site->get_genotyped_haplogroups(chosen_alleles, rescaled_gt)
     });
+    genotyped_site->set_gt_conf(gt_confidence);
 }
 
 LevelGenotyperModel::LevelGenotyperModel(allele_vector const *input_alleles, GroupedAlleleCounts const *gp_counts,

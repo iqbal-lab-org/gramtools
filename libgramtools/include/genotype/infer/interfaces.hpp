@@ -29,16 +29,20 @@ namespace gram::genotype::infer {
 
     using GenotypeOrNull = std::variant<GtypedIndices, bool>;
 
+    struct gtype_information{
+        allele_vector alleles;
+        GenotypeOrNull genotype;
+        allele_coverages allele_covs;
+        std::size_t total_coverage; /**< Total coverage on this site */
+        AlleleIds haplogroups;
+    };
+
     /**
      * Genotyped site interface
      */
     class GenotypedSite {
     protected:
-        allele_vector alleles;
-        GenotypeOrNull genotype;
-        AlleleIds haplogroups;
-        allele_coverages allele_covs;
-        std::size_t total_coverage; /**< Total coverage on this site */
+        gtype_information gtype_info;
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
@@ -48,29 +52,31 @@ namespace gram::genotype::infer {
         GenotypedSite() = default;
         virtual ~GenotypedSite() {};
 
-        GenotypeOrNull const get_genotype() const { return genotype; }
-        allele_vector const get_alleles() const { return alleles; }
+        gtype_information get_all_gtype_info() const {return this->gtype_info; }
+        void populate_site(gtype_information const& gtype_info);
+        GenotypeOrNull const get_genotype() const { return gtype_info.genotype; }
+        allele_vector const get_alleles() const { return gtype_info.alleles; }
         covG_ptr const get_site_end_node() const { return site_end_node; }
 
         /** Whether the site is null genotyped */
         bool is_null() const {
-            if (std::holds_alternative<bool>(genotype)) return true;
+            if (std::holds_alternative<bool>(gtype_info.genotype)) return true;
             else return false;
         };
 
         void make_null() {
-            this->genotype = false;
-            this->total_coverage = 0;
+            gtype_info.genotype = false;
+            gtype_info.total_coverage = 0;
         }
 
-        void set_alleles(allele_vector const& alleles){ this->alleles = alleles; };
-        void set_genotype(GenotypeOrNull const& gtype){ this->genotype = gtype; }
+        void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
+        void set_genotype(GenotypeOrNull const& gtype){ gtype_info.genotype = gtype; }
 
         json_site_ptr get_JSON();
         virtual void add_model_specific_JSON(JSON& input_json) = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
-        bool const has_alleles() const { return alleles.size() > 0; }
+        bool const has_alleles() const { return gtype_info.alleles.size() > 0; }
 
         void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
         void set_num_haplogroups(std::size_t const &num_haps) { num_haplogroups = num_haps; }
@@ -81,7 +87,7 @@ namespace gram::genotype::infer {
         allele_vector const get_unique_genotyped_alleles
                 (allele_vector const &all_alleles, GenotypeOrNull const &genotype) const;
         allele_vector const get_unique_genotyped_alleles() const {
-            return get_unique_genotyped_alleles(alleles, genotype);
+            return get_unique_genotyped_alleles(gtype_info.alleles, gtype_info.genotype);
         }
 
         /**

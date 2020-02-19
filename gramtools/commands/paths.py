@@ -182,9 +182,10 @@ class GenotypePaths(ProjectPaths):
 
 
 class SimulatePaths(ProjectPaths):
-    def __init__(self, output_dir, sample_id: str, prg_filepath):
+    def __init__(self, output_dir, sample_id: str, prg_filepath, force=False):
         self.output_dir = Path(output_dir).resolve()
         self.made_output_dir = False
+        self.force = force
 
         self.prg_fpath = Path(prg_filepath).resolve()
         self.json_out = self.output_dir / f"{sample_id}.json"
@@ -200,10 +201,9 @@ class SimulatePaths(ProjectPaths):
             self.made_output_dir = True
         else:
             for path in [self.json_out, self.fasta_out]:
-                if path.exists():
+                if path.exists() and not self.force:
                     self.raise_error(
-                        f"{path} already exists.\n"
-                        f"Use a different --output_dir name or a different --sample_id."
+                        f"{path} already exists.\n" f"Run with --force to overwrite."
                     )
 
     def cleanup(self):

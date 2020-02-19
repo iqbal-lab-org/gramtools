@@ -1,8 +1,6 @@
 #include <iostream>
 
-
 #include <sdsl/bit_vectors.hpp>
-#include <omp.h>
 
 #include "prg/prg_info.hpp"
 #include "common/timer_report.hpp"
@@ -13,13 +11,17 @@
 #include "genotype/genotype.hpp"
 #include "genotype/parameters.hpp"
 
+#include "simulate/simulate.hpp"
+#include "simulate/parameters.hpp"
+
 
 using namespace gram;
 
 namespace gram {
     enum class Command {
         build,
-        genotype
+        genotype,
+        simulate
     };
 
     struct top_level_params{
@@ -34,28 +36,23 @@ namespace gram {
 int main(int argc, const char *const *argv) {
     auto command_params = parse_command_line_parameters(argc, argv);
 
-    CommonParameters common_params;
-    BuildParams build_params;
-    GenotypeParams geno_params;
-
-    switch(command_params.command){
-        case Command::build:
-            build_params =
-                    commands::build::parse_parameters(command_params.vm, command_params.parsed);
-            common_params = build_params;
-            commands::build::run(build_params);
-            break;
-
-        case Command::genotype:
-            geno_params =
-                    commands::genotype::parse_parameters(command_params.vm, command_params.parsed);
-            common_params = geno_params;
-            commands::genotype::run(geno_params);
-            break;
+    if(command_params.command == Command::build) {
+        BuildParams build_params =
+                commands::build::parse_parameters(command_params.vm, command_params.parsed);
+        commands::build::run(build_params);
+    }
+    else if (command_params.command == Command::genotype) {
+        GenotypeParams geno_params =
+                commands::genotype::parse_parameters(command_params.vm, command_params.parsed);
+        commands::genotype::run(geno_params);
     }
 
-    std::cout << "maximum thread count: " << common_params.maximum_threads << std::endl;
-    omp_set_num_threads(common_params.maximum_threads);
+    else if (command_params.command == Command::simulate){
+            SimulateParams simu_params =
+                    commands::simulate::parse_parameters(command_params.vm, command_params.parsed);
+            commands::simulate::run(simu_params);
+    }
+
     return 0;
 }
 
@@ -63,7 +60,7 @@ int main(int argc, const char *const *argv) {
 top_level_params gram::parse_command_line_parameters(int argc, const char *const *argv) {
     po::options_description global("Gramtools! Global options");
     global.add_options()
-                  ("command", po::value<std::string>(), "command to execute: {build, genotype}")
+                  ("command", po::value<std::string>(), "command to execute: {build, genotype, simulate}")
                   ("subargs", po::value<std::vector<std::string> >(), "arguments to command")
                   ("help", "Produce this help message")
                 ("debug", "Turn on debug output");
@@ -95,6 +92,7 @@ top_level_params gram::parse_command_line_parameters(int argc, const char *const
     Command cmd;
     if (cmd_string == "build") cmd = Command::build;
     else if (cmd_string == "genotype") cmd = Command::genotype;
+    else if (cmd_string == "simulate") cmd = Command::simulate;
     else {
         std::cout << "Unrecognised command: " << cmd_string << std::endl;
         std::cout << global << std::endl;

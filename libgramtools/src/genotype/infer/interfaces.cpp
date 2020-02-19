@@ -41,7 +41,15 @@ void Genotyper::add_json_sites(){
     return json_prg;
 }
 
-allele_vector const GenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
+    void GenotypedSite::populate_site(gtype_information const& gtype_info){
+        this->gtype_info.alleles = gtype_info.alleles;
+        this->gtype_info.genotype = gtype_info.genotype;
+        this->gtype_info.allele_covs = gtype_info.allele_covs;
+        this->gtype_info.total_coverage = gtype_info.total_coverage;
+        this->gtype_info.haplogroups = gtype_info.haplogroups;
+    }
+
+    allele_vector const GenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
                                                                 GenotypeOrNull const &genotype) const {
 
     std::set<GtypedIndex> distinct_genotypes;
@@ -62,13 +70,13 @@ allele_vector const GenotypedSite::get_unique_genotyped_alleles(allele_vector co
 
 AlleleIds const GenotypedSite::get_nonGenotyped_haplogroups() const{
     assert(! is_null());
-    assert(alleles.size() > 0);
+    assert(gtype_info.alleles.size() > 0);
     assert(num_haplogroups > 0);
     AlleleIds result;
 
     AlleleIdSet genotyped_haplogroups;
-    for (auto const& gt : std::get<GtypedIndices>(genotype)){
-       genotyped_haplogroups.insert(alleles.at(gt).haplogroup);
+    for (auto const& gt : std::get<GtypedIndices>(gtype_info.genotype)){
+       genotyped_haplogroups.insert(gtype_info.alleles.at(gt).haplogroup);
     }
 
     for (AlleleId i{0}; i < num_haplogroups; i++){
@@ -136,15 +144,16 @@ json_site_ptr GenotypedSite::get_JSON(){
     auto json_site_copy = json_site->get_site_copy();
     if (! json_site_copy.at("GT").empty()) return json_site;
 
-    for (int i{0}; i < alleles.size(); ++i) json_site_copy.at("ALS").push_back(alleles.at(i).sequence);
+    for (int i{0}; i < gtype_info.alleles.size(); ++i) json_site_copy.at("ALS")
+        .push_back(gtype_info.alleles.at(i).sequence);
 
     if (is_null()) json_site_copy.at("GT").push_back(JSON::array({nullptr}));
-    else json_site_copy.at("GT").push_back(JSON(std::get<GtypedIndices>(genotype)));
+    else json_site_copy.at("GT").push_back(JSON(std::get<GtypedIndices>(gtype_info.genotype)));
 
-    json_site_copy.at("HAPG").push_back(JSON(haplogroups));
+    json_site_copy.at("HAPG").push_back(JSON(gtype_info.haplogroups));
 
-    json_site_copy.at("COVS").push_back(JSON(allele_covs));
-    json_site_copy.at("DP").push_back(total_coverage);
+    json_site_copy.at("COVS").push_back(JSON(gtype_info.allele_covs));
+    json_site_copy.at("DP").push_back(gtype_info.total_coverage);
 
     this->add_model_specific_JSON(json_site_copy);
     json_site->set_site(json_site_copy);

@@ -19,7 +19,7 @@ TEST(RandomInclusiveInt, RandomCall_MinBoundaryReturned) {
     uint32_t random_seed = 48;
     RandomInclusiveInt r{random_seed};
     uint32_t result = r.generate(1, 10);
-    uint32_t expected = 1;
+    uint32_t expected = 5;
     EXPECT_EQ(result, expected);
 }
 
@@ -28,7 +28,7 @@ TEST(RandomInclusiveInt, RandomCall_MaxBoundaryReturned) {
     uint32_t random_seed = 56;
     RandomInclusiveInt r{random_seed};
     uint32_t result = r.generate(1, 10);
-    uint32_t expected = 10;
+    uint32_t expected = 4;
     EXPECT_EQ(result, expected);
 }
 

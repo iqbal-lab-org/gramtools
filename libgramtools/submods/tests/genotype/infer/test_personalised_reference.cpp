@@ -120,8 +120,10 @@ TEST_F(Personalised_Reference, GivenHetDiploidGts_CorrectTwoInferredRefs){
 TEST_F(Personalised_Reference, GivenHetSameGts_CorrectSingleInferredRef) {
     sites.at(0)->set_genotype(GtypedIndices{0, 0});
     sites.at(2)->set_genotype(GtypedIndices{1, 1});
-    auto result_map = get_personalised_ref(graph_root, sites);
-    EXPECT_EQ(result_map.size(), 1);
+    auto result_vec = get_personalised_ref(graph_root, sites);
+    EXPECT_EQ(result_vec.size(), 2);
+
+    unique_Fastas result_map{result_vec.begin(), result_vec.end()};
 
     auto first_ref = *result_map.begin();
     std::string expected_1{"ATCGCTTTTT"};

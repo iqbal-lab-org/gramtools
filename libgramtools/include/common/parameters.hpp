@@ -50,9 +50,9 @@ namespace gram {
         uint32_t maximum_threads;
     };
 
-    static std::string full_path(const std::string &gram_dirpath,
+    static std::string full_path(const std::string &base_dirpath,
                                 const std::string &file_name) {
-        fs::path dir(gram_dirpath);
+        fs::path dir(base_dirpath);
         fs::path file(file_name);
         fs::path full_path = dir / file;
         return full_path.string();

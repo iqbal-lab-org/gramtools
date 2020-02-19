@@ -16,8 +16,6 @@ namespace gram::json {
     protected:
         JSON json_site;
 
-        virtual void add_model_specific_part(const Json_Site &other) = 0;
-
     public:
         Json_Site() {
             for (const auto &element : gram::json::spec::site_fields.items()) {
@@ -50,8 +48,6 @@ namespace gram::json {
         LevelGenotyped_Json_Site() : Json_Site() {
             json_site.emplace("GT_CONF", JSON::array());
         }
-
-        void add_model_specific_part(const Json_Site &other) override {};
     };
 }
 

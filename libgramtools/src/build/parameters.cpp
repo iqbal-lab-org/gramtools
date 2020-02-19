@@ -1,7 +1,5 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
-#include <boost/variant/variant.hpp>
-#include <boost/filesystem.hpp>
 
 #include "common/parameters.hpp"
 #include "common/utils.hpp"
@@ -53,5 +51,6 @@ BuildParams commands::build::parse_parameters(po::variables_map &vm, const po::p
 
     parameters.all_kmers_flag = vm["all-kmers"].as<bool>();
     parameters.maximum_threads = vm["max-threads"].as<uint32_t>();
+
     return parameters;
 }

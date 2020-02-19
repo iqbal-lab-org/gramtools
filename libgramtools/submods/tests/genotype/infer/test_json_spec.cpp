@@ -37,8 +37,6 @@ public:
         for(auto entry : coverages) json_site.at("COVS").push_back(JSON(entry));
         for(auto entry : total_covs) json_site.at("DP").push_back(JSON(entry));
     }
-
-    MOCK_METHOD(void, add_model_specific_part, (Json_Site const&), (override));
 };
 
 class JSON_data_store{

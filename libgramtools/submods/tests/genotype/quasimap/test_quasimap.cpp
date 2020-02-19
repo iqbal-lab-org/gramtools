@@ -191,7 +191,7 @@ TEST(Coverage, ReadMapsToThreePositions_CorrectAlleleCoverage) {
     Sequence kmer = encode_dna_bases("agt");
     Sequences kmers = {kmer};
     prg_setup setup;
-    setup.setup_numbered_prg("tag5tc6g6t6ag7t8c8cta", kmers);
+    setup.setup_numbered_prg("TAG5Tc6g6T6AG7T8c8cta", kmers);
 
     setup.parameters.seed = 42;
     const auto read = encode_dna_bases("tagt");
@@ -199,8 +199,8 @@ TEST(Coverage, ReadMapsToThreePositions_CorrectAlleleCoverage) {
 
     const auto &result = setup.coverage.allele_sum_coverage;
     AlleleSumCoverage expected = {
-            {1, 0, 1},
-            {0, 0}
+            {0, 0, 1},
+            {1, 0}
     };
     EXPECT_EQ(result, expected);
 }
@@ -266,7 +266,7 @@ TEST(Coverage, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
     };
     prg_setup setup;
     setup.setup_numbered_prg("gtagtac5gtagtact6t6ta", kmers);
-    setup.parameters.seed = 39;
+    setup.parameters.seed = 29;
 
     Sequence read = encode_dna_bases("gtagt");
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info, setup.parameters);
@@ -477,8 +477,8 @@ TEST(Coverage, MappingThreeReadsOneReadMapsTwice_CorrectAlleleCoverage) {
 
     const auto &result = setup.coverage.allele_sum_coverage;
     AlleleSumCoverage expected = {
-            {1, 0, 1},
-            {0, 0}
+            {1, 0, 0},
+            {0, 1}
     };
     EXPECT_EQ(result, expected);
 }
