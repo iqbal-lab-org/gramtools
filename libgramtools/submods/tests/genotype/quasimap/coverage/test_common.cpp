@@ -1,6 +1,6 @@
 #include <cctype>
 #include "gtest/gtest.h"
-#include "src_common/generate_prg.hpp"
+#include "src_common/common.hpp"
 #include "genotype/quasimap/coverage/common.hpp"
 #include "tests/common/mocks.hpp"
 

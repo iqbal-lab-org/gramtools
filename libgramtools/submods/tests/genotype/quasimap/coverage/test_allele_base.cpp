@@ -3,13 +3,10 @@
 #include "gtest/gtest.h"
 
 
-#include "src_common/generate_prg.hpp"
+#include "src_common/common.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
-#include "genotype/quasimap/coverage/common.hpp"
-#include "genotype/quasimap/quasimap.hpp"
 #include "tests/common.hpp"
 
-using namespace gram;
 using namespace gram::coverage::per_base;
 
 

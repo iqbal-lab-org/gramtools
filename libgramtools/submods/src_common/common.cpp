@@ -1,12 +1,23 @@
 #include "common/utils.hpp"
 #include "kmer_index/masks.hpp"
-#include "generate_prg.hpp"
+#include "common.hpp"
 
 
 using namespace gram;
 
 
-PRG_Info generate_prg_info(const marker_vec &prg_raw) {
+std::string gram::submods::decode(const uint64_t base){
+    switch(base){
+        case 1: return "A";
+        case 2: return "C";
+        case 3: return "G";
+        case 4: return "T";
+        default: return std::to_string(base);
+    }
+}
+
+
+PRG_Info gram::submods::generate_prg_info(const marker_vec &prg_raw) {
     BuildParams parameters = {};
    parameters.encoded_prg_fpath = "encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "src_common/generate_prg.hpp"
+#include "src_common/common.hpp"
 
 #include "kmer_index/masks.hpp"
 

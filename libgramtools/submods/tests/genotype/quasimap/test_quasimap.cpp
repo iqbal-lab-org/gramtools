@@ -20,8 +20,6 @@
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "tests/common.hpp"
 
-using namespace gram;
-
 
 TEST(ReverseComplementRead, GivenRead_ReverseComplementReadReturned) {
     gram::Sequence read = {1, 2, 1, 3, 4};

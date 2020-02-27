@@ -1,11 +1,8 @@
-#include <cctype>
 #include "gtest/gtest.h"
 
 #include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
 #include "genotype/quasimap/coverage/common.hpp"
-#include "src_common/generate_prg.hpp"
-
-using namespace gram;
+#include "src_common/common.hpp"
 
 
 TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {

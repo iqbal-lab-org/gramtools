@@ -8,11 +8,12 @@
  *  - HandleAlleleEncapsulatedState: handle read fully mapping inside a site
  */
 #include "gtest/gtest.h"
-#include "src_common/generate_prg.hpp"
+#include "src_common/common.hpp"
 #include "prg/prg_info.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "kmer_index/build.hpp"
+
 
 /*
 PRG: ACA5G6T6GCTC
