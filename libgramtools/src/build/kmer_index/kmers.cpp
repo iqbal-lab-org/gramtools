@@ -1,5 +1,5 @@
 #include <build/parameters.hpp>
-#include "kmer_index/kmers.hpp"
+#include "build/kmer_index/kmers.hpp"
 
 
 using namespace gram;

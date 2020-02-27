@@ -2,7 +2,7 @@
 #include "prg/coverage_graph.hpp"
 #include "gtest/gtest.h"
 #include "mocks.hpp"
-#include "tests/common.hpp"
+#include "tests/common/common.hpp"
 
 using namespace gram::genotype;
 

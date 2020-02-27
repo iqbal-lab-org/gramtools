@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 #include "../mocks.hpp"
-#include "tests/common.hpp"
+#include "tests/common/common.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 

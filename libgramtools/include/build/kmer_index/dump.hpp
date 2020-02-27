@@ -10,7 +10,7 @@
  * The `kmer_stats` file holds the information required to associate each deserialised kmer in `kmers` with its `gram::SearchStates` taken out of `search_states` and populated,
  * one by one, with `gram::variant_site_path`s from `paths`.
  */
-#include "kmer_index/build.hpp"
+#include "build.hpp"
 
 
 #ifndef GRAMTOOLS_KMER_INDEX_DUMP_HPP

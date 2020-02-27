@@ -5,7 +5,7 @@
 #include "genotype/infer/json_spec/prg_spec.hpp"
 
 #include "common/timer_report.hpp"
-#include "kmer_index/load.hpp"
+#include "build/kmer_index/load.hpp"
 
 using namespace gram;
 using namespace gram::genotype;

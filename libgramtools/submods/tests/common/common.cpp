@@ -1,4 +1,4 @@
-#include "tests/common.hpp"
+#include "common.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 
 using namespace gram;

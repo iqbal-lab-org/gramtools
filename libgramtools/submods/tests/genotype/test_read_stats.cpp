@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "genotype/read_stats.hpp"
-#include "tests/common.hpp"
+#include "tests/common/common.hpp"
 
 using namespace gram;
 

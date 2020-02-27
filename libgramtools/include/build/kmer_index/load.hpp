@@ -2,8 +2,8 @@
  * Routines for restoring (deserialising) a `gram::KmerIndex` from a set of files describing it.
  * @see dump.hpp for an explanation of the serialising procedure.
  */
-#include "../common/utils.hpp"
-#include "../common/parameters.hpp"
+#include "common/utils.hpp"
+#include "common/parameters.hpp"
 
 #include "build.hpp"
 #include "kmer_index_types.hpp"

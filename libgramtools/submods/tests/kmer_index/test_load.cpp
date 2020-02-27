@@ -3,8 +3,8 @@
 #include "gtest/gtest.h"
 
 #include "src_common/common.hpp"
-#include "kmer_index/build.hpp"
-#include "kmer_index/load.hpp"
+#include "build/kmer_index/build.hpp"
+#include "build/kmer_index/load.hpp"
 
 
 using namespace gram;

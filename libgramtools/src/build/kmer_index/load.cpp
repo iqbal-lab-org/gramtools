@@ -2,9 +2,9 @@
 #include <thread>
 #include <unordered_map>
 
-#include "kmer_index/kmers.hpp"
-#include "kmer_index/build.hpp"
-#include "kmer_index/load.hpp"
+#include "build/kmer_index/kmers.hpp"
+#include "build/kmer_index/build.hpp"
+#include "build/kmer_index/load.hpp"
 
 
 using namespace gram;

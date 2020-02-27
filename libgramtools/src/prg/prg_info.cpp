@@ -1,4 +1,4 @@
-#include "kmer_index/masks.hpp"
+#include "build/kmer_index/masks.hpp"
 #include "prg/prg_info.hpp"
 
 

@@ -5,7 +5,7 @@
 
 #include "src_common/common.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
-#include "tests/common.hpp"
+#include "tests/common/common.hpp"
 
 using namespace gram::coverage::per_base;
 

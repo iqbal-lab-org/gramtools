@@ -1,7 +1,7 @@
 #include "mocks.hpp"
 #include "gtest/gtest.h"
 
-#include "tests/common.hpp"
+#include "tests/common/common.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include <memory>
 #include <boost/shared_ptr.hpp>

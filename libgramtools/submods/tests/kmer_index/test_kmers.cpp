@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "src_common/common.hpp"
-#include "kmer_index/kmers.hpp"
+#include "build/kmer_index/kmers.hpp"
 
 
 using namespace gram;

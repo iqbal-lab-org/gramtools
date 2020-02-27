@@ -21,7 +21,7 @@
 
 #include "src_common/common.hpp"
 #include "prg/prg_info.hpp"
-#include "kmer_index/build.hpp"
+#include "build/kmer_index/build.hpp"
 #include "genotype/quasimap/search/vBWT_jump.hpp"
 
 

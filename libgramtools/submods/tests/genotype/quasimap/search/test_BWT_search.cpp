@@ -12,7 +12,7 @@
 #include "prg/prg_info.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
 #include "genotype/quasimap/quasimap.hpp"
-#include "kmer_index/build.hpp"
+#include "build/kmer_index/build.hpp"
 
 
 /*

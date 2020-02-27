@@ -1,5 +1,5 @@
 #include "common/utils.hpp"
-#include "kmer_index/masks.hpp"
+#include "build/kmer_index/masks.hpp"
 #include "common.hpp"
 
 
@@ -19,7 +19,7 @@ std::string gram::submods::decode(const uint64_t base){
 
 PRG_Info gram::submods::generate_prg_info(const marker_vec &prg_raw) {
     BuildParams parameters = {};
-   parameters.encoded_prg_fpath = "encoded_prg_file_name";
+    parameters.encoded_prg_fpath = "encoded_prg_file_name";
     parameters.fm_index_fpath = "@fm_index";
     parameters.gram_dirpath = "@gram_dir";
 

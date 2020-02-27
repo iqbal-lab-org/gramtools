@@ -2,6 +2,7 @@
 #include <boost/filesystem.hpp>
 #include <build/parameters.hpp>
 
+namespace fs = boost::filesystem;
 
 using namespace gram;
 
@@ -10,10 +11,17 @@ FM_Index gram::generate_fm_index(BuildParams const &parameters) {
     FM_Index fm_index;
 
     sdsl::memory_monitor::start();
+
+    sdsl::cache_config config;
+    auto construction_tmp_dir = fs::path(parameters.gram_dirpath) / fs::path("sdsl_tmp");
+    config.dir = construction_tmp_dir.string();
+    fs::create_directories(config.dir);
+
     // Last param is the number of bytes per integer for reading encoded PRG string.
     // NB: sdsl doc says reads those in big endian, but actually reads in little endian (GH issue #418)
     // So the prg file needs to be in little endian.
-    sdsl::construct(fm_index, parameters.encoded_prg_fpath, gram::num_bytes_per_integer);
+    sdsl::construct(fm_index, parameters.encoded_prg_fpath, config, gram::num_bytes_per_integer);
+    fs::remove_all(config.dir);
     sdsl::memory_monitor::stop();
 
     std::ofstream memory_log_fhandle(parameters.sdsl_memory_log_fpath);
@@ -46,7 +54,6 @@ coverage_Graph gram::generate_cov_graph(CommonParameters const &parameters, PRG_
 /**************
  * Bit masks **
  **************/
-namespace fs = boost::filesystem;
 
 /**
  * Generates a bit vector with bit set if the given DNA `base` is present at each index of the BWT.

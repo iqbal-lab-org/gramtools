@@ -2,10 +2,9 @@
 #define TEST_SRC_COMMON
 
 #include "src_common/common.hpp"
-#include "kmer_index/build.hpp"
+#include "build/kmer_index/build.hpp"
 #include "genotype/quasimap/coverage/common.hpp"
 #include "genotype/read_stats.hpp"
-#include "prg/coverage_graph.hpp"
 
 using namespace gram;
 

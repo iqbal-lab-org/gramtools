@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-#include "kmer_index/masks.hpp"
+#include "build/kmer_index/masks.hpp"
 
 
 using namespace gram;
