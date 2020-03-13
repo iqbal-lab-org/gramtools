@@ -24,6 +24,7 @@ namespace gram{
         Ploidy ploidy;
         std::string sample_id;
         std::string genotyped_json_fpath;
+        std::string genotyped_vcf_fpath;
         std::string personalised_ref_fpath;
 
         uint32_t seed;

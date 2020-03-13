@@ -33,6 +33,7 @@ namespace gram {
     class CommonParameters {
     public:
         std::string gram_dirpath;
+        std::string built_vcf;
         std::string encoded_prg_fpath;
         std::string fm_index_fpath;
         std::string cov_graph_fpath;
@@ -60,6 +61,7 @@ namespace gram {
 
     static void fill_common_parameters(CommonParameters& parameters, std::string const gram_dirpath){
         parameters.gram_dirpath = gram_dirpath;
+        parameters.built_vcf = full_path(gram_dirpath, "build.vcf"); // May not exist, if --prg used
         parameters.encoded_prg_fpath = full_path(gram_dirpath, "prg");
         parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
         parameters.cov_graph_fpath = full_path(gram_dirpath, "cov_graph");

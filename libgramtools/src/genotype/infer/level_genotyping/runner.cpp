@@ -1,7 +1,7 @@
 #include <cmath>
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
-#include "genotype/infer/json_spec/prg_spec.hpp"
+#include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "prg/coverage_graph.hpp"
 
 likelihood_related_stats

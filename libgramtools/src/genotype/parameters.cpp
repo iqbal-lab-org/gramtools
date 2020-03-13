@@ -101,6 +101,7 @@ GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
     parameters.grouped_allele_counts_fpath = full_path(cov_dirpath, "grouped_allele_counts_coverage.json");
 
     parameters.genotyped_json_fpath = full_path(geno_dirpath, "genotyped.json");
+    parameters.genotyped_vcf_fpath = full_path(geno_dirpath, "genotyped.vcf");
     parameters.personalised_ref_fpath = full_path(geno_dirpath, "personalised_reference.fasta");
 
     parameters.seed = vm["seed"].as<uint32_t>();

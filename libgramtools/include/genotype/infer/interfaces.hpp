@@ -9,7 +9,7 @@
 #include <variant>
 #include "genotype/infer/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
-#include "json_spec/common.hpp"
+#include "genotype/infer/output_specs/json_common.hpp"
 
 using namespace gram::json;
 namespace gram::genotype::infer {

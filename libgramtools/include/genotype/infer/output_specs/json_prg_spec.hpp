@@ -1,7 +1,7 @@
 #ifndef PRG_JSON_SPEC
 #define PRG_JSON_SPEC
 
-#include "common.hpp"
+#include "json_common.hpp"
 
 namespace gram::json{
 

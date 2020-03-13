@@ -1,4 +1,4 @@
-#include "genotype/infer/json_spec/site_spec.hpp"
+#include "genotype/infer/output_specs/json_site_spec.hpp"
 
 using namespace gram::json;
 using namespace gram::genotype::infer;

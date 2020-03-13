@@ -2,7 +2,7 @@
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/personalised_reference.hpp"
-#include "genotype/infer/json_spec/prg_spec.hpp"
+#include "genotype/infer/output_specs/json_prg_spec.hpp"
 
 #include "common/timer_report.hpp"
 #include "build/kmer_index/load.hpp"

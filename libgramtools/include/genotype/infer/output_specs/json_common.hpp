@@ -52,7 +52,7 @@ namespace gram::json::spec {
                     {
                             {"Desc", "Sample haplogroups of genotyped alleles"}
                     }},
-            {"COVS",
+            {"COV",
                     {
                             {"Desc", "Coverage on each allele"}
                     }},

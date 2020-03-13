@@ -299,7 +299,11 @@ public:
 
     covG_ptr backWire; // Pointer to the most recent node needing edge building
     covG_ptr cur_Node;
-    seqPos cur_pos; // For assigning position to nodes
+
+    // For assigning position to nodes
+    seqPos cur_pos;
+    bool first_allele{false};
+
     VariantLocus cur_Locus; // For building parental map
 
     marker_to_node bubble_starts;

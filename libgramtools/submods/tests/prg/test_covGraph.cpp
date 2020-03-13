@@ -196,11 +196,16 @@ TEST_F(cov_G_Builder_nested, NodeSizes) {
 TEST_F(cov_G_Builder_nested, SequencePositions) {
     //"[A,AA,A[A,C]A]C[AC,C]G"
     auto const &rand_access = c.random_access;
-    // The positions are not INDICES in the PRG string; they are the positions in the multiple-sequence alignment
-    // giving rise to it. Draw the graph of the PRG string and take the LONGEST allele positions to obtain them.
+    // There is one position per index in the PRG string
+    // The positions continually refer to the FIRST allele in each site, 0-based.
     std::vector<seqPos> expected{
-            0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, // First site exit point here
-                2, 3, 3, 4, 4, 4, 4, 4, 6, 6 };
+        0, 0, 0, 0, 0, 0, 0, // First site here
+            1, 1, 1, 1, 2, // Second site FULL here
+        2, 1,  // First site END here
+        1, // Invariant 'C'
+        2, 2, 2, 2, 2, 4, // Third site FULL here
+        4 // Invariant 'G'
+        };
     std::vector<seqPos> res(expected.size(), 0);
     int pos = 0;
     for (auto const &s : rand_access) {

@@ -1,6 +1,6 @@
 #include "genotype/infer/interfaces.hpp"
-#include "genotype/infer/json_spec/prg_spec.hpp"
-#include "genotype/infer/json_spec/site_spec.hpp"
+#include "genotype/infer/output_specs/json_prg_spec.hpp"
+#include "genotype/infer/output_specs/json_site_spec.hpp"
 #include "prg/coverage_graph.hpp"
 
 namespace gram::genotype::infer {

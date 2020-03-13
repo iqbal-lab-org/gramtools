@@ -132,6 +132,7 @@ void cov_Graph_Builder::enter_site(Marker const &m) {
 
     // Update the global pointers
     cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 1));
+    first_allele = true;
     backWire = site_entry;
 
     // Make & register a new bubble
@@ -190,8 +191,15 @@ covG_ptr cov_Graph_Builder::reach_allele_end(Marker const& m){
     auto site_exit = bubble_ends.at(site_ID);
     wire(site_exit);
 
+    if (first_allele) {
+        site_exit->set_pos(cur_pos);
+        first_allele = false;
+    }
+
+    /* Use this instead to make coordinates reflect the LONGEST, not FIRST, allele in a site
     // Update the exit's pos if it is smaller than this allele's
     if (site_exit->get_pos() < cur_pos) site_exit->set_pos(cur_pos);
+    */
 
     return site_exit;
 }
