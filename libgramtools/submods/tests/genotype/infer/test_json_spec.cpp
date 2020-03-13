@@ -32,7 +32,7 @@ public:
         json_site.at("ALS") = JSON(als);
         json_site.at("GT").push_back(JSON(gts));
         json_site.at("HAPG").push_back(JSON(hapgs));
-        json_site.at("COVS").push_back(JSON(coverages));
+        json_site.at("COV").push_back(JSON(coverages));
         json_site.at("DP").push_back(total_cov);
     }
 
@@ -41,7 +41,7 @@ public:
         json_site.at("ALS") = JSON(als);
         for(auto entry : gts) json_site.at("GT").push_back(JSON(entry));
         for(auto entry : hapgs) json_site.at("HAPG").push_back(JSON(entry));
-        for(auto entry : coverages) json_site.at("COVS").push_back(JSON(entry));
+        for(auto entry : coverages) json_site.at("COV").push_back(JSON(entry));
         for(auto entry : total_covs) json_site.at("DP").push_back(JSON(entry));
     }
 };
@@ -118,7 +118,7 @@ TEST_F(Site_Combine_Fail, GivenInconsistenHAPGs_Fails){
 }
 
 TEST_F(Site_Combine_Fail, GivenDifferentCOVandALSCardinality_Fails){
-    the_site_json.at("COVS").at(0) = JSON::array({10});
+    the_site_json.at("COV").at(0) = JSON::array({10});
     test_site.set_site(the_site_json);
     ASSERT_THROW(fixed_site.combine_with(test_site), JSONConsistencyException);
 }

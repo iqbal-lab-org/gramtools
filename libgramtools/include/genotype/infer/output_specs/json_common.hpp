@@ -1,9 +1,9 @@
 #ifndef COMMON_JSON_SPEC
 #define COMMON_JSON_SPEC
 
-#include <nlohmann/json.hpp>
+#include "genotype/infer/output_specs/fields.hpp"
 
-using JSON = nlohmann::json;
+using namespace gram::genotype::output_spec;
 
 namespace gram::genotype::infer{
     using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
@@ -39,33 +39,10 @@ namespace gram::json{
 }
 
 namespace gram::json::spec {
-    const JSON site_fields{
-            {"ALS",
-                    {
-                            {"Desc", "Alleles at this site"}
-                    }},
-            {"GT",
-                    {
-                            {"Desc", "Sample Genotype"}
-                    }},
-            {"HAPG",
-                    {
-                            {"Desc", "Sample haplogroups of genotyped alleles"}
-                    }},
-            {"COV",
-                    {
-                            {"Desc", "Coverage on each allele"}
-                    }},
-            {"DP",
-                    {
-                            {"Desc", "Total depth on this site"}
-                    }
-            }
-    };
 
     const JSON json_prg{
             {"Model", "UNKNOWN"},
-            {"Site_Fields", site_fields},
+            {"Site_Fields", json_site_fields()},
             {"Samples", JSON::array()},
             {"Sites", JSON::array()},
             {"Lvl1_Sites", JSON::array()},

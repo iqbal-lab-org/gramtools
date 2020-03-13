@@ -62,11 +62,11 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
         }
         GtypedIndices gts = result.at("GT").at(sample_num);
 
-        allele_coverages const covs = json_site.at("COVS").at(sample_num);
+        allele_coverages const covs = json_site.at("COV").at(sample_num);
         allele_coverages new_covs(m.size(), 0);
 
         if (json_site.at("ALS").size() != covs.size())
-            throw JSONConsistencyException("Different number of ALS and COVS entries");
+            throw JSONConsistencyException("Different number of ALS and COV entries");
 
         for (auto& gt : gts) {
             auto const allele = json_site.at("ALS").at(gt);
@@ -81,14 +81,14 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
             new_covs.at(rescaled_idx) = covs.at(j);
         }
         result.at("GT").at(sample_num) = gts;
-        result.at("COVS").at(sample_num) = new_covs;
+        result.at("COV").at(sample_num) = new_covs;
         sample_num++;
     }
     return result;
 }
 
 void Json_Site::append_entries_from(JSON const& json_site){
-    std::vector<std::string> entries{"GT", "HAPG", "COVS", "DP"};
+    std::vector<std::string> entries{"GT", "HAPG", "COV", "DP"};
     for (auto const& entry : entries){
         for (auto const& element : json_site.at(entry))
             this->json_site.at(entry).push_back(element);

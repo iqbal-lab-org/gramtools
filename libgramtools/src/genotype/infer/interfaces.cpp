@@ -152,7 +152,7 @@ json_site_ptr GenotypedSite::get_JSON(){
 
     json_site_copy.at("HAPG").push_back(JSON(gtype_info.haplogroups));
 
-    json_site_copy.at("COVS").push_back(JSON(gtype_info.allele_covs));
+    json_site_copy.at("COV").push_back(JSON(gtype_info.allele_covs));
     json_site_copy.at("DP").push_back(gtype_info.total_coverage);
 
     this->add_model_specific_JSON(json_site_copy);
