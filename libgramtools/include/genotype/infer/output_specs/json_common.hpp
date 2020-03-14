@@ -7,12 +7,6 @@
 using JSON = nlohmann::json;
 using namespace gram::genotype::output_spec;
 
-namespace gram::genotype::infer{
-    using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
-    using GtypedIndices = std::vector<GtypedIndex>;
-    using allele_coverages = std::vector<double>;
-}
-
 namespace gram::json{
     class Json_Prg;
     class Json_Site;
@@ -43,7 +37,7 @@ namespace gram::json{
 namespace gram::json::spec {
 
     static JSON json_site_fields(){
-        headers h = vcf_format_headers();
+        header_vec h = vcf_format_headers();
         JSON result =
                 {
                         {"ALS",
@@ -55,8 +49,7 @@ namespace gram::json::spec {
                 };
 
         // Populate with headers common with vcf output
-        for (auto const& entry : h){
-            auto header = entry.second;
+        for (auto const& header : h){
             result[header.ID] = { {"Desc", header.desc} };
         }
         return result;

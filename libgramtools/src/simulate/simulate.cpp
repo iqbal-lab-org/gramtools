@@ -1,7 +1,5 @@
 #include "simulate/simulate.hpp"
 #include "prg/coverage_graph.hpp"
-#include "genotype/infer/output_specs/json_prg_spec.hpp"
-#include "genotype/infer/output_specs/json_site_spec.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/personalised_reference.hpp"
@@ -11,11 +9,6 @@ using namespace gram::genotype;
 using namespace gram::simulate;
 
 namespace gram::simulate {
-
-    RandomGenotypedSite::RandomGenotypedSite(){
-        auto json_site_ptr = std::make_shared<Json_Site>();
-        json_site = json_site_ptr;
-    }
 
 RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
         this->cov_graph = &cov_graph;

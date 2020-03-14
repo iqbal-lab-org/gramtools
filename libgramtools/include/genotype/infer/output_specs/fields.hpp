@@ -4,8 +4,23 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <vector>
 
 namespace gram::genotype::output_spec {
+
+    class base_site_entry{};
+
+    template <typename T>
+        class site_entry : public base_site_entry{
+            std::string meta_type, ID;
+            std::vector<T> vals;
+            bool single_val;
+        public:
+            site_entry(std::string m_t, std::string ID, std::vector<T> vals, bool single_val) :
+                meta_type(m_t), ID(ID), vals(vals), single_val(single_val){}
+        };
+
+    using entry_vec = std::vector<std::shared_ptr<base_site_entry>>;
 
     struct vcf_meta_info_line {
         std::string meta_type, ID, desc,
@@ -30,7 +45,7 @@ namespace gram::genotype::output_spec {
         vcf_meta_info_line(std::string m_t, std::string id, std::string desc) :
                 meta_type(m_t), ID(id), desc(desc) {}
 
-        std::string const to_string() {
+        std::string const to_string() const{
             std::stringstream out;
             out << "##" << meta_type << "=";
             if (flat_value != "") {
@@ -46,44 +61,36 @@ namespace gram::genotype::output_spec {
             return out.str();
         }
 
-        char const *const c_str() {
+        char const *const c_str() const{
             return this->to_string().c_str();
         }
     };
 
-    using headers = std::map<std::string, vcf_meta_info_line>;
+    using header_vec = std::vector<vcf_meta_info_line>;
 
-    static headers const vcf_format_headers() {
-        headers result;
-        result.insert({
-              {"FORMAT_GT",
-                      vcf_meta_info_line{
-                          "FORMAT",
-                          "GT",
-                          "Genotype",
-                          "1",
-                          "String"}
-              },
-              {"FORMAT_DP",
-                      vcf_meta_info_line{
-                          "FORMAT",
-                          "DP",
-                          "Total read depth on variant site",
-                           "1",
-                          "Integer"}
-              },
-              {"FORMAT_COV",
-                      vcf_meta_info_line{
-                          "FORMAT",
-                          "COV",
-                          "Read coverage on each allele",
-                          "R",
-                          "Integer"}
-                          }
-        });
-        return result;
+    static header_vec const vcf_format_headers() {
+        header_vec result{
+                vcf_meta_info_line{
+                        "FORMAT",
+                        "GT",
+                        "Genotype",
+                        "1",
+                        "String"},
+                vcf_meta_info_line{
+                        "FORMAT",
+                        "DP",
+                        "Total read depth on variant site",
+                        "1",
+                        "Integer"},
+                vcf_meta_info_line{
+                        "FORMAT",
+                        "COV",
+                        "Read coverage on each allele",
+                        "R",
+                        "Integer"}
+        };
+    return result;
     }
-
 }
 
 #endif //GTYPE_FIELDS_HPP

@@ -16,6 +16,7 @@ namespace gram::json{
         void set_sample_info(std::string const& name, std::string const& desc);
 
         void add_site(json_site_ptr json_site);
+        void add_header(vcf_meta_info_line header);
         JSON const& get_prg() const {return json_prg;}
         JSON get_prg_copy() const {return json_prg;}
         void set_prg(JSON const& json_prg) {this->json_prg = json_prg;}

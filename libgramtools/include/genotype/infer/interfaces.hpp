@@ -9,12 +9,10 @@
 #include <variant>
 #include "genotype/infer/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
-#include "genotype/infer/output_specs/json_common.hpp"
+#include "genotype/infer/output_specs/fields.hpp"
 
-//struct vcf_meta_info_line;
-using header_vec = std::vector<vcf_meta_info_line>;
+using namespace gram::genotype::output_spec;
 
-using namespace gram::json;
 namespace gram::genotype::infer {
 
     /**
@@ -49,8 +47,6 @@ namespace gram::genotype::infer {
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
-        json_site_ptr json_site;
-
     public:
         GenotypedSite() = default;
         virtual ~GenotypedSite() {};
@@ -76,8 +72,7 @@ namespace gram::genotype::infer {
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
         void set_genotype(GenotypeOrNull const& gtype){ gtype_info.genotype = gtype; }
 
-        json_site_ptr get_JSON();
-        virtual void add_model_specific_JSON(JSON& input_json) = 0;
+        virtual entry_vec get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }

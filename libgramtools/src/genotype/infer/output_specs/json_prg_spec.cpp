@@ -2,7 +2,6 @@
 #include "genotype/infer/output_specs/json_site_spec.hpp"
 
 using namespace gram::json;
-using namespace gram::genotype::infer;
 
 void Json_Prg::set_sample_info(std::string const& name, std::string const& desc){
     if (json_prg.at("Samples").size() > 1)
@@ -19,6 +18,16 @@ void Json_Prg::set_sample_info(std::string const& name, std::string const& desc)
 void Json_Prg::add_site(json_site_ptr json_site){
    sites.push_back(json_site);
    json_prg.at("Sites").push_back(json_site->get_site_copy());
+}
+
+void Json_Prg::add_header(vcf_meta_info_line header){
+    if (header.meta_type == "Model"){
+        json_prg.at("Model") = header.flat_value;
+    }
+    else if (header.meta_type == "FORMAT"){
+        json_prg.at("Site_Fields")[header.ID] =
+                {{"Desc", header.desc}};
+    }
 }
 
 void Json_Prg::add_samples(const Json_Prg &other, const bool force) {

@@ -1,9 +1,6 @@
 #include "genotype/infer/interfaces.hpp"
-#include "genotype/infer/output_specs/json_prg_spec.hpp"
-#include "genotype/infer/output_specs/json_site_spec.hpp"
 
 namespace gram::genotype::infer {
-
 
     void GenotypedSite::populate_site(gtype_information const& gtype_info){
         this->gtype_info.alleles = gtype_info.alleles;
@@ -104,24 +101,4 @@ void Genotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleIds hap
     }
 }
 
-json_site_ptr GenotypedSite::get_JSON(){
-    auto json_site_copy = json_site->get_site_copy();
-    if (! json_site_copy.at("GT").empty()) return json_site;
-
-    for (int i{0}; i < gtype_info.alleles.size(); ++i) json_site_copy.at("ALS")
-        .push_back(gtype_info.alleles.at(i).sequence);
-
-    if (is_null()) json_site_copy.at("GT").push_back(JSON::array({nullptr}));
-    else json_site_copy.at("GT").push_back(JSON(std::get<GtypedIndices>(gtype_info.genotype)));
-
-    json_site_copy.at("HAPG").push_back(JSON(gtype_info.haplogroups));
-
-    json_site_copy.at("COV").push_back(JSON(gtype_info.allele_covs));
-    json_site_copy.at("DP").push_back(gtype_info.total_coverage);
-
-    this->add_model_specific_JSON(json_site_copy);
-    json_site->set_site(json_site_copy);
-
-    return json_site;
-}
 }

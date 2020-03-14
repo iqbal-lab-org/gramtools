@@ -40,7 +40,11 @@ void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper,
                    vcf_meta_info_line("source", "gramtools").c_str());
     bcf_hdr_add_sample(hdr, params.sample_id.c_str());
 
-    headers format_headers = vcf_format_headers();
-    for (auto& entry: format_headers)
-        bcf_hdr_append(hdr, entry.second.c_str());
+    header_vec format_headers = vcf_format_headers(); // Common headers
+    for (auto& header: format_headers)
+        bcf_hdr_append(hdr, header.c_str());
+
+    for (auto const& header : gtyper->get_model_specific_headers()){ // Genotyper-specific headers
+        bcf_hdr_append(hdr, header.c_str());
+    }
 }

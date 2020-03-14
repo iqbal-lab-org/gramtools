@@ -10,8 +10,8 @@ using namespace gram::genotype::infer;
 namespace gram::simulate {
     class RandomGenotypedSite : public GenotypedSite {
     public:
-        RandomGenotypedSite();
-        void add_model_specific_JSON(JSON &input_json) override {}
+        RandomGenotypedSite() = default;
+        entry_vec get_model_specific_entries() override{}
         void null_model_specific_entries() override {}
     };
 
