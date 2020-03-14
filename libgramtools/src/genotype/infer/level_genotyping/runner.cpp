@@ -1,8 +1,21 @@
 #include <cmath>
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
-#include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "prg/coverage_graph.hpp"
+#include "genotype/infer/output_specs/fields.hpp"
+
+using namespace gram::genotype::output_spec;
+
+header_vec LevelGenotyper::get_model_specific_headers(){
+    header_vec result{
+        vcf_meta_info_line{"Model", "LevelGenotyping"},
+        vcf_meta_info_line{"FORMAT", "GT_CONF",
+                           "Genotype confidence as "
+                 "likelihood ratio of called and next most likely genotype.",
+                 "1", "Float"}
+    };
+    return result;
+}
 
 likelihood_related_stats
 LevelGenotyper::make_l_stats(double mean_cov_depth, double mean_pb_error){
@@ -36,9 +49,6 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
     this->gped_covs = &gped_covs;
     child_m = build_child_map(cov_graph.par_map); // Required for site invalidation
     genotyped_records.resize(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
-
-    auto json_ptr = std::make_shared<LevelGenotyper_Json>();
-    this->json_prg = json_ptr;
 
     auto mean_cov_depth = read_stats.get_mean_cov_depth();
     auto mean_pb_error = read_stats.get_mean_pb_error();

@@ -2,7 +2,7 @@
 #define SITE_JSON_SPEC
 
 #include "common/utils.hpp"
-#include "fields.hpp"
+#include "json_common.hpp"
 
 namespace gram::json {
     struct site_rescaler {
@@ -18,7 +18,7 @@ namespace gram::json {
 
     public:
         Json_Site() {
-            auto site_fields = gram::genotype::output_spec::json_site_fields();
+            auto site_fields = spec::json_site_fields();
             for (const auto &element : site_fields.items()) {
                 json_site.emplace(element.key(), JSON::array());
             }

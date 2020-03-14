@@ -11,6 +11,9 @@
 #include "genotype/quasimap/coverage/types.hpp"
 #include "genotype/infer/output_specs/json_common.hpp"
 
+//struct vcf_meta_info_line;
+using header_vec = std::vector<vcf_meta_info_line>;
+
 using namespace gram::json;
 namespace gram::genotype::infer {
 
@@ -125,23 +128,18 @@ namespace gram::genotype::infer {
         SitesGroupedAlleleCounts const *gped_covs;
         child_map child_m;
 
-        json_prg_ptr json_prg;
-
         Genotyper() : cov_graph(nullptr), gped_covs(nullptr) {}
         Genotyper(gt_sites const& sites, child_map const& ch) :
                 genotyped_records(sites), child_m(ch), cov_graph(nullptr), gped_covs(nullptr) {}
 
-        /**
-         * Populates the PRG-related entries (Lvl1_sites, child map) of this objects's json_prg.
-         */
-        void populate_json_prg();
-
-        void add_json_sites();
-
     public:
-        json_prg_ptr get_JSON();
-        gt_sites const& get_genotyped_records() const {return genotyped_records;}
+        virtual ~Genotyper() {};
 
+        gt_sites const& get_genotyped_records() const {return genotyped_records;}
+        auto const& get_cov_g() const {return cov_graph;}
+        auto const& get_child_m() const {return child_m;}
+
+        virtual header_vec get_model_specific_headers() = 0;
         void run_invalidation_process(gt_site_ptr const& genotyped_site, Marker const& site_ID);
         AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
         void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);

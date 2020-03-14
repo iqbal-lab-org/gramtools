@@ -3,6 +3,7 @@
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/personalised_reference.hpp"
 #include "genotype/infer/output_specs/json_prg_spec.hpp"
+#include "genotype/infer/output_specs/make_json.hpp"
 
 #include "common/timer_report.hpp"
 #include "build/kmer_index/load.hpp"
@@ -63,9 +64,10 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
                              readstats, parameters.ploidy};
     timer.stop();
     std::ofstream geno_json_fhandle(parameters.genotyped_json_fpath);
-    auto sample_json = genotyper.get_JSON();
-    sample_json->set_sample_info(parameters.sample_id, "made by gramtools genotype");
-    geno_json_fhandle << std::setw(4) << sample_json->get_prg() << std::endl;
+    auto gtyper = std::make_shared<LevelGenotyper>(genotyper);
+    auto sample_json = make_json_prg(gtyper);
+    sample_json.set_sample_info(parameters.sample_id, "made by gramtools genotype");
+    geno_json_fhandle << std::setw(4) << sample_json.get_prg() << std::endl;
     geno_json_fhandle.close();
 
     auto sites = genotyper.get_genotyped_records();

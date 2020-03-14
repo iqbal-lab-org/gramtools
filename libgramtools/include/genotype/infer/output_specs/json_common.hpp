@@ -1,8 +1,10 @@
 #ifndef COMMON_JSON_SPEC
 #define COMMON_JSON_SPEC
 
-#include "genotype/infer/output_specs/fields.hpp"
+#include <nlohmann/json.hpp>
+#include "fields.hpp"
 
+using JSON = nlohmann::json;
 using namespace gram::genotype::output_spec;
 
 namespace gram::genotype::infer{
@@ -39,6 +41,26 @@ namespace gram::json{
 }
 
 namespace gram::json::spec {
+
+    static JSON json_site_fields(){
+        headers h = vcf_format_headers();
+        JSON result =
+                {
+                        {"ALS",
+                                {{"Desc", "Alleles at this site"}}
+                        },
+                        {"HAPG",
+                                {{"Desc", "Sample haplogroups of genotyped alleles"}},
+                        }
+                };
+
+        // Populate with headers common with vcf output
+        for (auto const& entry : h){
+            auto header = entry.second;
+            result[header.ID] = { {"Desc", header.desc} };
+        }
+        return result;
+    }
 
     const JSON json_prg{
             {"Model", "UNKNOWN"},

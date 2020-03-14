@@ -4,9 +4,6 @@
 #include <string>
 #include <sstream>
 #include <map>
-#include <nlohmann/json.hpp>
-
-using JSON = nlohmann::json;
 
 namespace gram::genotype::output_spec {
 
@@ -87,25 +84,6 @@ namespace gram::genotype::output_spec {
         return result;
     }
 
-    static JSON json_site_fields(){
-        headers h = vcf_format_headers();
-        JSON result =
-        {
-                {"ALS",
-                        {{"Desc", "Alleles at this site"}}
-                },
-                {"HAPG",
-                        {{"Desc", "Sample haplogroups of genotyped alleles"}},
-          }
-        };
-
-        // Populate with headers common with vcf output
-        for (auto const& entry : h){
-            auto header = entry.second;
-            result[header.ID] = { {"Desc", header.desc} };
-        }
-       return result;
-    }
 }
 
 #endif //GTYPE_FIELDS_HPP

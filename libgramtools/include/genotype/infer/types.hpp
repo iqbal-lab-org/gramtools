@@ -5,6 +5,9 @@
 #include "prg/types.hpp"
 
 namespace gram::genotype::infer {
+    class Genotyper;
+    using gtyper_ptr = std::shared_ptr<Genotyper>;
+
     class GenotypedSite;
     using gt_site = GenotypedSite;
     using gt_site_ptr = std::shared_ptr<GenotypedSite>;

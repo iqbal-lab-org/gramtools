@@ -1,45 +1,9 @@
 #include "genotype/infer/interfaces.hpp"
 #include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "genotype/infer/output_specs/json_site_spec.hpp"
-#include "prg/coverage_graph.hpp"
 
 namespace gram::genotype::infer {
 
-void Genotyper::populate_json_prg() {
-    JSON json_prg_copy = json_prg->get_prg_copy();
-    if (! cov_graph->is_nested) json_prg_copy.at("Lvl1_Sites").push_back("all");
-    else {
-        for (int i{0}; i < genotyped_records.size(); ++i)
-            if (cov_graph->par_map.find(index_to_siteID(i)) ==
-                cov_graph->par_map.end())
-                json_prg_copy.at("Lvl1_Sites").push_back(i);
-
-        for (const auto &child_entry : child_m) {
-            auto site_index = std::to_string(siteID_to_index(child_entry.first));
-            json_prg_copy.at("Child_Map").emplace(site_index, JSON::object());
-            for (const auto &hapg_entry : child_entry.second) {
-                auto copy = hapg_entry.second;
-                for (auto &el : copy) el = siteID_to_index(el);
-                json_prg_copy.at("Child_Map").at(site_index)[std::to_string(hapg_entry.first)] =
-                        JSON(copy);
-            }
-        }
-    }
-    json_prg->set_prg(json_prg_copy);
-}
-
-void Genotyper::add_json_sites(){
-    for (auto const& site : genotyped_records)
-        json_prg->add_site(site->get_JSON());
-}
-
-    json_prg_ptr Genotyper::get_JSON() {
-    if (json_prg->get_prg().at("Sites").empty()){
-        populate_json_prg();
-        add_json_sites();
-    }
-    return json_prg;
-}
 
     void GenotypedSite::populate_site(gtype_information const& gtype_info){
         this->gtype_info.alleles = gtype_info.alleles;

@@ -20,24 +20,6 @@ namespace gram::json{
         JSON get_prg_copy() const {return json_prg;}
         void set_prg(JSON const& json_prg) {this->json_prg = json_prg;}
     };
-
-    class LevelGenotyper_Json : public Json_Prg{
-    public:
-        LevelGenotyper_Json() : Json_Prg() {
-            json_prg.at("Model") = "LevelGenotyper";
-            json_prg.at("Site_Fields")["GT_CONF"] = {
-                    {"Desc", "Genotype confidence as "
-                             "likelihood ratio of called and next most likely genotype."}
-            };
-        }
-    };
-
-    class Simulated_Json : public Json_Prg{
-    public:
-        Simulated_Json() : Json_Prg() {
-            json_prg.at("Model") = "Simulated_Path";
-        }
-    };
 }
 
 #endif //PRG_JSON_SPEC

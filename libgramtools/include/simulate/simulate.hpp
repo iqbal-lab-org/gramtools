@@ -24,6 +24,8 @@ namespace gram::simulate {
          * except that genotype is randomly assigned among the list of alleles.
          */
         RandomGenotyper(coverage_Graph const &cov_graph);
+
+        header_vec get_model_specific_headers() override;
     };
 
     gt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand, allele_vector const& alleles);

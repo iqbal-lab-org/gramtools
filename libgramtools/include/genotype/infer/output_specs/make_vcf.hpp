@@ -7,8 +7,8 @@
 
 using namespace gram::genotype::infer;
 
-void populate_vcf_hdr(bcf_hdr_t *hdr, Genotyper gtyper, gram::GenotypeParams const &params);
+void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper, gram::GenotypeParams const &params);
 void write_vcf(gram::GenotypeParams const& params, gt_sites const& sites,
-        Genotyper const& gtyper);
+        gtyper_ptr const& gtyper);
 
 #endif //MAKE_VCF_HPP

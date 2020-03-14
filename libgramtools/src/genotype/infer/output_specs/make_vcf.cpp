@@ -1,13 +1,13 @@
 #include <htslib/synced_bcf_reader.h>
 #include <boost/filesystem.hpp>
-#include "genotype/infer/output_specs/vcf_spec.hpp"
+#include "genotype/infer/output_specs/make_vcf.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 
 namespace fs = boost::filesystem;
 
 void write_vcf(gram::GenotypeParams const& params, gt_sites const& sites,
-               Genotyper const& gtyper){
-    auto fout = bcf_open(params.genotyped_vcf_fpath, "wz");
+               gtyper_ptr const& gtyper){
+    auto fout = bcf_open(params.genotyped_vcf_fpath.c_str(), "wz");
 
     bcf_srs_t* sr = nullptr;
     bcf_hdr_t* hdr;
@@ -29,7 +29,7 @@ void write_vcf(gram::GenotypeParams const& params, gt_sites const& sites,
     bcf_close(fout);
 }
 
-void populate_vcf_hdr(bcf_hdr_t *hdr, Genotyper gtyper,
+void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper,
         gram::GenotypeParams const &params) {
 
     if (fs::exists(params.built_vcf)){
@@ -38,9 +38,9 @@ void populate_vcf_hdr(bcf_hdr_t *hdr, Genotyper gtyper,
 
     bcf_hdr_append(hdr,
                    vcf_meta_info_line("source", "gramtools").c_str());
-    bcf_hdr_add_sample(params.sample_id.c_str());
+    bcf_hdr_add_sample(hdr, params.sample_id.c_str());
 
     headers format_headers = vcf_format_headers();
-    for (auto const& entry: format_headers)
+    for (auto& entry: format_headers)
         bcf_hdr_append(hdr, entry.second.c_str());
 }

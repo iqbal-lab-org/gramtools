@@ -2,6 +2,7 @@
 #include "prg/coverage_graph.hpp"
 #include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "genotype/infer/output_specs/json_site_spec.hpp"
+#include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/personalised_reference.hpp"
 #include <iomanip>
@@ -20,9 +21,6 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
         this->cov_graph = &cov_graph;
         child_m = build_child_map(cov_graph.par_map); // Required for site invalidation
         genotyped_records.resize(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
-
-        auto json_ptr = std::make_shared<Simulated_Json>();
-        this->json_prg = json_ptr;
 
         // Genotype each bubble in the PRG, in most nested to less nested order.
         for (auto const &bubble_pair : cov_graph.bubble_map) {
@@ -85,6 +83,7 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
     uint64_t num_sampled{0};
     while (num_runs < parameters.max_num_paths){
        RandomGenotyper gtyper(cov_g);
+       auto ptr_gtyper = std::make_shared<RandomGenotyper>(gtyper);
        auto genotyped_records = gtyper.get_genotyped_records();
        auto new_p_ref = get_personalised_ref(cov_g.root, genotyped_records).at(0);
 
@@ -94,15 +93,15 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
            new_p_ref.set_sample_info(sample_id, desc);
            unique_simu_paths.insert(new_p_ref);
            ordered_simu_paths.push_back(new_p_ref);
-           auto new_json = gtyper.get_JSON();
+           auto new_json = make_json_prg(ptr_gtyper);
            if (first){
-               simu_json = new_json;
+               *simu_json = new_json;
                simu_json->set_sample_info(sample_id, desc);
                first = false;
            }
            else {
-               new_json->set_sample_info(sample_id, desc);
-               simu_json->combine_with(*new_json);
+               new_json.set_sample_info(sample_id, desc);
+               simu_json->combine_with(new_json);
            }
        }
         num_runs++;
@@ -119,4 +118,12 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
     std::ofstream geno_json_fhandle(parameters.json_out_fpath);
     geno_json_fhandle << std::setw(4) << simu_json->get_prg() << std::endl;
     geno_json_fhandle.close();
+}
+
+header_vec RandomGenotyper::get_model_specific_headers(){
+   return header_vec{
+       vcf_meta_info_line{
+           "Model", "Simulated_Path"
+       }
+   };
 }

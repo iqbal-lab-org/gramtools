@@ -30,6 +30,7 @@ public:
     LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                    ReadStats const &read_stats, Ploidy const ploidy);
 
+    header_vec get_model_specific_headers() override;
 
     static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
     static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
