@@ -1,27 +1,6 @@
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "prg/coverage_graph.hpp"
 
-json_site_ptr make_json_site(gt_site_ptr const& gt_site){
-    json_site_ptr result = std::make_shared<Json_Site>();
-    auto json_site = result->get_site_copy();
-    auto gtype_info = gt_site->get_all_gtype_info();
-    for (int i{0}; i < gtype_info.alleles.size(); ++i) json_site.at("ALS")
-                .push_back(gtype_info.alleles.at(i).sequence);
-
-    if (gt_site->is_null()) json_site.at("GT").push_back(JSON::array({nullptr}));
-    else json_site.at("GT").push_back(JSON(std::get<GtypedIndices>(gtype_info.genotype)));
-
-    json_site.at("HAPG").push_back(JSON(gtype_info.haplogroups));
-
-    json_site.at("COV").push_back(JSON(gtype_info.allele_covs));
-    json_site.at("DP").push_back(gtype_info.total_coverage);
-
-//    add_model_specific_JSON(json_site_copy);
-    result->set_site(json_site);
-
-    return result;
-}
-
 void populate_json_prg(Json_Prg& json_prg, gtyper_ptr const& gtyper){
     JSON json_prg_copy = json_prg.get_prg_copy();
     auto cov_graph = gtyper->get_cov_g();
@@ -52,11 +31,41 @@ void populate_json_prg(Json_Prg& json_prg, gtyper_ptr const& gtyper){
 }
 
 Json_Prg make_json_prg(gtyper_ptr const& gtyper){
-    Json_Prg json_prg;
-    populate_json_prg(json_prg, gtyper);
+    Json_Prg result;
+    populate_json_prg(result, gtyper);
     auto genotyped_records = gtyper->get_genotyped_records();
     for (auto const& site : genotyped_records)
-        json_prg.add_site(make_json_site(site));
-    return json_prg;
+        result.add_site(make_json_site(site));
+    return result;
+}
+
+void add_model_specific_entries(JSON& json_site, site_entries const& entries){
+   for (auto const& entry: entries.doubles){
+       json_site[entry.ID] = JSON::array();
+      if (entry.single_val) json_site.at(entry.ID).push_back(entry.vals.at(0));
+      else json_site.at(entry.ID).push_back(JSON(entry.vals));
+   }
+}
+
+
+json_site_ptr make_json_site(gt_site_ptr const& gt_site){
+    json_site_ptr result = std::make_shared<Json_Site>();
+    auto json_site = result->get_site_copy();
+    auto gtype_info = gt_site->get_all_gtype_info();
+    for (int i{0}; i < gtype_info.alleles.size(); ++i) json_site.at("ALS")
+                .push_back(gtype_info.alleles.at(i).sequence);
+
+    if (gt_site->is_null()) json_site.at("GT").push_back(JSON::array({nullptr}));
+    else json_site.at("GT").push_back(JSON(std::get<GtypedIndices>(gtype_info.genotype)));
+
+    json_site.at("HAPG").push_back(JSON(gtype_info.haplogroups));
+
+    json_site.at("COV").push_back(JSON(gtype_info.allele_covs));
+    json_site.at("DP").push_back(gtype_info.total_coverage);
+
+    add_model_specific_entries(json_site, gt_site->get_model_specific_entries());
+    result->set_site(json_site);
+
+    return result;
 }
 

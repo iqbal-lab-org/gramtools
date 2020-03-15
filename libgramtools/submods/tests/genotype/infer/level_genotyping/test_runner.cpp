@@ -9,6 +9,7 @@
 #include "tests/common/common.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
+#include "genotype/infer/output_specs/make_json.hpp"
 
 TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes){
     std::string prg{"AATAA5C6G6AA7C8G8AA"};
@@ -156,7 +157,8 @@ TEST_F(LG_SnpsNestedInTwoHaplotypes, MapReads_CorrectlyInvalidatedSites){
 
     EXPECT_TRUE(gt_recs.at(siteID_to_index(9))->is_null());
 
-    auto json_result = gt_recs.at(siteID_to_index(9))->get_JSON()->get_site();
+    auto site_result = gt_recs.at(siteID_to_index(9));
+    auto json_result = make_json_site(site_result)->get_site();
     EXPECT_FLOAT_EQ(json_result.at("GT_CONF").at(0), 0.);
 }
 

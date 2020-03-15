@@ -72,7 +72,7 @@ namespace gram::genotype::infer {
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
         void set_genotype(GenotypeOrNull const& gtype){ gtype_info.genotype = gtype; }
 
-        virtual entry_vec get_model_specific_entries() = 0;
+        virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }

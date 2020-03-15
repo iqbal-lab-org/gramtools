@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "genotype/infer/output_specs/json_site_spec.hpp"
+#include "genotype/infer/types.hpp"
 
 using namespace gram;
 using namespace gram::json;

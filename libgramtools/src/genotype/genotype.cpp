@@ -2,8 +2,8 @@
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/personalised_reference.hpp"
-#include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
+#include "genotype/infer/output_specs/make_vcf.hpp"
 
 #include "common/timer_report.hpp"
 #include "build/kmer_index/load.hpp"
@@ -76,6 +76,8 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     set_sample_info(p_refs, parameters.sample_id, desc);
 
     write_deduped_p_refs(p_refs, parameters.personalised_ref_fpath);
+
+    write_vcf(parameters, sites, gtyper);
 
     timer.report();
 }

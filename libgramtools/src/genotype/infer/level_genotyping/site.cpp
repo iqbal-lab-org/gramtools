@@ -3,14 +3,12 @@
 
 using namespace gram::genotype::infer;
 
-entry_vec LevelGenotypedSite::get_model_specific_entries(){
-    entry_vec result;
-    auto gt_conf_entry = std::make_shared<base_site_entry>(site_entry<double>{
+site_entries LevelGenotypedSite::get_model_specific_entries(){
+    site_entry<double> gt_conf_entry {
            "FORMAT", "GT_CONF", {gt_conf}, true
-            });
-    result.push_back(gt_conf_entry);
+            };
+    site_entries result{{gt_conf_entry}};
     return result;
-//    input_json["GT_CONF"] = JSON::array({gt_conf});
 }
 
 void LevelGenotypedSite::null_model_specific_entries() {

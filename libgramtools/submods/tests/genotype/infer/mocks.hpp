@@ -7,7 +7,7 @@ using namespace gram::genotype::infer;
 
 class MockGenotypedSite : public GenotypedSite{
 public:
-    MOCK_METHOD(entry_vec,  get_model_specific_entries, (), (override));
+    MOCK_METHOD(site_entries,  get_model_specific_entries, (), (override));
     MOCK_METHOD(void,  null_model_specific_entries, (), (override));
 };
 

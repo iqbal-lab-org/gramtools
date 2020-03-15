@@ -8,22 +8,24 @@
 
 namespace gram::genotype::output_spec {
 
-    class base_site_entry{};
-
     template <typename T>
-        class site_entry : public base_site_entry{
-            std::string meta_type, ID;
-            std::vector<T> vals;
-            bool single_val;
-        public:
-            site_entry(std::string m_t, std::string ID, std::vector<T> vals, bool single_val) :
-                meta_type(m_t), ID(ID), vals(vals), single_val(single_val){}
+        struct site_entry {
+        std::string meta_type, ID;
+        std::vector<T> vals;
+        bool single_val;
         };
 
-    using entry_vec = std::vector<std::shared_ptr<base_site_entry>>;
+
+    /*
+     * I cannot figure out a nice way to store a set of arbitrarily typed site_entry objects,
+     * so defaulted to explicitly using those that have come up in actuality
+     */
+    struct site_entries {
+       std::vector<site_entry<double>> doubles;
+    };
 
     struct vcf_meta_info_line {
-        std::string meta_type, ID, desc,
+        std::string meta_type, ID = "", desc = "",
                 flat_value = "", num = "", type = "";
 
         /**
@@ -59,10 +61,6 @@ namespace gram::genotype::output_spec {
             out << ",Source=\"gramtools\"";
             out << ">";
             return out.str();
-        }
-
-        char const *const c_str() const{
-            return this->to_string().c_str();
         }
     };
 

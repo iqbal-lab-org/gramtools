@@ -11,7 +11,7 @@ namespace gram::simulate {
     class RandomGenotypedSite : public GenotypedSite {
     public:
         RandomGenotypedSite() = default;
-        entry_vec get_model_specific_entries() override{}
+        site_entries get_model_specific_entries() override{}
         void null_model_specific_entries() override {}
     };
 

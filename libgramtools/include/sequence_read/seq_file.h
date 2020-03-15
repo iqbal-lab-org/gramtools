@@ -616,7 +616,7 @@ static inline void seq_close(seq_file_t *sf) {
     }
     #ifdef _USESAM
     if (sf->hts_file != NULL) hts_close((htsFile *) sf->hts_file);
-    bam_hdr_destroy((bam_hdr_t *) sf->bam_hdr);
+    sam_hdr_destroy((bam_hdr_t *) sf->bam_hdr);
     #endif
     strm_buf_dealloc(&sf->in);
     free(sf->path);

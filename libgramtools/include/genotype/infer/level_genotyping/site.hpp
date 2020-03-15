@@ -15,7 +15,7 @@ namespace gram::genotype::infer {
 
 
         void set_gt_conf(double const& gt_conf) {this->gt_conf = gt_conf;}
-        entry_vec get_model_specific_entries() override;
+        site_entries get_model_specific_entries() override;
         void null_model_specific_entries() override;
     };
 }
