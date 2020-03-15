@@ -49,7 +49,7 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
         auto result = std::make_shared<RandomGenotypedSite>();
         result->populate_site(gtype_information{
            picked_alleles,
-           GtypedIndices{picked_index},
+           GtypedIndices{static_cast<int>(picked_index)},
            covs,
            1,
            AlleleIds{chosen_hapg}
@@ -88,13 +88,13 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
            ordered_simu_paths.push_back(new_p_ref);
            auto new_json = make_json_prg(ptr_gtyper);
            if (first){
-               *simu_json = new_json;
+               simu_json = new_json;
                simu_json->set_sample_info(sample_id, desc);
                first = false;
            }
            else {
-               new_json.set_sample_info(sample_id, desc);
-               simu_json->combine_with(new_json);
+               new_json->set_sample_info(sample_id, desc);
+               simu_json->combine_with(*new_json);
            }
        }
         num_runs++;

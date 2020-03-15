@@ -1,6 +1,15 @@
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "prg/coverage_graph.hpp"
 
+json_prg_ptr make_json_prg(gtyper_ptr const& gtyper){
+    auto result = std::make_shared<Json_Prg>();
+    populate_json_prg(*result, gtyper);
+    auto genotyped_records = gtyper->get_genotyped_records();
+    for (auto const& site : genotyped_records)
+        result->add_site(make_json_site(site));
+    return result;
+}
+
 void populate_json_prg(Json_Prg& json_prg, gtyper_ptr const& gtyper){
     JSON json_prg_copy = json_prg.get_prg_copy();
     auto cov_graph = gtyper->get_cov_g();
@@ -30,15 +39,6 @@ void populate_json_prg(Json_Prg& json_prg, gtyper_ptr const& gtyper){
         json_prg.add_header(header);
 }
 
-Json_Prg make_json_prg(gtyper_ptr const& gtyper){
-    Json_Prg result;
-    populate_json_prg(result, gtyper);
-    auto genotyped_records = gtyper->get_genotyped_records();
-    for (auto const& site : genotyped_records)
-        result.add_site(make_json_site(site));
-    return result;
-}
-
 void add_model_specific_entries(JSON& json_site, site_entries const& entries){
    for (auto const& entry: entries.doubles){
        json_site[entry.ID] = JSON::array();
@@ -56,7 +56,7 @@ json_site_ptr make_json_site(gt_site_ptr const& gt_site){
                 .push_back(gtype_info.alleles.at(i).sequence);
 
     if (gt_site->is_null()) json_site.at("GT").push_back(JSON::array({nullptr}));
-    else json_site.at("GT").push_back(JSON(std::get<GtypedIndices>(gtype_info.genotype)));
+    else json_site.at("GT").push_back(JSON(gtype_info.genotype));
 
     json_site.at("HAPG").push_back(JSON(gtype_info.haplogroups));
 

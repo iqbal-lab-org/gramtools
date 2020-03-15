@@ -56,7 +56,7 @@ TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
 
 TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele){
 
-    site.set_genotype(false);
+    site.set_genotype(GtypedIndices{-1});
     site.set_alleles(allele_vector{
                 Allele{ "TTT", {1, 1, 1} },
                 Allele{ "CCC", {0, 1, 1} }

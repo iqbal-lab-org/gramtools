@@ -11,12 +11,12 @@ namespace gram::genotype::infer {
     }
 
     allele_vector const GenotypedSite::get_unique_genotyped_alleles(allele_vector const &all_alleles,
-                                                                GenotypeOrNull const &genotype) const {
+                                                                    GtypedIndices const &genotype) const {
 
     std::set<GtypedIndex> distinct_genotypes;
-    if (auto valid_gtype = std::get_if<GtypedIndices>(&genotype)) {
+    if (! is_null()){
         // NOTE/CRUCIAL: this sorts the genotypes (eg 1,0 goes to 0, 1), which is REQUIRED for REF allele production
-        distinct_genotypes = std::set<GtypedIndex>(valid_gtype->begin(), valid_gtype->end());
+        distinct_genotypes = std::set<GtypedIndex>(genotype.begin(), genotype.end());
     } else distinct_genotypes = std::set<GtypedIndex>{0}; // If null genotype, take the reference only
 
     allele_vector result(distinct_genotypes.size());
@@ -36,7 +36,7 @@ AlleleIds const GenotypedSite::get_nonGenotyped_haplogroups() const{
     AlleleIds result;
 
     AlleleIdSet genotyped_haplogroups;
-    for (auto const& gt : std::get<GtypedIndices>(gtype_info.genotype)){
+    for (auto const& gt : gtype_info.genotype){
        genotyped_haplogroups.insert(gtype_info.alleles.at(gt).haplogroup);
     }
 

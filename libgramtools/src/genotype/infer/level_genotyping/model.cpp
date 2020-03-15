@@ -172,7 +172,7 @@ std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(const GtypedInd
 
 
 void LevelGenotyperModel::compute_haploid_log_likelihoods(allele_vector const &input_alleles) {
-    std::size_t allele_index{0};
+    GtypedIndex allele_index{0};
 
     for ( auto const& allele : input_alleles ){
 
@@ -196,7 +196,7 @@ void LevelGenotyperModel::compute_haploid_log_likelihoods(allele_vector const &i
 
 void LevelGenotyperModel::compute_homozygous_log_likelihoods(allele_vector const &input_alleles,
         multiplicities const &haplogroup_multiplicities) {
-    std::size_t allele_index{0};
+    GtypedIndex allele_index{0};
 
     for ( auto const& allele : input_alleles ){
 

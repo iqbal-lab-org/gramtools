@@ -13,7 +13,7 @@ namespace gram::genotype::infer {
     using gt_site_ptr = std::shared_ptr<GenotypedSite>;
     using gt_sites = std::vector<gt_site_ptr>;
 
-    using GtypedIndex = std::size_t; /**< The index of an allele in an allele vector */
+    using GtypedIndex = int32_t; /**< The index of an allele in an allele vector or -1 for null*/
     using GtypedIndices = std::vector<GtypedIndex>;
     using allele_coverages = std::vector<double>;
 

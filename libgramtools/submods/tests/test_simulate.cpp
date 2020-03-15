@@ -24,7 +24,7 @@ TEST_F(MakeRandomGenotypedSite, GivenPickZerothAllele_CorrectSite){
    EXPECT_EQ(site->get_alleles(), expected_als);
 
    GtypedIndices expected_gts{0};
-   EXPECT_EQ(std::get<GtypedIndices>(site->get_genotype()), expected_gts);
+   EXPECT_EQ(site->get_genotype(), expected_gts);
 
    EXPECT_EQ(site->get_num_haplogroups(), 3);
 }
@@ -40,5 +40,5 @@ TEST_F(MakeRandomGenotypedSite, GivenPickSecondAllele_CorrectSite){
     EXPECT_EQ(site->get_alleles(), expected_als);
 
     GtypedIndices expected_gts{1}; // Is rescaled
-    EXPECT_EQ(std::get<GtypedIndices>(site->get_genotype()), expected_gts);
+    EXPECT_EQ(site->get_genotype(), expected_gts);
 }

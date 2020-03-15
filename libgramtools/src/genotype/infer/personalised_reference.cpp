@@ -23,7 +23,7 @@ namespace gram::genotype {
         auto all_site_alleles = site->get_alleles();
         GtypedIndices gts;
         if (site->is_null()) gts = GtypedIndices(ploidy, 0);
-        else gts = std::get<GtypedIndices>(site->get_genotype());
+        else gts = site->get_genotype();
 
         if (gts.size() != ploidy) throw InconsistentPloidyException();
 
@@ -37,7 +37,7 @@ namespace gram::genotype {
         std::size_t ploidy{1};
         for (auto const &site : gtyped_recs) {
             if (!site->is_null()) {
-                auto gt = std::get<GtypedIndices>(site->get_genotype());
+                auto gt = site->get_genotype();
                 ploidy = gt.size();
                 break;
             }

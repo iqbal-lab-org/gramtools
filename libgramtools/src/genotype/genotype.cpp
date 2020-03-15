@@ -66,8 +66,8 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     std::ofstream geno_json_fhandle(parameters.genotyped_json_fpath);
     auto gtyper = std::make_shared<LevelGenotyper>(genotyper);
     auto sample_json = make_json_prg(gtyper);
-    sample_json.set_sample_info(parameters.sample_id, "made by gramtools genotype");
-    geno_json_fhandle << std::setw(4) << sample_json.get_prg() << std::endl;
+    sample_json->set_sample_info(parameters.sample_id, "made by gramtools genotype");
+    geno_json_fhandle << std::setw(4) << sample_json->get_prg() << std::endl;
     geno_json_fhandle.close();
 
     auto sites = genotyper.get_genotyped_records();
@@ -77,7 +77,7 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
 
     write_deduped_p_refs(p_refs, parameters.personalised_ref_fpath);
 
-    write_vcf(parameters, sites, gtyper);
+    write_vcf(parameters, gtyper);
 
     timer.report();
 }

@@ -34,7 +34,7 @@ TEST_F(Alleles_To_Paste, GivenGtype_CorrectAlleles){
 }
 
 TEST_F(Alleles_To_Paste, GivenNullGtype_CorrectAlleles){
-    site->set_genotype(false);
+    site->set_genotype(GtypedIndices{-1});
     auto res = get_all_alleles_to_paste(site, 3);
     allele_vector expected{all_alleles.at(0), all_alleles.at(0), all_alleles.at(0)};
     EXPECT_EQ(res, expected);
@@ -83,7 +83,7 @@ protected:
 
 TEST_F(Personalised_Reference, GivenAllNullGts_CorrectInferredRef){
     // When all gts are null, ploidy is set to 1
-    for (auto const& site : sites) site->set_genotype(false);
+    for (auto const& site : sites) site->set_genotype(GtypedIndices{-1});
     auto result_map = get_personalised_ref(graph_root, sites);
     auto result = *result_map.begin();
     std::string expected{"ATCGCTTTAT"};

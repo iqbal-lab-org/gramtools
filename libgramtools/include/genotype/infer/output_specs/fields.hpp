@@ -15,13 +15,12 @@ namespace gram::genotype::output_spec {
         bool single_val;
         };
 
-
     /*
      * I cannot figure out a nice way to store a set of arbitrarily typed site_entry objects,
      * so defaulted to explicitly using those that have come up in actuality
      */
     struct site_entries {
-       std::vector<site_entry<double>> doubles;
+       std::vector<site_entry<double>> doubles = {};
     };
 
     struct vcf_meta_info_line {

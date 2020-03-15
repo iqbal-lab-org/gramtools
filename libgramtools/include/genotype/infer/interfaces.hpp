@@ -9,8 +9,12 @@
 #include <variant>
 #include "genotype/infer/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
-#include "genotype/infer/output_specs/fields.hpp"
 
+namespace gram::genotype::output_spec {
+    struct site_entries;
+    struct vcf_meta_info_line;
+    using header_vec = std::vector<vcf_meta_info_line>;
+}
 using namespace gram::genotype::output_spec;
 
 namespace gram::genotype::infer {
@@ -28,11 +32,9 @@ namespace gram::genotype::infer {
         return result;
      }
 
-    using GenotypeOrNull = std::variant<GtypedIndices, bool>;
-
     struct gtype_information{
         allele_vector alleles;
-        GenotypeOrNull genotype;
+        GtypedIndices genotype;
         allele_coverages allele_covs;
         std::size_t total_coverage; /**< Total coverage on this site */
         AlleleIds haplogroups;
@@ -53,24 +55,24 @@ namespace gram::genotype::infer {
 
         gtype_information get_all_gtype_info() const {return this->gtype_info; }
         void populate_site(gtype_information const& gtype_info);
-        GenotypeOrNull const get_genotype() const { return gtype_info.genotype; }
+        GtypedIndices const get_genotype() const { return gtype_info.genotype; }
         allele_vector const get_alleles() const { return gtype_info.alleles; }
         covG_ptr const get_site_end_node() const { return site_end_node; }
 
         /** Whether the site is null genotyped */
         bool is_null() const {
-            if (std::holds_alternative<bool>(gtype_info.genotype)) return true;
+            if (gtype_info.genotype.size() > 0 and gtype_info.genotype.at(0) == -1) return true;
             else return false;
         };
 
         void make_null() {
-            gtype_info.genotype = false;
+            gtype_info.genotype = GtypedIndices{-1};
             gtype_info.total_coverage = 0;
             this->null_model_specific_entries();
         }
 
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
-        void set_genotype(GenotypeOrNull const& gtype){ gtype_info.genotype = gtype; }
+        void set_genotype(GtypedIndices const& gtype){ gtype_info.genotype = gtype; }
 
         virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;
@@ -85,7 +87,7 @@ namespace gram::genotype::infer {
          * Given alleles and GT, return the alleles referred to by GT
          */
         allele_vector const get_unique_genotyped_alleles
-                (allele_vector const &all_alleles, GenotypeOrNull const &genotype) const;
+                (allele_vector const &all_alleles, GtypedIndices const &genotype) const;
         allele_vector const get_unique_genotyped_alleles() const {
             return get_unique_genotyped_alleles(gtype_info.alleles, gtype_info.genotype);
         }
