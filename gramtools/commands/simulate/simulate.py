@@ -39,13 +39,11 @@ def setup_parser(common_parser, subparsers):
         required=False,
         default=".",
     )
-    parser.add_argument(
-        "--force", help="Overwrite existing results files", action="store_true"
-    )
 
 
 def run(args):
     simu_paths = SimulatePaths(args.output_dir, args.sample_id, args.prg, args.force)
+    simu_paths.setup()
 
     log.info("Start process: simulate")
     start_time = str(time.time()).split(".")[0]

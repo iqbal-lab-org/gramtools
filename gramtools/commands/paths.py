@@ -5,18 +5,22 @@ import logging
 import shutil
 from pathlib import Path
 from typing import List
-from abc import abstractmethod, ABCMeta
 
 log = logging.getLogger("gramtools")
 
 
-class ProjectPaths(metaclass=ABCMeta):
+class ProjectPaths:
     @staticmethod
     def path_fact(base_dir: Path):
         """
         Factory building functions which build paths from a base_dir.
        """
         return lambda fname: base_dir / fname
+
+    def __init__(self, output_dir, force: bool):
+        self.sim_dir = output_dir
+        self.made_output_dir = False
+        self.force = force  # Whether to erase existing geno_dir
 
     all_vars = {}
 
@@ -27,13 +31,23 @@ class ProjectPaths(metaclass=ABCMeta):
             self.cleanup()
             exit(1)
 
-    @abstractmethod
     def initial_setup(self):
-        pass
+        if not self.sim_dir.exists():
+            log.debug("Creating output directory:\n%s", self.sim_dir)
+            self.sim_dir.mkdir(parents=True)
+            self.made_output_dir = True
+            return
 
-    @abstractmethod
+        if not self.force:
+            self.raise_error(
+                f"{self.sim_dir} already exists.\n" f"Run with --force to overwrite."
+            )
+        shutil.rmtree(self.sim_dir)
+        self.sim_dir.mkdir()
+
     def cleanup(self):
-        pass
+        if self.made_output_dir:
+            shutil.rmtree(self.sim_dir)
 
     def isOutputtablePath(self, object):
         if isinstance(object, list):
@@ -79,29 +93,20 @@ class ProjectPaths(metaclass=ABCMeta):
 
 
 class BuildPaths(ProjectPaths):
-    def __init__(self, gram_dir):
+    def __init__(self, gram_dir, force=False):
         self.gram_dir = Path.resolve(Path(gram_dir))
-        self.build_path = ProjectPaths.path_fact(self.gram_dir)
+        super().__init__(self.gram_dir, force)
 
+        self.build_path = ProjectPaths.path_fact(self.gram_dir)
         self.prg = self.build_path("prg")
         self.ref = self.build_path("original_reference.fasta")
         self.built_vcf = self.build_path("build.vcf")
         self.report = self.build_path("build_report.json")
         self.fm_index = self.build_path("fm_index")
         self.cov_graph = self.build_path("cov_graph")
-        self.made_gram_dir = False
 
-        self.initial_setup()
-
-    def initial_setup(self):
-        if not self.gram_dir.exists():
-            log.debug("Creating gram directory:\n%s", self.gram_dir)
-            self.gram_dir.mkdir()
-            self.made_gram_dir = True
-
-    def cleanup(self):
-        if self.gram_dir.exists() and self.made_gram_dir:
-            self.gram_dir.rmdir()
+    def setup(self):
+        super().initial_setup()
 
     def _check_ref_and_make_ref_link(self, ref_path):
         resolved_ref_path = Path.resolve(Path(ref_path))
@@ -125,6 +130,7 @@ class BuildPaths(ProjectPaths):
 class GenotypePaths(ProjectPaths):
     def __init__(self, genotype_dir, force=False):
         self.geno_dir = Path.resolve(Path(genotype_dir))
+        super().__init__(self.geno_dir, force)
 
         self.geno_path = ProjectPaths.path_fact(self.geno_dir)
         self.cov_path = ProjectPaths.path_fact(self.geno_dir / "coverage")
@@ -138,24 +144,16 @@ class GenotypePaths(ProjectPaths):
         self.read_stats = self.geno_path("read_stats.json")
         self.gped_cov = self.cov_path("grouped_allele_counts_coverage.json")
         self.pb_cov = self.cov_path("allele_base_coverage.json")
-        self.force = force  # Whether to erase existing geno_dir
 
-        self.initial_setup()
+        # Infer-related
+        self.geno_vcf = self.results_path("genotyped.vcf.gz")
+        self.pers_ref = self.results_path("personalised_reference.fasta")
 
-    def initial_setup(self):
-        if self.geno_dir.exists():
-            if not self.force:
-                log.error(
-                    f"{self.geno_dir} already exists.\n"
-                    f"Pass --force at command-line to erase it."
-                )
-                exit(1)
-            shutil.rmtree(self.geno_dir)
-        self.geno_dir.mkdir()
+    def setup(self, args):
+        super().initial_setup()
         self.reads_dir.mkdir()
-
-    def cleanup(self):
-        shutil.rmtree(self.geno_dir)
+        self._link_to_build(args.gram_dir)
+        self._link_to_reads(args.reads)
 
     def _link_to_build(self, existing_gram_dir):
         """
@@ -181,107 +179,47 @@ class GenotypePaths(ProjectPaths):
             target.symlink_to(read_file)
 
 
+class DiscoverPaths(ProjectPaths):
+    def __init__(self, discovery_dir, genotype_dir, force=False):
+        self.disco_dir = Path.resolve(Path(discovery_dir))
+        super().__init__(self.disco_dir, force)
+
+        # Build paths from genotype dir
+        geno_paths = GenotypePaths(genotype_dir)
+        self.pers_ref = geno_paths.pers_ref
+        self.reads_files = []
+        self.check_exists(geno_paths.reads_dir)
+        for read_file in geno_paths.reads_dir.iterdir():
+            self.reads_files.append(
+                read_file.resolve()
+            )  # to absolute path + resolves symlinks
+
+        self.cortex_vcf = self.disco_dir / "cortex.vcf"
+        self.final_vcf = self.disco_dir / "final.vcf"
+
+    def setup(self):
+        super().initial_setup()
+        self.check_exists(self.pers_ref)
+
+
 class SimulatePaths(ProjectPaths):
     def __init__(self, output_dir, sample_id: str, prg_filepath, force=False):
-        self.output_dir = Path(output_dir).resolve()
-        self.made_output_dir = False
-        self.force = force
+        self.sim_dir = Path(output_dir).resolve()
+        super().__init__(self.sim_dir, force)
 
         self.prg_fpath = Path(prg_filepath).resolve()
-        self.json_out = self.output_dir / f"{sample_id}.json"
-        self.fasta_out = self.output_dir / f"{sample_id}.fasta"
+        self.json_out = self.sim_dir / f"{sample_id}.json"
+        self.fasta_out = self.sim_dir / f"{sample_id}.fasta"
 
-        self.initial_setup()
-
-    def initial_setup(self):
-        self.check_exists(self.prg_fpath)
-
-        if not self.output_dir.exists():
-            self.output_dir.mkdir()
+    def setup(self):
+        if not self.sim_dir.exists():
+            self.sim_dir.mkdir()
             self.made_output_dir = True
-        else:
-            for path in [self.json_out, self.fasta_out]:
-                if path.exists() and not self.force:
-                    self.raise_error(
-                        f"{path} already exists.\n" f"Run with --force to overwrite."
-                    )
 
-    def cleanup(self):
-        if self.made_output_dir:
-            shutil.rmtree(self.output_dir)
-
-
-def generate_infer_paths(args):
-    all_paths = _generate_run_paths(args.run_dir)
-    build_dir = all_paths[
-        "build_dir"
-    ]  #  Symlink to original --gram-dir, index against which quasimap was ran.
-    all_paths.update(_generate_project_paths(build_dir))
-
-    if not os.path.exists(all_paths["infer_dir"]):
-        os.mkdir(all_paths["infer_dir"])
-
-    return all_paths
-
-
-## Make `discover` file paths. Includes making the paths to the reads files used in `quasimap`.
-def generate_discover_paths(args):
-
-    all_paths = _generate_run_paths(args.run_dir)
-    build_dir = all_paths[
-        "build_dir"
-    ]  #  Symlink to original --gram-dir, index against which quasimap and infer ran.
-    all_paths.update(_generate_project_paths(build_dir))
-
-    #  Make discovery output dir
-    if not os.path.exists(all_paths["discover_dir"]):
-        os.mkdir(all_paths["discover_dir"])
-
-    #  Check `infer` files are present
-    _check_exists(
-        all_paths["inferred_fasta"],
-        file_description="Fasta formatted inferred personalised reference",
-    )
-
-    _check_exists(
-        all_paths["inferred_vcf"],
-        file_description="Vcf formatted inferred personalised reference",
-    )
-
-    #  Build read file paths by scanning the reads_directory, and following symlinks.
-    if args.reads is None:
-        reads_files = []
-        with os.scandir(all_paths["reads_dir"]) as it:
-            for entry in it:
-                reads_files.append(
-                    os.path.realpath(entry.path)
-                )  # realpath resolves symlinks, unlike abspath
-
-        all_paths.update({"reads_files": reads_files})
-
-    return all_paths
-
-
-## Generates paths that will be shared between 'run' commands.
-def _generate_run_paths(run_dir):
-
-    # Infer paths
-    infer_path = path_fact(paths["infer_dir"])
-    paths.update(
-        {
-            "inferred_fasta": infer_path("inferred.fasta"),
-            "inferred_vcf": infer_path("inferred.vcf"),
-            "inferred_ref_size": infer_path("inferred_ref_size"),
-        }
-    )
-
-    # Discover paths
-    discover_path = path_fact(paths["discover_dir"])
-    paths.update(
-        {
-            "cortex_vcf": discover_path("cortex.vcf"),
-            "rebased_vcf": discover_path("rebased.vcf"),
-        }
-    )
-
-    return paths
+        self.check_exists(self.prg_fpath)
+        for path in [self.json_out, self.fasta_out]:
+            if path.exists() and not self.force:
+                self.raise_error(
+                    f"{self.sim_dir} already exists.\n"
+                    f"Run with --force to overwrite."
+                )

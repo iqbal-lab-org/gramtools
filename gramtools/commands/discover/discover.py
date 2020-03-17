@@ -13,47 +13,23 @@ import collections
 import vcf
 import cortex
 
-from . import paths
+from gramtools.commands.paths import DiscoverPaths
 
 log = logging.getLogger("gramtools")
 
 
-def setup_parser(common_parser, subparsers):
-    parser = subparsers.add_parser("discover", parents=[common_parser])
-
-    parser.add_argument(
-        "-i",
-        "--genotype_dir",
-        help="Common directory for gramtools running commands. Will contain discover outputs."
-        "The outputs are: the vcf files from the variant callers,"
-        "[their adjucated combination], both native and rebased "
-        "(=expressed in original reference coordinates).",
-        dest="geno_dir",
-        type=str,
-        required=True,
-    )
-
-    parser.add_argument(
-        "--reads",
-        help="Reads files for variant discovery against `infer`.\n"
-        "These should be the same as those used in `quasimap`."
-        "Those are used by default.",
-        type=str,
-        required=False,
-    )
-
-
 def run(args):
     log.info("Start process: discover")
-    _paths = paths.generate_discover_paths(args)
+    disco_paths = DiscoverPaths(args.disco_dir, args.geno_dir, args.force)
+    disco_paths.setup()
 
     # call variants using `cortex`
     log.debug("Running cortex")
-    cortex.calls(_paths["inferred_fasta"], _paths["reads_files"], _paths["cortex_vcf"])
+    cortex.calls(disco_paths.pers_ref, disco_paths.reads_files, disco_paths.cortex_vcf)
 
     # Get the length of the inferred fasta reference; was computed at infer stage.
-    with open(_paths["inferred_ref_size"]) as f:
-        chrom_sizes = [int(s) for s in f.read().split()]
+    # with open(_paths["inferred_ref_size"]) as f:
+    #     chrom_sizes = [int(s) for s in f.read().split()]
 
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
     log.debug("Rebasing vcf")
@@ -77,20 +53,20 @@ def run(args):
 ## Rebase a vcf so that it uses same reference as base_vcf.
 #
 # Here is the use case. We have:
-#  new_vcf                         new_reference_vcf
+#  discovery.vcf                   personalised_ref.vcf
 #   |                               |
-#  new_reference                   old_reference
+#  personalised_ref.fasta          base_ref.fasta
 #
 # And we want:
-#  new_vcf
+#  discovery.vcf
 #   |
-#  old_reference
+#  base_ref.fasta
 #
 # In the context of gramtools:
-#  * `new_vcf` is the vcf produced by cortex, ie variant calls against personalised reference.
-# * `new_reference_vcf` is the vcf describing the personalised reference with respect to the original prg.
-#  * `old_reference` is the original prg. The first allele of each variant site in the prg is taken for making this.
-# * `new_reference` is the personalised reference; it is the original prg with inferred variant alleles instead.
+#  * `discovery.vcf` is the vcf produced by cortex, ie variant calls against personalised reference.
+# * `personalised_ref` is the personalised reference; it is the original prg with inferred variant alleles instead.
+# * `personalised_ref.vcf` is the vcf describing the personalised reference with respect to the original prg.
+#  * `base_ref` is the original prg. The first allele of each variant site in the prg is taken for making this.
 #
 # Thus what rebasing achieves is to express the variant calls in terms of the original prg coordinates.
 def _rebase_vcf(_paths, chrom_sizes, check_records=True):

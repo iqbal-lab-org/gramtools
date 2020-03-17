@@ -63,17 +63,3 @@ def setup_parser(common_parser, subparsers):
         default=0,
         required=False,
     )
-
-    parser.add_argument(
-        "--force", help="Erase pre-existing output directory", action="store_true"
-    )
-
-
-## Make quasimap-related file and directory paths.
-def setup_files(args) -> ProjectPaths:
-    geno_paths = GenotypePaths(args.geno_dir, args.force)
-
-    geno_paths._link_to_build(args.gram_dir)
-    geno_paths._link_to_reads(args.reads)
-
-    return geno_paths

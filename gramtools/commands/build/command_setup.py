@@ -73,6 +73,7 @@ def setup_files(args) -> ProjectPaths:
     We also do some extra argument checking here.
     """
     build_paths = BuildPaths(args.gram_dir)
+    build_paths.setup()
 
     no_prg = args.prg is None
     no_vcf_and_no_ref = args.reference is None and args.vcf is None

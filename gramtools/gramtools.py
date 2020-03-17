@@ -7,7 +7,7 @@ import collections
 from . import version
 from .commands.build import command_setup as build_setup, build
 from .commands.genotype import command_setup as genotype_setup, genotype
-from .commands import discover
+from .commands.discover import command_setup as discovery_setup, discover
 from .commands.simulate import simulate
 
 
@@ -28,7 +28,11 @@ def _setup_logging(args):
 
 root_parser = argparse.ArgumentParser(prog="gramtools")
 command_setups = collections.OrderedDict(
-    [("build", build_setup), ("genotype", genotype_setup), ("discover", discover)]
+    [
+        ("build", build_setup),
+        ("genotype", genotype_setup),
+        ("discover", discovery_setup),
+    ]
 )
 commands = collections.OrderedDict(
     [
@@ -49,7 +53,14 @@ def _setup_parser():
 
     # Will add a --debug mode for all commands
     common_parser = subparsers.add_parser("common", add_help=False)
-    common_parser.add_argument("--debug", help="", action="store_true")
+    common_parser.add_argument(
+        "--debug", help="Verbose logging of actions taken", action="store_true"
+    )
+    common_parser.add_argument(
+        "--force",
+        help="Erase already existing output directory/files",
+        action="store_true",
+    )
 
     for command_setup in command_setups.values():
         command_setup.setup_parser(common_parser, subparsers)

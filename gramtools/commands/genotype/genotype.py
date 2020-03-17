@@ -7,16 +7,17 @@ import json
 import logging
 import collections
 
-from ... import common
-from .. import report
+from gramtools import common
+from gramtools.commands import report
+from gramtools.commands.paths import GenotypePaths
 from . import command_setup
-from ..paths import GenotypePaths
 
 log = logging.getLogger("gramtools")
 
 
 def run(args):
-    geno_paths = command_setup.setup_files(args)
+    geno_paths = GenotypePaths(args.geno_dir, args.force)
+    geno_paths.setup(args)
 
     log.info("Start process: genotype")
     start_time = str(time.time()).split(".")[0]
