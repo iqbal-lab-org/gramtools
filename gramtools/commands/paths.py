@@ -99,6 +99,7 @@ class BuildPaths(ProjectPaths):
 
         self.build_path = ProjectPaths.path_fact(self.gram_dir)
         self.prg = self.build_path("prg")
+        self.coords_file = self.build_path("prg_coords.tsv")
         self.ref = self.build_path("original_reference.fasta")
         self.built_vcf = self.build_path("build.vcf")
         self.report = self.build_path("build_report.json")

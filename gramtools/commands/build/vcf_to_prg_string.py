@@ -206,6 +206,12 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
         with open(f"{self.f_out_prefix}.prg", "w") as f_out:
             f_out.write(str(prg_string))
 
+    def _write_coordinates(self):
+        with open(f"{self.f_out_prefix}_coords.tsv", "w") as genome_file:
+            for chrom in self.processed_refs:
+                line = f"{chrom}\t{len(self.ref_records[chrom])}\n"
+                genome_file.write(line)
+
 
 # May run standalone
 if __name__ == "__main__":
@@ -236,4 +242,5 @@ if __name__ == "__main__":
     converter = Vcf_to_prg(args.vcf, args.ref, args.outfile, args.mode)
     converter._write_bytes()
     converter._write_string()
+    converter._write_coordinates()
     print(f"num variant sites in prg: {converter.num_sites}")

@@ -9,9 +9,10 @@ import logging
 import collections
 
 import cluster_vcf_records
+from Bio import SeqIO
 
-from ... import common
-from .. import report
+from gramtools import common
+from gramtools.commands import report
 
 from . import vcf_to_prg_string
 from . import command_setup
@@ -120,6 +121,7 @@ def _execute_command_generate_prg(report, action, build_paths):
         built_vcf, build_paths.ref, build_paths.prg, mode="normal"
     )
     converter._write_bytes()
+    converter._write_coordinates()
 
     num_recs_in_vcf = _count_vcf_record_lines(built_vcf)
     assert num_recs_in_vcf == converter.num_sites, log.error(
@@ -138,6 +140,13 @@ def _skip_prg_construction(report, action, build_paths, args):
     log.debug("PRG file provided, skipping construction")
     log.debug("Copying PRG file into gram directory")
     shutil.copyfile(args.prg, build_paths.prg)
+
+    # Write coordinates file
+    with open(build_paths.coords_file, "w") as genome_file:
+        if args.reference != "None":
+            for seq_record in SeqIO.parse(args.reference, "fasta"):
+                line = f"{seq_record.id}\t{len(seq_record)}\n"
+                genome_file.write(line)
 
 
 ## Executes `gram build` backend.
