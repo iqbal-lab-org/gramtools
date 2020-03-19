@@ -1,41 +1,29 @@
 """
-Two utilities are tested here for making a PRG string from a vcf.
-They are expected to have the same behaviour for:
+Behaviour of conversion utility:
     * Overlapping vcf records (same CHROM, same POS): the first is kept, the rest is ignored
-    * Fasta records with no variation: they are output to the prg string. For python utility
-     they are concatenated at the end of the prg string, in the order seen in the input fasta.
+    * Fasta records with no variation: they are output to the prg string,
+    concatenated at the end of the prg string, in the order seen in the input fasta.
 
-They have DIFFERENT behaviour for:
-    * File production: the python utility only produces a prg string file
-    * Adjacent records: the python utility places site markers adjacent to each other,
-    while the perl one enumerates all combinations.
+    * Adjacent records: site markers placed adjacent to each other,
     * Allele markers: in 'normal' mode, the python utility marks the end of a variant site
     with an allele (even) marker, not a site marker.
 
 Bugs/Notes:
-    Perl utility:
-        If there is one variant inside another one, eg this test is:
-        Ref:  AGCACGTCATGA
-        var1: AG-----CATGA
-        var2: AGCTCGTCATGA
-                 * <- SNP here!
-        Then only var1 is put into the graph, but both lines
-        of VCF are put into the output.
-
-    Python utility:
         Possible lack of flexibility in vcf input 'bad formatting'
         due to use of PyVcf module.
 
-
+There used to be a perl utility for conversion. Cases where it worked the same as current utility are
+under `test_routine_common_behaviour`
 """
 import filecmp
+from tempfile import mkdtemp
+from shutil import rmtree
 from pathlib import Path
 import os
 import subprocess
 import unittest
 
 base_dir = Path(__file__).parent.parent.parent.parent
-perl_utility = base_dir / "commands" / "build" / "vcf_to_linear_prg.pl"
 python_utility = base_dir / "commands" / "build" / "vcf_to_prg_string.py"
 data_dir = base_dir / "tests" / "data" / "vcf_to_prg_string"
 
@@ -46,41 +34,16 @@ class Utility_Tester(object):
     """
 
     def __init__(self, file_prefix):
-        self.vcf_file = data_dir / (file_prefix + ".vcf")
-        self.ref_file = data_dir / (file_prefix + ".ref.fa")
-        self.expected_prg = data_dir / (file_prefix + ".prg")
-        self.expected_vcf = data_dir / (
-            file_prefix + ".expect.vcf"
-        )  #  For perl util only
-        self.outfile_prefix = "tmp." + file_prefix
-        self.outfile = self.outfile_prefix + ".prg"
+        self.vcf_file = data_dir / Path(f"{file_prefix}.vcf")
+        self.ref_file = data_dir / Path(f"{file_prefix}.ref.fa")
+        self.expected_prg = data_dir / Path(f"{file_prefix}.prg")
 
-    def _run_perl_utility(self):
-        if os.path.exists(self.outfile):
-            os.unlink(self.outfile)
+        self.tmp_dir = mkdtemp()
+        # Clumsily below is also the name of the binary output file
+        self.outfile_prefix = Path(f"{self.tmp_dir}") / Path("prg")
+        self.outfile = Path(str(self.outfile_prefix) + ".prg")
 
-        # Test the perl utility
-        perl_command = [
-            "perl",
-            str(perl_utility),
-            "--vcf",
-            str(self.vcf_file),
-            "--ref",
-            str(self.ref_file),
-            "--min_freq 0.01",
-            "--outfile",
-            self.outfile,
-        ]
-        completed_process = subprocess.run(
-            perl_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        return completed_process
-
-    def _perl_cleanup(self):
-        for suffix in ["", ".fa", ".mask_alleles", ".mask_sites", ".vcf"]:
-            os.unlink(self.outfile + suffix)
-
-    def _run_python_utility(self, mode="normal", check=False):
+    def _run(self, mode="normal", check=False):
         """
         :param mode: either "normal" or "legacy". In legacy, variant sites encoded
         in same way as perl utility.
@@ -102,25 +65,18 @@ class Utility_Tester(object):
         )
         return completed_process
 
-    def _python_cleanup(self):
-        os.unlink(self.outfile_prefix)
-        os.unlink(f"{self.outfile}")
+    def _cleanup(self):
+        rmtree(self.tmp_dir)
 
 
 class Test_UtilityScriptsFunction(unittest.TestCase):
     def test_find_utility_script(self):
         """Test that we find the conversion utilities"""
-        self.assertTrue(perl_utility.exists())
         self.assertTrue(python_utility.exists())
 
 
 class Test_VcfToPrgString(unittest.TestCase):
     def test_routine_common_behaviour(self):
-        """
-        This set runs tests where we expect the two utilities
-        to produce the exact same outputs.
-        """
-        #  Here's a description of the test cases. There are files that correspond to each.
         test_cases = {
             "no_variants": "Vcf file has no records",
             "one_snp": "",
@@ -137,36 +93,17 @@ class Test_VcfToPrgString(unittest.TestCase):
         for fname in test_cases.keys():
             with self.subTest(fname=fname):
                 tester = Utility_Tester(fname)
-                completed_process = tester._run_perl_utility()
+
+                completed_process = tester._run(mode="legacy")
                 self.assertEqual(0, completed_process.returncode)
                 self.assertTrue(
                     filecmp.cmp(tester.expected_prg, tester.outfile, shallow=False)
                 )
-                self.assertTrue(
-                    filecmp.cmp(
-                        tester.expected_vcf, tester.outfile + ".vcf", shallow=False
-                    )
-                )
-                tester._perl_cleanup()
+                tester._cleanup()
 
-                completed_process = tester._run_python_utility(mode="legacy")
-                self.assertEqual(0, completed_process.returncode)
-                self.assertTrue(
-                    filecmp.cmp(tester.expected_prg, tester.outfile, shallow=False)
-                )
-                tester._python_cleanup()
-
-    def test_routine_unique_behaviour(self):
-        """
-        This set runs tests where we expect the two utilities
-        to behave differently
-        """
+    def test_adjacent_snps_allowed(self):
         test_cases = {
-            "two_adjacent_snps": "Two SNPs at consecutive positions."
-            "The perl utility enumerates all combinations"
-            "which avoids adjacent site markers in the prg string."
-            "The python utility lets adjacent site markers"
-            "occur.",
+            "two_adjacent_snps": "Two SNPs at consecutive positions.",
             "two_adjacent_snps_two_alts": "Same as above,"
             " with more than one alternative",
         }
@@ -174,23 +111,7 @@ class Test_VcfToPrgString(unittest.TestCase):
         for fname in test_cases.keys():
             with self.subTest(fname=fname):
                 tester = Utility_Tester(fname)
-                completed_process = tester._run_perl_utility()
-                self.assertEqual(0, completed_process.returncode)
-                self.assertTrue(
-                    filecmp.cmp(
-                        os.path.join(data_dir, "perl_" + fname + ".prg"),
-                        tester.outfile,
-                        shallow=False,
-                    )
-                )
-                self.assertTrue(
-                    filecmp.cmp(
-                        tester.expected_vcf, tester.outfile + ".vcf", shallow=False
-                    )
-                )
-                tester._perl_cleanup()
-
-                completed_process = tester._run_python_utility(mode="legacy")
+                completed_process = tester._run(mode="legacy")
                 self.assertEqual(0, completed_process.returncode)
                 self.assertTrue(
                     filecmp.cmp(
@@ -199,9 +120,9 @@ class Test_VcfToPrgString(unittest.TestCase):
                         shallow=False,
                     )
                 )
-                tester._python_cleanup()
+                tester._cleanup()
 
-    def test_routine_python_normalMode(self):
+    def test_AlleleRepresentation(self):
         """
         Tests the new representation of variant sites implemented
         by default in the python utility (mode="normal")
@@ -215,9 +136,7 @@ class Test_VcfToPrgString(unittest.TestCase):
             with self.subTest(fname=fname):
                 tester = Utility_Tester(fname)
 
-                completed_process = (
-                    tester._run_python_utility()
-                )  # No mode is normal mode
+                completed_process = tester._run()  # normal mode is default
                 self.assertEqual(0, completed_process.returncode)
                 self.assertTrue(
                     filecmp.cmp(
@@ -226,18 +145,10 @@ class Test_VcfToPrgString(unittest.TestCase):
                         shallow=False,
                     )
                 )
-                tester._python_cleanup()
+                tester._cleanup()
 
 
 class Test_VcfFormatInputs(unittest.TestCase):
-    """
-    A note about assertRaises: if ran using the UtilityTester module's functions,
-    assertRaises checks whether python subprocess module raises an exception (not
-    the python conversion utility itself).
-
-    This is enforced by asking subprocess.run to check its return code.
-    """
-
     test_cases = {"bad_header_complex_variant"}
 
     def test_singlehash_headers(self):
@@ -249,4 +160,4 @@ class Test_VcfFormatInputs(unittest.TestCase):
         tester = Utility_Tester(fname)
 
         with self.assertRaises(Exception):
-            tester._run_python_utility(check=True)
+            tester._run(check=True)

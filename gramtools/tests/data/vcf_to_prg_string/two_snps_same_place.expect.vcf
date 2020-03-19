@@ -1,4 +1,0 @@
-##header1
-##header2
-#CHROM POS      ID         REF   ALT    QUAL  FILTER   INFO
-ref.1	2	id1	G	A	42	PASS	AF=10

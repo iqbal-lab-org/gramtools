@@ -121,9 +121,6 @@ def _execute_command_generate_prg(report, action, build_paths):
     )
     converter._write_bytes()
 
-    ## The converter does not produce a vcf
-    # Thus the input vcf needs to be 'clean': we need each vcf record to be converted
-    # to a variant site in the prg so that later on the genotyping process, which uses vcf, is possible.
     num_recs_in_vcf = _count_vcf_record_lines(built_vcf)
     assert num_recs_in_vcf == converter.num_sites, log.error(
         f"Mismatch between number of vcf records in {built_vcf}"
