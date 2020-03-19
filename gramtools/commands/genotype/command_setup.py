@@ -41,10 +41,10 @@ def setup_parser(common_parser, subparsers):
 
     parser.add_argument(
         "--ploidy",
-        help="The expected ploidy of the sample.\n" "Default: diploid",
+        help="The expected ploidy of the sample.\n" "Default: haploid",
         choices=["haploid", "diploid"],
         required=False,
-        default="diploid",
+        default="haploid",
     )
 
     parser.add_argument(

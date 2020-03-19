@@ -41,7 +41,7 @@ class IntegrationRunner:
 
     def run_build(self):
         args = gramtools.root_parser.parse_args(
-            f"build --gram_dir {self.gram_dir} --prg {self.prg_file} --kmer_size 5".split()
+            f"build --gram_dir {self.gram_dir} --prg {self.prg_file} --kmer_size 5 --force".split()
         )
         build.run(args)
 

@@ -18,7 +18,7 @@ class ProjectPaths:
         return lambda fname: base_dir / fname
 
     def __init__(self, output_dir, force: bool):
-        self.sim_dir = output_dir
+        self.output_dir = output_dir
         self.made_output_dir = False
         self.force = force  # Whether to erase existing geno_dir
 
@@ -32,22 +32,22 @@ class ProjectPaths:
             exit(1)
 
     def initial_setup(self):
-        if not self.sim_dir.exists():
-            log.debug("Creating output directory:\n%s", self.sim_dir)
-            self.sim_dir.mkdir(parents=True)
+        if not self.output_dir.exists():
+            log.debug("Creating output directory:\n%s", self.output_dir)
+            self.output_dir.mkdir(parents=True)
             self.made_output_dir = True
             return
 
         if not self.force:
             self.raise_error(
-                f"{self.sim_dir} already exists.\n" f"Run with --force to overwrite."
+                f"{self.output_dir} already exists.\n" f"Run with --force to overwrite."
             )
-        shutil.rmtree(self.sim_dir)
-        self.sim_dir.mkdir()
+        shutil.rmtree(self.output_dir)
+        self.output_dir.mkdir()
 
     def cleanup(self):
         if self.made_output_dir:
-            shutil.rmtree(self.sim_dir)
+            shutil.rmtree(self.output_dir)
 
     def isOutputtablePath(self, object):
         if isinstance(object, list):

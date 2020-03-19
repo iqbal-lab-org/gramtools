@@ -13,6 +13,17 @@ Behaviour:
      in the ref file.
     * (For a given CHROM,) Records with POS not strictly increasing are dropped.
 """
+from collections import OrderedDict
+import vcf
+from Bio import SeqIO
+
+
+def load_fasta(reference_file):
+    ref_records = OrderedDict()
+    # SeqIO: the id of the record is everything between ">" and the first space.
+    for seq_record in SeqIO.parse(reference_file, "fasta"):
+        ref_records[seq_record.id] = seq_record.seq
+    return ref_records
 
 
 def integer_encode_nucleotide(nucleotide):
@@ -41,48 +52,25 @@ def nucleotide_decode_integer(integer):
         return str(integer)
 
 
-import collections
-import vcf
-from Bio import SeqIO
-
-
 class _Template_Vcf_to_prg(object):
-    """
-    Defines utility functions for its descendants.
-    Not for users.
-    """
-
     acceptable_modes = {"legacy", "normal"}
     NUM_BYTES = 4  # Number of bytes for each serialised integer
 
     def __init__(self):
-        self.prg_vector = []
-        self.ref_records = collections.OrderedDict()
+        self.prg_vector: List[int] = []
         self.num_sites = 0
-        self.processed_ref = set()  # A set of ref records with variation
+        self.processed_refs = list()
         self.f_out = None
-        self.mode = None
-
-    def _parse_reference(self, reference_file):
-        """
-        Read in the records in the fasta reference
-        """
-        # A note on SeqIO: the id of the record is everything between ">" and the first space.
-        for seq_record in SeqIO.parse(reference_file, "fasta"):
-            self.ref_records[seq_record.id] = seq_record.seq
 
     def _check_record_ref(self, chrom):
-        """
-        Make sure the vcf record refers to a valid ref sequence ID
-        """
-        ref_seq = self.ref_records.get(chrom, None)
-        if ref_seq is None:
+        # Make sure the vcf record refers to a valid ref sequence ID
+        if chrom not in self.ref_records:
             raise ValueError(
                 f"The ref ID {chrom} "
-                "in vcf file {self.vcf_in} was not found in reference file {self.ref_in}"
+                f"in vcf file {self.vcf_in} was not found in reference file {self.ref_in}"
             )
 
-    def _record_to_prg_rep(self, vcf_record, site_marker):
+    def _record_to_prg_rep(self, site_marker, mode):
         """
         Go from a vcf record to its prg string representation:
             * (legacy) site markers flank the variant site
@@ -90,14 +78,14 @@ class _Template_Vcf_to_prg(object):
         """
         prg_rep = [site_marker]
         allele_marker = site_marker + 1
-        alleles = [[integer_encode_nucleotide(nt) for nt in vcf_record.REF]]
-        for alt_allele in vcf_record.ALT:
+        alleles = [[integer_encode_nucleotide(nt) for nt in self.vcf_record.REF]]
+        for alt_allele in self.vcf_record.ALT:
             alleles.append([integer_encode_nucleotide(nt) for nt in str(alt_allele)])
-        if self.mode == "normal":
+        if mode == "normal":
             for allele in alleles:
                 prg_rep.extend(allele + [allele_marker])
 
-        elif self.mode == "legacy":
+        elif mode == "legacy":
             for i, allele in enumerate(alleles):
                 if i < len(alleles) - 1:
                     prg_rep.extend(allele + [allele_marker])
@@ -105,73 +93,21 @@ class _Template_Vcf_to_prg(object):
                     prg_rep.extend(allele + [site_marker])
         return prg_rep
 
-    def _get_invariant_portion(self, chrom, processed_pos, cur_pos):
-        """
-        Get the ref sequence in between records
-        Assumes that `chrom` is valid, ie exists as a ref record.
-        """
+    def _get_ref_slice(self, chrom, start, end=0):
         ref_seq = self.ref_records[chrom]
-        invariant = str(ref_seq[processed_pos - 1 : cur_pos - 1]).upper()
-        invariant = list(
-            map(integer_encode_nucleotide, invariant)
-        )  # Convert to integers
-        return invariant
-
-    def _get_final_invariant(self, chrom, processed_pos):
-        invariant = []
-        ref_seq = self.ref_records[chrom]
-        # The only case where we don't want to enter this is when the processed_pos has gone past the end of the ref record
-        if len(ref_seq) >= processed_pos:
-            invariant = ref_seq[processed_pos - 1 :]
-
-        invariant = list(
-            map(integer_encode_nucleotide, invariant.upper())
-        )  # Convert to integers
-        return invariant
-
-    def _maybe_make_chrom_end(self, prev_chrom, cur_chrom, processed_pos):
-        """
-        When we change chromosome, we may need to add its invariant end to the prg_string.
-        :return: Updated, or unchanged, chromo and current position in chromo.
-        """
-        if cur_chrom != prev_chrom:
-            # Case: deal with end of chromosome
-            if prev_chrom is not None:
-                self.prg_vector.extend(
-                    self._get_final_invariant(prev_chrom, processed_pos)
-                )
-                processed_pos = 1
-            prev_chrom = cur_chrom
-            self.processed_ref.add(cur_chrom)
-
-        return prev_chrom, processed_pos
-
-    def _maybe_add_preceding_invariant_sequence(self, chrom, cur_pos, processed_pos):
-        """
-        When we go to a new record, we may need to add invariant sequence preceding it to the prg_string.
-        :return: Updated, or unchanged current position in chromo
-        """
-        if cur_pos > processed_pos:
-            #  Case: add invariant reference in between variant records
-            self.prg_vector += self._get_invariant_portion(
-                chrom, processed_pos, cur_pos
-            )
+        res = str(ref_seq[start - 1 :]).upper()
+        if end != 0:
+            res = res[: end - start]
+        res = list(map(integer_encode_nucleotide, res))  # Convert to integers
+        return res
 
     def _get_ref_records_with_no_variants(self):
-        """
-        Writes each record with no variants to the prg file
-        """
-        ref_no_recs = []
-        all_records = set(self.ref_records.keys())
-        diff = all_records.difference(self.processed_ref)
-        diff = [
-            r for r in self.ref_records.keys() if r in diff
-        ]  # Conserve the initial ordering.
+        used_refs = set(self.processed_refs)
+        diff = [rec_id for rec_id in self.ref_records.keys() if rec_id not in used_refs]
         if len(diff) > 0:
             for id in diff:
                 seq = [integer_encode_nucleotide(nt) for nt in self.ref_records[id]]
-                ref_no_recs.append(seq)
-        return ref_no_recs
+                yield id, seq
 
 
 class Vcf_to_prg(_Template_Vcf_to_prg):
@@ -185,71 +121,71 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
         super().__init__()
         if mode not in self.acceptable_modes:
             raise ValueError(f"Mode not in {self.acceptable_modes}")
-        self.mode = mode
 
-        self.vcf_in = vcf_file
-        self.ref_in = reference_file
+        self.f_in = open(vcf_file)
         self.f_out_prefix = prg_output_file
-        self._parse_reference(reference_file)  # Populates the ref_records
-        self._make_prg()
+        self.vcf_in = vcf.Reader(self.f_in)
+        self.ref_in = reference_file
 
-    def _make_prg(self):
-        """
-        Constructs the prg string.
-        """
-        cur_site_marker = 5
-        processed_pos = 1  # 1-based
-        prev_chrom = None
+        self.ref_records = load_fasta(reference_file)
+        self.vcf_record = self.next_rec()
+        self._make_prg(mode)
 
-        #  Parse vcf
-        f_in = open(self.vcf_in)
-        vcf_in = vcf.Reader(f_in)
-
+    def next_rec(self):
         try:
-            record = next(vcf_in, None)
+            vcf_record = next(self.vcf_in, None)
         except Exception as e:  # PyVCF raises this
             print(
                 f'ERROR: Could not read vcf file {self.vcf_in} due to: "{e}".'
                 "Is the VCF properly formatted?"
             )
+            self.f_in.close()
             raise
+        return vcf_record
 
-        while record != None:
-            cur_pos = record.POS
+    def _make_prg(self, mode):
+        ref_chrom = None
+        cur_site_marker = 5
 
-            self._check_record_ref(record.CHROM)
+        while self.vcf_record != None:
+            self.num_sites += 1
+            vcf_pos = self.vcf_record.POS
+            vcf_chrom = self.vcf_record.CHROM
+            self._check_record_ref(vcf_chrom)
 
-            prev_chrom, processed_pos = self._maybe_make_chrom_end(
-                prev_chrom, record.CHROM, processed_pos
-            )
+            if vcf_chrom != ref_chrom:
+                if ref_chrom is not None:
+                    self.prg_vector.extend(self._get_ref_slice(ref_chrom, ref_pos))
+                    self.processed_refs.append(ref_chrom)
+                ref_pos = 1
+                ref_chrom = vcf_chrom
 
             # Skip records which are not sorted, or all others present at same position
-            if cur_pos < processed_pos:
-                record = next(vcf_in, None)
+            if vcf_pos < ref_pos:
+                self.vcf_record = self.next_rec()
                 continue
 
-            self._maybe_add_preceding_invariant_sequence(
-                record.CHROM, cur_pos, processed_pos
-            )
+            if vcf_pos > ref_pos:
+                self.prg_vector += self._get_ref_slice(vcf_chrom, ref_pos, vcf_pos)
+                ref_pos = vcf_pos
 
-            # Convert vcf record to its prg representation
-            self.prg_vector.extend(self._record_to_prg_rep(record, cur_site_marker))
-            processed_pos = cur_pos + len(record.REF)
-
+            self.prg_vector.extend(self._record_to_prg_rep(cur_site_marker, mode))
+            ref_pos += len(self.vcf_record.REF)
             cur_site_marker += 2
-            self.num_sites += 1
 
-            record = next(vcf_in, None)
+            self.vcf_record = self.next_rec()
 
         # End condition: might have some invariant reference left
-        if prev_chrom is not None:
-            self.prg_vector.extend(self._get_final_invariant(prev_chrom, processed_pos))
+        if ref_chrom is not None:
+            self.prg_vector.extend(self._get_ref_slice(ref_chrom, ref_pos))
+            self.processed_refs.append(vcf_chrom)
 
         # End condition #2 : might have records with no variants
-        for rec in self._get_ref_records_with_no_variants():
-            self.prg_vector.extend(rec)
+        for ref_chrom, ref_seq in self._get_ref_records_with_no_variants():
+            self.prg_vector.extend(ref_seq)
+            self.processed_refs.append(ref_chrom)
 
-        f_in.close()
+        self.f_in.close()
 
     def _write_bytes(self):
         """
@@ -281,6 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("vcf", type=str, help="vcf file in")
     parser.add_argument("ref", type=str, help="reference file in")
     parser.add_argument(
+        "-o",
         "--outfile",
         type=str,
         help='path to prg file out (default: file "prg" in cwd)',

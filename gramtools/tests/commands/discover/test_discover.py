@@ -2,7 +2,7 @@ import unittest
 import os
 import collections
 
-from gramtools.commands import discover
+from gramtools.commands.discover import discover
 from gramtools.utils import prg_local_parser
 from ...utils import _MockVcfRecord
 

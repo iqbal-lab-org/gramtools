@@ -145,6 +145,7 @@ setuptools.setup(
     packages=setuptools.find_packages("."),
     include_package_data=True,
     install_requires=[
+        "biopython >= 1.76",
         "scipy >= 1.0.1",
         "pyvcf >= 0.6.8",
         "py-cortex-api >= 1.0",
