@@ -1,6 +1,7 @@
 #include "simulate/simulate.hpp"
 #include "prg/coverage_graph.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
+#include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/personalised_reference.hpp"
 #include <iomanip>
@@ -72,6 +73,10 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
     bool first{true};
     std::string sample_id;
 
+    std::ifstream coords_file(parameters.prg_coords_fpath);
+    SegmentTracker tracker(coords_file);
+    coords_file.close();
+
     uint64_t num_runs{0};
     uint64_t num_sampled{0};
     while (num_runs < parameters.max_num_paths){
@@ -86,7 +91,7 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
            new_p_ref.set_sample_info(sample_id, desc);
            unique_simu_paths.insert(new_p_ref);
            ordered_simu_paths.push_back(new_p_ref);
-           auto new_json = make_json_prg(ptr_gtyper);
+           auto new_json = make_json_prg(ptr_gtyper, tracker);
            if (first){
                simu_json = new_json;
                simu_json->set_sample_info(sample_id, desc);

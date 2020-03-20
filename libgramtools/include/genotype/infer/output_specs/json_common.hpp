@@ -41,7 +41,10 @@ namespace gram::json::spec {
         JSON result =
                 {
                         {"POS",
-                                {"Desc", "Position on reference or pseudo-reference"}
+                                {{"Desc", "Position on reference or pseudo-reference"}}
+                        },
+                        {"SEG",
+                                {{"Desc", "Segment ID"}}
                         },
                         {"ALS",
                                 {{"Desc", "Alleles at this site"}}

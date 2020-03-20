@@ -1,12 +1,19 @@
 #include "genotype/infer/output_specs/make_json.hpp"
+#include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "prg/coverage_graph.hpp"
 
-json_prg_ptr make_json_prg(gtyper_ptr const& gtyper){
+using namespace gram::genotype;
+
+json_prg_ptr make_json_prg(gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto result = std::make_shared<Json_Prg>();
     populate_json_prg(*result, gtyper);
     auto genotyped_records = gtyper->get_genotyped_records();
-    for (auto const& site : genotyped_records)
-        result->add_site(make_json_site(site));
+    for (auto const& site : genotyped_records){
+        auto json_site = make_json_site(site);
+        json_site->set_segment(tracker.get_ID(json_site->get_pos()));
+        result->add_site(json_site);
+    }
+    tracker.reset();
     return result;
 }
 

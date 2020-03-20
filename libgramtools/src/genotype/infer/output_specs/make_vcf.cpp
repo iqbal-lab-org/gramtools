@@ -1,46 +1,50 @@
 #include <htslib/synced_bcf_reader.h>
 #include "genotype/infer/output_specs/make_vcf.hpp"
+#include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 #include "prg/coverage_graph.hpp"
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper) {
+void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto fout = bcf_open(params.genotyped_vcf_fpath.c_str(), "wz"); // Writer
-    bcf_srs_t* sr = nullptr; // Reader, if a vcf was used to build the PRG
+    bcf_srs_t* reader = nullptr; // Reader, if a vcf was used to build the PRG
 
     // Set up and write header
-    bcf_hdr_t* hdr;
+    bcf_hdr_t* header;
     if (fs::exists(params.built_vcf)) {
-        sr = bcf_sr_init();
-        bcf_sr_add_reader(sr, params.built_vcf.c_str());
-        hdr = bcf_sr_get_header(sr, 0);
+        reader = bcf_sr_init();
+        bcf_sr_add_reader(reader, params.built_vcf.c_str());
+        header = bcf_sr_get_header(reader, 0);
     }
-    else hdr = bcf_hdr_init("w");
-    populate_vcf_hdr(hdr, gtyper, params);
-    bcf_hdr_write(fout, hdr);
+    else header = bcf_hdr_init("w");
+    populate_vcf_hdr(header, gtyper, params, tracker);
+    tracker.reset();
+    bcf_hdr_write(fout, header);
 
-    write_sites(fout, sr, hdr, gtyper);
+    write_sites(fout, reader, header, gtyper, tracker);
+    tracker.reset();
 
-    if (sr != nullptr){
-        if ( sr->errnum ) ("Error: %s\n", bcf_sr_strerror(sr->errnum));
-        bcf_sr_destroy(sr);
+    if (reader != nullptr){
+        if ( reader->errnum ) ("Error: %s\n", bcf_sr_strerror(reader->errnum));
+        bcf_sr_destroy(reader);
     }
 
     bcf_close(fout);
 }
 
-void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper,
-        gram::GenotypeParams const &params) {
+void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper, gram::GenotypeParams const &params,
+        SegmentTracker &tracker) {
 
     if (fs::exists(params.built_vcf)){
         bcf_hdr_remove(hdr, 2, nullptr); // Remove all FORMAT header entries
+        bcf_hdr_remove(hdr, 3, nullptr); // Remove all contig header entries
         bcf_hdr_remove(hdr, 5, "source");
         bcf_hdr_set_samples(hdr, nullptr, 0); // Remove samples, from reading and writing
     }
-    else {
-       auto contig = vcf_meta_info_line("contig", "gram_prg", "").to_string();
+    for (auto const& segment: tracker.get_segments()){
+       auto contig = vcf_meta_info_line("contig", segment.ID, segment.size).to_string();
        bcf_hdr_append(hdr, contig.c_str());
     }
 
@@ -72,7 +76,8 @@ std::size_t next_valid_idx(std::size_t idx, std::size_t max_size, gram::parental
 }
 
 
-void write_sites(htsFile *fout, bcf_srs_t *sr, bcf_hdr_t *hdr, gtyper_ptr const &gtyper) {
+void write_sites(htsFile *fout, bcf_srs_t *reader, bcf_hdr_t *header,
+        gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto p_map = gtyper->get_cov_g()->par_map;
     auto genotyped_records = gtyper->get_genotyped_records();
     std::size_t site_idx{0}, max_size{genotyped_records.size()};
@@ -83,14 +88,14 @@ void write_sites(htsFile *fout, bcf_srs_t *sr, bcf_hdr_t *hdr, gtyper_ptr const 
         site_idx = next_valid_idx(site_idx, max_size, p_map);
         if (site_idx >= max_size) break;
 
-        if (sr != nullptr){
-            if (bcf_sr_next_line(sr) == 0) break;
-            else record = bcf_sr_get_line(sr, 0);
+        if (reader != nullptr){
+            if (bcf_sr_next_line(reader) == 0) break;
+            else record = bcf_sr_get_line(reader, 0);
         }
         else bcf_empty(record);
 
-        populate_vcf_site(hdr, record, genotyped_records[site_idx]);
-        bcf_write(fout, hdr, record);
+        populate_vcf_site(header, record, genotyped_records[site_idx], tracker);
+        bcf_write(fout, header, record);
         site_idx++;
     }
 }
@@ -103,10 +108,14 @@ void add_model_specific_entries(bcf_hdr_t* hdr, bcf1_t* record, site_entries con
     }
 }
 
-void populate_vcf_site(bcf_hdr_t* hdr, bcf1_t* record, gt_site_ptr site){
+void populate_vcf_site(bcf_hdr_t *header, bcf1_t *record, gt_site_ptr site, SegmentTracker &tracker) {
     using str_vec = std::vector<std::string>;
 
     record->pos = site->get_pos();
+    // Set CHROM
+    auto numeric_id = bcf_hdr_name2id(header, tracker.get_ID(site->get_pos()).c_str());
+    record->rid = numeric_id;
+
     auto gtype_info = site->get_all_gtype_info();
     std::vector<int32_t> gtypes = gtype_info.genotype;
     if (site->is_null()){
@@ -115,16 +124,16 @@ void populate_vcf_site(bcf_hdr_t* hdr, bcf1_t* record, gt_site_ptr site){
     else{
         for (auto& idx : gtypes) idx = bcf_gt_unphased(idx);
     }
-    bcf_update_genotypes(hdr, record, gtypes.data(), gtypes.size());
+    bcf_update_genotypes(header, record, gtypes.data(), gtypes.size());
 
     str_vec total_cov{std::to_string(gtype_info.total_coverage)};
-    bcf_update_format_string(hdr, record, "DP", reinterpret_cast<char const **>(total_cov.data()), 1);
+    bcf_update_format_string(header, record, "DP", reinterpret_cast<char const **>(total_cov.data()), 1);
 
     auto covs = gtype_info.allele_covs;
     if (covs.size() > 0){
         std::vector<float> depths;
         for (auto const& cov : covs) depths.push_back((float)cov);
-        bcf_update_format_float(hdr, record, "COV", depths.data(), depths.size());
+        bcf_update_format_float(header, record, "COV", depths.data(), depths.size());
     }
 
     std::string als;
@@ -132,7 +141,7 @@ void populate_vcf_site(bcf_hdr_t* hdr, bcf1_t* record, gt_site_ptr site){
         if (als.size() != 0) als += ",";
         als += al.sequence;
     }
-    bcf_update_alleles_str(hdr, record, als.c_str());
+    bcf_update_alleles_str(header, record, als.c_str());
 
-    add_model_specific_entries(hdr, record, site->get_model_specific_entries());
+    add_model_specific_entries(header, record, site->get_model_specific_entries());
 }

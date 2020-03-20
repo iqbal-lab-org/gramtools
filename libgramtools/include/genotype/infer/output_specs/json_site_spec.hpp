@@ -22,6 +22,7 @@ namespace gram::json {
             for (const auto &element : site_fields.items()) {
                 json_site.emplace(element.key(), JSON::array());
             }
+            json_site.emplace("SEG", "");
         }
 
         Json_Site(Json_Site const &other) : json_site(other.json_site) {}
@@ -37,11 +38,12 @@ namespace gram::json {
 
         void combine_with(const Json_Site &other);
 
+        std::size_t get_pos() const { return json_site.at("POS"); }
         JSON const &get_site() const { return json_site; }
-
         JSON get_site_copy() const { return json_site; }
 
         void set_site(JSON const &json_site) { this->json_site = json_site; }
+        void set_segment(std::string ID){ this->json_site.at("SEG") = ID; }
     };
 
     class LevelGenotyped_Json_Site : public Json_Site {

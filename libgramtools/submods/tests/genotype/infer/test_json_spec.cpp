@@ -1,4 +1,3 @@
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "genotype/infer/output_specs/json_prg_spec.hpp"
 #include "genotype/infer/output_specs/json_site_spec.hpp"
@@ -29,7 +28,10 @@ public:
     }
 
     MockJsonSite(allele_vec als, GtypedIndices gts, AlleleIds hapgs,
-                 allele_coverages coverages, std::size_t total_cov) : Json_Site(){
+                 allele_coverages coverages, std::size_t total_cov,
+                 std::size_t pos, std::string seg_id) : Json_Site(){
+        json_site.at("SEG") = seg_id;
+        json_site.at("POS") = pos;
         json_site.at("ALS") = JSON(als);
         json_site.at("GT").push_back(JSON(gts));
         json_site.at("HAPG").push_back(JSON(hapgs));
@@ -38,8 +40,11 @@ public:
     }
 
     MockJsonSite(allele_vec als, std::vector<GtypedIndices> gts, std::vector<AlleleIds> hapgs,
-                 std::vector<allele_coverages> coverages, std::vector<std::size_t> total_covs) : Json_Site(){
+                 std::vector<allele_coverages> coverages, std::vector<std::size_t> total_covs,
+                 std::size_t pos, std::string seg_id) : Json_Site(){
         json_site.at("ALS") = JSON(als);
+        json_site.at("POS") = pos;
+        json_site.at("SEG") = seg_id;
         for(auto entry : gts) json_site.at("GT").push_back(JSON(entry));
         for(auto entry : hapgs) json_site.at("HAPG").push_back(JSON(entry));
         for(auto entry : coverages) json_site.at("COV").push_back(JSON(entry));
@@ -50,21 +55,26 @@ public:
 class JSON_data_store{
 private:
     void set_site1_samples(){
-        MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
+        MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, 11,
+                3, "gene1");
         site1_samples.push_back(std::make_shared<MockJsonSite>(sample1));
 
-        MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11});
+        MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, 11,
+                3, "gene1");
         site1_samples.push_back(std::make_shared<MockJsonSite>(sample2));
 
-        MockJsonSite sample3({"CTCCT", "GTT"}, {0, 1}, {0, 2}, {5, 5}, {12});
+        MockJsonSite sample3({"CTCCT", "GTT"}, {0, 1}, {0, 2}, {5, 5}, 12,
+                3, "gene1");
         site1_samples.push_back(std::make_shared<MockJsonSite>(sample3));
     }
 
     void set_site2_samples() {
-        MockJsonSite sample1({"AAAAAAA", "AAA"}, {1}, {1}, {20, 1}, {23});
+        MockJsonSite sample1({"AAAAAAA", "AAA"}, {1}, {1}, {20, 1}, 23,
+                50, "gene2");
         site2_samples.push_back(std::make_shared<MockJsonSite>(sample1));
 
-        MockJsonSite sample2({"AAAAAAA", "A"}, {1}, {4}, {0, 18}, {24});
+        MockJsonSite sample2({"AAAAAAA", "A"}, {1}, {4}, {0, 18}, 24,
+                50, "gene2");
         site2_samples.push_back(std::make_shared<MockJsonSite>(sample2));
     }
 
@@ -112,6 +122,18 @@ TEST_F(Site_Combine_Fail, GivenDifferentREFAllele_Fails){
     ASSERT_THROW(fixed_site.combine_with(test_site), JSONCombineException);
 }
 
+TEST_F(Site_Combine_Fail, GivenDifferentSEGAllele_Fails){
+    the_site_json.at("SEG") = "another_gene";
+    test_site.set_site(the_site_json);
+    ASSERT_THROW(fixed_site.combine_with(test_site), JSONCombineException);
+}
+
+TEST_F(Site_Combine_Fail, GivenDifferentPOSAllele_Fails){
+    the_site_json.at("POS") = 100;
+    test_site.set_site(the_site_json);
+    ASSERT_THROW(fixed_site.combine_with(test_site), JSONCombineException);
+}
+
 TEST_F(Site_Combine_Fail, GivenInconsistenHAPGs_Fails){
     the_site_json.at("HAPG").at(0).at(0) = 1;
     test_site.set_site(the_site_json);
@@ -143,7 +165,7 @@ TEST(Site_Json_CombiMap, Add2Samples_CorrectCombiMap){
 }
 
 TEST(Site_Json_RescaleEntries, GivenCombiMap_CorrectRescaledJSON){
-    //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11});
+    //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11}, 3, "gene1");
     allele_combi_map m{
             {"CTCCT", site_rescaler{0, 0}},
             {"CCC", site_rescaler{1, 2}},
@@ -153,19 +175,20 @@ TEST(Site_Json_RescaleEntries, GivenCombiMap_CorrectRescaledJSON){
     JSON_data_store data;
     auto sample2 = data.site1_samples.at(1);
     auto result = sample2->rescale_entries(m);
-    MockJsonSite expected_site({"CTCCT", "CTT"}, {2, 2}, {1, 1}, {2, 0, 10}, {11});
+    MockJsonSite expected_site({"CTCCT", "CTT"}, {2, 2}, {1, 1}, {2, 0, 10}, 11,
+            3, "gene1");
     EXPECT_EQ(result, expected_site.get_site());
 }
 
 TEST(Site_Json_AppendEntries, GivenTwoGtedSites_CorrectAppending){
-    //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
-    //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11});
+    //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11}, 3, "gene1");
+    //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11}, 3, "gene1");
     JSON_data_store data;
     auto sample1 = data.site1_samples.at(0), sample2 = data.site1_samples.at(1);
 
     sample1->combine_with(*sample2);
     MockJsonSite expected({"CTCCT", "CTT"}, {{0, 0}, {1, 1}},
-                          {{0, 0}, {1, 1}}, {{10, 2}, {2, 10}}, {11, 11});
+                          {{0, 0}, {1, 1}}, {{10, 2}, {2, 10}}, {11, 11}, 3, "gene1");
     EXPECT_EQ(sample1->get_site(), expected.get_site());
 }
 
@@ -187,9 +210,9 @@ TEST(Site_Combine_Success, GivenOneNullGtSite_Succeeds){
 
 
 TEST(Site_Combine_Success, GivenThreeSites_CorrectCombinedSite){
-    //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
-    //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11});
-    //MockJsonSite sample3({"CTCCT", "GTT"}, {0, 1}, {0, 2}, {5, 5}, {12});
+    //MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11}, 3, "gene1");
+    //MockJsonSite sample2({"CTCCT", "CTT"}, {1, 1}, {1, 1}, {2, 10}, {11}, 3, "gene1");
+    //MockJsonSite sample3({"CTCCT", "GTT"}, {0, 1}, {0, 2}, {5, 5}, {12}, 3, "gene1");
     JSON_data_store data;
     auto sample1 = data.site1_samples.at(0), sample2 = data.site1_samples.at(1),
             sample3 = data.site1_samples.at(2);
@@ -200,7 +223,7 @@ TEST(Site_Combine_Success, GivenThreeSites_CorrectCombinedSite){
                           {{0, 0}, {1, 1}, {0, 2}},
                           {{0, 0}, {1, 1}, {0, 2}},
                           {{10, 2, 0}, {2, 10, 0}, {5, 0, 5}},
-                          {11, 11, 12});
+                          {11, 11, 12}, 3, "gene1");
     EXPECT_EQ(sample1->get_site(), expected.get_site());
 
     // Now show associativity: (sample1 + sample2) + sample 3 == sample1 + (sample2 + sample3)

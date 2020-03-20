@@ -18,14 +18,14 @@ namespace gram::genotype {
  *  - Stored segments are contiguous, with increasing positions
  *  - You can only query positions within a segment or in subsequent (=increasing) segments
  */
-    class segmentTracker {
+    class SegmentTracker {
     private:
         std::vector<segment> segments;
         std::size_t min, max, global_max;
         std::size_t cur_idx;
     public:
-        segmentTracker() = default;
-        segmentTracker(std::istream &coords_file) : cur_idx(0), min(0), global_max(0) {
+        SegmentTracker() = default;
+        SegmentTracker(std::istream &coords_file) : cur_idx(0), min(0), global_max(0) {
             segment next_segment{
                     "gramtools_prg",
                     std::numeric_limits<std::size_t>::max()

@@ -7,9 +7,12 @@
 
 using namespace gram::json;
 using namespace gram::json::spec;
+using namespace gram::genotype;
 using namespace gram::genotype::infer;
 
-json_prg_ptr make_json_prg(gtyper_ptr const& gtyper);
+namespace gram::genotype{class SegmentTracker;}
+
+json_prg_ptr make_json_prg(gtyper_ptr const &gtyper, SegmentTracker &tracker);
 
 /**
  * Populates the PRG-related entries (Lvl1_sites, child map) of a Json_Prg class.

@@ -26,6 +26,7 @@ namespace gram::genotype::output_spec {
     struct vcf_meta_info_line {
         std::string meta_type, ID = "", desc = "",
                 flat_value = "", num = "", type = "";
+        std::size_t length{0};
 
         /**
          * Constructor for generic header, simple key-val. Eg: ##source=my_source
@@ -46,6 +47,12 @@ namespace gram::genotype::output_spec {
         vcf_meta_info_line(std::string m_t, std::string id, std::string desc) :
                 meta_type(m_t), ID(id), desc(desc) {}
 
+        /**
+         * Constructor for structured header of type: contig
+         */
+        vcf_meta_info_line(std::string m_t, std::string id, std::size_t len) :
+                meta_type(m_t), ID(id), length(len) {}
+
         std::string const to_string() const{
             std::stringstream out;
             out << "##" << meta_type << "=";
@@ -57,6 +64,7 @@ namespace gram::genotype::output_spec {
             if (desc != "") out << ",Description=\"" << desc << "\"";
             if (num != "") out << ",Number=" << num;
             if (type != "") out << ",Type=" << type;
+            if (length != 0) out << ",length=" << std::to_string(length);
             out << ",Source=\"gramtools\"";
             out << ">";
             return out.str();

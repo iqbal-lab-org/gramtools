@@ -102,8 +102,20 @@ void Json_Site::combine_with(const Json_Site &other){
     std::string this_ref = json_site.at("ALS").at(0);
     if (this_ref != other_json.at("ALS").at(0)){
         std::string msg("Sites do not have same 'reference' allele: ");
-        msg = msg + std::string(json_site.at("ALS").at(0)) + std::string(" vs ") +
+        msg = msg + std::string(json_site.at("ALS").at(0)) + " vs " +
               std::string(other_json.at("ALS").at(0));
+        throw JSONCombineException(msg);
+    }
+
+    if (json_site.at("POS") != other_json.at("POS")){
+        std::string msg("Sites do not have same POS: ");
+        throw JSONCombineException(msg);
+    }
+
+    if (json_site.at("SEG") != other_json.at("SEG")){
+        std::string msg("Sites do not have same SEG: ");
+        msg = msg + std::string(json_site.at("SEG")) +
+                " vs " + std::string(other_json.at("SEG"));
         throw JSONCombineException(msg);
     }
 

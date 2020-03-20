@@ -4,6 +4,7 @@
 #include "genotype/infer/personalised_reference.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/output_specs/make_vcf.hpp"
+#include "genotype/infer/output_specs/segment_tracker.hpp"
 
 #include "common/timer_report.hpp"
 #include "build/kmer_index/load.hpp"
@@ -63,9 +64,14 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
                              readstats, parameters.ploidy};
     timer.stop();
+
+    std::ifstream coords_file(parameters.prg_coords_fpath);
+    SegmentTracker tracker(coords_file);
+    coords_file.close();
+
     std::ofstream geno_json_fhandle(parameters.genotyped_json_fpath);
     auto gtyper = std::make_shared<LevelGenotyper>(genotyper);
-    auto sample_json = make_json_prg(gtyper);
+    auto sample_json = make_json_prg(gtyper, tracker);
     sample_json->set_sample_info(parameters.sample_id, "made by gramtools genotype");
     geno_json_fhandle << std::setw(4) << sample_json->get_prg() << std::endl;
     geno_json_fhandle.close();
@@ -77,7 +83,7 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
 
     write_deduped_p_refs(p_refs, parameters.personalised_ref_fpath);
 
-    write_vcf(parameters, gtyper);
+    write_vcf(parameters, gtyper, tracker);
 
     timer.report();
 }

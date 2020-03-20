@@ -13,10 +13,10 @@ protected:
             "chr2\t400\n"
         };
         std::stringstream ss2{""};
-        tracker_withCoords = segmentTracker(ss1);
-        tracker_noCoords = segmentTracker(ss2);
+        tracker_withCoords = SegmentTracker(ss1);
+        tracker_noCoords = SegmentTracker(ss2);
     }
-    segmentTracker tracker_withCoords, tracker_noCoords;
+    SegmentTracker tracker_withCoords, tracker_noCoords;
 };
 
 TEST_F(SegmentTrackerTest, GivenNoCoordsTracker_ReturnDefaultID){
