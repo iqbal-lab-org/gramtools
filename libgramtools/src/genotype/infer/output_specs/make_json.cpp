@@ -51,6 +51,8 @@ void add_model_specific_entries(JSON& json_site, site_entries const& entries){
 json_site_ptr make_json_site(gt_site_ptr const& gt_site){
     json_site_ptr result = std::make_shared<Json_Site>();
     auto json_site = result->get_site_copy();
+
+    json_site.at("POS") = gt_site->get_pos() + 1; // 0-based to 1-based
     auto gtype_info = gt_site->get_all_gtype_info();
     for (int i{0}; i < gtype_info.alleles.size(); ++i) json_site.at("ALS")
                 .push_back(gtype_info.alleles.at(i).sequence);

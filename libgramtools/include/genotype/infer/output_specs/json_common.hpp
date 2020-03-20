@@ -40,6 +40,9 @@ namespace gram::json::spec {
         header_vec h = vcf_format_headers();
         JSON result =
                 {
+                        {"POS",
+                                {"Desc", "Position on reference or pseudo-reference"}
+                        },
                         {"ALS",
                                 {{"Desc", "Alleles at this site"}}
                         },

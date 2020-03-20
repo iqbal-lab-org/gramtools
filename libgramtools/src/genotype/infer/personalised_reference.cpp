@@ -95,6 +95,7 @@ namespace gram::genotype {
         }
 
         out_stream.write(seq_write, remaining);
+        return out_stream;
     }
 
     void set_sample_info(Fastas& p_refs, std::string const& sample_id, std::string const& desc){

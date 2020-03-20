@@ -1,8 +1,7 @@
 #include "prg/make_data_structures.hpp"
-#include <boost/filesystem.hpp>
-#include <build/parameters.hpp>
+#include <filesystem>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 using namespace gram;
 
@@ -14,7 +13,7 @@ FM_Index gram::generate_fm_index(BuildParams const &parameters) {
 
     sdsl::cache_config config;
     auto construction_tmp_dir = fs::path(parameters.gram_dirpath) / fs::path("sdsl_tmp");
-    config.dir = construction_tmp_dir.string();
+    config.dir = fs::absolute(construction_tmp_dir).string();
     fs::create_directories(config.dir);
 
     // Last param is the number of bytes per integer for reading encoded PRG string.

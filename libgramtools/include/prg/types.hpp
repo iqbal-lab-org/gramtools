@@ -14,7 +14,6 @@ struct node_access;
 struct targeted_marker;
 
 namespace gram{
-    using seqPos = int32_t;
     using covG_ptr = boost::shared_ptr<coverage_Node>;
     using marker_to_node = std::unordered_map<Marker, covG_ptr>;
     using access_vec = std::vector<node_access>;

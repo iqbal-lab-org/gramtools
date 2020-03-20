@@ -45,7 +45,6 @@ set(EXTERNAL_LIBS_DIR
 link_directories(${EXTERNAL_LIBS_DIR})
 
 set(EXTERN_LIBS
-        boost_filesystem
         boost_program_options
         boost_timer
         boost_system
@@ -85,11 +84,14 @@ target_include_directories(gramtools PUBLIC
 target_link_libraries(gramtools LINK_PUBLIC
         ${EXTERN_LIBS}
         ${BZIP2_LIBRARIES}
-        ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a)
+        ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
+        stdc++fs)
 set_target_properties(gramtools
         PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON)
 add_dependencies(gramtools
         boost
         htslib

@@ -3,7 +3,6 @@
 #include "gmock/gmock.h"
 #include "genotype/infer/output_specs/fields.hpp"
 
-struct site_entries;
 using namespace gram;
 using namespace gram::genotype::infer;
 

@@ -28,10 +28,12 @@ namespace gram::genotype::infer::probabilities{
         PoissonLogPmf& operator=(const PoissonLogPmf& other) {
             probs = other.probs;
             lambda = other.lambda;
+            return *this;
         }
         PoissonLogPmf& operator=(const PoissonLogPmf&& other) {
             probs = std::move(other.probs);
             lambda = std::move(other.lambda);
+            return *this;
         }
         PoissonLogPmf(PoissonLogPmf const& other){
             probs = other.probs;

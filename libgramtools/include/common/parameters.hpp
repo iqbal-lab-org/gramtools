@@ -12,10 +12,10 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 namespace gram {
 
@@ -35,6 +35,7 @@ namespace gram {
         std::string gram_dirpath;
         std::string built_vcf;
         std::string encoded_prg_fpath;
+        std::string prg_coords_fpath;
         std::string fm_index_fpath;
         std::string cov_graph_fpath;
         std::string sites_mask_fpath;
@@ -63,6 +64,7 @@ namespace gram {
         parameters.gram_dirpath = gram_dirpath;
         parameters.built_vcf = full_path(gram_dirpath, "build.vcf"); // May not exist, if --prg used
         parameters.encoded_prg_fpath = full_path(gram_dirpath, "prg");
+        parameters.prg_coords_fpath = full_path(gram_dirpath, "prg_coords.tsv");
         parameters.fm_index_fpath = full_path(gram_dirpath, "fm_index");
         parameters.cov_graph_fpath = full_path(gram_dirpath, "cov_graph");
         parameters.sites_mask_fpath = full_path(gram_dirpath, "variant_site_mask");

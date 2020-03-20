@@ -13,6 +13,8 @@ Given sequence data from an individual, the graph is annotated with coverage and
 ```
 pip3 install -vvv wheel git+https://github.com/iqbal-lab-org/gramtools
 ```
+Requirements:
+* C++17 compatible compiler: g++ >=8, clang >=7
 <br>
 
 If `sudo` is unavailable, we recommend using a Python virtual enviroment:

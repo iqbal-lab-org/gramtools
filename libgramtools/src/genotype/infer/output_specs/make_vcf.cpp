@@ -1,10 +1,10 @@
 #include <htslib/synced_bcf_reader.h>
-#include <boost/filesystem.hpp>
 #include "genotype/infer/output_specs/make_vcf.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 #include "prg/coverage_graph.hpp"
+#include <filesystem>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper) {
     auto fout = bcf_open(params.genotyped_vcf_fpath.c_str(), "wz"); // Writer
@@ -105,6 +105,8 @@ void add_model_specific_entries(bcf_hdr_t* hdr, bcf1_t* record, site_entries con
 
 void populate_vcf_site(bcf_hdr_t* hdr, bcf1_t* record, gt_site_ptr site){
     using str_vec = std::vector<std::string>;
+
+    record->pos = site->get_pos();
     auto gtype_info = site->get_all_gtype_info();
     std::vector<int32_t> gtypes = gtype_info.genotype;
     if (site->is_null()){

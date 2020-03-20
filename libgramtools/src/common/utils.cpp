@@ -2,13 +2,12 @@
 #include <vector>
 #include <string>
 #include <iostream>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "sequence_read/seqread.hpp"
 #include "common/utils.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace gram;
 
 std::string gram::mkdir(std::string const& parent_dirpath, std::string const& child_dirpath){

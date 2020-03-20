@@ -37,7 +37,7 @@ class coverage_Node {
 public:
     coverage_Node() : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(0), is_site_boundary{false} { ; };
 
-    coverage_Node(seqPos pos) : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(pos), is_site_boundary{false} { ; };
+    coverage_Node(std::size_t pos) : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(pos), is_site_boundary{false} { ; };
 
     coverage_Node(std::string const seq, int const pos, int const site_ID = 0, int const allele_ID = 0) :
             sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false) {
@@ -67,9 +67,9 @@ public:
     /*
      * Getters
      */
-    int get_pos() const { return pos; }
+    std::size_t get_pos() const { return pos; }
     std::string get_sequence() const { return sequence; }
-    int const get_sequence_size() const { return sequence.size(); }
+    std::size_t const get_sequence_size() const { return sequence.size(); }
     int const get_coverage_space() const { return coverage.size() ;}
     PerBaseCoverage const get_coverage() const { return coverage; }
     PerBaseCoverage& get_ref_to_coverage() { return coverage; }
@@ -81,7 +81,7 @@ public:
     /*
      * Setters
      */
-    void set_pos(int pos) { this->pos = pos; }
+    void set_pos(std::size_t pos) { this->pos = pos; }
     void mark_as_boundary() { is_site_boundary = true; }
     void set_coverage(PerBaseCoverage const& new_cov){
         assert(new_cov.size() == coverage.size() && new_cov.size() == sequence.size());
@@ -103,7 +103,7 @@ private:
     std::string sequence;
     Marker site_ID;
     Marker allele_ID;
-    seqPos pos;
+    std::size_t pos;
     PerBaseCoverage coverage;
     bool is_site_boundary;
     std::vector<covG_ptr> next;
@@ -129,7 +129,7 @@ enum class marker_type {
 
 struct node_access{
     covG_ptr node; // The referred to node in the `coverage_Graph`
-    seqPos offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
+    std::size_t offset; // The character's offset relative to the start of the `coverage_Node` it belongs to
     VariantLocus target; // If the preceding character is a variant marker, gives what it is.
 private:
     // Boost serialisation
@@ -301,7 +301,7 @@ public:
     covG_ptr cur_Node;
 
     // For assigning position to nodes
-    seqPos cur_pos;
+    std::size_t cur_pos;
     bool first_allele{false};
 
     VariantLocus cur_Locus; // For building parental map

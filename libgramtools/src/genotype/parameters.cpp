@@ -1,14 +1,11 @@
 #include "common/utils.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/parameters.hpp"
-#include <boost/filesystem.hpp>
 
 #include <omp.h>
 
-
 using namespace gram;
 using namespace gram::commands::genotype;
-namespace fs = boost::filesystem;
 
 struct ploidy_argument{
     Ploidy ploidy;

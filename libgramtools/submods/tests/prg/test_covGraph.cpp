@@ -1,9 +1,11 @@
 #include "gtest/gtest.h"
 #include "prg/coverage_graph.hpp"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 using namespace gram;
-auto const test_data_dir = boost::filesystem::path(__FILE__).parent_path().parent_path() / "test_data";
+namespace fs = std::filesystem;
+
+auto const test_data_dir = fs::path(__FILE__).parent_path().parent_path() / "test_data";
 
 /*
  * -----------------------
@@ -27,7 +29,7 @@ TEST(PRGString, Load_from_File){
                              ">R6\n"
                              "TTTTTATTT\n";
      */
-    boost::filesystem::path path(test_data_dir / "twoSegregatingClasses.fasta.max_nest10.min_match1.bin");
+    fs::path path(test_data_dir / "twoSegregatingClasses.fasta.max_nest10.min_match1.bin");
     PRG_String l = PRG_String(path.generic_string());
     std::string expected{"[AA[A,T]AA[A,T]AAA,TT[A,T]TT[A,T]TTT]"};
     auto res = ints_to_prg_string(l.get_PRG_string());
@@ -198,7 +200,7 @@ TEST_F(cov_G_Builder_nested, SequencePositions) {
     auto const &rand_access = c.random_access;
     // There is one position per index in the PRG string
     // The positions continually refer to the FIRST allele in each site, 0-based.
-    std::vector<seqPos> expected{
+    std::vector<std::size_t> expected{
         0, 0, 0, 0, 0, 0, 0, // First site here
             1, 1, 1, 1, 2, // Second site FULL here
         2, 1,  // First site END here
@@ -206,7 +208,7 @@ TEST_F(cov_G_Builder_nested, SequencePositions) {
         2, 2, 2, 2, 2, 4, // Third site FULL here
         4 // Invariant 'G'
         };
-    std::vector<seqPos> res(expected.size(), 0);
+    std::vector<std::size_t> res(expected.size(), 0);
     int pos = 0;
     for (auto const &s : rand_access) {
         res[pos++] = s.node->get_pos();
@@ -385,7 +387,7 @@ TEST(coverage_Graph, Serialisation){
     PRG_String p{v};
     coverage_Graph serialised_cov_G{p};
 
-    boost::filesystem::path path(test_data_dir / "tmp.ar");
+    fs::path path(test_data_dir / "tmp.ar");
 
     // Dump to disk
     {
@@ -394,7 +396,7 @@ TEST(coverage_Graph, Serialisation){
         boost::archive::binary_oarchive oa{ofs};
         oa << serialised_cov_G;
     }
-    EXPECT_TRUE(boost::filesystem::exists(path)); // Have made this file
+    EXPECT_TRUE(fs::exists(path)); // Have made this file
 
     // Load from disk
     coverage_Graph loaded_cov_G;

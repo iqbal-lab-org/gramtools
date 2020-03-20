@@ -46,6 +46,7 @@ namespace gram::genotype::infer {
     class GenotypedSite {
     protected:
         gtype_information gtype_info;
+        std::size_t pos = 0;
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
 
@@ -57,6 +58,7 @@ namespace gram::genotype::infer {
         void populate_site(gtype_information const& gtype_info);
         GtypedIndices const get_genotype() const { return gtype_info.genotype; }
         allele_vector const get_alleles() const { return gtype_info.alleles; }
+        std::size_t const get_pos() const { return pos; }
         covG_ptr const get_site_end_node() const { return site_end_node; }
 
         /** Whether the site is null genotyped */
@@ -73,6 +75,7 @@ namespace gram::genotype::infer {
 
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
         void set_genotype(GtypedIndices const& gtype){ gtype_info.genotype = gtype; }
+        void const set_pos(std::size_t pos) { this->pos = pos; }
 
         virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;
