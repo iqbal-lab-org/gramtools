@@ -55,3 +55,9 @@ TEST_F(SegmentTrackerTest, GivenCoordsTrackerReset_CanQueryAgain) {
     ID = tracker_withCoords.get_ID(100);
     EXPECT_EQ("chr1", ID);
 }
+
+TEST_F(SegmentTrackerTest, GivenCoordsTrackerGetRelativePos_CorrectPos) {
+    auto ID = tracker_withCoords.get_ID(2500);
+    auto relative_pos = tracker_withCoords.get_relative_pos(2500);
+    EXPECT_EQ(300, relative_pos);
+}

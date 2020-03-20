@@ -52,6 +52,12 @@ namespace gram::genotype {
             return segments.at(cur_idx).ID;
         }
 
+        // Call to this should be after a call to get_ID()
+        std::size_t get_relative_pos(std::size_t pos){
+            assert(pos >= min and pos < global_max);
+            return pos - min;
+        }
+
         auto const& edge() const{ return max; }
         auto global_edge() const{ return global_max - 1; }
         void reset() {

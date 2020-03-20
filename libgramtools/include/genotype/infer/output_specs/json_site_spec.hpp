@@ -38,11 +38,11 @@ namespace gram::json {
 
         void combine_with(const Json_Site &other);
 
-        std::size_t get_pos() const { return json_site.at("POS"); }
         JSON const &get_site() const { return json_site; }
         JSON get_site_copy() const { return json_site; }
 
         void set_site(JSON const &json_site) { this->json_site = json_site; }
+        void set_pos(std::size_t pos) { json_site.at("POS") = pos; }
         void set_segment(std::string ID){ this->json_site.at("SEG") = ID; }
     };
 

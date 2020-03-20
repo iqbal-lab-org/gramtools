@@ -111,10 +111,11 @@ void add_model_specific_entries(bcf_hdr_t* hdr, bcf1_t* record, site_entries con
 void populate_vcf_site(bcf_hdr_t *header, bcf1_t *record, gt_site_ptr site, SegmentTracker &tracker) {
     using str_vec = std::vector<std::string>;
 
-    record->pos = site->get_pos();
     // Set CHROM
     auto numeric_id = bcf_hdr_name2id(header, tracker.get_ID(site->get_pos()).c_str());
     record->rid = numeric_id;
+    // Set POS. Pass in a 0-based
+    record->pos = tracker.get_relative_pos(site->get_pos());
 
     auto gtype_info = site->get_all_gtype_info();
     std::vector<int32_t> gtypes = gtype_info.genotype;

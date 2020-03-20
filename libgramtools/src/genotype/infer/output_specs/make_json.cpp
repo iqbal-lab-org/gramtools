@@ -10,7 +10,9 @@ json_prg_ptr make_json_prg(gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto genotyped_records = gtyper->get_genotyped_records();
     for (auto const& site : genotyped_records){
         auto json_site = make_json_site(site);
-        json_site->set_segment(tracker.get_ID(json_site->get_pos()));
+        auto site_pos = site->get_pos();
+        json_site->set_segment(tracker.get_ID(site_pos));
+        json_site->set_pos(tracker.get_relative_pos(site_pos) + 1); // 0-based to 1-based
         result->add_site(json_site);
     }
     tracker.reset();
@@ -59,7 +61,6 @@ json_site_ptr make_json_site(gt_site_ptr const& gt_site){
     json_site_ptr result = std::make_shared<Json_Site>();
     auto json_site = result->get_site_copy();
 
-    json_site.at("POS") = gt_site->get_pos() + 1; // 0-based to 1-based
     auto gtype_info = gt_site->get_all_gtype_info();
     for (int i{0}; i < gtype_info.alleles.size(); ++i) json_site.at("ALS")
                 .push_back(gtype_info.alleles.at(i).sequence);
