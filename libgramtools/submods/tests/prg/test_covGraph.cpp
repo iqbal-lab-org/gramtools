@@ -1,6 +1,8 @@
-#include "gtest/gtest.h"
-#include "prg/coverage_graph.hpp"
 #include <filesystem>
+#include "gtest/gtest.h"
+
+#include "prg/coverage_graph.hpp"
+#include "tests/common/common.hpp"
 
 using namespace gram;
 namespace fs = std::filesystem;
@@ -376,6 +378,43 @@ TEST(coverage_Graph, Nestedness){
     coverage_Graph nested_g{nested_p};
 
     EXPECT_TRUE(nested_g.is_nested);
+}
+
+TEST(coverage_Graph, SequencePositions) {
+    // Check POS is based on first (REF) allele of each site
+    std::string prg{"ATCG[G[A,CCC]C,G]A[AT,T]A"};
+    marker_vec v = prg_string_to_ints(prg);
+    PRG_String p{v};
+    coverage_Graph g{p};
+
+    auto bubble_5 = get_bubble_nodes(g.bubble_map, 5);
+    EXPECT_EQ(4, bubble_5.first->get_pos());
+
+    auto bubble_7 = get_bubble_nodes(g.bubble_map, 7);
+    EXPECT_EQ(5, bubble_7.first->get_pos());
+
+    auto bubble_9 = get_bubble_nodes(g.bubble_map, 9);
+    EXPECT_EQ(8, bubble_9.first->get_pos());
+}
+
+TEST(coverage_Graph, SequencePositions2) {
+    // Check POS is updated for first allele only in sites with nesting
+    std::string prg{"ATCG[G[A,CCC]C,GGG[AAA,C]]AA[T,C]"};
+    marker_vec v = prg_string_to_ints(prg);
+    PRG_String p{v};
+    coverage_Graph g{p};
+
+    auto bubble_5 = get_bubble_nodes(g.bubble_map, 5);
+    EXPECT_EQ(4, bubble_5.first->get_pos());
+
+    auto bubble_7 = get_bubble_nodes(g.bubble_map, 7);
+    EXPECT_EQ(5, bubble_7.first->get_pos());
+
+    auto bubble_9 = get_bubble_nodes(g.bubble_map, 9);
+    EXPECT_EQ(7, bubble_9.first->get_pos());
+
+    auto bubble_11 = get_bubble_nodes(g.bubble_map, 11);
+    EXPECT_EQ(9, bubble_11.first->get_pos());
 }
 
 

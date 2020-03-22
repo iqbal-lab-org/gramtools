@@ -172,6 +172,7 @@ void cov_Graph_Builder::exit_site(Marker const &m) {
     // Update the current Locus
     try {
         cur_Locus = par_map.at(site_ID);
+        if (cur_Locus.second == 1) first_allele = true;
     }
     // Means we were in a level 1 site; we will no longer be in a site
     catch(std::out_of_range&e){

@@ -1,6 +1,7 @@
-#include "genotype/infer/personalised_reference.hpp"
-#include "prg/coverage_graph.hpp"
 #include "gtest/gtest.h"
+#include "genotype/infer/personalised_reference.hpp"
+#include "genotype/infer/output_specs/segment_tracker.hpp"
+#include "prg/coverage_graph.hpp"
 #include "mocks.hpp"
 #include "tests/common/common.hpp"
 
@@ -40,10 +41,12 @@ TEST_F(Alleles_To_Paste, GivenNullGtype_CorrectAlleles){
     EXPECT_EQ(res, expected);
 }
 
-class Personalised_Reference : public ::testing::Test{
+using str_vec = std::vector<std::string>;
+
+class Personalised_Ref : public ::testing::Test{
 protected:
     void SetUp(){
-        std::string linear_prg{"AT[CG[C,G]T,C]TT[AT,TT]"};
+        std::string linear_prg{"AT[CG[C,G]T,C]TT[AT,TT][C,G]"};
         PRG_String prg{prg_string_to_ints(linear_prg)};
         g = coverage_Graph{prg};
         graph_root = g.root;
@@ -74,58 +77,145 @@ protected:
         bubble = get_bubble_nodes(g.bubble_map, 9);
         site3->set_site_end_node(bubble.second);
 
-        sites = gt_sites{site1, site2, site3};
+        auto site4 = std::make_shared<MockGenotypedSite>();
+        site4->set_alleles(allele_vector{Allele{"C", {}}, Allele{"G", {}},});
+        bubble = get_bubble_nodes(g.bubble_map, 11);
+        site4->set_site_end_node(bubble.second);
+
+        sites = gt_sites{site1, site2, site3, site4};
+        set_trackers();
     }
+
+    void null_all_sites(){
+        // When all gts are null, ploidy is set to 1
+        for (auto const& site : sites) site->set_genotype(GtypedIndices{-1});
+    }
+
+    void set_trackers(){
+        std::stringstream ss{""};
+        s1_tracker = SegmentTracker(ss);
+
+        ss = std::stringstream{
+                "chr1\t2\n"
+                "chr2\t9\n"};
+        s2_tracker_to_edge = SegmentTracker(ss);
+
+        ss = std::stringstream{
+                "chr1\t6\n"
+                "chr2\t5\n"};
+        s2_tracker_from_edge = SegmentTracker(ss);
+
+        ss = std::stringstream{
+                "chr1\t10\n"
+                "chr2\t1\n"};
+        s2_tracker_adjacentSites = SegmentTracker(ss);
+
+        ss = std::stringstream{
+                "chr1\t7\n"
+                "chr2\t4\n"};
+        s2_tracker_seq = SegmentTracker(ss);
+
+    }
+
+    SegmentTracker s1_tracker, s2_tracker_to_edge, s2_tracker_from_edge,
+        s2_tracker_adjacentSites, s2_tracker_seq;
     coverage_Graph g;
     covG_ptr graph_root;
     gt_sites sites;
+    str_vec res;
 };
 
-TEST_F(Personalised_Reference, GivenAllNullGts_CorrectInferredRef){
-    // When all gts are null, ploidy is set to 1
-    for (auto const& site : sites) site->set_genotype(GtypedIndices{-1});
-    auto result_map = get_personalised_ref(graph_root, sites);
+TEST_F(Personalised_Ref, GivenAllNullGts_CorrectInferredRef){
+    null_all_sites();
+    auto result_map = get_personalised_ref(graph_root, sites, s1_tracker);
     auto result = *result_map.begin();
-    std::string expected{"ATCGCTTTAT"};
+    std::string expected{"ATCGCTTTATC"};
     EXPECT_EQ(result.get_sequence(), expected);
 }
 
-TEST_F(Personalised_Reference, GivenHaploidGts_CorrectInferredRef){
+TEST_F(Personalised_Ref, GivenHaploidGts_CorrectInferredRef){
     sites.at(0)->set_genotype(GtypedIndices{2});
     sites.at(2)->set_genotype(GtypedIndices{1});
-    auto result_map = get_personalised_ref(graph_root, sites);
+    sites.at(3)->set_genotype(GtypedIndices{1});
+    auto result_map = get_personalised_ref(graph_root, sites, s1_tracker);
     auto result = *result_map.begin();
-    std::string expected{"ATCTTTT"};
+    std::string expected{"ATCTTTTG"};
     EXPECT_EQ(result.get_sequence(), expected);
 }
 
-TEST_F(Personalised_Reference, GivenHetDiploidGts_CorrectTwoInferredRefs){
+TEST_F(Personalised_Ref, GivenHetDiploidGts_CorrectTwoInferredRefs){
     sites.at(0)->set_genotype(GtypedIndices{1, 2});
     sites.at(2)->set_genotype(GtypedIndices{0, 1});
-    auto result_map = get_personalised_ref(graph_root, sites);
-    EXPECT_EQ(result_map.size(), 2);
-    auto iterator = result_map.begin();
+    sites.at(3)->set_genotype(GtypedIndices{0, 1});
+    auto result_map = get_personalised_ref(graph_root, sites, s1_tracker);
+    ASSERT_EQ(result_map.size(), 2);
 
-    auto first_ref = *iterator;
-    std::string expected_1{"ATCGGTTTAT"};
-    EXPECT_EQ(first_ref.get_sequence(), expected_1);
-
-    iterator++;
-    auto second_ref = *iterator;
-    std::string expected_2{"ATCTTTT"};
-    EXPECT_EQ(second_ref.get_sequence(), expected_2);
+    for (auto fasta : result_map) res.push_back(fasta.get_sequence());
+    str_vec expected{
+            {"ATCGGTTTATC"}, {"ATCTTTTG"}
+    };
+    EXPECT_EQ(res, expected);
 }
 
 
-TEST_F(Personalised_Reference, GivenHetSameGts_CorrectSingleInferredRef) {
+TEST_F(Personalised_Ref, GivenHetSameGts_CorrectSingleInferredRef) {
     sites.at(0)->set_genotype(GtypedIndices{0, 0});
     sites.at(2)->set_genotype(GtypedIndices{1, 1});
-    auto result_vec = get_personalised_ref(graph_root, sites);
+    sites.at(3)->set_genotype(GtypedIndices{1, 1});
+    auto result_vec = get_personalised_ref(graph_root, sites, s1_tracker);
     EXPECT_EQ(result_vec.size(), 2);
 
     unique_Fastas result_map{result_vec.begin(), result_vec.end()};
 
     auto first_ref = *result_map.begin();
-    std::string expected_1{"ATCGCTTTTT"};
+    std::string expected_1{"ATCGCTTTTTG"};
     EXPECT_EQ(first_ref.get_sequence(), expected_1);
+}
+
+TEST_F(Personalised_Ref, GivenToEdgeS2Tracker_CorrectMultiSegRef){
+    null_all_sites();
+    auto result_map = get_personalised_ref(graph_root, sites, s2_tracker_to_edge);
+    ASSERT_EQ(result_map.size(), 2);
+
+    for (auto fasta : result_map) res.push_back(fasta.get_sequence());
+    str_vec expected{
+            {"AT"}, {"CGCTTTATC"}
+    };
+    EXPECT_EQ(res, expected);
+}
+
+TEST_F(Personalised_Ref, GivenFromEdgeS2Tracker_CorrectMultiSegRef){
+    null_all_sites();
+    auto result_map = get_personalised_ref(graph_root, sites, s2_tracker_from_edge);
+    ASSERT_EQ(result_map.size(), 2);
+
+    for (auto fasta : result_map) res.push_back(fasta.get_sequence());
+    str_vec expected{
+            {"ATCGCT"}, {"TTATC"}
+    };
+    EXPECT_EQ(res, expected);
+}
+
+TEST_F(Personalised_Ref, GivenAdjSitesS2Tracker_CorrectMultiSegRef){
+    null_all_sites();
+    auto result_map = get_personalised_ref(graph_root, sites, s2_tracker_adjacentSites);
+    ASSERT_EQ(result_map.size(), 2);
+
+    for (auto fasta : result_map) res.push_back(fasta.get_sequence());
+    str_vec expected{
+            {"ATCGCTTTAT"}, {"C"}
+    };
+    EXPECT_EQ(res, expected);
+}
+
+TEST_F(Personalised_Ref, GivenSeqS2Tracker_CorrectMultiSegRef){
+    null_all_sites();
+    auto result_map = get_personalised_ref(graph_root, sites, s2_tracker_seq);
+    ASSERT_EQ(result_map.size(), 2);
+
+    for (auto fasta : result_map) res.push_back(fasta.get_sequence());
+    str_vec expected{
+            {"ATCGCTT"}, {"TATC"}
+    };
+    EXPECT_EQ(res, expected);
 }
