@@ -83,14 +83,17 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
        RandomGenotyper gtyper(cov_g);
        auto ptr_gtyper = std::make_shared<RandomGenotyper>(gtyper);
        auto genotyped_records = gtyper.get_genotyped_records();
-       auto new_p_ref = get_personalised_ref(cov_g.root, genotyped_records).at(0);
+       tracker.reset();
+       auto new_p_ref = get_personalised_ref(cov_g.root, genotyped_records, tracker).at(0);
 
        if (unique_simu_paths.find(new_p_ref) == unique_simu_paths.end()){
            num_sampled++;
-           sample_id = parameters.sample_id + std::string("_") + std::to_string(num_sampled);
-           new_p_ref.set_sample_info(sample_id, desc);
+           sample_id = parameters.sample_id + std::to_string(num_sampled);
+           new_p_ref.set_ID(sample_id);
+           new_p_ref.set_desc("made by gramtools simulate");
            unique_simu_paths.insert(new_p_ref);
            ordered_simu_paths.push_back(new_p_ref);
+           tracker.reset();
            auto new_json = make_json_prg(ptr_gtyper, tracker);
            if (first){
                simu_json = new_json;

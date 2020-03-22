@@ -15,7 +15,6 @@ json_prg_ptr make_json_prg(gtyper_ptr const &gtyper, SegmentTracker &tracker) {
         json_site->set_pos(tracker.get_relative_pos(site_pos) + 1); // 0-based to 1-based
         result->add_site(json_site);
     }
-    tracker.reset();
     return result;
 }
 

@@ -20,11 +20,9 @@ void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper, Seg
     }
     else header = bcf_hdr_init("w");
     populate_vcf_hdr(header, gtyper, params, tracker);
-    tracker.reset();
     bcf_hdr_write(fout, header);
 
     write_sites(fout, reader, header, gtyper, tracker);
-    tracker.reset();
 
     if (reader != nullptr){
         if ( reader->errnum ) ("Error: %s\n", bcf_sr_strerror(reader->errnum));
