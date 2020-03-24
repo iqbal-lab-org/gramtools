@@ -188,6 +188,7 @@ class DiscoverPaths(ProjectPaths):
         # Build paths from genotype dir
         geno_paths = GenotypePaths(genotype_dir)
         self.pers_ref = geno_paths.pers_ref
+        self.geno_vcf = geno_paths.geno_vcf
         self.reads_files = []
         self.check_exists(geno_paths.reads_dir)
         for read_file in geno_paths.reads_dir.iterdir():
@@ -195,7 +196,7 @@ class DiscoverPaths(ProjectPaths):
                 read_file.resolve()
             )  # to absolute path + resolves symlinks
 
-        self.cortex_vcf = self.disco_dir / "cortex.vcf"
+        self.discov_vcf_cortex = self.disco_dir / "cortex.vcf"
         self.final_vcf = self.disco_dir / "final.vcf"
 
     def setup(self):

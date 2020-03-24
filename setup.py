@@ -4,17 +4,24 @@ import subprocess
 import setuptools
 import unittest
 import sys
+from pathlib import Path
+
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.test import test
+
 from gramtools.version import package_version
 
 
 with open("./README.md") as fhandle:
     readme = fhandle.read()
 
-_root_dir = os.path.dirname(os.path.realpath(__file__))
-cmake_dir = os.path.join(_root_dir, "cmake-build-release")  # cmake target directory
+_root_dir = Path(__file__).resolve().parent
+cmake_dir = _root_dir / "cmake-build-release"  # cmake target directory
+
+# For pysam to use existing htslib compiled by the backend
+os.environ["HTSLIB_LIBRARY_DIR"] = str(cmake_dir / "libgramtools" / "lib")
+os.environ["HTSLIB_INCLUDE_DIR"] = str(cmake_dir / "libgramtools" / "include")
 
 
 def _build_backend(root_dir, mode="install"):
@@ -146,8 +153,9 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         "biopython >= 1.76",
+        "Cython == 0.29.16",
         "scipy >= 1.0.1",
-        "pyvcf >= 0.6.8",
+        "pysam == 0.15.4",
         "py-cortex-api >= 1.0",
         "cluster_vcf_records >= 0.9.2",
     ],

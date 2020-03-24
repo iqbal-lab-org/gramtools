@@ -143,7 +143,7 @@ def _skip_prg_construction(report, action, build_paths, args):
 
     # Write coordinates file
     with open(build_paths.coords_file, "w") as genome_file:
-        if args.reference != "None":
+        if args.reference != "None":  # Makes empty file to signal no use of coordinates
             for seq_record in SeqIO.parse(args.reference, "fasta"):
                 line = f"{seq_record.id}\t{len(seq_record)}\n"
                 genome_file.write(line)
