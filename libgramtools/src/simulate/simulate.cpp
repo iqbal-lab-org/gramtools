@@ -23,7 +23,9 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
 
             auto extracter = AlleleExtracter(bubble_pair.first, bubble_pair.second, genotyped_records);
             RandomInclusiveInt rand(0);
-            auto genotyped_site = make_randomly_genotyped_site(&rand, extracter.get_alleles());
+            auto genotyped_site = make_randomly_genotyped_site(&rand, extracter.get_alleles(),
+                    extracter.ref_allele_got_made_naturally());
+            genotyped_site->set_pos(bubble_pair.first->get_pos());
 
             genotyped_records.at(site_index) = genotyped_site;
             // Line below is so that when allele extraction occurs and jumps through a previously
@@ -34,9 +36,12 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
         }
     }
 
-    gt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand, allele_vector const &alleles) {
+    gt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand, allele_vector const &alleles,
+                                             bool const use_ref_allele) {
         allele_vector picked_alleles{alleles.begin(), alleles.begin() + 1};  // Always pick REF
-        auto picked_index = rand->generate(0, alleles.size() - 1);
+        uint32_t picked_index;
+        if (use_ref_allele) picked_index = rand->generate(0, alleles.size() - 1);
+        else picked_index = rand->generate(1, alleles.size() - 1);
         auto chosen_hapg = alleles.at(picked_index).haplogroup;
         allele_coverages covs{1};
 
@@ -73,9 +78,8 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
     bool first{true};
     std::string sample_id;
 
-    std::ifstream coords_file(parameters.prg_coords_fpath);
+    std::stringstream coords_file{""};
     SegmentTracker tracker(coords_file);
-    coords_file.close();
 
     uint64_t num_runs{0};
     uint64_t num_sampled{0};
@@ -83,7 +87,6 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
        RandomGenotyper gtyper(cov_g);
        auto ptr_gtyper = std::make_shared<RandomGenotyper>(gtyper);
        auto genotyped_records = gtyper.get_genotyped_records();
-       tracker.reset();
        auto new_p_ref = get_personalised_ref(cov_g.root, genotyped_records, tracker).at(0);
 
        if (unique_simu_paths.find(new_p_ref) == unique_simu_paths.end()){
@@ -93,7 +96,6 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
            new_p_ref.set_desc("made by gramtools simulate");
            unique_simu_paths.insert(new_p_ref);
            ordered_simu_paths.push_back(new_p_ref);
-           tracker.reset();
            auto new_json = make_json_prg(ptr_gtyper, tracker);
            if (first){
                simu_json = new_json;

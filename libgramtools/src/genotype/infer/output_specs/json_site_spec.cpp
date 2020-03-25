@@ -66,17 +66,19 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
 
         allele_coverages const covs = json_site.at("COV").at(sample_num);
         allele_coverages new_covs(m.size(), 0);
+        std::vector<std::string> alleles;
+        for (auto const& allele: json_site.at("ALS")) alleles.push_back(allele);
 
-        if (json_site.at("ALS").size() != covs.size())
+        if (alleles.size() != covs.size())
             throw JSONConsistencyException("Different number of ALS and COV entries");
 
         for (auto& gt : gts) {
-            auto const allele = json_site.at("ALS").at(gt);
+            auto const allele = alleles.at(gt);
             auto const rescaled_idx = m.at(allele).index;
             gt = rescaled_idx;
         }
         for (int j{0}; j < covs.size(); j++){
-            auto const allele = json_site.at("ALS").at(j);
+            auto const allele = alleles.at(j);
             // The allele is not called in any sample, so we ignore it
             if (m.find(allele) == m.end()) continue;
             auto const rescaled_idx = m.at(allele).index;
