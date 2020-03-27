@@ -15,7 +15,7 @@ import cortex
 from Bio import SeqIO
 
 from gramtools.commands.paths import DiscoverPaths
-from .region_mapper import RegionMapper, _Regions
+from .region_mapper import RegionMapper, ChromSizes, _Regions
 
 log = logging.getLogger("gramtools")
 
@@ -33,10 +33,10 @@ def run(args):
         disco_paths.pers_ref, disco_paths.reads_files, disco_paths.discov_vcf_cortex
     )
 
-    chrom_sizes = list()
+    chrom_sizes: ChromSizes = dict()
     with open(disco_paths.pers_ref) as genome_file:
         for seq_record in SeqIO.parse(genome_file, "fasta"):
-            chrom_sizes.append(len(seq_record.seq))
+            chrom_sizes[seq_record.id] = len(seq_record.seq)
 
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
     log.debug("Rebasing vcf")

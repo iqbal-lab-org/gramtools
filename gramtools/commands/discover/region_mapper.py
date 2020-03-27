@@ -2,6 +2,7 @@ from typing import List, Dict, Iterable
 from pysam import VariantFile, VariantRecord
 
 VariantRecords = Iterable[VariantRecord]
+ChromSizes = Dict[str, int]
 
 
 class _Region:
@@ -47,7 +48,7 @@ class _ref_positions:
 
 
 class RegionMapper:
-    def __init__(self, base_records: VariantRecords, chrom_sizes):
+    def __init__(self, base_records: VariantRecords, chrom_sizes: ChromSizes):
         self.base_recs = base_records
         self.chrom_sizes = chrom_sizes
         self.all_regions = {}  # Maps each CHROM to a list of _Regions
@@ -84,26 +85,35 @@ class RegionMapper:
         if len(self.all_regions) == 0:
             raise ValueError("No records in provided vcf.")
 
+        chrom_size = self.chrom_sizes[chrom_key]
         base_pos = self.chrom_pos[chrom_key].base_pos
-        if base_pos <= self.chrom_size:
-            self._add_invariant_region(chrom_key, self.chrom_size - base_pos + 1)
+        if base_pos <= chrom_size:
+            self._add_invariant_region(chrom_key, chrom_size - base_pos + 1)
+
+        self.map_invariant_chroms()
 
         return self.all_regions
 
     @property
-    def num_chroms(self):
+    def num_processed_chroms(self):
         return len(self.all_regions.keys())
 
-    @property
-    def chrom_size(self):
-        return self.chrom_sizes[self.num_chroms - 1]
+    def map_invariant_chroms(self):
+        """
+        The PRG may contain contigs with no variation.
+        We need to map those so that variants found against them are recognised
+        """
+        for chrom in self.chrom_sizes:
+            if chrom not in self.all_regions:
+                self.all_regions[chrom] = [_Region(1, 1, self.chrom_sizes[chrom])]
 
     def _new_chrom(self, chrom_key, prev_chrom_key):
         # New chrom; make sure capture the end of the previous chrom
-        if self.num_chroms > 0:
+        if self.num_processed_chroms > 0:
             prev_base_pos = self.chrom_pos[prev_chrom_key].base_pos
-            if prev_base_pos <= self.chrom_size:
-                region_length = self.chrom_size - prev_base_pos + 1
+            prev_chrom_size = self.chrom_sizes[prev_chrom_key]
+            if prev_base_pos <= prev_chrom_size:
+                region_length = prev_chrom_size - prev_base_pos + 1
                 self._add_invariant_region(prev_chrom_key, region_length)
 
         self.all_regions[chrom_key] = []

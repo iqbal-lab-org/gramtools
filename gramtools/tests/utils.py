@@ -1,5 +1,5 @@
 class _MockVcfRecord:
-    def __init__(self, pos, ref, alts, samples=[], chrom="Just_Another_Chromosome"):
+    def __init__(self, pos, ref, alts, samples=[], chrom="JAC"):
         self.pos = pos
         self.ref = ref
         self.alts = alts
