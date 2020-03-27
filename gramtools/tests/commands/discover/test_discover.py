@@ -3,59 +3,56 @@ import os
 import collections
 
 from gramtools.commands.discover import discover
+from gramtools.commands.discover.region_mapper import _Region
 from gramtools.utils import prg_local_parser
-from ...utils import _MockVcfRecord
+from gramtools.tests.utils import _MockVcfRecord
 
 
 class TestSecondaryRegions(unittest.TestCase):
     """
-    Note: as stated in the original code, the length of a region is the length of the (first) ALT string if we have a vcf record.
+    Note: as stated in the original code, the length of a region is the length of the (first) alt string if we have a vcf record.
     """
 
     def test_SingleBaseAlt_CorrectRegion(self):
         # base sequence:      T TAT CGG
         # secondary sequence: T G   CGG
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["G"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
 
         chrom_sizes = [7]
 
-        result = discover._flag_personalised_reference_regions(
-            base_records, chrom_sizes
-        )
+        result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
 
         expected = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=1,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="G",
+                vcf_record_ref="TAT",
+                vcf_record_alt="G",
             ),
-            discover._Region(base_POS=5, inf_POS=3, length=3),
+            _Region(base_pos=5, inf_pos=3, length=3),
         ]
         self.assertEqual(expected, list(result.values())[0])
 
     def test_AltLongerThanRef_CorrectRegion(self):
         # base sequence:      T TAT    CGG
         # secondary sequence: T GCCAC  CGG
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["GCCAC"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"])]
         chrom_sizes = [7]
 
-        result = discover._flag_personalised_reference_regions(
-            base_records, chrom_sizes
-        )
+        result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
 
         expected = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=5,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="GCCAC",
+                vcf_record_ref="TAT",
+                vcf_record_alt="GCCAC",
             ),
-            discover._Region(base_POS=5, inf_POS=7, length=3),
+            _Region(base_pos=5, inf_pos=7, length=3),
         ]
         self.assertEqual(expected, list(result.values())[0])
 
@@ -63,33 +60,31 @@ class TestSecondaryRegions(unittest.TestCase):
         # base sequence:      T TAT    C G   G
         # secondary sequence: T GCCAC  C TTT G
         base_records = [
-            _MockVcfRecord(POS=2, REF="TAT", ALT=["GCCAC"]),
-            _MockVcfRecord(POS=6, REF="G", ALT=["TTT"]),
+            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"]),
+            _MockVcfRecord(pos=6, ref="G", alts=["TTT"]),
         ]
 
         chrom_sizes = [7]
-        result = discover._flag_personalised_reference_regions(
-            base_records, chrom_sizes
-        )
+        result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
 
         expected = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=5,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="GCCAC",
+                vcf_record_ref="TAT",
+                vcf_record_alt="GCCAC",
             ),
-            discover._Region(base_POS=5, inf_POS=7, length=1),
-            discover._Region(
-                base_POS=6,
-                inf_POS=8,
+            _Region(base_pos=5, inf_pos=7, length=1),
+            _Region(
+                base_pos=6,
+                inf_pos=8,
                 length=3,
-                vcf_record_REF="G",
-                vcf_record_ALT="TTT",
+                vcf_record_ref="G",
+                vcf_record_alt="TTT",
             ),
-            discover._Region(base_POS=7, inf_POS=11, length=1),
+            _Region(base_pos=7, inf_pos=11, length=1),
         ]
 
         self.assertEqual(expected, list(result.values())[0])
@@ -98,39 +93,37 @@ class TestSecondaryRegions(unittest.TestCase):
         # base sequence:      T TAT    C   G  G
         # secondary sequence: T GCCAC  TCT AA G
         base_records = [
-            _MockVcfRecord(POS=2, REF="TAT", ALT=["GCCAC"]),
-            _MockVcfRecord(POS=5, REF="C", ALT=["TCT"]),
-            _MockVcfRecord(POS=6, REF="G", ALT=["AA"]),
+            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"]),
+            _MockVcfRecord(pos=5, ref="C", alts=["TCT"]),
+            _MockVcfRecord(pos=6, ref="G", alts=["AA"]),
         ]
         chrom_sizes = [7]
-        result = discover._flag_personalised_reference_regions(
-            base_records, chrom_sizes
-        )
+        result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
 
         expected = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=5,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="GCCAC",
+                vcf_record_ref="TAT",
+                vcf_record_alt="GCCAC",
             ),
-            discover._Region(
-                base_POS=5,
-                inf_POS=7,
+            _Region(
+                base_pos=5,
+                inf_pos=7,
                 length=3,
-                vcf_record_REF="C",
-                vcf_record_ALT="TCT",
+                vcf_record_ref="C",
+                vcf_record_alt="TCT",
             ),
-            discover._Region(
-                base_POS=6,
-                inf_POS=10,
+            _Region(
+                base_pos=6,
+                inf_pos=10,
                 length=2,
-                vcf_record_REF="G",
-                vcf_record_ALT="AA",
+                vcf_record_ref="G",
+                vcf_record_alt="AA",
             ),
-            discover._Region(base_POS=7, inf_POS=12, length=1),
+            _Region(base_pos=7, inf_pos=12, length=1),
         ]
 
         self.assertEqual(expected, list(result.values())[0])
@@ -145,37 +138,35 @@ class TestSecondaryRegions(unittest.TestCase):
         #   secondary sequence: GCGCA AAC CG
 
         base_records = [
-            _MockVcfRecord(POS=4, REF="ATTC", ALT=["A"], CHROM="Chrom_1"),
-            _MockVcfRecord(POS=6, REF="A", ALT=["AAC"], CHROM="Chrom_2"),
+            _MockVcfRecord(pos=4, ref="ATTC", alts=["A"], chrom="Chrom_1"),
+            _MockVcfRecord(pos=6, ref="A", alts=["AAC"], chrom="Chrom_2"),
         ]
 
         chrom_sizes = [10, 8]
-        result = discover._flag_personalised_reference_regions(
-            base_records, chrom_sizes
-        )
+        result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
 
         expected_Chrom_1 = [
-            discover._Region(base_POS=1, inf_POS=1, length=3),
-            discover._Region(
-                base_POS=4,
-                inf_POS=4,
+            _Region(base_pos=1, inf_pos=1, length=3),
+            _Region(
+                base_pos=4,
+                inf_pos=4,
                 length=1,
-                vcf_record_REF="ATTC",
-                vcf_record_ALT="A",
+                vcf_record_ref="ATTC",
+                vcf_record_alt="A",
             ),
-            discover._Region(base_POS=8, inf_POS=5, length=3),
+            _Region(base_pos=8, inf_pos=5, length=3),
         ]
 
         expected_Chrom_2 = [
-            discover._Region(base_POS=1, inf_POS=1, length=5),
-            discover._Region(
-                base_POS=6,
-                inf_POS=6,
+            _Region(base_pos=1, inf_pos=1, length=5),
+            _Region(
+                base_pos=6,
+                inf_pos=6,
                 length=3,
-                vcf_record_REF="A",
-                vcf_record_ALT="AAC",
+                vcf_record_ref="A",
+                vcf_record_alt="AAC",
             ),
-            discover._Region(base_POS=7, inf_POS=9, length=2),
+            _Region(base_pos=7, inf_pos=9, length=2),
         ]
         expectations = {"Chrom_1": expected_Chrom_1, "Chrom_2": expected_Chrom_2}
         for key in result:
@@ -192,9 +183,7 @@ class TestSecondaryRegions(unittest.TestCase):
         chrom_sizes = []
         base_records = []
         with self.assertRaises(ValueError):
-            result = discover._flag_personalised_reference_regions(
-                base_records, chrom_sizes
-            )
+            result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
 
 
 class TestSearchRegions(unittest.TestCase):
@@ -202,7 +191,7 @@ class TestSearchRegions(unittest.TestCase):
     Note: the secondary_regions spelled out are tested for correctness in upstream tests: see @class TestSecondaryRegions
     So, we can safely use them if those tests don't break.
 
-    Note(2): we find the first matching region by matching the vcf_record's POS with the POS coordinates of the inferred
+    Note(2): we find the first matching region by matching the vcf_record's pos with the pos coordinates of the inferred
     reference.
     """
 
@@ -212,23 +201,23 @@ class TestSearchRegions(unittest.TestCase):
         """
         # base sequence:      T TAT CGG
         # secondary sequence: T G   CGG
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["G"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
 
         chrom_sizes = [7]
 
         secondary_regions = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=1,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="G",
+                vcf_record_ref="TAT",
+                vcf_record_alt="G",
             ),
-            discover._Region(base_POS=5, inf_POS=3, length=3),
+            _Region(base_pos=5, inf_pos=3, length=3),
         ]
 
-        vcf_record = _MockVcfRecord(POS=4, REF="G", ALT=["A"])
+        vcf_record = _MockVcfRecord(pos=4, ref="G", alts=["A"])
         result = discover._find_start_region_index(vcf_record, secondary_regions)
 
         expected = 2
@@ -237,21 +226,21 @@ class TestSearchRegions(unittest.TestCase):
     def test_RecordStartsAtRegionStart(self):
         # base sequence:      T TAT    CGG
         # secondary sequence: T GCCAC  CGG
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["GCCAC"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"])]
 
         secondary_regions = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=5,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="GCCAC",
+                vcf_record_ref="TAT",
+                vcf_record_alt="GCCAC",
             ),
-            discover._Region(base_POS=5, inf_POS=7, length=3),
+            _Region(base_pos=5, inf_pos=7, length=3),
         ]
 
-        vcf_record = _MockVcfRecord(POS=2, REF="GC", ALT=["GA"])
+        vcf_record = _MockVcfRecord(pos=2, ref="GC", alts=["GA"])
         result = discover._find_start_region_index(vcf_record, secondary_regions)
 
         expected = 1
@@ -261,31 +250,31 @@ class TestSearchRegions(unittest.TestCase):
         # base sequence:      T TAT    C G   G
         # secondary sequence: T GCCAC  C TTT G
         base_records = [
-            _MockVcfRecord(POS=2, REF="TAT", ALT=["GCCAC"]),
-            _MockVcfRecord(POS=6, REF="G", ALT=["TTT"]),
+            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"]),
+            _MockVcfRecord(pos=6, ref="G", alts=["TTT"]),
         ]
 
         secondary_regions = [
-            discover._Region(base_POS=1, inf_POS=1, length=1),
-            discover._Region(
-                base_POS=2,
-                inf_POS=2,
+            _Region(base_pos=1, inf_pos=1, length=1),
+            _Region(
+                base_pos=2,
+                inf_pos=2,
                 length=5,
-                vcf_record_REF="TAT",
-                vcf_record_ALT="GCCAC",
+                vcf_record_ref="TAT",
+                vcf_record_alt="GCCAC",
             ),
-            discover._Region(base_POS=5, inf_POS=7, length=1),
-            discover._Region(
-                base_POS=6,
-                inf_POS=8,
+            _Region(base_pos=5, inf_pos=7, length=1),
+            _Region(
+                base_pos=6,
+                inf_pos=8,
                 length=3,
-                vcf_record_REF="G",
-                vcf_record_ALT="TTT",
+                vcf_record_ref="G",
+                vcf_record_alt="TTT",
             ),
-            discover._Region(base_POS=7, inf_POS=11, length=1),
+            _Region(base_pos=7, inf_pos=11, length=1),
         ]
 
-        vcf_record = _MockVcfRecord(POS=10, REF="T", ALT=["A"])
+        vcf_record = _MockVcfRecord(pos=10, ref="T", alts=["A"])
         result = discover._find_start_region_index(vcf_record, secondary_regions)
 
         expected = 3
@@ -297,20 +286,20 @@ class TestRebaseVcfRecord(unittest.TestCase):
         # base sequence:      T TAT CGG
         # secondary sequence: T G   CGG
         chrom_sizes = [5]
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["G"])]
-        secondary_regions = discover._flag_personalised_reference_regions(
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
+        secondary_regions = discover.RegionMapper(
             base_records, chrom_sizes
-        )
+        ).get_mapped()
 
-        secondary_vcf_record = _MockVcfRecord(POS=3, REF="C", ALT=["G"])
+        secondary_vcf_record = _MockVcfRecord(pos=3, ref="C", alts=["G"])
         new_vcf_record = discover._rebase_vcf_record(
             secondary_vcf_record, list(secondary_regions.values())[0]
         )
 
         result = _MockVcfRecord(
-            new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT
+            new_vcf_record.pos, new_vcf_record.ref, new_vcf_record.alts
         )
-        expected = _MockVcfRecord(POS=5, REF="C", ALT=["G"])
+        expected = _MockVcfRecord(pos=5, ref="C", alts=["G"])
 
         self.assertEqual(expected, result)
 
@@ -318,18 +307,18 @@ class TestRebaseVcfRecord(unittest.TestCase):
         # base sequence:      T TAT CGG
         # secondary sequence: T G   CGG
         chrom_sizes = [7]
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["G"])]
-        secondary_regions = discover._flag_personalised_reference_regions(
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
+        secondary_regions = discover.RegionMapper(
             base_records, chrom_sizes
-        )
+        ).get_mapped()
 
-        secondary_vcf_record = _MockVcfRecord(POS=1, REF="TG", ALT=["TAA"])
+        secondary_vcf_record = _MockVcfRecord(pos=1, ref="TG", alts=["TAA"])
         new_vcf_record = discover._rebase_vcf_record(
             secondary_vcf_record, list(secondary_regions.values())[0]
         )
 
         result = _MockVcfRecord(
-            new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT
+            new_vcf_record.pos, new_vcf_record.ref, new_vcf_record.alts
         )
         expected = _MockVcfRecord(1, "TTAT", ["TAA"])
 
@@ -340,26 +329,26 @@ class TestRebaseVcfRecord(unittest.TestCase):
         A test case where the variation on top of the inferred reference overlaps: a non-variant site, a variant site,
         and a non-variant site in the prg.
 
-        What we need is for the rebased REF to include all three sites.
+        What we need is for the rebased ref to include all three sites.
         """
         # base sequ: T TAT CGG
         # secondary: T G   CGG
         chrom_sizes = [7]
-        base_records = [_MockVcfRecord(POS=2, REF="TAT", ALT=["G"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
 
-        secondary_vcf_record = _MockVcfRecord(POS=1, REF="TGCG", ALT=["GGCT"])
+        secondary_vcf_record = _MockVcfRecord(pos=1, ref="TGCG", alts=["GGCT"])
 
-        secondary_regions = discover._flag_personalised_reference_regions(
+        secondary_regions = discover.RegionMapper(
             base_records, chrom_sizes
-        )
+        ).get_mapped()
         new_vcf_record = discover._rebase_vcf_record(
             secondary_vcf_record, list(secondary_regions.values())[0]
         )
 
         result = _MockVcfRecord(
-            new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT
+            new_vcf_record.pos, new_vcf_record.ref, new_vcf_record.alts
         )
-        expected = _MockVcfRecord(POS=1, REF="TTATCG", ALT=["GGCT"])
+        expected = _MockVcfRecord(pos=1, ref="TTATCG", alts=["GGCT"])
 
         self.assertEqual(expected, result)
 
@@ -367,27 +356,27 @@ class TestRebaseVcfRecord(unittest.TestCase):
         """
         A test case where we find a SNP on top of an insertion in the inferred reference.
 
-        What we need is for the rebased ALT to include the flanking ALT bases, which are implied to be present in the secondary_vcf_record.
+        What we need is for the rebased alt to include the flanking alt bases, which are implied to be present in the secondary_vcf_record.
         """
         # base sequ: T TAT CGG T     A
         # secondary: T G   CGG TCTGC A
         chrom_sizes = [9]
         base_records = [
-            _MockVcfRecord(POS=2, REF="TAT", ALT=["G"]),
-            _MockVcfRecord(POS=8, REF="T", ALT=["TCTGC"]),
+            _MockVcfRecord(pos=2, ref="TAT", alts=["G"]),
+            _MockVcfRecord(pos=8, ref="T", alts=["TCTGC"]),
         ]
 
-        secondary_vcf_record = _MockVcfRecord(POS=9, REF="G", ALT=["A"])
+        secondary_vcf_record = _MockVcfRecord(pos=9, ref="G", alts=["A"])
 
-        secondary_regions = discover._flag_personalised_reference_regions(
+        secondary_regions = discover.RegionMapper(
             base_records, chrom_sizes
-        )
+        ).get_mapped()
         new_vcf_record = discover._rebase_vcf_record(
             secondary_vcf_record, list(secondary_regions.values())[0]
         )
 
         result = _MockVcfRecord(
-            new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT
+            new_vcf_record.pos, new_vcf_record.ref, new_vcf_record.alts
         )
         expected = _MockVcfRecord(8, "T", ["TCTAC"])
 
@@ -400,32 +389,32 @@ class TestRebaseVcfRecord(unittest.TestCase):
 
         There is also a SNP among the original deletion, to make it plausible that quasimap/infer picks this variant.
 
-        To make it harder, the discovered variation is also reported inside a variant site, so we expect the rebased ALT to be elongated.
+        To make it harder, the discovered variation is also reported inside a variant site, so we expect the rebased alt to be elongated.
 
-        We expect the rebased REF to include all deleted bases.
+        We expect the rebased ref to include all deleted bases.
         """
         # base reference:     CAA C GCTA CAA
         # inferred reference: C   C GAT  CAA
 
         chrom_sizes = [11]
         base_records = [
-            _MockVcfRecord(POS=1, REF="CAA", ALT=["C"]),
-            _MockVcfRecord(POS=5, REF="GCTA", ALT=["GAT"]),
+            _MockVcfRecord(pos=1, ref="CAA", alts=["C"]),
+            _MockVcfRecord(pos=5, ref="GCTA", alts=["GAT"]),
         ]
 
-        secondary_vcf_record = _MockVcfRecord(POS=4, REF="ATC", ALT=["A"])
+        secondary_vcf_record = _MockVcfRecord(pos=4, ref="ATC", alts=["A"])
 
-        secondary_regions = discover._flag_personalised_reference_regions(
+        secondary_regions = discover.RegionMapper(
             base_records, chrom_sizes
-        )
+        ).get_mapped()
         new_vcf_record = discover._rebase_vcf_record(
             secondary_vcf_record, list(secondary_regions.values())[0]
         )
 
         result = _MockVcfRecord(
-            new_vcf_record.POS, new_vcf_record.REF, new_vcf_record.ALT
+            new_vcf_record.pos, new_vcf_record.ref, new_vcf_record.alts
         )
-        expected = _MockVcfRecord(POS=5, REF="GCTAC", ALT=["GA"])
+        expected = _MockVcfRecord(pos=5, ref="GCTAC", alts=["GA"])
 
         self.assertEqual(expected, result)
 

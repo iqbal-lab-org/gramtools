@@ -8,7 +8,7 @@ import os
 from gramtools.utils import prg_local_parser
 from gramtools.commands.genotype import fasta_from_vcf
 from gramtools.commands.genotype.legacy import genotyper
-from ...utils import _MockVcfRecord
+from gramtools.tests.utils import _MockVcfRecord
 
 
 def setup_fasta_files(tmpdir, fasta_string):
