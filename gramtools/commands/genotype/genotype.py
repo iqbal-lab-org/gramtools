@@ -31,6 +31,7 @@ def run(args):
     _execute_command_cpp_genotype(
         geno_report["processes"], "gramtools_genotype", geno_paths, args
     )
+    geno_report["ploidy"] = args.ploidy
 
     _check_read_stats(geno_report["processes"], "check_read_stats", geno_paths)
 
@@ -101,7 +102,7 @@ def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
 
     # Add extra reporting
     geno_report[action] = collections.OrderedDict(
-        [("command", "".join(command)), ("stdout", entire_stdout)]
+        [("command", " ".join(command)), ("stdout", entire_stdout)]
     )
     if command_result == False:
         raise Exception("Error running gramtools genotype.")

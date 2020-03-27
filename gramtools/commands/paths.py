@@ -177,6 +177,7 @@ class GenotypePaths(ProjectPaths):
             target = (
                 self.reads_dir / read_file.name
             )  # name attrib is the file's os.basename
+            self.check_exists(read_file)
             target.symlink_to(read_file)
 
 
@@ -189,6 +190,8 @@ class DiscoverPaths(ProjectPaths):
         geno_paths = GenotypePaths(genotype_dir)
         self.pers_ref = geno_paths.pers_ref
         self.geno_vcf = geno_paths.geno_vcf
+        self.geno_report = geno_paths.report
+
         self.reads_files = []
         self.check_exists(geno_paths.reads_dir)
         for read_file in geno_paths.reads_dir.iterdir():

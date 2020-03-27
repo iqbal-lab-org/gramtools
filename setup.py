@@ -148,7 +148,7 @@ setuptools.setup(
     description="Genome inference and variant calling with population reference graphs.",
     url="https://github.com/iqbal-lab-org/gramtools",
     long_description=readme,
-    entry_points={"console_scripts": ["gramtools = gramtools.gramtools:run"]},
+    entry_points={"console_scripts": ["gramtools = gramtools.gramtools_main:run"]},
     packages=setuptools.find_packages("."),
     include_package_data=True,
     install_requires=[

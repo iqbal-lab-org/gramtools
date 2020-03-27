@@ -7,7 +7,7 @@ Words of caution:
  ```hexdump -v -e '1/4 "%d "' filename.bin``` (4-byte integers. beware of endianness)
 """
 
-from gramtools import gramtools
+from gramtools import gramtools_main
 from gramtools.commands import paths
 from gramtools.commands.build import build
 from gramtools.commands.genotype import genotype, utils
@@ -20,7 +20,7 @@ import unittest
 base_dir = Path(__file__ + "/../../../").resolve()
 data_dir = base_dir / "tests" / "data" / "prgs"
 
-gramtools._setup_parser()
+gramtools_main._setup_parser()
 
 
 class IntegrationRunner:
@@ -40,14 +40,14 @@ class IntegrationRunner:
         shutil.rmtree(self.gram_dir)
 
     def run_build(self):
-        args = gramtools.root_parser.parse_args(
+        args = gramtools_main.root_parser.parse_args(
             f"build --gram_dir {self.gram_dir} --prg {self.prg_file} "
             f" --reference None --kmer_size 5 --force".split()
         )
         build.run(args)
 
     def run_genotype(self):
-        args = gramtools.root_parser.parse_args(
+        args = gramtools_main.root_parser.parse_args(
             f"genotype --gram_dir {self.gram_dir} --genotype_dir "
             f"{self.geno_dir} --reads {self.reads_file} --sample_id test --force".split()
         )

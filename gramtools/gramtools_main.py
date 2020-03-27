@@ -4,11 +4,11 @@ import logging
 import argparse
 import collections
 
-from . import version
-from .commands.build import command_setup as build_setup, build
-from .commands.genotype import command_setup as genotype_setup, genotype
-from .commands.discover import command_setup as discovery_setup, discover
-from .commands.simulate import simulate
+from gramtools import version
+from gramtools.commands.build import command_setup as build_setup, build
+from gramtools.commands.genotype import command_setup as genotype_setup, genotype
+from gramtools.commands.discover import command_setup as discovery_setup, discover
+from gramtools.commands.simulate import simulate
 
 
 def _setup_logging(args):

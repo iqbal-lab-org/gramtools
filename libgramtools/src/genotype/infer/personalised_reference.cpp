@@ -35,9 +35,12 @@ std::size_t get_ploidy(gt_sites const& gtyped_recs){
 // Helper function for get_personalised_ref()
 void add_segment_IDs(Fastas& p_refs, std::size_t const offset, std::size_t const ploidy,
         std::string const& ID){
-    for (int i{0}; i < ploidy; i++){
-        std::string qualified_ID(ID + "_" + std::to_string(i));
-        p_refs.at(i + offset).set_ID(qualified_ID);
+    if (ploidy == 1) p_refs.at(offset).set_ID(ID);
+    else {
+        for (int i{0}; i < ploidy; i++){
+            std::string qualified_ID(ID + "_" + std::to_string(i + 1));
+            p_refs.at(i + offset).set_ID(qualified_ID);
+        }
     }
 }
 
