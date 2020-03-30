@@ -2,7 +2,7 @@ import unittest
 
 from gramtools.commands.simulate.legacy import prg_regions_parser
 from gramtools.commands.simulate.legacy import main
-from ... import common
+from gramtools.tests import common
 
 
 class TestGenerateReads(unittest.TestCase):

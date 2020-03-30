@@ -1,6 +1,6 @@
 import unittest
 
-from ... import common
+from gramtools.tests import common
 from gramtools.commands.simulate.legacy import prg_regions_parser
 
 

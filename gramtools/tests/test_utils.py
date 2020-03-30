@@ -4,75 +4,8 @@ from unittest.mock import Mock
 import tempfile
 import os
 
-
 from gramtools.utils import prg_local_parser
-from gramtools.commands.genotype import fasta_from_vcf
-from gramtools.commands.genotype.legacy import genotyper
-from gramtools.tests.utils import _MockVcfRecord
-
-
-def setup_fasta_files(tmpdir, fasta_string):
-    fp_in = os.path.join(tmpdir, "test_in.fasta")
-    file_in = open(fp_in, "w")
-    file_in.write(fasta_string)
-    file_in.close()
-
-    fp_out = os.path.join(tmpdir, "test_out.fasta")
-    return fp_in, fp_out
-
-
-class TestFastaFromVcf(unittest.TestCase):
-    def test_OneRecord_TwoSites(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-
-            fasta_string = ">Record 1\n" "ATCGTATATGT\n"
-            fp_in, fp_out = setup_fasta_files(tmpdir, fasta_string)
-
-            vcf_records = [_MockVcfRecord(3, "C", ["GT"]), _MockVcfRecord(6, "A", [""])]
-
-            expected = ">Record 1\n" "ATGTGTTATGT\n"
-
-            fasta_from_vcf.make_new_ref_using_vcf(fp_in, iter(vcf_records), fp_out)
-            with open(fp_out) as _:
-                result = _.read()
-
-        self.assertEqual(result, expected)
-
-    def test_TwoRecords_Two_plus_One_Sites(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-
-            fasta_string = ">Record 1\n" "AAAAATTTTT\n" ">Record 2!\n" "ACGCGCGCGA\n"
-            fp_in, fp_out = setup_fasta_files(tmpdir, fasta_string)
-
-            vcf_records = [
-                _MockVcfRecord(3, "AAA", ["A"]),
-                _MockVcfRecord(6, "TT", ["TG"]),
-                _MockVcfRecord(1, "ACGC", ["AAAC"]),
-            ]
-
-            expected = ">Record 1\n" "AAATGTTT\n" ">Record 2!\n" "AAACGCGCGA\n"
-
-            fasta_from_vcf.make_new_ref_using_vcf(fp_in, iter(vcf_records), fp_out)
-            with open(fp_out) as _:
-                result = _.read()
-
-        self.assertEqual(result, expected)
-
-    def test_invalid_characters_raiseErrors(self):
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-
-            fasta_string = ">Record 1\n" "BANANATTTT\n" ">Record 2!\n" "ACGCGCGCGA\n"
-            fp_in, fp_out = setup_fasta_files(tmpdir, fasta_string)
-
-            vcf_records = [
-                _MockVcfRecord(3, "AAA", ["A"]),
-                _MockVcfRecord(6, "TT", ["TG"]),
-                _MockVcfRecord(1, "ACGC", ["AAAC"]),
-            ]
-
-            with self.assertRaises(ValueError):
-                fasta_from_vcf.make_new_ref_using_vcf(fp_in, iter(vcf_records), fp_out)
+from gramtools.tests.mocks import _MockVcfRecord
 
 
 class TestIsInt(unittest.TestCase):

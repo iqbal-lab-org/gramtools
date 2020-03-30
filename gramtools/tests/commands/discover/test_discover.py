@@ -5,7 +5,7 @@ import collections
 from gramtools.commands.discover import discover
 from gramtools.commands.discover.region_mapper import _Region
 from gramtools.utils import prg_local_parser
-from gramtools.tests.utils import _MockVcfRecord
+from gramtools.tests.mocks import _MockVcfRecord
 
 
 class TestRegionMapping(unittest.TestCase):
