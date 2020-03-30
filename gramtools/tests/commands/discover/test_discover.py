@@ -4,7 +4,6 @@ import collections
 
 from gramtools.commands.discover import discover
 from gramtools.commands.discover.region_mapper import _Region
-from gramtools.utils import prg_local_parser
 from gramtools.tests.mocks import _MockVcfRecord
 
 
@@ -440,37 +439,6 @@ class TestRebaseVcfRecord(unittest.TestCase):
             new_vcf_record.pos, new_vcf_record.ref, new_vcf_record.alts
         )
         expected = _MockVcfRecord(pos=5, ref="GCTAC", alts=["GA"])
-
-        self.assertEqual(expected, result)
-
-
-class TestGetBaseReference(unittest.TestCase):
-    """
-    Pick the first allele of each variant site of the prg to make 'base' reference.
-    """
-
-    def test_GivenPrgWithTwoSites_CorrectReferenceExtracted(self):
-        test_prg = "test_prg"
-        test_inferred = "test_inferred"
-
-        prg_seq = "TT5A6T5AA7C8A7"
-
-        allele_indexes = (0 for _ in range(4))
-
-        with open(test_prg, "w") as prg:
-            prg.write(prg_seq)
-
-        prg_parser = prg_local_parser.Prg_Local_Parser(
-            test_prg, test_inferred, fasta_header="", allele_indexes=allele_indexes
-        )
-        prg_parser.parse()
-
-        with open(test_inferred, "r") as inferred:
-            result = inferred.readlines()[-1].strip()
-
-        expected = "TTAAAC"
-        os.remove(test_prg)
-        os.remove(test_inferred)
 
         self.assertEqual(expected, result)
 
