@@ -46,7 +46,7 @@ commands = collections.OrderedDict(
 
 def _setup_parser():
     root_parser.add_argument("--version", help="", action="store_true")
-    metavar = "{{{commands}}}".format(commands=", ".join(command_setups.keys()))
+    metavar = "{{{commands}}}".format(commands=", ".join(commands.keys()))
     subparsers = root_parser.add_subparsers(
         title="subcommands", dest="subparser_name", metavar=metavar
     )

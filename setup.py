@@ -114,8 +114,6 @@ class _DevelopCommand(develop):
     Command to build develop: (do this inside development dir)
         pip3 install -vvv --editable /path/to/gramtools  # wrapper round setuptools develop.
 
-        Note: can also use `python3 /path/to/gramtools/setup.py develop` BUT will not properly run setup.py on packages.
-
     """
 
     def run(self):

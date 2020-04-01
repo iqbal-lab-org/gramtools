@@ -1,0 +1,55 @@
+# Usage: `sudo singularity build image_name.img Gramtools.def`
+# Tested on: singularity v3.4.0-1
+
+BootStrap: docker
+From: ubuntu:latest  
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+	apt-get update
+	apt-get install -y \
+	build-essential \
+	cmake \
+	automake \
+	g++-8 \
+	git \
+	liblzma-dev \
+	libbz2-dev \
+	libhts-dev \
+	pkg-config \
+	python3 \
+	python3-pip \
+	wget \
+	zlib1g-dev \
+	bcftools \
+	tabix
+
+    ln -sf /usr/bin/g++-8 /usr/bin/g++ # Default to g++-8
+	pip install pip==20.0.2 # upgrade pip
+
+	apt-get install -y \
+	python \
+	python-dev \
+	r-base
+
+	#### latest master rather than pypi####
+	pip3 install git+https://github.com/iqbal-lab-org/cluster_vcf_records/ 
+
+	pip3 install -vvv --process-dependency-links wheel git+https://github.com/iqbal-lab-org/gramtools
+
+
+%environment
+    export LC_ALL=C
+
+%labels
+    Author Brice Letcher
+
+# Notes
+# * remove all trailing whitespace in apt-get lines
+# * Dependencies:
+#       * bcftools: for multi-sample pipeline (merge vcfs + bgzf index vcfs)
+#       * tabix: for multi-sample pipeline (bgzf index vcfs)
+#       * cortex: used in variant discovery. depends on:
+#               * stampy: requires python2, python-dev
+#               * r-base

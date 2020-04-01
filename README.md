@@ -6,7 +6,7 @@
 Gramtools builds a population reference genome (PRG) from a set of variants. 
 Given sequence data from an individual, the graph is annotated with coverage and genotyped. 
  
- A personalised reference genome for the sample can be inferred and new variation discovered 
+ A personalised reference genome for the sample is inferred and new variation discovered 
  against it. You can then build a new PRG from the initial + the new variants, and carry on forever!
 
 ## Install
@@ -21,49 +21,57 @@ If `sudo` is unavailable, we recommend using a Python virtual enviroment:
 ```
 python3 -m venv gram_ve && source gram_ve/bin/activate
 ```
-Note: installation fails with `virtualenv`.
 
-## Usage
-Gramtools currently consists of three commands. These commands are documented in the wiki 
-(see links below). In the order you typically run them:
-1) [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - 
-given a VCF and reference, construct the graph.
+A singularity definition file (in containers/singularity) can also be used to build a gramtools image.
 
-2) [genotype](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-quasimap) - 
-    map reads to a graph generated in `build` and genotype the graph.
-
-3) (TODO) [discover](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-discover) - 
-infers a personalised reference genome for the sample and discovers new variation against it using
- one or more standard variant callers (currently: cortex).
-
-Examples, documentation, and planned future enhancements can be found in the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
+## Use
 
 ```
 Gramtools
 
-Usage:
-  gramtools build --gram_dir --vcf --reference --kmer_size 
-  gramtools genotype --gram_dir --genotype_dir --reads [--ploidy {haploid,diploid}]
-  gramtools discover --genotype_dir
+Usage: 
+    gramtools [-h] [--debug] [--force] subcommand
+    
+    Subcommands:
+        gramtools build -o GRAM_DIR --ref REFERENCE
+                       (--vcf VCF [VCF ...] | --prg PRG)
+                       [--kmer_size KMER_SIZE]
 
-  gramtools (-h | --help)
-  gramtools --version
+        gramtools genotype -i GRAM_DIR -o GENO_DIR
+                          --reads READS [READS ...] --sample_id SAMPLE_ID
+                          [--ploidy {haploid,diploid}]
+                          [--max_threads MAX_THREADS] [--seed SEED]
 
-Options:
-  --gram_dir 	Gramtools directory containing outputs of `build` 
-  --kmer-size 	Kmer size at which to build the graph (used for seeding reads in `quasimap`)	
+        gramtools discover -i GENO_DIR -o DISCO_DIR
+                          [--reads READS [READS ...]]
 
-  --genotype_dir 	Stores outputs of `genotype` and `discover`
-  --reads 	1+ reads file, in (fasta/fastq/sam/bam/cram) format
-
-  -h --help             Show this screen
-  --version             Show version
-
-Subcommands:
-  build         Construct the graph and supporting data structures
-  genotype      Map reads to graph and genotype the graph
-  discover	Discover new variation against inferred personalised reference genome
+        gramtools simulate --prg PRG
+                           [--max_num_paths MAX_NUM_PATHS]
+                           [--sample_id SAMPLE_ID] [--output_dir OUTPUT_DIR]
 ```
+
+### Subcommands explained
+1) [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - 
+given a VCF and reference or a prg file, construct the graph.
+    * `--kmer_size`: used for indexing the graph in preparation for
+       `genotype`. higher `k` <=> faster `genotype`, but `build` output will consume more 
+       disk space.
+
+2) [genotype](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-genotype) - 
+    map reads to a graph generated in `build` and genotype the graph. Produces genotype calls (VCF)
+    and a personalised reference genome (fasta).
+    * `--reads`: 1+ reads files in (fasta/fastq/sam/bam/cram) format
+    * `--sample_id`: displayed in VCF & personalised reference outputs
+
+3) [discover](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-discover) - 
+discovers new variation against the personalised reference genome from `genotype` using
+ one or more variant callers (currently: cortex).
+ 
+4) simulate- samples paths through a prg, producing a fasta of the paths and a genotyped JSON
+of the variant bubbles the path went through.
+    * `--prg`: a prg file as output by `build`
+
+Examples, documentation, and planned future enhancements can be found in the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki).
 
 ## Reference documentation
 
