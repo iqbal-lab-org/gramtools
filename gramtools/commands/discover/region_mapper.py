@@ -68,9 +68,8 @@ class RegionMapper:
             else:
                 self._enforce_contiguity(chrom_key, prev_chrom_key, record, prev_record)
 
-            # Build non-variant region
             base_pos = self.chrom_pos[chrom_key].base_pos
-            if record.pos > base_pos:
+            if record.pos > base_pos:  # Build non-variant region
                 region_length = record.pos - base_pos
                 assert (
                     len(self.all_regions[chrom_key]) == 0

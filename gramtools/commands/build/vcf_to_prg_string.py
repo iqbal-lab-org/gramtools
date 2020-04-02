@@ -1,29 +1,29 @@
 """
-Expects:
-    A well formed vcf, here meaning no overlapping records- as output by vcf_clusterer module for eg.
-
-Outputs:
-    A prg string of the vcf, which `gramtools build` can use.
-
-**Assumptions** (This module will NOT WORK AS YOU MAY WANT if NOT MET):
-    * The vcf records are sorted by i)CHROM and then ii)position
+Assumption: the vcf records are sorted by i)CHROM and then ii)position.
 
 Behaviour:
-    * Reference records with no variation are all appended at the end of the prg string, in the order they first appear
+    * (logged) For a given CHROM, records with overlapping or non-increasing POS are dropped.
+    * (logged) Records without 'PASS' in FILTER are skipped.
+    * Reference records with no variation are appended at the end of the prg string, in the order they appear
      in the ref file.
-    * (For a given CHROM,) Records with POS not strictly increasing are dropped.
 """
 from collections import OrderedDict, defaultdict
+import logging
+import sys
 
 from pysam import VariantFile, VariantRecord
 from Bio import SeqIO
+
+sys.tracebacklimit = 0
+logger = logging.getLogger("vcf_to_prg_string")
+logger.setLevel(logging.WARNING)
 
 
 def load_fasta(reference_file):
     ref_records = OrderedDict()
     # SeqIO: the id of the record is everything between ">" and the first space.
     for seq_record in SeqIO.parse(reference_file, "fasta"):
-        ref_records[seq_record.id] = seq_record.seq
+        ref_records[seq_record.id] = str(seq_record.seq)
     return ref_records
 
 
@@ -66,6 +66,7 @@ class _Template_Vcf_to_prg(object):
         self.num_sites = 0
         self.processed_refs = list()
         self.f_out = None
+        self.skipped_records: int = 0
 
     def _check_record_ref(self, rec: VariantRecord):
         # Make sure the vcf record refers to a valid ref sequence ID
@@ -105,7 +106,7 @@ class _Template_Vcf_to_prg(object):
 
     def _get_ref_slice(self, chrom, start, end=0):
         ref_seq = self.ref_records[chrom]
-        res = str(ref_seq[start - 1 :]).upper()
+        res = ref_seq[start - 1 :].upper()
         if end != 0:
             res = res[: end - start]
         res = list(map(nucleotide_to_integer, res))  # Convert to integers
@@ -122,9 +123,9 @@ class _Template_Vcf_to_prg(object):
 
 class Vcf_to_prg(_Template_Vcf_to_prg):
     """
-    The mode parameter, with default 'normal', defines how variant sites are built.
-    If 'legacy', a T/G SNP is built as '5T6G5'
-    If 'normal', a T/G SNP is built as '5T6G6'
+    Args:
+        mode : if 'legacy' a T/G SNP is built as '5T6G5',
+               if 'normal' is built as '5T6G6'
     """
 
     def __init__(self, vcf_file, reference_file, prg_output_file, mode="normal"):
@@ -138,15 +139,23 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
         self.ref_records = load_fasta(reference_file)
         self._make_prg(mode)
+        if self.skipped_records > 0:
+            logger.warning(
+                f"Skipped {self.skipped_records} because of no 'PASS' in their FORMAT column"
+            )
 
     def next_rec(self):
         try:
-            self.vcf_record = next(self.vcf_in)
-            return True
+            while True:
+                self.vcf_record = next(self.vcf_in)
+                if "PASS" not in self.vcf_record.filter:
+                    self.skipped_records += 1
+                    continue
+                return True
         except StopIteration:
             return False
         except Exception as e:
-            print(
+            logger.error(
                 f'ERROR: Could not read vcf file {self.vcf_in} due to: "{e}".'
                 "Is the VCF properly formatted?"
             )
@@ -173,6 +182,9 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
             # Skip records which are not sorted, or all others present at same position
             if vcf_pos < ref_pos:
+                logger.warning(
+                    f"Skipped record at pos {vcf_pos}, because previous record led to pos {ref_pos}"
+                )
                 continue
 
             if vcf_pos > ref_pos:
@@ -195,6 +207,17 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
             self.prg_vector[ref_chrom] += ref_seq
             self.processed_refs.append(ref_chrom)
 
+    def _get_ints(self):
+        contiguous = [self.prg_vector[ref_chrom] for ref_chrom in self.ref_records]
+        return "".join(contiguous)
+
+    def _get_string(self):
+        prg_string = ""
+        for ref_chrom in self.ref_records:
+            for x in self.prg_vector[ref_chrom]:
+                prg_string += integer_to_nucleotide(x)
+        return prg_string
+
     def _write_bytes(self):
         """
         Write an integer
@@ -214,7 +237,7 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
             for x in self.prg_vector[ref_chrom]:
                 prg_string += integer_to_nucleotide(x)
         with open(f"{self.f_out_prefix}.prg", "w") as f_out:
-            f_out.write(str(prg_string))
+            f_out.write(prg_string)
 
     def _write_coordinates(self):
         with open(f"{self.f_out_prefix}_coords.tsv", "w") as genome_file:
@@ -253,4 +276,4 @@ if __name__ == "__main__":
     converter._write_bytes()
     converter._write_string()
     converter._write_coordinates()
-    print(f"num variant sites in prg: {converter.num_sites}")
+    logger.info(f"num variant sites in prg: {converter.num_sites}")

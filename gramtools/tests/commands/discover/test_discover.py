@@ -333,7 +333,7 @@ class TestRebaseVcfRecord(unittest.TestCase):
         new_vcf_record = discover._rebase_vcf_record(
             discov_record, mapped_regions["chr2"]
         )
-        self.assertEqual(discov_record, discov_record)
+        self.assertEqual(discov_record, new_vcf_record)
 
     def test_StartsAtNonSite_EndsAtSite(self):
         # base sequence:      T TAT CGG

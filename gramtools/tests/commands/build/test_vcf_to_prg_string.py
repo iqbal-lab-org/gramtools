@@ -1,14 +1,10 @@
 """
-Behaviour of conversion utility:
+Tested behaviour:
     * Overlapping vcf records (same CHROM, same POS): the first is kept, the rest is ignored
     * Fasta records with no variation: they are output to the prg string in the order seen in the input fasta.
 
     * Adjacent records: site markers placed adjacent to each other,
-    * Allele markers: in 'normal' mode, the python utility marks the end of a variant site
-    with an allele (even) marker. In 'legacy', uses a site (odd) marker.
-
-There used to be a perl utility for conversion. Cases where it worked the same as current utility are
-under `test_routine_common_behaviour`
+    * Allele markers: in 'normal' mode, use even (allele) marker, in legacy use odd (site) marker at end of site.
 """
 import filecmp
 from tempfile import mkdtemp
@@ -16,12 +12,34 @@ from shutil import rmtree
 from pathlib import Path
 import os
 import subprocess
-import unittest
+from unittest import TestCase, mock
 
 from gramtools.commands.build import vcf_to_prg_string
+from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg
+from gramtools.tests.mocks import _MockVcfRecord
 
 base_dir = Path(__file__).parent.parent.parent.parent
 data_dir = base_dir / "tests" / "data" / "vcf_to_prg_string"
+
+
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.VariantFile", spec=True)
+class Test_Filter_Records(TestCase):
+    chroms = {"JAC": "AAC"}
+
+    def test_filter_pass_record_kept(self, mock_var_file, mock_load_fasta):
+        recs = [_MockVcfRecord(2, "A", "G")]  # Default filter: PASS
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual(converter._get_string(), "A5A6G6C")
+
+    def test_filter_nonpass_record_skipped(self, mock_var_file, mock_load_fasta):
+        recs = [_MockVcfRecord(2, "A", "G", filter={"LOW_QUAL": ""})]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual(converter._get_string(), "AAC")
 
 
 class Utility_Tester(object):
@@ -54,7 +72,7 @@ class Utility_Tester(object):
         rmtree(self.tmp_dir)
 
 
-class Test_VcfFormatInputs(unittest.TestCase):
+class Test_VcfFormatInputs(TestCase):
     test_cases = {"bad_header_complex_variant"}
 
     def test_no_fileformat_tag(self):
@@ -68,8 +86,8 @@ class Test_VcfFormatInputs(unittest.TestCase):
             tester._run(check=True)
 
 
-class Test_VcfToPrgString(unittest.TestCase):
-    def test_routine_common_behaviour(self):
+class Test_VcfToPrgString(TestCase):
+    def test_routine_behaviour(self):
         test_cases = {
             "no_variants": "Vcf file has no records",
             "two_separate_snps": "The SNPs are not consecutive",
@@ -133,7 +151,7 @@ class Test_VcfToPrgString(unittest.TestCase):
                 tester._cleanup()
 
 
-class Test_RefWithNoRecords(unittest.TestCase):
+class Test_RefWithNoRecords(TestCase):
     def test_one_snp(self):
         """
         Three ref records, of which the second has a SNP.

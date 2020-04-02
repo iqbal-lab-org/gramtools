@@ -1,5 +1,5 @@
 class _MockVcfRecord:
-    def __init__(self, pos, ref, alts, samples=[], chrom="JAC"):
+    def __init__(self, pos, ref, alts, samples=[], chrom="JAC", filter={}):
         self.pos = pos
         self.ref = ref
         self.alts = alts
@@ -11,6 +11,11 @@ class _MockVcfRecord:
             ]  # Default to recording a ALT call for a single sample.
         else:
             self.samples = samples
+
+        if len(filter) == 0:
+            self.filter = {"PASS": ""}
+        else:
+            self.filter = filter
 
     def __repr__(self):
         return str(self.__dict__)
