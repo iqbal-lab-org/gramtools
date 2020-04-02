@@ -18,8 +18,116 @@ from gramtools.commands.build import vcf_to_prg_string
 from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg
 from gramtools.tests.mocks import _MockVcfRecord
 
-base_dir = Path(__file__).parent.parent.parent.parent
-data_dir = base_dir / "tests" / "data" / "vcf_to_prg_string"
+
+"""
+In-memory tests, via mocking pysam and fasta loading
+"""
+
+
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.VariantFile", spec=True)
+class Test_VcfToPrgString(TestCase):
+    chroms = {"ref1": "AGCAGC", "ref2": "CCC", "ref3": "GGG"}
+
+    def test_no_variants_returns_ref_chroms(self, mock_var_file, mock_load_fasta):
+        recs = []
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("AGCAGCCCCGGG", converter._get_string())
+
+    def test_one_variant_chroms_with_no_vars_in_same_order(
+        self, mock_var_file, mock_load_fasta
+    ):
+        recs = [_MockVcfRecord(2, "G", ["CAAA", "CA"], chrom="ref3")]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("AGCAGCCCCG5G6CAAA6CA6G", converter._get_string())
+
+    def test_two_snps_same_chrom(self, mock_var_file, mock_load_fasta):
+        recs = [
+            _MockVcfRecord(1, "A", "G", chrom="ref1"),
+            _MockVcfRecord(3, "C", ["T", "G"], chrom="ref1"),
+        ]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("5A6G6G7C8T8G8AGCCCCGGG", converter._get_string())
+
+    def test_one_ins_and_one_del_diff_chroms(self, mock_var_file, mock_load_fasta):
+        recs = [
+            _MockVcfRecord(3, "C", ["CGG"], chrom="ref1"),
+            _MockVcfRecord(1, "CCC", ["C"], chrom="ref2"),
+        ]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("AG5C6CGG6AGC7CCC8C8GGG", converter._get_string())
+
+    def test_adjacent_snps_kept(self, mock_var_file, mock_load_fasta):
+        recs = [
+            _MockVcfRecord(1, "C", ["G"], chrom="ref2"),
+            _MockVcfRecord(2, "C", ["A"], chrom="ref2"),
+        ]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("AGCAGC5C6G67C8A8CGGG", converter._get_string())
+
+
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.VariantFile", spec=True)
+class Test_Representation(TestCase):
+    chroms = {"ref1": "ACACAA"}
+    recs = [
+        _MockVcfRecord(1, "A", ["G"], chrom="ref1"),
+        _MockVcfRecord(5, "A", ["AAA"], chrom="ref1"),
+    ]
+
+    def test_legacy_representation(self, mock_var_file, mock_load_fasta):
+        mock_var_file.return_value.fetch.return_value = iter(self.recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "", mode="legacy")
+        self.assertEqual("5A6G5CAC7A8AAA7A", converter._get_string())
+
+    def test_integer_representation(self, mock_var_file, mock_load_fasta):
+        mock_var_file.return_value.fetch.return_value = iter(self.recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual(
+            [5, 1, 6, 3, 6, 2, 1, 2, 7, 1, 8, 1, 1, 1, 8, 1], converter._get_ints()
+        )
+
+
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.VariantFile", spec=True)
+class Test_VcfToPrgString_OverlappingRecords(TestCase):
+    """
+    When records overlap, keeps only the first one
+    """
+
+    chroms = {"ref1": "TTTT", "ref2": "CCC"}
+
+    def test_snps_at_same_position(self, mock_var_file, mock_load_fasta):
+        recs = [
+            _MockVcfRecord(1, "TTTT", ["T"], chrom="ref1"),
+            _MockVcfRecord(2, "T", ["C"], chrom="ref1"),
+        ]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("5TTTT6T6CCC", converter._get_string())
+
+    def test_snp_inside_del(self, mock_var_file, mock_load_fasta):
+        recs = [
+            _MockVcfRecord(2, "T", ["G"], chrom="ref1"),
+            _MockVcfRecord(2, "T", ["C"], chrom="ref1"),
+        ]
+        mock_var_file.return_value.fetch.return_value = iter(recs)
+        mock_load_fasta.return_value = self.chroms
+        converter = Vcf_to_prg("", "", "")
+        self.assertEqual("T5T6G6TTCCC", converter._get_string())
 
 
 @mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
@@ -39,7 +147,13 @@ class Test_Filter_Records(TestCase):
         mock_var_file.return_value.fetch.return_value = iter(recs)
         mock_load_fasta.return_value = self.chroms
         converter = Vcf_to_prg("", "", "")
-        self.assertEqual(converter._get_string(), "AAC")
+
+
+"""
+File-based tests
+"""
+base_dir = Path(__file__).parent.parent.parent.parent
+data_dir = base_dir / "tests" / "data" / "vcf_to_prg_string"
 
 
 class Utility_Tester(object):
@@ -58,11 +172,6 @@ class Utility_Tester(object):
         self.outfile = Path(str(self.outfile_prefix) + ".prg")
 
     def _run(self, mode="normal", check=False):
-        """
-        :param mode: either "normal" or "legacy". In legacy, variant sites encoded
-        in same way as perl utility.
-        :return:
-        """
         converter = vcf_to_prg_string.Vcf_to_prg(
             str(self.vcf_file), str(self.ref_file), self.outfile_prefix, mode=mode
         )
@@ -85,80 +194,9 @@ class Test_VcfFormatInputs(TestCase):
         with self.assertRaises(Exception):
             tester._run(check=True)
 
-
-class Test_VcfToPrgString(TestCase):
-    def test_routine_behaviour(self):
-        test_cases = {
-            "no_variants": "Vcf file has no records",
-            "two_separate_snps": "The SNPs are not consecutive",
-            "one_snp_two_alts": "Deal with more than one alternatives",
-            "one_ins_and_one_del": "Indels",
-            "complex_variant": "Mixture of indel & SNP",
-            "two_snps_same_place": "Same position covered 1+ times;"
-            "Expect only first vcf record kept",
-            "snp_inside_del": "Overlapping records;"
-            "Expect only first vcf record kept",
-        }
-
-        for fname in test_cases.keys():
-            with self.subTest(fname=fname):
-                tester = Utility_Tester(fname)
-
-                tester._run(mode="legacy")
-                self.assertTrue(
-                    filecmp.cmp(tester.expected_prg, tester.outfile, shallow=False)
-                )
-                tester._cleanup()
-
     def test_adjacent_snps_allowed(self):
-        test_cases = {
-            "two_adjacent_snps": "Two SNPs at consecutive positions.",
-            "two_adjacent_snps_two_alts": "Same as above,"
-            " with more than one alternative",
-        }
-
-        for fname in test_cases.keys():
-            with self.subTest(fname=fname):
-                tester = Utility_Tester(fname)
-                tester._run(mode="legacy")
-                self.assertTrue(
-                    filecmp.cmp(tester.expected_prg, tester.outfile, shallow=False)
-                )
-                tester._cleanup()
-
-    def test_AlleleRepresentation(self):
-        """
-        Tests the new representation of variant sites implemented
-        by default in the python utility (mode="normal")
-        """
-        test_cases = {
-            "one_ins_and_one_del": "",
-            "two_adjacent_snps": "Same as above," " with more than one alternative",
-        }
-
-        for fname in test_cases.keys():
-            with self.subTest(fname=fname):
-                tester = Utility_Tester(fname)
-
-                tester._run()  # normal mode is default
-                self.assertTrue(
-                    filecmp.cmp(
-                        os.path.join(data_dir, "even_allele_markers_" + fname + ".prg"),
-                        tester.outfile,
-                        shallow=False,
-                    )
-                )
-                tester._cleanup()
-
-
-class Test_RefWithNoRecords(TestCase):
-    def test_one_snp(self):
-        """
-        Three ref records, of which the second has a SNP.
-        We expect the output PRG to have the ref records in the same order as in the
-        input ref. cf the .ref.fa and .prg data files
-        """
-        tester = Utility_Tester("one_snp")
+        fname = "two_adjacent_snps_two_alts"
+        tester = Utility_Tester(fname)
         tester._run()
         self.assertTrue(filecmp.cmp(tester.expected_prg, tester.outfile, shallow=False))
         tester._cleanup()

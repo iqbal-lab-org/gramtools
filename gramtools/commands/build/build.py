@@ -1,8 +1,8 @@
-## @file
-#  Build/load a population reference genome and set it up for quasimapping.
-# Either a vcf/reference is passed and a prg generated from it, or an existing prg is passed.
-# Once the prg is stored the back-end `build` routine is called, producing the encoded prg, its fm-index, and other supporting data structures.
-import os
+"""
+Build/load a population reference genome and set it up for quasimapping.
+Either a vcf/reference is passed and a prg generated from it, or an existing prg is passed.
+Once the prg is stored the back-end `build` routine is called, producing the encoded prg, its fm-index, and other supporting data structures.
+"""
 import time
 import shutil
 import logging
@@ -13,7 +13,6 @@ from Bio import SeqIO
 
 from gramtools import common
 from gramtools.commands import report
-
 from . import vcf_to_prg_string
 from . import command_setup
 

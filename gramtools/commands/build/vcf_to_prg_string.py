@@ -113,12 +113,10 @@ class _Template_Vcf_to_prg(object):
         return res
 
     def _get_ref_records_with_no_variants(self):
-        used_refs = set(self.processed_refs)
-        diff = [rec_id for rec_id in self.ref_records if rec_id not in used_refs]
-        if len(diff) > 0:
-            for id in diff:
-                seq = [nucleotide_to_integer(nt) for nt in self.ref_records[id]]
-                yield id, seq
+        diff = set(self.ref_records).difference(set(self.processed_refs))
+        for id in diff:
+            seq = [nucleotide_to_integer(nt) for nt in self.ref_records[id]]
+            yield id, seq
 
 
 class Vcf_to_prg(_Template_Vcf_to_prg):
@@ -209,7 +207,7 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
     def _get_ints(self):
         contiguous = [self.prg_vector[ref_chrom] for ref_chrom in self.ref_records]
-        return "".join(contiguous)
+        return sum(contiguous, [])  # Flattens list
 
     def _get_string(self):
         prg_string = ""
