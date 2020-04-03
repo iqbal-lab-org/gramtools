@@ -2,7 +2,6 @@
 # Executes `gram genotype` backend which:
 # - maps reads to prg using vBWT-based (quasi)mapping and annotates it with coverage
 # - genotypes the prg using the annotated coverage
-import time
 import json
 import logging
 import collections
@@ -18,36 +17,23 @@ def run(args):
     geno_paths.setup(args)
 
     log.info("Start process: genotype")
-    start_time = str(time.time()).split(".")[0]
+    geno_report = report.new_report()
 
+    # Load kmer size used from build report
     build_report = _load_build_report(geno_paths)
-
     kmer_size = build_report["kmer_size"]
     setattr(args, "kmer_size", kmer_size)
 
-    geno_report = collections.OrderedDict({"processes": collections.OrderedDict()})
-    _execute_command_cpp_genotype(
-        geno_report["processes"], "gramtools_genotype", geno_paths, args
-    )
+    _execute_command_cpp_genotype(geno_report, "gramtools_genotype", geno_paths, args)
     geno_report["ploidy"] = args.ploidy
 
-    _check_read_stats(geno_report["processes"], "check_read_stats", geno_paths)
+    _check_read_stats(geno_report, "check_read_stats", geno_paths)
 
     log.debug("Computing sha256 hash of project paths")
     command_hash_paths = common.hash_command_paths(geno_paths)
 
-    log.debug("Saving command report:\n%s", geno_paths.report)
-    success_status = {"success": geno_report["processes"].pop("success")}
-    geno_report = {**success_status, **geno_report}
-    report._save_report(
-        start_time, geno_report, geno_paths, command_hash_paths, geno_paths.report
-    )
-
-    if geno_report["success"] is False:
-        log.error(f"Unsuccessful genotyping. Process reported to {geno_paths.report}")
-        exit(1)
-    else:
-        log.info(f"Success! Genotyping process report in {geno_paths.report}")
+    report._save_report(geno_report, geno_paths, command_hash_paths)
+    log.info(f"Success! Genotyping process report in {geno_paths.report}")
 
 
 def _load_build_report(geno_paths):

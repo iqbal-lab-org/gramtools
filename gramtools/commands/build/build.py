@@ -3,7 +3,6 @@ Build/load a population reference genome and set it up for quasimapping.
 Either a vcf/reference is passed and a prg generated from it, or an existing prg is passed.
 Once the prg is stored the back-end `build` routine is called, producing the encoded prg, its fm-index, and other supporting data structures.
 """
-import time
 import shutil
 import logging
 import collections
@@ -21,35 +20,18 @@ def run(args):
     build_paths = command_setup.setup_files(args)
 
     log.info("Start process: build")
-    start_time = str(time.time()).split(".")[0]
+    build_report = report.new_report()
 
-    build_report = collections.OrderedDict({"processes": collections.OrderedDict()})
     _prepare_prg(build_report, build_paths, args)
-    _execute_gramtools_cpp_build(
-        build_report["processes"], "gramtools_build", build_paths, args
-    )
+    _execute_gramtools_cpp_build(build_report, "gramtools_build", build_paths, args)
 
     log.debug("Computing sha256 hash of project paths")
     command_hash_paths = common.hash_command_paths(build_paths)
 
-    build_report.update(
-        collections.OrderedDict(
-            [("kmer_size", args.kmer_size), ("max_read_length", args.max_read_length)]
-        )
-    )
+    build_report.update(collections.OrderedDict({"kmer_size": args.kmer_size}))
 
-    log.debug("Saving command report:\n%s", build_paths.report)
-    success_status = {"success": build_report["processes"].pop("success")}
-    build_report = {**success_status, **build_report}
-    report._save_report(
-        start_time, build_report, build_paths, command_hash_paths, build_paths.report
-    )
-
-    if build_report["success"] is False:
-        log.error(f"Unsuccessful build. Process reported to {build_paths.report}")
-        exit(1)
-    else:
-        log.info(f"Success! Build process report in {build_paths.report}")
+    report._save_report(build_report, build_paths, command_hash_paths)
+    log.info(f"Success! Build process report in {build_paths.report}")
 
 
 def _count_vcf_record_lines(vcf_file_path):
@@ -64,21 +46,19 @@ def _count_vcf_record_lines(vcf_file_path):
 def _prepare_prg(build_report, build_paths, args):
     if args.prg is not None:
         _skip_prg_construction(
-            build_report["processes"], "copy_existing_PRG_string", build_paths, args
+            build_report, "copy_existing_PRG_string", build_paths, args
         )
     else:
         if args.no_vcf_clustering:
             _skip_cluster_vcf_records(
-                build_report["processes"], "skip_vcf_record_clustering", build_paths
+                build_report, "skip_vcf_record_clustering", build_paths
             )
         else:
             # Update the vcf path to a combined vcf from all those provided.
             # We also do this if only a single one is provided, to deal with overlapping records.
-            _cluster_vcf_records(
-                build_report["processes"], "vcf_record_clustering", build_paths
-            )
+            _cluster_vcf_records(build_report, "vcf_record_clustering", build_paths)
         _execute_command_generate_prg(
-            build_report["processes"], "vcf_to_PRG_string_conversion", build_paths
+            build_report, "vcf_to_PRG_string_conversion", build_paths
         )
 
 
@@ -151,6 +131,7 @@ def _skip_prg_construction(report, action, build_paths, args):
 ## Executes `gram build` backend.
 @report.with_report
 def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
+    log.info("Running backend build")
     command = [
         common.gramtools_exec_fpath,
         "build",
@@ -171,7 +152,7 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
     command_result, entire_stdout = common.run_subprocess(command)
 
     # Add extra reporting
-    build_report[action] = collections.OrderedDict(
+    build_report["processes"][action] = collections.OrderedDict(
         [("command", "".join(command)), ("stdout", entire_stdout)]
     )
     if command_result == False:
