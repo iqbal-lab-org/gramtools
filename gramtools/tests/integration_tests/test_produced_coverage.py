@@ -1,21 +1,21 @@
 """
 Words of caution:
-    - read should be above --kmer-size used for indexing
+    - read should be above --kmer_size used for indexing
     - watch out for reverse complemented mapping reads which can create multi mapping instances.
 
  To inspect the integers in the binary PRG String:
  ```hexdump -v -e '1/4 "%d "' filename.bin``` (4-byte integers. beware of endianness)
 """
+import tempfile
+import shutil
+import unittest
+from pathlib import Path
 
 from gramtools import gramtools_main
 from gramtools.commands import paths
 from gramtools.commands.build import build
 from gramtools.commands.genotype import genotype, utils
 
-import tempfile
-import shutil
-from pathlib import Path
-import unittest
 
 base_dir = Path(__file__ + "/../../../").resolve()
 data_dir = base_dir / "tests" / "data" / "prgs"
@@ -23,7 +23,7 @@ data_dir = base_dir / "tests" / "data" / "prgs"
 gramtools_main._setup_parser()
 
 
-class IntegrationRunner:
+class BuildAndGenotype:
     """
     In charge of calling build, quasimap, and loading the coverage produced in quasimap
     """
@@ -79,7 +79,7 @@ class twoSites_twoReads_NoNesting(unittest.TestCase):
         """
         cls.test_data_dir = "IT1"
 
-        cls.integrator = IntegrationRunner(cls.test_data_dir)
+        cls.integrator = BuildAndGenotype(cls.test_data_dir)
 
         # Expected per base cov
         cls.expected_per_base = [[[0, 1], [1, 1]], [[1, 1, 1, 1], [1, 1, 0]]]
@@ -110,7 +110,7 @@ class twoSites_twoReadswithEquivClasses_NoNesting(unittest.TestCase):
         """
         cls.test_data_dir = "IT2"
 
-        cls.integrator = IntegrationRunner(cls.test_data_dir)
+        cls.integrator = BuildAndGenotype(cls.test_data_dir)
 
         # Expected per base cov
         cls.expected_per_base = [[[1, 1, 1, 0], [1, 1, 1, 0]], [[0, 1, 1], [0, 1, 1]]]
@@ -141,7 +141,7 @@ class OneRead_SNPNestedInsideDeletion(unittest.TestCase):
         # Note that "TATTTT" matches the direct deletion (allele 2) AND
         # inside allele 1, of the outer site.
 
-        cls.integrator = IntegrationRunner(cls.test_data_dir)
+        cls.integrator = BuildAndGenotype(cls.test_data_dir)
 
         # Expect the 'nested' read to match to first allele of both sites,
         # and the 'deletion' read to match the second allele of the first site.

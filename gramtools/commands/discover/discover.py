@@ -41,38 +41,36 @@ def run(args):
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
     log.debug("Rebasing vcf")
     rebased_vcf_records = _rebase_vcf(disco_paths, chrom_sizes)
-
-    if rebased_vcf_records is None:
-        log.debug("Rebased VCF does not contain records")
-        log.info("End process: discover")
-        return
+    num_records = len(rebased_vcf_records)
 
     _dump_rebased_vcf(rebased_vcf_records, disco_paths)
 
     log.info(
-        "End process: discover. " "Rebased vcf in {}".format(disco_paths.final_vcf)
+        "End process: discover. \n"
+        f"Found {num_records} variants. "
+        f"Final vcf in {disco_paths.final_vcf}"
     )
 
 
 def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
     """Rebase a vcf so that it uses same reference as base_vcf.
+    (* for not an input/output, just for illustration)
     Input:
      discovery.vcf                   personalised_ref.vcf
       |                               |
-     personalised_ref.fasta          base_ref.fasta
+     personalised_ref.fasta          *base_ref.fasta
 
     Output:
      discovery.vcf
       |
-     base_ref.fasta
+     *base_ref.fasta
     """
-    base_vcf_file_path = disco_paths.geno_vcf
-
     if check_records:
         var_unplaced_records = []
         inferred_refs = load_multi_fasta(disco_paths.pers_ref)
 
-    base_records = VariantFile(base_vcf_file_path).fetch()
+    _add_contig_lines(disco_paths)
+    base_records = VariantFile(disco_paths.geno_vcf).fetch()
     derived_records = VariantFile(disco_paths.discov_vcf_cortex).fetch()
 
     region_mapper = RegionMapper(base_records, chrom_sizes)
@@ -94,17 +92,16 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
         regions_list = flagged_personalised_regions.get(chrom_key, None)
         assert regions_list is not None, (
             f"Error: ref ID {chrom_key} in vcf record {vcf_record} is not"
-            f" present in vcf from infer {base_vcf_file_path}"
+            f" present in vcf from infer {disco_paths.geno_vcf}"
         )
 
-        new_record = _rebase_vcf_record(vcf_record, regions_list)
+        new_vcf_records.append(_rebase_vcf_record(vcf_record, regions_list))
 
     if check_records and len(var_unplaced_records) > 0:
         log.warning(
             "The following new variant records were skipped: {} \n"
-            "Reasons: pos is not a valid position in the inferred reference sequence,"
-            "or ref does not coincide with inferred reference sequence.".format(
-                "\t".join(var_unplaced_records)
+            "Because record pos and ref do not coincide with personalised reference".format(
+                "\n".join(var_unplaced_records)
             )
         )
 
@@ -113,11 +110,6 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
 
 def _dump_rebased_vcf(records: List[VariantRecord], disco_paths: DiscoverPaths):
     template_vcf = VariantFile(disco_paths.discov_vcf_cortex)
-    if list(template_vcf.header.contigs) == list():  # Need to add contig headers
-        genotyped_vcf = VariantFile(disco_paths.geno_vcf)
-        for contig in genotyped_vcf.header.contigs:
-            template_vcf.header.add_line(f"##contig=<ID={contig}>")
-
     output_vcf = VariantFile(disco_paths.final_vcf, "w", header=template_vcf.header)
     for record in records:
         output_vcf.write(record)
@@ -205,6 +197,28 @@ def _rebase_vcf_record(
     )
 
     return vcf_record
+
+
+def _add_contig_lines(disco_paths: DiscoverPaths):
+    """
+    If you don't add contig headers in new variant file before loading the records it contains,
+    end up with downstream contig name bugs when writing rebased records.
+    [TODO] I could not figure how to modify vcf file's headers only using pysam interface.
+    """
+    derived_vcf_contigs = VariantFile(disco_paths.discov_vcf_cortex).header.contigs
+
+    if list(derived_vcf_contigs) == list():  # Need to add contig headers
+        base_vcf_contigs = VariantFile(disco_paths.geno_vcf).header.contigs
+        with open(disco_paths.discov_vcf_cortex) as f_in:
+            all = f_in.readlines()
+        with open(disco_paths.discov_vcf_cortex, "w") as f_out:
+            insert = True
+            for line in all:
+                f_out.write(line)
+                if (line[0] != "##") and insert:
+                    for contig in base_vcf_contigs:
+                        f_out.write(f"##contig=<ID={contig}>\n")
+                    insert = False
 
 
 ## Return the marked `_Region` containing the position referred to by `vcf_record`.

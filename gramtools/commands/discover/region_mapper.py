@@ -72,7 +72,7 @@ class RegionMapper:
             if record.pos > base_pos:  # Build non-variant region
                 region_length = record.pos - base_pos
                 assert (
-                    len(self.all_regions[chrom_key]) == 0
+                    len(self.all_regions[chrom_key]) <= 1
                     or self.all_regions[chrom_key][-1].is_site
                 )
                 self._add_invariant_region(chrom_key, region_length)
