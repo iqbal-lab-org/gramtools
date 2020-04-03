@@ -9,10 +9,8 @@ import logging
 import collections
 
 import cluster_vcf_records
-from Bio import SeqIO
 
-from gramtools import common
-from gramtools.commands import report
+from gramtools.commands import common, report
 from . import vcf_to_prg_string
 from . import command_setup
 
@@ -142,9 +140,11 @@ def _skip_prg_construction(report, action, build_paths, args):
 
     # Write coordinates file
     with open(build_paths.coords_file, "w") as genome_file:
-        if args.reference != "None":  # Makes empty file to signal no use of coordinates
-            for seq_record in SeqIO.parse(args.reference, "fasta"):
-                line = f"{seq_record.id}\t{len(seq_record)}\n"
+        if args.reference != "None":  # empty file signals no segments
+            for rec_id, rec_size in common.load_fasta(
+                args.reference, sizes_only=True
+            ).items():
+                line = f"{rec_id}\t{rec_size}\n"
                 genome_file.write(line)
 
 

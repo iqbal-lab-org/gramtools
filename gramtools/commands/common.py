@@ -5,19 +5,24 @@ import hashlib
 import logging
 import subprocess
 from typing import List
+from pathlib import Path
+from collections import OrderedDict
 
+from Bio import SeqIO
+
+import gramtools
 
 log = logging.getLogger("gramtools")
 
 # Find executable locations
-base_install_path = os.path.dirname(os.path.abspath(__file__))
-gramtools_exec_fpath = os.path.join(base_install_path, "bin", "gram")
-prg_build_exec_fpath = os.path.join(base_install_path, "utils", "vcf_to_linear_prg.pl")
+base_install_path = Path(gramtools.__file__).resolve().parent
+gramtools_exec_fpath = str(base_install_path / "bin" / "gram")
+
 # Add the dynamically linked libraries at runtime
 _old_ld_library_path = (
     os.environ["LD_LIBRARY_PATH"] if "LD_LIBRARY_PATH" in os.environ else ""
 )
-lib_paths = os.path.join(base_install_path, "lib") + ":" + _old_ld_library_path
+lib_paths = str(base_install_path / "lib") + ":" + _old_ld_library_path
 
 
 def run_subprocess(command: List):
@@ -95,3 +100,13 @@ def _file_hash(file_path):
                 break
             sha.update(data)
     return sha.hexdigest()
+
+
+def load_fasta(reference_file, sizes_only=False):
+    ref_records = OrderedDict()
+    # SeqIO: the id of the record is everything between ">" and the first space.
+    for seq_record in SeqIO.parse(reference_file, "fasta"):
+        ref_records[seq_record.id] = str(seq_record.seq)
+        if sizes_only:
+            ref_records[seq_record.id] = len(ref_records[seq_record.id])
+    return ref_records

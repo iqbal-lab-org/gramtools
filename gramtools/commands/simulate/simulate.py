@@ -1,8 +1,8 @@
 import logging
 import time
-from ..paths import SimulatePaths
-from ... import common
 
+from gramtools.commands.paths import SimulatePaths
+from gramtools.commands import common
 
 log = logging.getLogger("gramtools")
 

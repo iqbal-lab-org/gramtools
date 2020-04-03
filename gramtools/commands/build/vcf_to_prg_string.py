@@ -7,49 +7,35 @@ Behaviour:
     * Reference records with no variation are appended at the end of the prg string, in the order they appear
      in the ref file.
 """
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 import logging
 import sys
 
 from pysam import VariantFile, VariantRecord
-from Bio import SeqIO
+
+from gramtools.commands.common import load_fasta
 
 sys.tracebacklimit = 0
 logger = logging.getLogger("vcf_to_prg_string")
 logger.setLevel(logging.WARNING)
 
-
-def load_fasta(reference_file):
-    ref_records = OrderedDict()
-    # SeqIO: the id of the record is everything between ">" and the first space.
-    for seq_record in SeqIO.parse(reference_file, "fasta"):
-        ref_records[seq_record.id] = str(seq_record.seq)
-    return ref_records
+to_upper = {"a": "A", "c": "C", "g": "G", "t": "T"}
+nuc_translation = {"A": 1, "C": 2, "G": 3, "T": 4}
+int_translation = {1: "A", 2: "C", 3: "G", 4: "T"}
 
 
 def nucleotide_to_integer(nucleotide):
-    if nucleotide == "A":
-        return 1
-    elif nucleotide == "C":
-        return 2
-    elif nucleotide == "G":
-        return 3
-    elif nucleotide == "T":
-        return 4
-    else:
+    nucleotide = to_upper.get(nucleotide, nucleotide)
+    try:
+        return nuc_translation[nucleotide]
+    except KeyError:
         raise ValueError("Did not receive a nucleotide ({A,C,G,T}")
 
 
 def integer_to_nucleotide(integer):
-    if integer == 1:
-        return "A"
-    elif integer == 2:
-        return "C"
-    elif integer == 3:
-        return "G"
-    elif integer == 4:
-        return "T"
-    else:
+    try:
+        return int_translation[integer]
+    except KeyError:
         return str(integer)
 
 
@@ -76,7 +62,7 @@ class _Template_Vcf_to_prg(object):
             )
         else:
             pos, length = rec.pos - 1, len(rec.ref)
-            if self.ref_records[rec.chrom][pos : pos + length] != rec.ref:
+            if self.ref_records[rec.chrom][pos : pos + length].upper() != rec.ref:
                 raise ReferenceError(
                     f"Vcf record REF sequence does not match ref ID {rec.chrom} "
                 )
@@ -106,7 +92,7 @@ class _Template_Vcf_to_prg(object):
 
     def _get_ref_slice(self, chrom, start, end=0):
         ref_seq = self.ref_records[chrom]
-        res = ref_seq[start - 1 :].upper()
+        res = ref_seq[start - 1 :]
         if end != 0:
             res = res[: end - start]
         res = list(map(nucleotide_to_integer, res))  # Convert to integers

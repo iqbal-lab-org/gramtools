@@ -12,9 +12,9 @@ import json
 
 from pysam import VariantFile, VariantRecord
 import cortex
-from Bio import SeqIO
 
 from gramtools.commands.paths import DiscoverPaths
+from gramtools.commands.common import load_fasta
 from .region_mapper import RegionMapper, ChromSizes, _Regions
 
 log = logging.getLogger("gramtools")
@@ -33,10 +33,7 @@ def run(args):
         disco_paths.pers_ref, disco_paths.reads_files, disco_paths.discov_vcf_cortex
     )
 
-    chrom_sizes: ChromSizes = dict()
-    with open(disco_paths.pers_ref) as genome_file:
-        for seq_record in SeqIO.parse(genome_file, "fasta"):
-            chrom_sizes[seq_record.id] = len(seq_record.seq)
+    chrom_sizes: ChromSizes = load_fasta(disco_paths.pers_ref, sizes_only=True)
 
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
     log.debug("Rebasing vcf")
@@ -45,11 +42,8 @@ def run(args):
 
     _dump_rebased_vcf(rebased_vcf_records, disco_paths)
 
-    log.info(
-        "End process: discover. \n"
-        f"Found {num_records} variants. "
-        f"Final vcf in {disco_paths.final_vcf}"
-    )
+    log.info(f"Found {num_records} variants. " f"Final vcf in {disco_paths.final_vcf}")
+    log.info("End process: discover.")
 
 
 def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
@@ -67,7 +61,7 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
     """
     if check_records:
         var_unplaced_records = []
-        inferred_refs = load_multi_fasta(disco_paths.pers_ref)
+        inferred_refs = load_fasta(disco_paths.pers_ref)
 
     _add_contig_lines(disco_paths)
     base_records = VariantFile(disco_paths.geno_vcf).fetch()
@@ -279,25 +273,3 @@ def check_ref_consistent(
 def _alwaysRef():
     while True:
         yield 0
-
-
-def load_multi_fasta(fasta_fname):
-    # Load the record fully in memory
-    with open(fasta_fname) as r:
-        records = collections.OrderedDict()
-        record = ""
-        new_recomb_name = ""
-
-        for line in r:
-            if line[0] == ">":
-                if new_recomb_name != "":
-                    records[new_recomb_name] = record
-                new_recomb_name = line[1:].strip().split()[0]
-                record = ""
-
-            else:
-                record += line.replace("\n", "")
-
-        records[new_recomb_name] = record
-
-    return records

@@ -7,10 +7,8 @@ import json
 import logging
 import collections
 
-from gramtools import common
-from gramtools.commands import report
+from gramtools.commands import common, report
 from gramtools.commands.paths import GenotypePaths
-from . import command_setup
 
 log = logging.getLogger("gramtools")
 
