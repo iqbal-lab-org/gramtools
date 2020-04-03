@@ -9,25 +9,14 @@ namespace fs = std::filesystem;
 
 void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto fout = bcf_open(params.genotyped_vcf_fpath.c_str(), "wz"); // Writer
-    bcf_srs_t* reader = nullptr; // Reader, if a vcf was used to build the PRG
 
     // Set up and write header
-    bcf_hdr_t* header;
-    if (fs::exists(params.built_vcf)) {
-        reader = bcf_sr_init();
-        bcf_sr_add_reader(reader, params.built_vcf.c_str());
-        header = bcf_sr_get_header(reader, 0);
-    }
-    else header = bcf_hdr_init("w");
+    bcf_hdr_t* header = bcf_hdr_init("w");
     populate_vcf_hdr(header, gtyper, params, tracker);
-    bcf_hdr_write(fout, header);
+    if (bcf_hdr_write(fout, header) != 0)
+        throw VcfWriteException("Failed to write vcf header");
 
-    write_sites(fout, reader, header, gtyper, tracker);
-
-    if (reader != nullptr){
-        if ( reader->errnum ) ("Error: %s\n", bcf_sr_strerror(reader->errnum));
-        bcf_sr_destroy(reader);
-    }
+    write_sites(fout, header, gtyper, tracker);
 
     bcf_close(fout);
 }
@@ -35,12 +24,6 @@ void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper, Seg
 void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper, gram::GenotypeParams const &params,
         SegmentTracker &tracker) {
 
-    if (fs::exists(params.built_vcf)){
-        bcf_hdr_remove(hdr, 2, nullptr); // Remove all FORMAT header entries
-        bcf_hdr_remove(hdr, 3, nullptr); // Remove all contig header entries
-        bcf_hdr_remove(hdr, 5, "source");
-        bcf_hdr_set_samples(hdr, nullptr, 0); // Remove samples, from reading and writing
-    }
     for (auto const& segment: tracker.get_segments()){
        auto contig = vcf_meta_info_line("contig", segment.ID, segment.size).to_string();
        bcf_hdr_append(hdr, contig.c_str());
@@ -74,7 +57,7 @@ std::size_t next_valid_idx(std::size_t idx, std::size_t max_size, gram::parental
 }
 
 
-void write_sites(htsFile *fout, bcf_srs_t *reader, bcf_hdr_t *header,
+void write_sites(htsFile *fout, bcf_hdr_t *header,
         gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto p_map = gtyper->get_cov_g()->par_map;
     auto genotyped_records = gtyper->get_genotyped_records();
@@ -86,14 +69,10 @@ void write_sites(htsFile *fout, bcf_srs_t *reader, bcf_hdr_t *header,
         site_idx = next_valid_idx(site_idx, max_size, p_map);
         if (site_idx >= max_size) break;
 
-        if (reader != nullptr){
-            if (bcf_sr_next_line(reader) == 0) break;
-            else record = bcf_sr_get_line(reader, 0);
-        }
-        else bcf_empty(record);
-
+        bcf_empty(record);
         populate_vcf_site(header, record, genotyped_records[site_idx], tracker);
-        bcf_write(fout, header, record);
+        if (bcf_write(fout, header, record) != 0)
+            throw VcfWriteException("Failed to write vcf record");
         site_idx++;
     }
 }
