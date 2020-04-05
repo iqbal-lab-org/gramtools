@@ -34,6 +34,17 @@ class TestRegionMapping(unittest.TestCase):
         ]
         self.assertEqual(expected, list(result.values())[0])
 
+    def test_ref_call_produces_invariant_region_only(self):
+        # base sequence:      T TAT CGG
+        # derived sequence:   ^^^^^^^^^
+        base_records = [
+            _MockVcfRecord(pos=2, ref="TAT", alts=["G"], samples=[{"GT": [0]}])
+        ]
+        chrom_sizes = {"JAC": 7}
+        result = discover.RegionMapper(base_records, chrom_sizes).get_mapped()
+        expected = [_Region(base_pos=1, inf_pos=1, length=7)]
+        self.assertEqual(expected, result["JAC"])
+
     def test_AltLongerThanRef_CorrectRegion(self):
         # base sequence:      T TAT    CGG
         # derived sequence:   T GCCAC  CGG
@@ -53,7 +64,7 @@ class TestRegionMapping(unittest.TestCase):
             ),
             _Region(base_pos=5, inf_pos=7, length=3),
         ]
-        self.assertEqual(expected, list(result.values())[0])
+        self.assertEqual(expected, result["JAC"])
 
     def test_TwoRecords_CorrectRegions(self):
         # base sequence:      T TAT    C G   G
@@ -86,7 +97,7 @@ class TestRegionMapping(unittest.TestCase):
             _Region(base_pos=7, inf_pos=11, length=1),
         ]
 
-        self.assertEqual(expected, list(result.values())[0])
+        self.assertEqual(expected, result["JAC"])
 
     def test_ThreeAdjacentRecords_CorrectRegions(self):
         # base sequence:      T TAT    C   G  G

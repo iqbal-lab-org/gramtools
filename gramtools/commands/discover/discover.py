@@ -93,11 +93,10 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
 
     if check_records and len(var_unplaced_records) > 0:
         log.warning(
-            "The following new variant records were skipped: {} \n"
-            "Because record pos and ref do not coincide with personalised reference".format(
-                "\n".join(var_unplaced_records)
-            )
+            f"{len(var_unplaced_records)} new variant records were skipped, "
+            f"because record pos and ref do not coincide with personalised reference"
         )
+        log.debug("Skipped records: {}".format("\n".join(var_unplaced_records)))
 
     return new_vcf_records
 
@@ -255,7 +254,7 @@ def enforce_genotyping_was_haploid(disco_paths: DiscoverPaths):
 
 
 def check_ref_consistent(
-    vcf_record: VariantRecord, inferred_sequence: str, var_unplaced_record: List[str]
+    vcf_record: VariantRecord, inferred_sequence: str, var_unplaced_records: List[str]
 ):
     """Check the variant call is properly placed by the variant caller"""
     position = vcf_record.pos

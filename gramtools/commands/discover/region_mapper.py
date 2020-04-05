@@ -51,7 +51,9 @@ class RegionMapper:
     def __init__(self, base_records: VariantRecords, chrom_sizes: ChromSizes):
         self.base_recs = base_records
         self.chrom_sizes = chrom_sizes
-        self.all_regions = {}  # Maps each CHROM to a list of _Regions
+        self.all_regions: Dict[
+            str, List[_Region]
+        ] = {}  # Maps each CHROM to a list of _Regions
         self.chrom_pos: Dict[str, _ref_positions] = {}
 
     def get_mapped(self):
@@ -71,10 +73,6 @@ class RegionMapper:
             base_pos = self.chrom_pos[chrom_key].base_pos
             if record.pos > base_pos:  # Build non-variant region
                 region_length = record.pos - base_pos
-                assert (
-                    len(self.all_regions[chrom_key]) <= 1
-                    or self.all_regions[chrom_key][-1].is_site
-                )
                 self._add_invariant_region(chrom_key, region_length)
 
             self._add_variant_region(chrom_key, record)
@@ -120,12 +118,19 @@ class RegionMapper:
 
     def _add_invariant_region(self, chrom_key, region_length: int):
         ref_positions = self.chrom_pos[chrom_key]
-        non_var_region = _Region(
-            base_pos=ref_positions.base_pos,
-            inf_pos=ref_positions.derived_pos,
-            length=region_length,
-        )
-        self.all_regions[chrom_key].append(non_var_region)
+
+        region_set = self.all_regions[chrom_key]
+        perform_extension = len(region_set) > 0 and not region_set[-1].is_site
+        if perform_extension:
+            # Case: REF called variant region follows, or is followed by, invariant region
+            region_set[-1].length += region_length
+        else:
+            non_var_region = _Region(
+                base_pos=ref_positions.base_pos,
+                inf_pos=ref_positions.derived_pos,
+                length=region_length,
+            )
+            self.all_regions[chrom_key].append(non_var_region)
         ref_positions.base_pos += region_length
         ref_positions.derived_pos += region_length
 
@@ -147,11 +152,10 @@ class RegionMapper:
             )
 
             self.all_regions[chrom_key].append(var_region)
+            ref_positions.base_pos += len(vcf_record.ref)
             ref_positions.derived_pos += var_region.length
         else:
-            ref_positions.derived_pos += len(vcf_record.ref)
-
-        ref_positions.base_pos += len(vcf_record.ref)
+            self._add_invariant_region(chrom_key, len(vcf_record.ref))
 
     def _enforce_contiguity(self, chrom, prev_chrom, vcf_rec, prev_vcf_rec):
         # Enforce ref ID contiguity and position sortedness
