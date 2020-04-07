@@ -1,6 +1,6 @@
 language: cpp
 compiler: gcc
-dist: trusty
+dist: xenial
 sudo: require
 
 # Need gcc >= 8 to support c++17 std::optional and std::filesystem

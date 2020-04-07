@@ -26,30 +26,22 @@ include(${PROJECT_SOURCE_DIR}/libgramtools/lib/json.cmake)
 add_dependencies(htslib zlib)
 
 ## Boost ##
-set(Boost_INCLUDE_DIR ${BOOST_SRC_DIR}/include)
-set(Boost_LIBRARY_DIR ${BOOST_SRC_DIR}/lib)
-####    ####
-
 find_package(BZip2)
 find_package(OpenMP REQUIRED)
 
 ### Include headers ####
 set(EXTERNAL_INCLUDE_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/include
-        ${Boost_INCLUDE_DIR})
+        ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 #### Link libraries ####
-set(EXTERNAL_LIBS_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/lib
-        ${Boost_LIBRARY_DIR})
-link_directories(${EXTERNAL_LIBS_DIR})
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
 set(EXTERN_LIBS
-        boost_program_options
         boost_timer
-        boost_system
         boost_chrono
+        boost_program_options
         boost_serialization
+        boost_system
         hts
         divsufsort
         divsufsort64
