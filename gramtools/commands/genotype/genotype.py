@@ -63,7 +63,7 @@ def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
         "--gram_dir",
         str(geno_paths.gram_dir),
         "--reads",
-        "".join([str(read_file) for read_file in geno_paths.reads_files]),
+        " ".join([str(read_file) for read_file in geno_paths.reads_files]),
         "--sample_id",
         args.sample_id,
         "--ploidy",
@@ -88,7 +88,7 @@ def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
     geno_report[action] = collections.OrderedDict(
         [("command", " ".join(command)), ("stdout", entire_stdout)]
     )
-    if command_result == False:
+    if not command_result:
         raise Exception("Error running gramtools genotype.")
 
 

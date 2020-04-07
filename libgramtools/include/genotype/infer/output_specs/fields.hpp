@@ -61,9 +61,9 @@ namespace gram::genotype::output_spec {
                 return out.str();
             }
             out << "<ID=" << ID;
-            if (desc != "") out << ",Description=\"" << desc << "\"";
             if (num != "") out << ",Number=" << num;
             if (type != "") out << ",Type=" << type;
+            if (desc != "") out << ",Description=\"" << desc << "\"";
             if (length != 0) out << ",length=" << std::to_string(length);
             out << ",Source=\"gramtools\"";
             out << ">";
