@@ -86,14 +86,13 @@ target_link_libraries(gramtools LINK_PUBLIC
         ${BZIP2_LIBRARIES}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
         OpenMP::OpenMP_CXX
-        stdc++fs pthread rt m lzma
+        -lstdc++fs -lpthread -lrt -lm -llzma
 		)
+target_compile_features(gramtools PUBLIC cxx_std_17)
 set_target_properties(gramtools
         PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON)
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 target_compile_options(gramtools PUBLIC -ftrapv -Wuninitialized)
 add_dependencies(gramtools
         boost

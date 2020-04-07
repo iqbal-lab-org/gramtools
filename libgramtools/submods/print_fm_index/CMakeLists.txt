@@ -7,7 +7,7 @@ file(GLOB SOURCES
 
 add_executable(print_fm_index ${SOURCES} print_fm_index.cpp)
 target_link_libraries(print_fm_index
-        gramtools )
+        gramtools)
 target_include_directories(print_fm_index PUBLIC
         ${INCLUDE} )
 

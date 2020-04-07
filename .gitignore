@@ -1,5 +1,5 @@
 bin
-cmake-build-*
+cmake[-_]build[-_]*
 .idea
 .cache
 __pycache__
@@ -9,6 +9,7 @@ gramtools/version/commit_version.py
 gramtools/lib
 libgramtools/submods/tests/test_main
 libgramtools/submods/print_fm_index/print_fm_index
+libgramtools/submods/encode_prg/encode_prg
 doc/html
 *~
 *.swp

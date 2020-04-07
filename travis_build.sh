@@ -28,7 +28,7 @@ PING_LOOP_PID=$!
 mkdir cmake-build-debug
 cd cmake-build-debug
 cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS .. >> $BUILD_OUTPUT 2>&1
-make >> $BUILD_OUTPUT 2>&1
+make -j 4 >> $BUILD_OUTPUT 2>&1
 
 # The build finished without returning an error so dump a tail of the output
 dump_output

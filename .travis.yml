@@ -3,8 +3,7 @@ compiler: gcc
 dist: trusty
 sudo: require
 
-# Need gcc >= 5 to support c++17
-# Need gcc >= 7 to support c++17 std::optional
+# Need gcc >= 8 to support c++17 std::optional and std::filesystem
 matrix:
   include:
     - os: linux
@@ -13,9 +12,9 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-7
+            - g++-8
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
 
 
 before_install:
