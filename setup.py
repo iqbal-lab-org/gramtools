@@ -43,7 +43,11 @@ def _build_backend(root_dir, mode="install"):
         shell=True,
     )
 
-    return_code = subprocess.call(["make", "-j", "4"], cwd=cmake_dir)
+    target = "all"
+    if mode == "install":
+        target = "gram"
+
+    return_code = subprocess.call(["make", "-j", "4", target], cwd=cmake_dir)
     if return_code != 0:
         print("ERROR: gramtools backend compilation returned: ", return_code)
         exit(-1)
@@ -150,9 +154,9 @@ setuptools.setup(
     packages=setuptools.find_packages("."),
     include_package_data=True,
     install_requires=[
-        "biopython >= 1.76",
+        "biopython == 1.76",
         "Cython == 0.29.16",
-        "scipy >= 1.0.1",
+        "scipy == 1.4.1",
         "pysam == 0.15.4",
         "py-cortex-api >= 1.0",
         "cluster_vcf_records >= 0.9.2",

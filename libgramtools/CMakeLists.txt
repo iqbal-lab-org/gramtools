@@ -14,7 +14,6 @@ add_custom_target(py_git_version
 # Note: this variable name NEEDS TO BE UPPERCASE (but not in cmake call)
 set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lpthread -lrt -lm -llzma -fopenmp -ftrapv -Wuninitialized")
 
 ######################
 ###  External libs ###
@@ -32,6 +31,7 @@ set(Boost_LIBRARY_DIR ${BOOST_SRC_DIR}/lib)
 ####    ####
 
 find_package(BZip2)
+find_package(OpenMP REQUIRED)
 
 ### Include headers ####
 set(EXTERNAL_INCLUDE_DIR
@@ -85,13 +85,16 @@ target_link_libraries(gramtools LINK_PUBLIC
         ${EXTERN_LIBS}
         ${BZIP2_LIBRARIES}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
-        stdc++fs)
+        OpenMP::OpenMP_CXX
+        stdc++fs pthread rt m lzma
+		)
 set_target_properties(gramtools
         PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON)
+target_compile_options(gramtools PUBLIC -ftrapv -Wuninitialized)
 add_dependencies(gramtools
         boost
         htslib

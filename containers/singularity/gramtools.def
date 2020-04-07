@@ -36,7 +36,7 @@ From: ubuntu:latest
 	#### latest master rather than pypi####
 	pip3 install git+https://github.com/iqbal-lab-org/cluster_vcf_records/ 
 
-	pip3 install -vvv --process-dependency-links wheel git+https://github.com/iqbal-lab-org/gramtools
+	pip3 install -vvv wheel git+https://github.com/iqbal-lab-org/gramtools
 
 
 %environment
