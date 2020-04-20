@@ -1,7 +1,6 @@
 #ifndef ALLELE_EXTRACTER_HPP
 #define ALLELE_EXTRACTER_HPP
 
-#include "common/utils.hpp"
 #include "types.hpp"
 
 using namespace gram;

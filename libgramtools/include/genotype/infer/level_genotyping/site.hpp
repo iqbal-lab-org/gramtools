@@ -2,7 +2,6 @@
 #define LVLGT_SITE
 
 #include <variant>
-#include "common/utils.hpp"
 #include "genotype/infer/interfaces.hpp"
 #include "genotype/infer/output_specs/json_site_spec.hpp"
 

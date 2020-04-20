@@ -5,6 +5,7 @@
 #ifndef GRAMTOOLS_COVERAGE_TYPES_HPP
 #define GRAMTOOLS_COVERAGE_TYPES_HPP
 
+#include "prg/types.hpp"
 #include "common/utils.hpp"
 #include "genotype/parameters.hpp"
 

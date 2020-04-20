@@ -1,4 +1,5 @@
 #include <prg/linearised_prg.hpp>
+#include <common/utils.hpp>
 
 
 /**********************
@@ -68,7 +69,7 @@ void PRG_String::map_and_normalise_ends() {
         }
         ++pos;
     }
-};
+}
 
 void PRG_String::write(std::string const &fname, endianness en) {
     std::ofstream out(fname, std::ofstream::out | std::ofstream::binary);
@@ -166,5 +167,83 @@ marker_vec gram::encode_prg(const std::string &prg_raw) {
     flush_marker_digits(marker_digits, encoded_prg, count_chars);
 
     encoded_prg.resize(count_chars);
+    return encoded_prg;
+}
+
+std::string gram::ints_to_prg_string(std::vector<Marker> const& int_vec){
+    std::string readable_string(int_vec.size(), '0');
+    std::unordered_map<int,int> last_allele_indices; // Will record where to close the sites.
+
+    int pos{-1};
+    for (auto& s : int_vec){
+        pos++;
+        if (s > 4){
+            if (s%2 == 1) readable_string[pos] = '[';
+            else{
+                readable_string[pos] = ',';
+                if (last_allele_indices.find(s) != last_allele_indices.end()){
+                    last_allele_indices.erase(s);
+                }
+                last_allele_indices.insert({s, pos});
+            }
+            continue;
+        }
+        // Implicit else: s <= 4
+        char base = decode_dna_base(s).c_str()[0];
+        readable_string[pos] = base;
+    }
+
+    // Close the sites
+    for (auto s : last_allele_indices){
+        auto pos = s.second;
+        readable_string[pos] = ']';
+    }
+    return readable_string;
+}
+
+marker_vec gram::prg_string_to_ints(std::string const& string_prg) {
+    int_Base base;
+    std::stack<int> marker_stack;
+    int max_var_marker{3};
+    int char_count{0};
+
+    marker_vec encoded_prg(string_prg.size());
+    for (std::size_t i = 0; i < string_prg.size(); ++i){
+        const auto &c = string_prg[i];
+
+        switch(c) {
+            case '[' : {
+                max_var_marker += 2;
+                marker_stack.push(max_var_marker);
+                encoded_prg[char_count++] = max_var_marker;
+                break;
+            }
+
+            case ']' : {
+                assert(!marker_stack.empty());
+                encoded_prg[char_count++] = marker_stack.top() + 1;
+                marker_stack.pop();
+                break;
+            }
+
+            case ',' : {
+                assert(!marker_stack.empty());
+                encoded_prg[char_count++] = marker_stack.top() + 1;
+                break;
+            }
+
+            default : {
+                base = encode_dna_base(c);
+                if (base == 0){
+                    std::cerr << "Error: the argument " << c << " is not a nucleotide char";
+                    exit(1);
+                }
+                encoded_prg[char_count++] = encode_dna_base(c);
+                break;
+            }
+        }
+    }
+
+    // BOOST_LOG_TRIVIAL(info) << "Number of sites produced: " << (max_var_marker -3 ) / 2;
     return encoded_prg;
 }

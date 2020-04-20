@@ -8,7 +8,6 @@
 #ifndef GRAMTOOLS_SEARCH_HPP
 #define GRAMTOOLS_SEARCH_HPP
 
-#include "common/utils.hpp"
 #include "genotype/quasimap/search/types.hpp"
 
 

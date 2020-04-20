@@ -1,7 +1,7 @@
 #ifndef SITE_JSON_SPEC
 #define SITE_JSON_SPEC
 
-#include "common/utils.hpp"
+#include "common/data_types.hpp"
 #include "json_common.hpp"
 
 namespace gram::json {

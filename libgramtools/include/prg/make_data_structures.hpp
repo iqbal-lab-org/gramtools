@@ -10,7 +10,6 @@
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/wavelet_trees.hpp>
 
-#include <common/utils.hpp>
 #include <build/parameters.hpp>
 #include "common/parameters.hpp"
 #include "coverage_graph.hpp"
@@ -31,8 +30,17 @@ namespace gram {
 
     FM_Index load_fm_index(CommonParameters const &parameters);
 
+
+    /**************
+     * Cov graph***
+     **************/
+
     coverage_Graph generate_cov_graph(CommonParameters const &parameters, PRG_String const &prg_string);
 
+    /**
+     * Build child_map from parental_map
+     */
+    child_map build_child_map(parental_map const& par_map);
 
     /**************
      * Bit masks **

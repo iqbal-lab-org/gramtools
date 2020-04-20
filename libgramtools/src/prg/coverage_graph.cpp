@@ -1,4 +1,5 @@
 #include "prg/coverage_graph.hpp"
+#include "common/utils.hpp"
 
 /**
  * Shared_ptr in boost get destroyed when their reference_count goes to 0>

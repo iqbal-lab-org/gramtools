@@ -1,5 +1,6 @@
 #include "simulate/simulate.hpp"
 #include "prg/coverage_graph.hpp"
+#include "prg/make_data_structures.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/allele_extracter.hpp"

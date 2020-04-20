@@ -1,7 +1,7 @@
 #ifndef GRAMTOOLS_vBWT_JUMP
 #define GRAMTOOLS_vBWT_JUMP
 
-#include "common/utils.hpp"
+#include "common/data_types.hpp"
 #include "genotype/quasimap/search/types.hpp"
 #include <vector>
 

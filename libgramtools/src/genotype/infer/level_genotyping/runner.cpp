@@ -2,6 +2,7 @@
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "prg/coverage_graph.hpp"
+#include "prg/make_data_structures.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 
 using namespace gram::genotype::output_spec;

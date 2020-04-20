@@ -208,7 +208,7 @@ public:
      */
     target_m target_map;
 
-    bool is_nested; /**< Upon construction, gets set to true if graph has nested bubbles */
+    bool is_nested{false}; /**< Upon construction, gets set to true if graph has nested bubbles */
 
     friend bool operator==(coverage_Graph const& f, coverage_Graph const& s);
 
@@ -245,10 +245,7 @@ public:
     cov_Graph_Builder(PRG_String const &prg_string);
 
 
-    cov_Graph_Builder() {
-        //std::cout << "WARNING: The builder needs a PRG_String object as constructor parameter to work properly.";
-        ;
-    };
+    cov_Graph_Builder() = default;
 
     // These will get transferred to the coverage_Graph
     covG_ptr root;
@@ -301,7 +298,7 @@ public:
     covG_ptr cur_Node;
 
     // For assigning position to nodes
-    std::size_t cur_pos;
+    std::size_t cur_pos{0};
     bool first_allele{false};
 
     VariantLocus cur_Locus; // For building parental map

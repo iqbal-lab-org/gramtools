@@ -1,4 +1,3 @@
-#include "common/utils.hpp"
 #include "build/kmer_index/masks.hpp"
 #include "common.hpp"
 

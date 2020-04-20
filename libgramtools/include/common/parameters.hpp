@@ -19,6 +19,14 @@ namespace fs = std::filesystem;
 
 namespace gram {
 
+    static std::string mkdir(std::string const& parent_dirpath, std::string const& child_dirpath){
+        fs::path dir1(parent_dirpath), dir2(child_dirpath);
+        assert(fs::exists(dir1));
+        fs::path full_path = dir1 / dir2;
+        if (! fs::exists(full_path)) fs::create_directory(full_path);
+        return full_path.string();
+    }
+
     // The number of bytes to use for each integer going on disk representing PRG string `Marker`s
     constexpr uint8_t num_bytes_per_integer{4};
 

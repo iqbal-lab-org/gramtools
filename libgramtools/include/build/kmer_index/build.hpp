@@ -7,7 +7,6 @@
  * Kmer size is passed as a parameter. Either all kmers of this size are enumerated, or all kmers associated with variant
  * sites in the PRG are searched for in a given PRG.
  */
-#include "common/utils.hpp"
 #include "common/parameters.hpp"
 #include "build/parameters.hpp"
 #include "prg/prg_info.hpp"

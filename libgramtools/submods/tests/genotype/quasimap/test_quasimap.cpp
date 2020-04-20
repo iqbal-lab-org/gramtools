@@ -15,7 +15,6 @@
 #include "gtest/gtest.h"
 
 #include "genotype/quasimap/quasimap.hpp"
-#include "common/utils.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "tests/common/common.hpp"

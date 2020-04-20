@@ -1,6 +1,5 @@
-#include "common/utils.hpp"
-#include "genotype/quasimap/quasimap.hpp"
 #include "genotype/parameters.hpp"
+#include <iostream>
 
 #include <omp.h>
 

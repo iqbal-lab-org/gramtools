@@ -50,6 +50,25 @@ coverage_Graph gram::generate_cov_graph(CommonParameters const &parameters, PRG_
 }
 
 
+child_map gram::build_child_map(parental_map const& par_map){
+    child_map result;
+
+    Marker child_marker, parental_marker;
+    AlleleId parental_haplotype;
+    for (auto const& entry : par_map){
+        child_marker = entry.first;
+        // Parental locus: pair of (siteID, AlleleId)
+        parental_marker = entry.second.first;
+        parental_haplotype = entry.second.second;
+        // 1-based in par_map and we move to 0-based in child_map
+        assert(parental_haplotype >= 1);
+
+        result[parental_marker][parental_haplotype - 1].push_back(child_marker);
+    }
+    return result;
+}
+
+
 /**************
  * Bit masks **
  **************/

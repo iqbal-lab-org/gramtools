@@ -10,7 +10,6 @@
 #include <vector>
 #include <string>
 
-#include "common/utils.hpp"
 #include "prg/make_data_structures.hpp"
 #include "prg/linearised_prg.hpp"
 

@@ -8,7 +8,6 @@
 #include "genotype/parameters.hpp"
 #include "sequence_read/seqread.hpp"
 
-#include "common/utils.hpp"
 #include "genotype/read_stats.hpp"
 #include "build/kmer_index/kmer_index_types.hpp"
 #include "coverage/common.hpp"

@@ -11,7 +11,7 @@ void commands::build::run(BuildParams const &parameters) {
 
     PRG_Info prg_info;
 
-    std::cout << "Generating integer encoded PRG" << std::endl;
+    std::cout << "Loading integer encoded PRG" << std::endl;
     timer.start("Encoded PRG");
     PRG_String ps{parameters.encoded_prg_fpath};
     timer.stop();
@@ -21,7 +21,7 @@ void commands::build::run(BuildParams const &parameters) {
 
     prg_info.last_allele_positions = ps.get_end_positions();
 
-    std::cout << "Generate coverage graph" << std::endl;
+    std::cout << "Generating coverage graph" << std::endl;
     timer.start("Generate Coverage Graph");
     //Need move, not copy assignment, else destructor can affect assigned-to object. Move is compiler default here anyway.
     prg_info.coverage_graph = std::move(generate_cov_graph(parameters, ps));
