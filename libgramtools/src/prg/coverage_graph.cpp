@@ -299,7 +299,9 @@ void cov_Graph_Builder::add_exit_target(Marker cur_m, targeted_marker& new_t_m){
 
 bool operator>(const covG_ptr &lhs, const covG_ptr &rhs) {
     if (lhs->pos == rhs->pos) {
-        return lhs.get() > rhs.get();
+        if (lhs->site_ID == rhs->site_ID)
+            return lhs.get() > rhs.get(); // Random choice
+        else return lhs->site_ID > rhs->site_ID; // Give precedence to child bubble
     } else return lhs->pos > rhs->pos;
 }
 

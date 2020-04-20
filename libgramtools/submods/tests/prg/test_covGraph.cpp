@@ -284,6 +284,21 @@ TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
     EXPECT_EQ(entry->get_edges()[0], expected_next_entry);
 };
 
+TEST_F(cov_G_Builder_nested_adjMarkers, bubbleOrdering){
+    //"[A,]A[[G,A]A,C,T]"
+    /*
+     * Tests the bubbles are in the right order.
+     * Because of the double entry, two bubbles have the same POS,
+     * so make sure the more nested (child) bubble occurs before its parent.
+     * This is needed for nested genotyping.
+     */
+    std::vector<std::size_t> expected{2, 1, 0};
+    std::vector<std::size_t> site_indices;
+    for (auto const& bubble_pair: c.bubble_map)
+        site_indices.push_back(siteID_to_index(bubble_pair.first->get_site_ID()));
+    EXPECT_EQ(site_indices, expected);
+}
+
 // Tests the target mapping is correct
 TEST_F(cov_G_Builder_nested_adjMarkers, targetEntries){
     //"[A,]A[[G,A]A,C,T]"
