@@ -62,8 +62,8 @@ TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
     auto result = left_markers_search(initial_search_state,
                                       prg_info);
     MarkersSearchResults expected = {
-            {6, 0},
-            {5, 3},
+            {6, ALLELE_UNKNOWN},
+            {5, FIRST_ALLELE + 2},
     };
     EXPECT_EQ(result, expected);
 
@@ -111,7 +111,7 @@ TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
     auto result = left_markers_search(initial_search_state,
                                       prg_info);
     MarkersSearchResults expected = {
-            {5, 2},
+            {5, FIRST_ALLELE + 1},
     };
     EXPECT_EQ(result, expected);
 }
@@ -279,7 +279,7 @@ TEST(SearchStateJump, Allele2SiteExit_CorrectSearchStateJump) {
     SearchStates expected = {
             SearchState{
                     SA_Interval{15, 15},
-                    VariantSitePath{VariantLocus{5, 2}},
+                    VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
                     VariantSitePath{},
                     SearchVariantSiteState::outside_variant_site,
             }
@@ -301,7 +301,7 @@ TEST(SearchStateJump, Allele1SiteExit_CorrectSearchStateJump) {
     SearchStates expected = {
             SearchState{
                     SA_Interval{15, 15},
-                    VariantSitePath{VariantLocus{5, 1}},
+                    VariantSitePath{VariantLocus{5, FIRST_ALLELE}},
                     VariantSitePath{},
                     SearchVariantSiteState::outside_variant_site,
             }
@@ -344,8 +344,8 @@ TEST(SearchStateJump_Nested, DoubleExit_CorrectSearchStateJump){
             SearchState{
                 SA_Interval{6, 6},
                 VariantSitePath {
-                    VariantLocus {7, 1},
-                    VariantLocus {5, 2}
+                    VariantLocus {7, FIRST_ALLELE},
+                    VariantLocus {5, FIRST_ALLELE + 1}
                 },
                 VariantSitePath{},
                 SearchVariantSiteState::outside_variant_site
@@ -416,7 +416,7 @@ TEST(SearchStateJump_Nested, ExitToEntry_CorrectSearchStateJump) {
             SearchState{
                 SA_Interval{6, 7},
                 VariantSitePath{
-                    VariantLocus{7, 1}
+                    VariantLocus{7, FIRST_ALLELE}
                 },
                 VariantSitePath{
                     VariantLocus{5, ALLELE_UNKNOWN}
@@ -466,7 +466,7 @@ TEST(SearchStateJump_Nested, DirectDeletion_CorrectSearchStateJump) {
             SearchState{
                 SA_Interval{5, 5},
                 VariantSitePath{
-                    VariantLocus{5, 2}
+                    VariantLocus{5, FIRST_ALLELE + 1}
                 },
                 VariantSitePath{},
                 SearchVariantSiteState::outside_variant_site

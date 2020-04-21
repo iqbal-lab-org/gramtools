@@ -123,10 +123,10 @@ TEST(BuildChildMap, GivenParentalMap_CorrectChildMap){
     // Note: parental_map / quasimap stores allele haplogroups as 1-based,
     // but child_map moves them to 0-based (consistent with infer).
     parental_map par_map{
-            {7, VariantLocus{5, 1}},
-            {9, VariantLocus{5, 1}},
-            {11, VariantLocus{5, 2}},
-            {15, VariantLocus{13, 3}},
+            {7, VariantLocus{5, FIRST_ALLELE}},
+            {9, VariantLocus{5, FIRST_ALLELE}},
+            {11, VariantLocus{5, FIRST_ALLELE + 1}},
+            {15, VariantLocus{13, FIRST_ALLELE + 2}},
     };
 
     auto result = build_child_map(par_map);

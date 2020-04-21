@@ -165,9 +165,9 @@ TEST_F(LG_SnpsNestedInTwoHaplotypes, MapReads_CorrectlyInvalidatedSites){
 TEST(LevelGenotyperInvalidation, GivenChildMapAndCandidateHaplos_CorrectHaplosWithSites){
     // site 7 lives on haplogroup 0 of site 5, and sites 9 and 11 live on its haplogroup 1.
     parental_map par_map{
-            {7, VariantLocus{5, 1}},
-            {9, VariantLocus{5, 2}},
-            {11, VariantLocus{5, 2}},
+            {7, VariantLocus{5, FIRST_ALLELE}},
+            {9, VariantLocus{5, FIRST_ALLELE + 1}},
+            {11, VariantLocus{5, FIRST_ALLELE + 1}},
     };
     child_map child_m = build_child_map(par_map);
     LevelGenotyper g{child_m, gt_sites{}};
@@ -184,8 +184,8 @@ using ::testing::InSequence;
 using ::testing::Return;
 TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying){
     parental_map par_map{
-            {7, VariantLocus{5, 1}},
-            {9, VariantLocus{7, 2}},
+            {7, VariantLocus{5, FIRST_ALLELE}},
+            {9, VariantLocus{7, FIRST_ALLELE + 1}},
     };
     child_map child_m = build_child_map(par_map);
 

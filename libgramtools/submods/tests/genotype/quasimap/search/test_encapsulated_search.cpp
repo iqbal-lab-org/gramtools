@@ -36,7 +36,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectP
             SearchState{
                     SA_Interval{8, 8},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -53,7 +53,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
             SearchState{
                     SA_Interval{8, 8},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -64,7 +64,7 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
             SearchState{
                     SA_Interval{8, 8},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -88,7 +88,7 @@ TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_
             SearchState{
                     SA_Interval{3, 4},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -188,7 +188,7 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
             SearchState{
                     SA_Interval{8, 8},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -260,7 +260,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState{
                     SA_Interval{10, 10},
                     VariantSitePath{
-                            VariantLocus{5, 1}
+                            VariantLocus{5, FIRST_ALLELE}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -268,7 +268,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState{
                     SA_Interval{11, 11},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -282,7 +282,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState{
                     SA_Interval{13, 13},
                     VariantSitePath{
-                            VariantLocus{7, 1}
+                            VariantLocus{7, FIRST_ALLELE}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -290,7 +290,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState{
                     SA_Interval{14, 14},
                     VariantSitePath{
-                            VariantLocus{5, 1}
+                            VariantLocus{5, FIRST_ALLELE}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -298,7 +298,7 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
             SearchState{
                     SA_Interval{15, 15},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site

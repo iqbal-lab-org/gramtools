@@ -63,7 +63,7 @@ TEST(IndexKmers, KmerCrossesSecondAllele_CorrectVariantSitePath) {
     auto result = search_state.traversed_path;
 
     VariantSitePath expected = {
-            VariantLocus {5, 2}
+            VariantLocus {5, FIRST_ALLELE + 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -119,7 +119,7 @@ TEST(IndexKmers, KmerCrossesFirstAllele_VariantRegionRecordedInSites) {
     auto result = search_state.traversed_path;
 
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(result, expected);
 }
@@ -146,7 +146,7 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
                             SearchState {
                                     SA_Interval {3, 3},
                                     VariantSitePath {
-                                            VariantLocus {5, 1}
+                                            VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -158,7 +158,7 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
                             SearchState {
                                     SA_Interval {3, 3},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -191,7 +191,7 @@ TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
                             SearchState {
                                     SA_Interval {3, 3},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -222,7 +222,7 @@ TEST(IndexKmers, OneKmersOverlapsVariantSiteAllele_CorrectSearchResults) {
     auto first_search_state = first_search_states.front();
     auto first_result = first_search_state.traversed_path;
     VariantSitePath first_expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(first_result, first_expected);
 
@@ -251,7 +251,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     auto search_state = search_states.front();
     auto result = search_state.traversed_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(result, expected);
 
@@ -259,7 +259,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     search_state = search_states.front();
     result = search_state.traversed_path;
     expected = {
-            VariantLocus {5, 2}
+            VariantLocus {5, FIRST_ALLELE + 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -267,7 +267,7 @@ TEST(IndexKmers, ThreeKmersOverlapSiteThreeAllele_CorrectSearchResults) {
     search_state = search_states.front();
     result = search_state.traversed_path;
     expected = {
-            VariantLocus {5, 3}
+            VariantLocus {5, FIRST_ALLELE + 2}
     };
     EXPECT_EQ(result, expected);
 }
@@ -293,7 +293,7 @@ TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     auto search_state = search_states.front();
     auto result = search_state.traversed_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(result, expected);
 
@@ -301,7 +301,7 @@ TEST(IndexKmers, ThreeKmersOneMissMatch_CorrectSearchResults) {
     search_state = search_states.front();
     result = search_state.traversed_path;
     expected = {
-            VariantLocus {5, 2}
+            VariantLocus {5, FIRST_ALLELE + 1}
     };
     EXPECT_EQ(result, expected);
 
@@ -405,7 +405,7 @@ TEST(IndexKmers, KmerEndingInAllele_SingleSiteFound) {
     auto search_state = search_states.front();
     auto result = search_state.traversed_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(result, expected);
 }
@@ -429,7 +429,7 @@ TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     auto search_state = search_states.front();
     auto result = search_state.traversed_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(result, expected);
 
@@ -437,7 +437,7 @@ TEST(IndexKmers, TwoKmersEndingInAlleles_TwoSingleSitesFound) {
     search_state = search_states.back();
     result = search_state.traversed_path;
     expected = {
-            VariantLocus {5, 2}
+            VariantLocus {5, FIRST_ALLELE + 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -459,7 +459,7 @@ TEST(IndexKmers, KmerStartingInSiteAndEndInAnotherSite_CorrectVariantSitePath) {
     auto search_state = search_states.front();
     auto result = std::make_pair(search_state.traversed_path, search_state.traversing_path);
     auto expected = std::make_pair(
-            std::vector{VariantLocus {7, 1} },
+            std::vector{VariantLocus {7, FIRST_ALLELE} },
             std::vector{ VariantLocus {5, ALLELE_UNKNOWN} }
             );
     EXPECT_EQ(result, expected);
@@ -500,7 +500,7 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -508,7 +508,7 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 1}
+                                            VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site

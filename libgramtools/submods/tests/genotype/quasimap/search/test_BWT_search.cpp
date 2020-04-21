@@ -254,7 +254,7 @@ TEST(VarPrg, oneBaseExtensionAG_CorrectSaInterval) {
 
 
 TEST(VarPrg, ReadLeadsToPrgEdge_NoSearchStatesFound) {
-    auto prg_raw = encode_prg("gcgct5c6g6t5agtcct");
+    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
     auto prg_info = generate_prg_info(prg_raw);
 
     auto read = encode_dna_bases("agcgc");

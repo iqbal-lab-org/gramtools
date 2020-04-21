@@ -39,7 +39,7 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 1}
+                                            VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -47,7 +47,7 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
                             SearchState {
                                     SA_Interval {7, 42},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -126,7 +126,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 1}
+                                            VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -134,7 +134,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {7, 7},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -142,7 +142,7 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {8, 8},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -160,8 +160,8 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                             SearchState {
                                     SA_Interval {11, 11},
                                     VariantSitePath {
-                                            VariantLocus {5, 2},
-                                            VariantLocus {7, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1},
+                                            VariantLocus {7, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -200,7 +200,7 @@ TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, 1}
+                                            VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath{
                                             VariantLocus{7, ALLELE_UNKNOWN}
@@ -210,7 +210,7 @@ TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
                             SearchState {
                                     SA_Interval {7, 7},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
                                     SearchVariantSiteState::outside_variant_site
@@ -218,7 +218,7 @@ TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
                             SearchState {
                                     SA_Interval {8, 8},
                                     VariantSitePath {
-                                            VariantLocus {5, 2}
+                                            VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath{
                                             VariantLocus{11, ALLELE_UNKNOWN},

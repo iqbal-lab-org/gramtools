@@ -6,7 +6,7 @@
 
 
 TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
-    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
+    auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
     auto prg_info = generate_prg_info(prg_raw);
     auto grouped_allele_counts = coverage::generate::grouped_allele_counts(prg_info);
 
@@ -17,14 +17,14 @@ TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
 
 
 TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
-    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
+    auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
     uniqueLoci compatible_loci = {
-            VariantLocus{7, 1},
-            VariantLocus{5, 1},
-            VariantLocus{5, 2}
+            VariantLocus{7, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE + 1}
 
     };
     coverage::record::grouped_allele_counts(coverage, compatible_loci);
@@ -38,12 +38,12 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
 
 
 TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
-    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
+    auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
     uniqueLoci compatible_loci = {
-            VariantLocus{5, 3},
+            VariantLocus{5, FIRST_ALLELE + 2},
 
     };
     coverage::record::grouped_allele_counts(coverage, compatible_loci);
@@ -57,20 +57,20 @@ TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
 
 
 TEST(GroupedAlleleCount, MultipleReads_CorrectCoverage) {
-    auto prg_raw = encode_prg("gct5c6g6t5ac7cc8a7");
+    auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
 
     uniqueLoci read1_compatible_loci = {
-            VariantLocus{7, 2},
-            VariantLocus{5, 3},
-            VariantLocus{5, 1}
+            VariantLocus{7, FIRST_ALLELE + 1},
+            VariantLocus{5, FIRST_ALLELE + 2},
+            VariantLocus{5, FIRST_ALLELE}
 
     };
     uniqueLoci read2_compatible_loci = {
-            VariantLocus{7, 2},
-            VariantLocus{5, 4},
-            VariantLocus{5, 1}
+            VariantLocus{7, FIRST_ALLELE + 1},
+            VariantLocus{5, FIRST_ALLELE + 3},
+            VariantLocus{5, FIRST_ALLELE}
 
     };
 
@@ -134,7 +134,7 @@ TEST(GroupedAlleleCount, GivenSitesGroupedAlleleCounts_CorrectlyAssignHashValues
 }
 
 
-/*
+
 TEST(GroupedAlleleCount, GivenSingleSite_CorrectJsonString) {
     GroupedAlleleCounts site = {
             {AlleleIds {1, 3}, 1},
@@ -198,4 +198,3 @@ TEST(GroupedAlleleCount, GivenMultipleSites_CorrectFullJsonString) {
     std::cout << expected << std::endl;
     EXPECT_EQ(result, expected);
 }
-*/

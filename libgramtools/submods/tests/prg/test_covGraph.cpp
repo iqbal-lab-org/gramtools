@@ -9,6 +9,9 @@ namespace fs = std::filesystem;
 
 auto const test_data_dir = fs::path(__FILE__).parent_path().parent_path() / "test_data";
 
+auto first{FIRST_ALLELE};
+auto unkn{ALLELE_UNKNOWN};
+
 /*
  * -----------------------
  * `PRG String` tests
@@ -77,15 +80,6 @@ TEST_F(PRGString_WriteAndRead, WriteAndReadBigEndian){
     EXPECT_EQ(expected_markers, p2.get_PRG_string());
 }
 
-TEST(PRGString, ExitPoint_ConvertOddToEven){
-    marker_vec t{5,1,6,2,5};
-    PRG_String l = PRG_String(t);
-    EXPECT_EQ(true, l.odd_site_end_found);
-    // The vector should now have even site marker exit points
-    marker_vec expected = {5,1,6,2,6};
-    EXPECT_EQ(expected, l.get_PRG_string());
-}
-
 TEST(PRGString, ExitPoint_MapPositions){
     marker_vec t{5,1,6,2,7,1,8,3,8,6}; // Ie: "[A,C[A,T]]"
     PRG_String l = PRG_String(t);
@@ -94,6 +88,27 @@ TEST(PRGString, ExitPoint_MapPositions){
             {8, 8}
     };
     EXPECT_EQ(expected_end_positions, l.get_end_positions());
+}
+
+/**
+ * Given inconsistent PRGs, prg_string/cov_graph construction fails
+ */
+
+TEST(InconsistentPRG_duplicate_site_markers, fails){
+    marker_vec t{5,1,6,2,6,2,5,1,6,3,6}; // "[A,C]C[A,G]"
+    EXPECT_THROW(PRG_String{t}, std::runtime_error);
+}
+
+TEST(InconsistentPRG_site_with_no_alleles, fails){
+    marker_vec m{5,6,2,7,1,8,3,8}; // "[]C[A,G]"
+    PRG_String s{m};
+    EXPECT_THROW(cov_Graph_Builder{s}, std::runtime_error);
+}
+
+TEST(InconsistentPRG_site_one_allele, fails) {
+    marker_vec m{5,2,6,2,7,1,8,3,8}; // "[C]C[A,G]"
+    PRG_String s{m};
+    EXPECT_THROW(cov_Graph_Builder{s}, std::runtime_error);
 }
 
 /*
@@ -137,7 +152,7 @@ TEST_F(cov_G_Builder_nested, ParentalMap){
     //"[A,AA,A[A,C]A]C[AC,C]G"
     // Expecting to find a single entry, for the single nested site, pointing to siteID 5 & alleleID 3.
     parental_map expected {
-            {7 , VariantLocus{5, 3} }
+            {7 , VariantLocus{5, 2} }
     };
     EXPECT_EQ(c.par_map, expected);
 }
@@ -147,11 +162,11 @@ TEST_F(cov_G_Builder_nested, SiteAndAllele_IDs){
     //"[A,AA,A[A,C]A]C[AC,C]G"
     auto const& rand_access = c.random_access;
     std::vector<VariantLocus> expected{
-            {5, 0}, {5, 1}, {5, 0}, {5, 2}, {5, 2},
-            {5, 0}, {5, 3}, {7, 0}, {7, 1}, {7, 0},
-            {7, 2}, {7, 0}, {5, 3}, {5, 0}, {0, 0},
-            {9, 0}, {9, 1}, {9, 1}, {9, 0}, {9,2},
-            {9, 0}, {0, 0}
+            {5, unkn}, {5, first}, {5, unkn}, {5, first + 1}, {5, first + 1},
+            {5, unkn}, {5, first + 2}, {7, unkn}, {7, first}, {7, unkn},
+            {7, first + 1}, {7, unkn}, {5, first + 2}, {5, unkn},
+            {0, unkn}, {9, unkn}, {9, first}, {9, first},
+            {9, unkn}, {9,first + 1}, {9, unkn}, {0, unkn}
     };
     std::vector<VariantLocus> res{rand_access.size(), VariantLocus()};
     int pos = 0;
@@ -305,39 +320,41 @@ TEST_F(cov_G_Builder_nested_adjMarkers, targetEntries){
     /**
      * First, check that nucleotide positions just after a marker target the site and allele markers
      */
-   std::vector<Marker> expected_site_targets = {
-           0, 5, 0, 0, 6, 0, 0, 9, 0, 10, 0, 10, 0, 8, 0, 8, 0
-   };
-    std::vector<Marker> expected_allele_targets = {
-            0, 1, 0, 0, 0, 0, 0, 1, 0, 2, 0, 1, 0, 2, 0, 3, 0
+    marker_vec expected_site_targets = {
+            0, 5, 0, 0, 6, 0, 0, 9, 0, 10, 0, 10, 0, 8, 0, 8, 0
+    };
+    AlleleIds expected_allele_targets = {
+            unkn, first, unkn, unkn, unkn, unkn, unkn,
+            first, unkn, first + 1, unkn, first, unkn, first + 1, unkn,
+            first + 2, unkn
     };
 
-   std::vector<Marker> site_results(expected_site_targets.size(), 0);
-    std::vector<Marker> allele_results(expected_site_targets.size(), 0);
-   int pos = -1;
-   for (auto& e : c.random_access){
-       pos++;
-       site_results[pos] = e.target.first;
-       allele_results[pos] = e.target.second;
-   }
-   EXPECT_EQ(site_results, expected_site_targets);
+    marker_vec site_results(expected_site_targets.size(), 0);
+    AlleleIds allele_results(expected_site_targets.size(), unkn);
+    int pos = -1;
+    for (auto& e : c.random_access){
+        pos++;
+        site_results[pos] = e.target.first;
+        allele_results[pos] = e.target.second;
+    }
+    EXPECT_EQ(site_results, expected_site_targets);
     EXPECT_EQ(allele_results, expected_allele_targets);
 
-   /**
-    * Second, check that adjacent variant markers get correct entries in the target map
-    */
+    /**
+     * Second, check that adjacent variant markers get correct entries in the target map
+     */
     std::vector<targeted_marker> v;
     Marker seed;
     target_m expected_map;
     // First add in the direct deletion at pos 3
     seed = 6;
-   v.emplace_back(targeted_marker{5, 2});
-   expected_map.insert(std::make_pair(seed, v));
-   v.clear();
+    v.emplace_back(targeted_marker{5, first + 1});
+    expected_map.insert(std::make_pair(seed, v));
+    v.clear();
 
-   // Second add the double start at pos 6
-   seed = 9;
-   v.emplace_back(targeted_marker{7,0});
+    // Second add the double start at pos 6
+    seed = 9;
+    v.emplace_back(targeted_marker{7,ALLELE_UNKNOWN});
     expected_map.insert(std::make_pair(seed, v));
     v.clear();
 
@@ -374,7 +391,7 @@ TEST_F(cov_G_Builder_nested_adjMarkers, num_Bubbles) {
 TEST_F(cov_G_Builder_nested_adjMarkers, ParentalMap) {
     //"[A,]A[[G,A]A,C,T]"
     parental_map expected {
-            {9 , VariantLocus{7, 1} }
+            {9 , VariantLocus{7, first} }
     };
     EXPECT_EQ(c.par_map, expected);
 }
@@ -468,7 +485,7 @@ TEST(Target_map, EvenIsEntry_OddIsExit){
     auto c = cov_Graph_Builder{p};
 
     std::vector<targeted_marker> targets{
-        targeted_marker{5, 0}
+        targeted_marker{5, ALLELE_UNKNOWN}
     };
     Marker seed{7};
 

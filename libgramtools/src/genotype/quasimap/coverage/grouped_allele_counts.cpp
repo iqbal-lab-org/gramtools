@@ -25,7 +25,7 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
     // Loop through all loci and record the alleles compatible with each site
     for (const auto &locus : compatible_loci) {
             auto site_marker = locus.first;
-            auto allele_id = locus.second - 1;
+            auto allele_id = locus.second;
             site_allele_group[site_marker].insert(allele_id);
         }
 
@@ -37,12 +37,10 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
         std::copy(allele_ids_set.begin(), allele_ids_set.end(),
                   std::back_inserter(allele_ids));
 
-        auto min_boundary_marker = 5;
-        // Which site entry in `grouped_allele_counts` is concerned.
-        auto site_coverage_index = (site_marker - min_boundary_marker) / 2;
+        auto site_index = siteID_to_index(site_marker);
 
         // Get the map between allele Ids and counts.
-        auto &site_coverage = coverage.grouped_allele_counts[site_coverage_index];
+        auto &site_coverage = coverage.grouped_allele_counts[site_index];
         #pragma omp critical
         // Note: if the key does not already exists, creates a key value pair **and** initialises the value to 0.
         site_coverage[allele_ids] += 1;

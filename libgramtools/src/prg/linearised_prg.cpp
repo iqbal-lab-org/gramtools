@@ -60,10 +60,12 @@ void PRG_String::map_and_normalise_ends() {
         if (is_site_marker(marker)) {
             bool seen_before = seen_sites.find(marker) != seen_sites.end();
             if (seen_before) {
-                odd_site_end_found = true;
-                end_positions[marker + 1] = pos;
-                my_PRG_string[pos]++; // Convert the odd boundary to an even one.
-            } else seen_sites.insert(marker);
+                // Duplicate site marker
+                throw std::runtime_error(
+                        "PRG consistency error:"
+                        " site marker " + std::to_string(marker) + " used for two different sites");
+            }
+            else seen_sites.insert(marker);
         } else {
             end_positions[marker] = pos; // Inserts if does not exist, updates otherwise
         }

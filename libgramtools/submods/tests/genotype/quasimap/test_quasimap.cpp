@@ -19,7 +19,6 @@
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "tests/common/common.hpp"
 
-
 TEST(ReverseComplementRead, GivenRead_ReverseComplementReadReturned) {
     gram::Sequence read = {1, 2, 1, 3, 4};
     auto result = gram::reverse_complement_read(read);
@@ -514,7 +513,7 @@ TEST(vBWTJump_andBWTExtension, InitiallyInSite_HaveExitedSite) {
     EXPECT_EQ(final_search_states.size(), 1);
     const auto &result = final_search_states.front().traversed_path;
     VariantSitePath expected = {
-            VariantLocus{5, 2},
+            VariantLocus{5, FIRST_ALLELE + 1},
     };
     EXPECT_EQ(result, expected);
 }
@@ -578,7 +577,7 @@ TEST(SearchStates, StartInSiteAndMapOut_CorrectVarLocusPath) {
 
     auto result = search_states.front().traversed_path;
     VariantSitePath expected = {
-            VariantLocus {5, 1}
+            VariantLocus {5, FIRST_ALLELE}
     };
     EXPECT_EQ(result, expected);
 }
@@ -597,7 +596,7 @@ TEST(SearchStates, StartOutOfSiteAndMapThrough_CorrectVarLocusPath) {
 
     auto result = search_states.front().traversed_path;
     VariantSitePath expected = {
-            VariantLocus {5, 2}
+            VariantLocus {5, FIRST_ALLELE + 1}
     };
     EXPECT_EQ(result, expected);
 }
@@ -614,7 +613,7 @@ TEST(SearchStates, ReadCrossingTwoAlleles_CorrectVarLocusPaths) {
     EXPECT_EQ(search_states.size(), 1);
 
     auto traversed_path = search_states.front().traversed_path;
-    VariantSitePath expected_traversed = { VariantLocus {7, 1}};
+    VariantSitePath expected_traversed = { VariantLocus {7, FIRST_ALLELE}};
     EXPECT_EQ(traversed_path, expected_traversed);
 
     auto traversing_path = search_states.front().traversing_path;
@@ -634,7 +633,7 @@ TEST(SearchStates, StartWithinAlleleEndWithinAnother_CorrectVarLocusPath) {
     EXPECT_EQ(search_states.size(), 1);
 
     auto traversed_path = search_states.front().traversed_path;
-    VariantSitePath expected_traversed = { VariantLocus {7, 1}};
+    VariantSitePath expected_traversed = { VariantLocus {7, FIRST_ALLELE}};
     EXPECT_EQ(traversed_path, expected_traversed);
 
     auto traversing_path = search_states.front().traversing_path;
@@ -687,7 +686,7 @@ TEST(SearchStates, OneMappingEncapsulatedByAllele) {
     SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
     EXPECT_EQ(result, expected);
 
-    VariantLocus cov = {5, 2};
+    VariantLocus cov = {5, FIRST_ALLELE + 1};
     EXPECT_EQ(search_states.front().traversed_path.front(), cov);
 }
 
@@ -704,7 +703,7 @@ TEST(SearchStates, StartAndEndInSite_CorrectSearchStates) {
             SearchState{
                     SA_Interval{7, 8},
                     VariantSitePath{
-                            VariantLocus{5, 2}
+                            VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
                     SearchVariantSiteState::within_variant_site
@@ -728,8 +727,8 @@ TEST(SearchStates_Nested, MapIntoAndOutOfNestedSite_CorrectSearchStates) {
             SearchState{
                 SA_Interval{1, 1},
                 VariantSitePath{
-                    VariantLocus{7, 2},
-                    VariantLocus{5, 2}
+                    VariantLocus{7, FIRST_ALLELE + 1},
+                    VariantLocus{5, FIRST_ALLELE + 1}
                 },
                 VariantSitePath{},
                 SearchVariantSiteState::outside_variant_site
@@ -771,7 +770,7 @@ TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
     SearchStates expected_direct_deletion = {
             SearchState{
                 SA_Interval{7, 7},
-                VariantSitePath{VariantLocus{5, 2}},
+                VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
                 VariantSitePath{},
                 SearchVariantSiteState::outside_variant_site
             }
@@ -785,9 +784,9 @@ TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
            SearchState{
                SA_Interval{7, 7},
                VariantSitePath{
-                   VariantLocus{9, 1},
-                   VariantLocus{7, 1},
-                   VariantLocus{5, 1}
+                   VariantLocus{9, FIRST_ALLELE},
+                   VariantLocus{7, FIRST_ALLELE},
+                   VariantLocus{5, FIRST_ALLELE}
                },
                VariantSitePath{},
                SearchVariantSiteState::outside_variant_site

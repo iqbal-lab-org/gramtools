@@ -60,10 +60,9 @@ child_map gram::build_child_map(parental_map const& par_map){
         // Parental locus: pair of (siteID, AlleleId)
         parental_marker = entry.second.first;
         parental_haplotype = entry.second.second;
-        // 1-based in par_map and we move to 0-based in child_map
-        assert(parental_haplotype >= 1);
+        assert(parental_haplotype >= FIRST_ALLELE);
 
-        result[parental_marker][parental_haplotype - 1].push_back(child_marker);
+        result[parental_marker][parental_haplotype].push_back(child_marker);
     }
     return result;
 }

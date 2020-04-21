@@ -38,8 +38,8 @@ TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantLocus {5, 1},
-                            VariantLocus {7, 2},
+                            VariantLocus {5, FIRST_ALLELE},
+                            VariantLocus {7, FIRST_ALLELE + 1},
                     }
             },
             SearchState {
@@ -58,7 +58,7 @@ TEST(LocusFinder_logic, SameSiteMoreThanOnceInSearchState_ThrowsError){
     SearchState search_state = SearchState{
         SA_Interval{},
         VariantSitePath{
-            VariantLocus{5, 2}
+            VariantLocus{5, FIRST_ALLELE + 1}
         },
         VariantSitePath{
             VariantLocus{5, ALLELE_UNKNOWN}
@@ -89,15 +89,15 @@ TEST(GetUniquePathSites, TwoDifferentPaths_CorrectPaths) {
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantLocus {5, 1},
-                            VariantLocus {7, 2},
+                            VariantLocus {5, FIRST_ALLELE},
+                            VariantLocus {7, FIRST_ALLELE + 1},
                     }
             },
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
+                            VariantLocus {9, FIRST_ALLELE + 2},
+                            VariantLocus {11, FIRST_ALLELE + 4},
                     }
             }
     };
@@ -125,15 +125,15 @@ TEST(GetUniquePathSites, TwoIdenticalPathsOneEmptyPath_SingleNonEmptyPathInSet) 
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
+                            VariantLocus {9, FIRST_ALLELE + 2},
+                            VariantLocus {11, FIRST_ALLELE + 4},
                     }
             },
             SearchState {
                     SA_Interval {},
                     VariantSitePath {
-                            VariantLocus {9, 3},
-                            VariantLocus {11, 5},
+                            VariantLocus {9, FIRST_ALLELE + 2},
+                            VariantLocus {11, FIRST_ALLELE + 4},
                     }
             },
             SearchState {
@@ -157,8 +157,8 @@ class LocusFinder_minimal : public ::testing::Test{
 protected:
     void SetUp(){
         parental_map p{
-                {9, VariantLocus{7, 1}} ,
-                {7, VariantLocus{5, 3}}
+                {9, VariantLocus{7, FIRST_ALLELE}} ,
+                {7, VariantLocus{5, FIRST_ALLELE + 2}}
         };
         coverage_Graph c;
         c.par_map = p;
@@ -171,7 +171,7 @@ protected:
 TEST_F(LocusFinder_minimal, assignNestedLocus_correctDispatching){
 
     // First addition
-    VariantLocus test{9, 3};
+    VariantLocus test{9, FIRST_ALLELE + 2};
     l.assign_nested_locus(test, &prg_info);
     SitePath expected_base_sites{5};
     EXPECT_EQ(l.base_sites, expected_base_sites);
@@ -180,9 +180,9 @@ TEST_F(LocusFinder_minimal, assignNestedLocus_correctDispatching){
     EXPECT_EQ(l.used_sites, expected_used_sites);
 
     uniqueLoci expected_unique_loci{
-        VariantLocus{5,3},
-        VariantLocus{7,1},
-        VariantLocus{9,3}
+        VariantLocus{5,FIRST_ALLELE + 2},
+        VariantLocus{7,FIRST_ALLELE},
+        VariantLocus{9,FIRST_ALLELE + 2}
     };
     EXPECT_EQ(l.unique_loci, expected_unique_loci);
 
@@ -198,8 +198,8 @@ TEST_F(LocusFinder_minimal, assignTraversedLoci_correctDispatching){
     SearchState test{
         SA_Interval{2,2},
         VariantSitePath{
-            VariantLocus{11, 1},
-            VariantLocus{9, 3}
+            VariantLocus{11, FIRST_ALLELE},
+            VariantLocus{9, FIRST_ALLELE + 2}
         }
     };
 
@@ -208,10 +208,10 @@ TEST_F(LocusFinder_minimal, assignTraversedLoci_correctDispatching){
     EXPECT_EQ(l.base_sites, expected_base_sites);
 
     uniqueLoci expected_unique_loci{
-            VariantLocus{5,3},
-            VariantLocus{7,1},
-            VariantLocus{9,3},
-            VariantLocus{11, 1}
+            VariantLocus{5,FIRST_ALLELE + 2},
+            VariantLocus{7,FIRST_ALLELE},
+            VariantLocus{9,FIRST_ALLELE + 2},
+            VariantLocus{11, FIRST_ALLELE}
     };
     EXPECT_EQ(l.unique_loci, expected_unique_loci);
 }
@@ -277,10 +277,10 @@ TEST_F(LocusFinder_full, assignTraversingLociWithAllUnknownLoci_correctDispatchi
     EXPECT_EQ(l.base_sites, expected_base_sites);
 
     uniqueLoci expected_unique_loci{
-            VariantLocus{5,1},
-            VariantLocus{7,1},
-            VariantLocus{9,1},
-            VariantLocus{9,2}
+            VariantLocus{5,FIRST_ALLELE},
+            VariantLocus{7,FIRST_ALLELE},
+            VariantLocus{9,FIRST_ALLELE},
+            VariantLocus{9,FIRST_ALLELE + 1}
     };
     EXPECT_EQ(l.unique_loci, expected_unique_loci);
 }
@@ -289,7 +289,7 @@ TEST_F(LocusFinder_full, assignTraversedLociWithOneTraversedLocus_correctDispatc
     // Pretense is we've mapped the read "GACC"
     SearchState test{
             SA_Interval{7,7},
-            VariantSitePath{VariantLocus{9, 1}},
+            VariantSitePath{VariantLocus{9, FIRST_ALLELE}},
             VariantSitePath{
                     VariantLocus{7,  ALLELE_UNKNOWN},
             }
@@ -300,8 +300,8 @@ TEST_F(LocusFinder_full, assignTraversedLociWithOneTraversedLocus_correctDispatc
     EXPECT_EQ(l.base_sites, expected_base_sites);
 
     uniqueLoci expected_unique_loci{
-            VariantLocus{5,1},
-            VariantLocus{7,1},
+            VariantLocus{5,FIRST_ALLELE},
+            VariantLocus{7,FIRST_ALLELE},
     };
     EXPECT_EQ(l.unique_loci, expected_unique_loci);
 }
@@ -310,7 +310,7 @@ TEST_F(LocusFinder_full, constructLocusFinder_assignAllLociForSearchState_correc
     // Pretense is we've mapped the read "GACC"
     SearchState test{
             SA_Interval{7, 7},
-            VariantSitePath{VariantLocus{9, 1}},
+            VariantSitePath{VariantLocus{9, FIRST_ALLELE}},
             VariantSitePath{
                     VariantLocus{7, ALLELE_UNKNOWN},
             }
@@ -321,9 +321,9 @@ TEST_F(LocusFinder_full, constructLocusFinder_assignAllLociForSearchState_correc
     EXPECT_EQ(l2.base_sites, expected_base_sites);
 
     uniqueLoci expected_unique_loci{
-            VariantLocus{5,1},
-            VariantLocus{7,1},
-            VariantLocus{9,1},
+            VariantLocus{5,FIRST_ALLELE},
+            VariantLocus{7,FIRST_ALLELE},
+            VariantLocus{9,FIRST_ALLELE},
     };
     EXPECT_EQ(l2.unique_loci, expected_unique_loci);
 }
@@ -337,7 +337,7 @@ protected:
         std::string prg_raw{"[CG[TAA,T],TAA]TA[TAA,ATA]"};
         coverage_Graph c;
         parental_map par_map{
-                {7 , VariantLocus{5, 1}}
+                {7 , VariantLocus{5, FIRST_ALLELE}}
         };
         c.par_map = par_map;
         prg_info.coverage_graph = c;
@@ -345,16 +345,16 @@ protected:
     PRG_Info prg_info;
     SearchState s1{
             SA_Interval{1, 1},
-            VariantSitePath{VariantLocus{7, 1}}
+            VariantSitePath{VariantLocus{7, FIRST_ALLELE}}
     };
 
     SearchState s2{
             SA_Interval{1, 1},
-            VariantSitePath{VariantLocus{5, 2}}
+            VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}}
     };
     SearchState s3{
             SA_Interval{1, 1},
-            VariantSitePath{VariantLocus{9, 1}}
+            VariantSitePath{VariantLocus{9, FIRST_ALLELE}}
     };
     MappingInstanceSelector selector{&prg_info};
 };
@@ -363,7 +363,9 @@ TEST_F(MappingInstanceSelector_addSearchStates, addOneSearchState_correctlyRegis
     selector.add_searchstate(s1);
     traversal_info expected_info{
             SearchStates{s1},
-            uniqueLoci{ VariantLocus{ 5, 1}, VariantLocus{7, 1} }
+            uniqueLoci{
+                VariantLocus{ 5, FIRST_ALLELE},
+                VariantLocus{7, FIRST_ALLELE} }
     };
     uniqueSitePaths expected_map{
             {SitePath{5} ,  expected_info}
@@ -380,13 +382,15 @@ TEST_F(MappingInstanceSelector_addSearchStates, addAllSearchStates_correctlyRegi
     traversal_info expected_i1{
         SearchStates{s1, s2},
         uniqueLoci{
-            VariantLocus{5,1}, VariantLocus{7, 1}, VariantLocus{5, 2}
+            VariantLocus{5,FIRST_ALLELE},
+            VariantLocus{7, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE + 1}
         }
     };
 
     traversal_info expected_i2{
             SearchStates{s3},
-            uniqueLoci{ VariantLocus{9,1} }
+            uniqueLoci{ VariantLocus{9,FIRST_ALLELE} }
     };
 
     uniqueSitePaths expected_map{
@@ -409,11 +413,11 @@ protected:
     SearchStates ss{
         SearchState {
             SA_Interval{1, 1},
-                    VariantSitePath{VariantLocus{7, 1}}
+                    VariantSitePath{VariantLocus{7, FIRST_ALLELE}}
         },
         SearchState {
                 SA_Interval{6, 6},
-                VariantSitePath{VariantLocus{7, 2}}
+                VariantSitePath{VariantLocus{7, FIRST_ALLELE + 1}}
         },
         SearchState {
             SA_Interval{2, 3},
@@ -472,8 +476,8 @@ TEST_F(MappingInstanceSelector_select, selectvariant_nonemptyMappingSelector){
     auto selection = m.get_selection();
     EXPECT_EQ(selection.navigational_search_states.size(), 2);
     uniqueLoci expected_loci{
-            {VariantLocus{7, 1}},
-            {VariantLocus{7, 2}}
+            {VariantLocus{7, FIRST_ALLELE}},
+            {VariantLocus{7, FIRST_ALLELE + 1}}
     };
     EXPECT_EQ(selection.equivalence_class_loci, expected_loci);
 }

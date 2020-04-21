@@ -9,7 +9,7 @@ using namespace gram::genotype::infer;
 AlleleExtracter::AlleleExtracter(covG_ptr site_start, covG_ptr site_end, gt_sites& sites)
         : genotyped_sites(&sites){
     assert(site_start->is_bubble_start());
-    AlleleId haplogroup_ID{0};
+    AlleleId haplogroup_ID{FIRST_ALLELE};
 
     for (auto& haplogroup_start_node : site_start->get_edges()){
         allele_vector extracted_alleles = extract_alleles(haplogroup_ID, haplogroup_start_node, site_end);

@@ -1,6 +1,29 @@
 #include "prg/coverage_graph.hpp"
 #include "common/utils.hpp"
 
+
+coverage_Node::coverage_Node() : sequence(""), site_ID(0), allele_ID(ALLELE_UNKNOWN),
+                  coverage(), pos(0), is_site_boundary{false} {};
+
+coverage_Node::coverage_Node(std::size_t pos)
+    : sequence(""), site_ID(0), allele_ID(ALLELE_UNKNOWN),
+        coverage(), pos(pos), is_site_boundary{false} {};
+
+coverage_Node::coverage_Node(std::string const seq, int const pos, int const site_ID,
+    int const allele_ID)
+    : sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false)
+    {
+    // No need to allocate coverage if outside a variant site, as only variant site coverage is used for genotyping
+    if (is_in_bubble()) this->coverage = PerBaseCoverage(seq.size(), 0);
+    }
+
+void coverage_Node::add_sequence(std::string const &new_seq) {
+    sequence += new_seq;
+    if (is_in_bubble()){
+        for (std::size_t i = 0; i < new_seq.size(); ++i) coverage.emplace_back(0);
+    }
+}
+
 /**
  * Shared_ptr in boost get destroyed when their reference_count goes to 0>
  * By default, because the graph only stores one such pointer (to the root)
@@ -49,7 +72,7 @@ cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
     random_access = access_vec(linear_prg.size(), node_access());
     end_positions = prg_string.get_end_positions();
     make_root();
-    cur_Locus = std::make_pair(0, 0); // Meaning: there is currently no current Locus.
+    cur_Locus = std::make_pair(0, ALLELE_UNKNOWN); // Meaning: no current Locus.
 
     for(uint32_t i = 0; i < linear_prg.size(); ++i) {
         process_marker(i);
@@ -61,10 +84,10 @@ cov_Graph_Builder::cov_Graph_Builder(PRG_String const& prg_string) {
 
 void cov_Graph_Builder::make_root() {
     cur_pos = -1;
-   root = boost::make_shared<coverage_Node>(coverage_Node(cur_pos));
-   backWire = root;
-   cur_pos++;
-   cur_Node = boost::make_shared<coverage_Node>(coverage_Node(cur_pos));
+    root = boost::make_shared<coverage_Node>(coverage_Node(cur_pos));
+    backWire = root;
+    cur_pos++;
+    cur_Node = boost::make_shared<coverage_Node>(coverage_Node(cur_pos));
 }
 
 void cov_Graph_Builder::make_sink() {
@@ -100,8 +123,8 @@ void cov_Graph_Builder::setup_random_access(uint32_t const& pos){
     t == marker_type::sequence ? target = cur_Node : target = backWire;
     auto seq_size = target->get_sequence_size();
     if (seq_size <= 1) // Will include all site entry and exit nodes, and sequence nodes with a single character
-    random_access[pos] = node_access{target, 0, VariantLocus{}};
-    else random_access[pos] = node_access{target, seq_size - 1, VariantLocus{}};
+    random_access[pos] = node_access{target, 0, VariantLocus{0, ALLELE_UNKNOWN}};
+    else random_access[pos] = node_access{target, seq_size - 1, VariantLocus{0, ALLELE_UNKNOWN}};
 };
 
 marker_type cov_Graph_Builder::find_marker_type(uint32_t const& pos) {
@@ -127,42 +150,46 @@ void cov_Graph_Builder::add_sequence(Marker const &m) {
 
 void cov_Graph_Builder::enter_site(Marker const &m) {
 
-    auto site_entry = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 0));
+    auto site_entry = boost::make_shared<coverage_Node>(
+            coverage_Node("", cur_pos, m, ALLELE_UNKNOWN)
+            );
     site_entry->mark_as_boundary();
     wire(site_entry);
 
     // Update the global pointers
-    cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 1));
+    cur_Node = boost::make_shared<coverage_Node>(
+            coverage_Node("", cur_pos, m, FIRST_ALLELE)
+            );
     first_allele = true;
     backWire = site_entry;
 
     // Make & register a new bubble
-    auto site_exit = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, m, 0));
+    auto site_exit = boost::make_shared<coverage_Node>(
+            coverage_Node("", cur_pos, m, ALLELE_UNKNOWN)
+            );
     site_exit->mark_as_boundary();
     bubble_map.insert(std::make_pair(site_entry,site_exit));
     bubble_starts.insert(std::make_pair(m, site_entry));
     bubble_ends.insert(std::make_pair(m, site_exit));
 
     // Update the parent map & the current Locus
-    if (cur_Locus.first != 0) {
-        assert(par_map.find(m) == par_map.end()); // The marker should not be in there already
+    if (cur_Locus.first != 0)
         par_map.insert(std::make_pair(m, cur_Locus));
-    }
-    cur_Locus = std::make_pair(m, 1);
+    cur_Locus = std::make_pair(m, FIRST_ALLELE);
 }
 
 void cov_Graph_Builder::end_allele(Marker const &m) {
     auto site_ID = m - 1;
-    auto site_exit = reach_allele_end(m);
-
+    reach_allele_end(m);
     auto& allele_ID = cur_Locus.second;
+
     // Reset node and position to the site start node
     auto site_entry = bubble_starts.at(site_ID);
     backWire = site_entry;
     cur_pos = site_entry->get_pos();
 
     // Update to the next allele
-    allele_ID++; // increment allele ID.
+    allele_ID++;
     cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, site_ID, allele_ID));
 }
 
@@ -170,18 +197,23 @@ void cov_Graph_Builder::exit_site(Marker const &m) {
     auto site_ID = m - 1;
     auto site_exit = reach_allele_end(m);
 
+    if (cur_Locus.second == FIRST_ALLELE)
+        throw std::runtime_error(
+                "Site numbered " + std::to_string(m) + " has only one allele"
+                );
+
     // Update the current Locus
     try {
         cur_Locus = par_map.at(site_ID);
-        if (cur_Locus.second == 1) first_allele = true;
+        if (cur_Locus.second == FIRST_ALLELE) first_allele = true;
     }
     // Means we were in a level 1 site; we will no longer be in a site
     catch(std::out_of_range&e){
-        cur_Locus = std::make_pair(0,0);
+        cur_Locus = std::make_pair(0,ALLELE_UNKNOWN);
     }
 
     backWire = site_exit;
-    cur_pos = site_exit->get_pos(); // Take the largest allele pos as the new current pos.
+    cur_pos = site_exit->get_pos();
     cur_Node = boost::make_shared<coverage_Node>(coverage_Node("", cur_pos, cur_Locus.first, cur_Locus.second));
 }
 
@@ -233,17 +265,21 @@ void cov_Graph_Builder::map_targets(){
                        VariantLocus{prev_m, cur_allele_ID}; // Adds a target for the sequence character
                break;
            case marker_type::site_entry:
-               cur_allele_ID = 1;
+               cur_allele_ID = FIRST_ALLELE;
                if (prev_t != marker_type::sequence) entry_targets(prev_t, prev_m, cur_m);
                break;
            case marker_type::site_end:
                if (prev_t != marker_type::sequence)
                    // Reject empty variant sites by prohibiting prev_t to be a site entry
-                   assert(prev_t != marker_type::site_entry);
+                   if (prev_t == marker_type::site_entry){
+                      throw std::runtime_error(
+                              "PRG consistency error: "
+                              "site number " + std::to_string(cur_m) + " is empty");
+                   }
                    allele_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
                // Get the allele ID using the parental map
                if (par_map.find(cur_m - 1) != par_map.end()) cur_allele_ID = par_map.at(cur_m - 1).second;
-               else cur_allele_ID = 0;
+               else cur_allele_ID = ALLELE_UNKNOWN;
                break;
            case marker_type::allele_end:
                if (prev_t != marker_type::sequence) allele_exit_targets(prev_t, prev_m, cur_m, cur_allele_ID);
@@ -254,7 +290,7 @@ void cov_Graph_Builder::map_targets(){
        prev_t = cur_t;
        pos++;
    }
-};
+}
 
 void cov_Graph_Builder::entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m){
     Marker inserted{0};
@@ -268,14 +304,14 @@ void cov_Graph_Builder::entry_targets(marker_type prev_t, Marker prev_m, Marker 
         break;
     }
     auto new_vec = std::vector<targeted_marker>();
-    targeted_marker new_targeted_marker{inserted, 0};
+    targeted_marker new_targeted_marker{inserted, ALLELE_UNKNOWN};
     new_vec.emplace_back(new_targeted_marker);
     target_map.insert(std::make_pair(cur_m, new_vec));
-};
+}
 
-void cov_Graph_Builder::allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID) {
+void cov_Graph_Builder::allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, AlleleId cur_allele_ID) {
 
-    targeted_marker new_targeted_marker{prev_m, 0};
+    targeted_marker new_targeted_marker{prev_m, ALLELE_UNKNOWN};
     switch(prev_t) {
         case marker_type::site_end: // Double exit
             add_exit_target(cur_m, new_targeted_marker);

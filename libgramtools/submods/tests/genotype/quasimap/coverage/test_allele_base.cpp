@@ -115,19 +115,19 @@ TEST(DummyCovNode, ExtendStartAndEnd_CorrectExtendedCoordinates){
 }
 
 TEST(Traverser, StartOutOfSiteEndInSite_correctObjectState){
-    auto prg_raw = encode_prg("CT5gg6AAGa5cc");
+    auto prg_raw = encode_prg("CT5gg6AAGa6cc");
     auto prg_info = generate_prg_info(prg_raw);
 
     std::size_t read_size = 5;
     VariantSitePath traversed_path{
-        VariantLocus{5, 2}
+        VariantLocus{5, FIRST_ALLELE + 1}
     };
     auto start_point = prg_info.coverage_graph.random_access[0];
 
     Traverser t{start_point, traversed_path, read_size};
     auto variant_node = t.next_Node().value();
     EXPECT_EQ(variant_node->get_site_ID(), 5);
-    EXPECT_EQ(variant_node->get_allele_ID(), 2);
+    EXPECT_EQ(variant_node->get_allele_ID(), FIRST_ALLELE + 1);
 
     std::pair<uint32_t,uint32_t> expected_coordinates{0, 2};
     EXPECT_EQ(expected_coordinates, t.get_node_coordinates());
@@ -135,7 +135,7 @@ TEST(Traverser, StartOutOfSiteEndInSite_correctObjectState){
 }
 
 TEST(Traverser, StartAndEndInSite_CorrectNodeInterval){
-    auto prg_raw = encode_prg("ct5g6aaAAAAAAaga5cc");
+    auto prg_raw = encode_prg("ct5g6aaAAAAAAaga6cc");
     auto prg_info = generate_prg_info(prg_raw);
 
     std::size_t read_size = 6;
@@ -156,7 +156,7 @@ TEST(Traverser, StartInSiteAndTraverseToAnotherSite_CorrectObjectState){
 
     std::size_t read_size = 8;
     VariantSitePath traversed_path{
-        VariantLocus{7, 3}
+        VariantLocus{7, FIRST_ALLELE + 2}
     };
     auto start_point = prg_info.coverage_graph.random_access[6];
 
@@ -194,17 +194,17 @@ TEST(Traverser_Nested, StartOutOfSiteEndOutOfSite_CorrectChosenSitesAndEndState)
 
     std::size_t read_size = 8;
     VariantSitePath traversed_path{
-            VariantLocus{7, 1},
-            VariantLocus{5, 2}
+            VariantLocus{7, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE + 1}
     };
 
     auto start_point = prg_info.coverage_graph.random_access[0];
     Traverser t{start_point, traversed_path, read_size};
 
     VariantSitePath expected_traversal{
-        VariantLocus{5, 2},
-        VariantLocus{7, 1},
-        VariantLocus{5, 2} // After exiting site 7, we still have coverage to record on allele 2 of site 5 (base 'T')
+        VariantLocus{5, FIRST_ALLELE + 1},
+        VariantLocus{7, FIRST_ALLELE},
+        VariantLocus{5, FIRST_ALLELE + 1} // After exiting site 7, we still have coverage to record on allele 2 of site 5 (base 'T')
     };
 
     VariantSitePath actual_traversal = collect_traversal(t);
@@ -224,22 +224,22 @@ TEST(Traverser_Nested, TraverseGraphWithLevel2Nesting_CorrectChosenSitesAndEndSt
 
     std::size_t read_size = 10;
     VariantSitePath traversed_path{
-            VariantLocus{11, 1},
-            VariantLocus{9, 2},
-            VariantLocus{7, 1},
-            VariantLocus{5, 1}
+            VariantLocus{11, FIRST_ALLELE},
+            VariantLocus{9, FIRST_ALLELE + 1},
+            VariantLocus{7, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE}
     };
     auto start_point = prg_info.coverage_graph.random_access[0];
     Traverser t{start_point, traversed_path, read_size};
 
     VariantSitePath expected_traversal{
-            VariantLocus{5, 1},
-            VariantLocus{7, 1},
-            VariantLocus{9, 2},
-            VariantLocus{7, 1},
-            VariantLocus{5, 1},
-            VariantLocus{11, 1},
-            VariantLocus{5, 1},
+            VariantLocus{5, FIRST_ALLELE},
+            VariantLocus{7, FIRST_ALLELE},
+            VariantLocus{9, FIRST_ALLELE + 1},
+            VariantLocus{7, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE},
+            VariantLocus{11, FIRST_ALLELE},
+            VariantLocus{5, FIRST_ALLELE},
     };
 
     VariantSitePath actual_traversal = collect_traversal(t);
@@ -342,8 +342,8 @@ protected:
     SearchState read_1{
             SA_Interval{4, 4},
             VariantSitePath{
-                    VariantLocus{7, 2},
-                    VariantLocus{5, 2},
+                    VariantLocus{7, FIRST_ALLELE + 1},
+                    VariantLocus{5, FIRST_ALLELE + 1},
             }
     };
 
@@ -352,7 +352,7 @@ protected:
     SearchState read_2{
             SA_Interval{12, 12},
             VariantSitePath{
-                    VariantLocus{7, 2},
+                    VariantLocus{7, FIRST_ALLELE + 1},
             }
     };
 };
@@ -430,7 +430,7 @@ protected:
         },
         SearchState{
                 SA_Interval{7, 7},
-                VariantSitePath{VariantLocus{5, 1}}
+                VariantSitePath{VariantLocus{5, FIRST_ALLELE}}
         }
     };
 
@@ -439,7 +439,7 @@ protected:
     SearchState read_2{
         SearchState{
             SA_Interval{7, 7},
-            VariantSitePath{VariantLocus{5, 2}}
+            VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}}
         }
     };
 };
@@ -514,20 +514,20 @@ protected:
     // Read: CGCCTT
     SearchState simple_read_1{
             SA_Interval{5, 5},
-            VariantSitePath{VariantLocus{7, 1}}
+            VariantSitePath{VariantLocus{7, FIRST_ALLELE}}
     };
 
     // Read: ATTTT
     SearchState simple_read_2{
             SA_Interval{1, 1},
-            VariantSitePath{VariantLocus{5, 2}}
+            VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}}
     };
 
     // Read: GCC. Two distinct occurrences compatible with same sites
     SearchStates multi_mapped_reads_1{
             SearchState{
                     SA_Interval{9, 9},
-                    VariantSitePath{VariantLocus{7, 2}}
+                    VariantSitePath{VariantLocus{7, FIRST_ALLELE + 1}}
             },
             SearchState{
                     SA_Interval{8, 8},

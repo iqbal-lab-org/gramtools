@@ -7,10 +7,6 @@
 #ifndef GRAMTOOLS_SEARCH_TYPES_HPP
 #define GRAMTOOLS_SEARCH_TYPES_HPP
 
-// We need a signifier for SearchState with several alleles in the same site
-// This signifier must NEVER be a possible allele ID
-#define ALLELE_UNKNOWN 0
-
 namespace gram {
     /**
      * Expresses the positioning of the current search state relative to variant sites.

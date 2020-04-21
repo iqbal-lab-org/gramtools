@@ -17,12 +17,11 @@ SitesAlleleBaseCoverage gram::coverage::generate::allele_base_non_nested(const P
     SitesAlleleBaseCoverage allele_base_coverage(number_of_variant_sites);
 
     Marker site_ID;
-    const auto min_boundary_marker = 5;
 
     for (auto const& bubble_entry : prg_info.coverage_graph.bubble_map){
         site_ID = bubble_entry.first->get_site_ID();
-        auto site_ID_corresp_index = (site_ID - min_boundary_marker) / 2;
-        SitePbCoverage& referent = allele_base_coverage.at(site_ID_corresp_index);
+        auto site_index = siteID_to_index(site_ID);
+        SitePbCoverage& referent = allele_base_coverage.at(site_index);
 
         for (auto const& allele_node : bubble_entry.first->get_edges()){
             assert(allele_node->is_in_bubble());
@@ -190,8 +189,9 @@ void Traverser::assign_end_position() {
 
 void Traverser::choose_allele() {
     auto traversed_locus = traversed_loci[traversed_index];
-    auto site_id{traversed_locus.first}, allele_id{traversed_locus.second};
-    auto next_node = cur_Node->get_edges()[allele_id - 1];
+    auto site_id{traversed_locus.first};
+    auto allele_id{traversed_locus.second};
+    auto next_node = cur_Node->get_edges()[allele_id];
 
     // Check site & allele consistency
     if (next_node->has_sequence()){
@@ -212,16 +212,16 @@ PbCovRecorder::PbCovRecorder(const PRG_Info &prg_info, SearchStates const &searc
 void PbCovRecorder::write_coverage_from_dummy_nodes(){
     covG_ptr cov_node;
     node_coordinates to_increment;
-   for (auto const& element : cov_mapping){ // Go through each dummy node
-       cov_node = element.first;
-       to_increment = element.second.get_coordinates();
-       PerBaseCoverage& cur_coverage = cov_node->get_ref_to_coverage(); // Modifiable in place
-       for (auto i = to_increment.first; i <= to_increment.second; i++) {
-           if (cur_coverage[i] == UINT16_MAX) continue;
+    for (auto const& element : cov_mapping){ // Go through each dummy node
+        cov_node = element.first;
+        to_increment = element.second.get_coordinates();
+        PerBaseCoverage& cur_coverage = cov_node->get_ref_to_coverage(); // Modifiable in place
+        for (auto i = to_increment.first; i <= to_increment.second; i++) {
+            if (cur_coverage[i] == UINT16_MAX) continue;
 #pragma omp atomic
-           cur_coverage[i]++;
-       }
-   }
+            cur_coverage[i]++;
+        }
+    }
 }
 
 

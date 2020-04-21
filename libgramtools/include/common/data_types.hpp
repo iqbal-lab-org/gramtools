@@ -5,6 +5,9 @@
 #include <vector>
 #include <set>
 
+#define FIRST_ALLELE 0
+#define ALLELE_UNKNOWN -1 // This signifier must NEVER be a possible allele ID
+
 namespace gram {
     using int_Base = uint8_t; /**< nucleotide represented as byte-sized integer */
     using Sequence = std::vector<int_Base>; /** A string of nucleotides is represented as a vector of `Base`s. */
@@ -12,7 +15,7 @@ namespace gram {
 
     using Marker = uint32_t; /**< An integer >=5 describing a site or allele marker in the prg. */
     using marker_vec = std::vector<Marker>;
-    using AlleleId = uint32_t; /**< An integer describing which allele is referred to within a given variant site. */
+    using AlleleId = int32_t; /**< An integer describing which allele is referred to within a given variant site. */
     using AlleleIds = std::vector<AlleleId>;
     using AlleleIdSet = std::set<AlleleId>;
     using VariantLocus = std::pair<Marker, AlleleId>; /**< A Variant site/`AlleleId` combination.*/

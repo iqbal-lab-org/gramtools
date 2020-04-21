@@ -35,17 +35,12 @@ using namespace gram;
  */
 class coverage_Node {
 public:
-    coverage_Node() : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(0), is_site_boundary{false} { ; };
+    coverage_Node();
 
-    coverage_Node(std::size_t pos) : sequence(""), site_ID(0), allele_ID(0), coverage(), pos(pos), is_site_boundary{false} { ; };
+    coverage_Node(std::size_t pos);
 
-    coverage_Node(std::string const seq, int const pos, int const site_ID = 0, int const allele_ID = 0) :
-            sequence(seq), pos(pos), site_ID(site_ID), allele_ID(allele_ID), is_site_boundary(false) {
-        // No need to allocate coverage if outside a variant site, as only variant site coverage is used for genotyping
-        if (is_in_bubble()) this->coverage = PerBaseCoverage(seq.size(), 0);
-    }
-
-    bool is_boundary() { return is_site_boundary; }
+    coverage_Node(std::string const seq, int const pos, int const site_ID = 0,
+            int const allele_ID = ALLELE_UNKNOWN);
 
     /**
      * Compare pointers to `coverage_Node`; used in topological ordering (lastmost sequence position first)
@@ -60,7 +55,7 @@ public:
     friend std::ostream& operator<<(std::ostream& out, coverage_Node const& node);
 
     bool has_sequence() const { return sequence.size() != 0; }
-    bool is_in_bubble() const { return allele_ID != 0 && site_ID != 0;}
+    bool is_in_bubble() const { return allele_ID != ALLELE_UNKNOWN && site_ID != 0;}
     bool is_bubble_start() const { return next.size() > 1 && sequence.size() == 0;}
     bool is_bubble_end() const { return next.size() == 1 && sequence.size() == 0;}
 
@@ -69,14 +64,14 @@ public:
      */
     std::size_t get_pos() const { return pos; }
     std::string get_sequence() const { return sequence; }
-    std::size_t const get_sequence_size() const { return sequence.size(); }
-    int const get_coverage_space() const { return coverage.size() ;}
-    PerBaseCoverage const get_coverage() const { return coverage; }
+    std::size_t get_sequence_size() const { return sequence.size(); }
+    int get_coverage_space() const { return coverage.size() ;}
+    PerBaseCoverage const& get_coverage() const { return coverage; }
     PerBaseCoverage& get_ref_to_coverage() { return coverage; }
     Marker get_site_ID() const { return site_ID ; }
-    Marker get_allele_ID() const { return allele_ID ; }
+    AlleleId get_allele_ID() const { return allele_ID ; }
     std::vector<covG_ptr> const& get_edges() const{return next;}
-    std::size_t const get_num_edges() const{return next.size();}
+    std::size_t get_num_edges() const{return next.size();}
 
     /*
      * Setters
@@ -88,13 +83,7 @@ public:
         coverage = new_cov;
     }
 
-    void add_sequence(std::string const &new_seq) {
-        sequence += new_seq;
-        if (is_in_bubble()){
-            for (std::size_t i = 0; i < new_seq.size(); ++i) coverage.emplace_back(0);
-        }
-    }
-
+    void add_sequence(std::string const &new_seq);
     void add_edge(covG_ptr const target) { next.emplace_back(target); }
     void clear_edges() { next.clear(); }
 
@@ -102,7 +91,7 @@ public:
 private:
     std::string sequence;
     Marker site_ID;
-    Marker allele_ID;
+    AlleleId allele_ID;
     std::size_t pos;
     PerBaseCoverage coverage;
     bool is_site_boundary;
@@ -143,8 +132,8 @@ private:
 };
 
 struct targeted_marker{
-    Marker ID;
-    Marker direct_deletion_allele; // 0 if not a direct deletion, the allele ID if it is.
+    Marker ID{0};
+    AlleleId direct_deletion_allele{ALLELE_UNKNOWN}; // ALLELE_UNKNOWN if not a direct deletion
     friend bool operator==(targeted_marker const& f, targeted_marker const& s);
 private:
     // Boost serialisation
@@ -170,7 +159,7 @@ public:
 
     coverage_Graph(coverage_Graph&) = default;
     coverage_Graph(coverage_Graph&&) = default;
-    coverage_Graph& operator=(coverage_Graph& ) = default;
+    coverage_Graph& operator=(coverage_Graph const& ) = default;
     coverage_Graph& operator=(coverage_Graph&& ) = default; // Needs to be declared, because user-defined destructor exists.
 
     ~coverage_Graph();
@@ -281,7 +270,7 @@ public:
      */
     void map_targets();
     void entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m);
-    void allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, Marker cur_allele_ID);
+    void allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, AlleleId cur_allele_ID);
     /**
      * Site exit points can point to different variant markers (site start & end)
      * Here we test for prior presence of the allele marker in the `target_map` and insert or update accordingly
