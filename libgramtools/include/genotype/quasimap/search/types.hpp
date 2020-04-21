@@ -37,14 +37,13 @@ namespace gram {
         SA_Interval sa_interval = {}; /**< Stores an interval in the suffix array. (By definition,) All members of the interval share a certain prefix of a suffix of the prg.*/
         VariantSitePath traversed_path = {}; /**< Stores the loci that have been entered AND exited during search */
         VariantSitePath traversing_path = {}; /**< Stores the loci that have been entered but not (yet, or ever) exited*/
-        SearchVariantSiteState variant_site_state = SearchVariantSiteState::unknown;
 
         bool invalid = false; /**< Represents whether no path is found in the prg. */
 
         bool operator==(const SearchState &other) const {
             return this->sa_interval == other.sa_interval
                    and this->traversed_path == other.traversed_path
-                   and this->variant_site_state == other.variant_site_state;
+                   and this->traversing_path == other.traversing_path;
         };
 
         /**

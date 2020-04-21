@@ -39,7 +39,6 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedStateMissingPath_CorrectP
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(result, expected);
@@ -56,7 +55,6 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
     auto result = handle_allele_encapsulated_states(search_states, prg_info);
@@ -67,7 +65,6 @@ TEST(HandleAlleleEncapsulatedStates, AlleleEncapsulatedState_NoChange) {
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(result, expected);
@@ -91,7 +88,6 @@ TEST(HandleAlleleEncapsulatedStates, SaIntervalGreaterThanOneAlleleEncapsulated_
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(result, expected);
@@ -137,7 +133,6 @@ TEST(HandleAlleleEncapsulatedStates, OutsideSite_NoPathSet) {
                     SA_Interval{7, 7},
                     VariantSitePath{},
                     VariantSitePath{},
-                    SearchVariantSiteState::outside_variant_site
             }
     };
     EXPECT_EQ(result, expected);
@@ -183,7 +178,6 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
                     SA_Interval{7, 7},
                     VariantSitePath{},
                     VariantSitePath{},
-                    SearchVariantSiteState::outside_variant_site
             },
             SearchState{
                     SA_Interval{8, 8},
@@ -191,7 +185,6 @@ TEST(HandleAlleleEncapsulatedState, ReadAlleleEncapsulatedAndOutsideSite_SplitIn
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(result, expected);
@@ -263,7 +256,6 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                             VariantLocus{5, FIRST_ALLELE}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             },
             SearchState{
                     SA_Interval{11, 11},
@@ -271,13 +263,11 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             },
             SearchState{
                     SA_Interval{12, 12},
                     VariantSitePath{},
                     VariantSitePath{},
-                    SearchVariantSiteState::outside_variant_site
             },
             SearchState{
                     SA_Interval{13, 13},
@@ -285,7 +275,6 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                             VariantLocus{7, FIRST_ALLELE}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             },
             SearchState{
                     SA_Interval{14, 14},
@@ -293,7 +282,6 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                             VariantLocus{5, FIRST_ALLELE}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             },
             SearchState{
                     SA_Interval{15, 15},
@@ -301,7 +289,6 @@ TEST(HandleAlleleEncapsulatedState, MappingMultipleAlleleEncapsulation_CorrectSe
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(result, expected);

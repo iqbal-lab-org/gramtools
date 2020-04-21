@@ -108,6 +108,10 @@ void gram::dump_paths(const KmerIndexStats &stats,
                       const sdsl::int_vector<3> &all_kmers,
                       const KmerIndex &kmer_index,
                       const BuildParams &parameters) {
+    // Sdsl stores unsigned integer vectors, so scale Allele IDs up to >0 if needed
+    AlleleId increment{0};
+    if (ALLELE_UNKNOWN < 0) increment = std::abs(ALLELE_UNKNOWN);
+
     sdsl::int_vector<> paths(stats.count_total_path_elements, 0, 32);
     uint64_t i = 0;
 
@@ -122,12 +126,12 @@ void gram::dump_paths(const KmerIndexStats &stats,
         for (const auto &search_state: search_states) {
             for (const auto &path_element: search_state.traversed_path) {
                 paths[i++] = path_element.first;
-                paths[i++] = path_element.second;
+                paths[i++] = path_element.second + increment;
             }
             for (const auto &path_element: search_state.traversing_path) {
                 assert(path_element.second == ALLELE_UNKNOWN);
                 paths[i++] = path_element.first;
-                paths[i++] = path_element.second;
+                paths[i++] = path_element.second + increment;
             }
         }
     }

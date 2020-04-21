@@ -53,7 +53,6 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
                     SA_Interval{sa_index, sa_index},
                     VariantSitePath{},
                     VariantSitePath{},
-                    SearchVariantSiteState::outside_variant_site
             });
             cache.flush(new_search_states);
             continue;
@@ -67,7 +66,6 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
                             VariantLocus{site_marker, allele_id}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             });
             continue;
         }
@@ -86,7 +84,6 @@ SearchStates gram::handle_allele_encapsulated_state(const SearchState &search_st
                     SA_Interval{sa_index, sa_index},
                     current_path,
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             });
         }
     }

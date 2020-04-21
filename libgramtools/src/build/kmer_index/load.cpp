@@ -106,6 +106,10 @@ void handle_path_element(SearchStates &search_states,
                          uint64_t &paths_index,
                          const sdsl::int_vector<> &paths,
                          const IndexedKmerStats &stats) {
+    // Sdsl stores unsigned integer vectors, so make sure we get the original IDs back.
+    AlleleId decrement{0};
+    if (ALLELE_UNKNOWN < 0) decrement = std::abs(ALLELE_UNKNOWN);
+
     uint64_t i = 0;
     for (auto &search_state: search_states) {
         // The path_length of each `SearchState` has been extracted from the serialised kmer stats.
@@ -114,7 +118,7 @@ void handle_path_element(SearchStates &search_states,
 
         for (uint64_t j = 0; j < path_length; ++j) {
             Marker marker = paths[paths_index];
-            AlleleId allele_id = paths[paths_index + 1];
+            AlleleId allele_id = paths[paths_index + 1] - decrement;
             paths_index += 2;
 
             VariantLocus site = {marker, allele_id};

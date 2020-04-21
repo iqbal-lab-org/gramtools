@@ -149,7 +149,6 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
                                             VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             },
@@ -161,7 +160,6 @@ TEST(IndexKmers, BothKmersOverlapVariantSiteAlleles_CorrectSearchResults) {
                                             VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             }
@@ -194,7 +192,6 @@ TEST(IndexKmers, KmerNotFoundInPrg_KmerAbsentFromKmerIndex) {
                                             VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             }
@@ -503,7 +500,6 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
                                             VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {6, 6},
@@ -511,7 +507,6 @@ TEST(IndexKmers, TwoSearchStatesIdenticalSaIntervals_DifferentVariantSitePaths) 
                                             VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             }

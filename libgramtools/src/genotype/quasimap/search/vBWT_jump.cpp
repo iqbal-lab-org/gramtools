@@ -35,9 +35,6 @@ SearchState get_allele_search_state(const Marker &allele_marker,
     search_state.sa_interval.first = allele_marker_sa_interval.first;
     search_state.sa_interval.second = allele_marker_sa_interval.second;
 
-    search_state.variant_site_state
-            = SearchVariantSiteState::within_variant_site;
-
     search_state.traversing_path.push_back(VariantLocus{site_boundary_marker, ALLELE_UNKNOWN});
 
     return search_state;
@@ -114,8 +111,6 @@ SearchState exiting_site_search_state(const VariantLocus &locus,
     SA_Index site_index = prg_info.fm_index.C[alphabet_rank];
 
     new_search_state.sa_interval = SA_Interval{site_index, site_index};
-    new_search_state.variant_site_state
-            = SearchVariantSiteState::outside_variant_site;
 
     return new_search_state;
 }

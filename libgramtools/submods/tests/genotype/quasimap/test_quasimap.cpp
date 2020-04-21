@@ -504,7 +504,6 @@ TEST(vBWTJump_andBWTExtension, InitiallyInSite_HaveExitedSite) {
             SA_Interval{10, 10}, //Starting at char 'g' at index 8 in prg
             VariantSitePath{},
             VariantSitePath{},
-            SearchVariantSiteState::unknown,
     };
     SearchStates initial_search_states = {initial_search_state};
 
@@ -682,10 +681,6 @@ TEST(SearchStates, OneMappingEncapsulatedByAllele) {
     auto search_states = search_read_backwards(read, kmer, setup.kmer_index, setup.prg_info);
     EXPECT_EQ(search_states.size(), 1);
 
-    auto result = search_states.front().variant_site_state;
-    SearchVariantSiteState expected = SearchVariantSiteState::within_variant_site;
-    EXPECT_EQ(result, expected);
-
     VariantLocus cov = {5, FIRST_ALLELE + 1};
     EXPECT_EQ(search_states.front().traversed_path.front(), cov);
 }
@@ -706,7 +701,6 @@ TEST(SearchStates, StartAndEndInSite_CorrectSearchStates) {
                             VariantLocus{5, FIRST_ALLELE + 1}
                     },
                     VariantSitePath{},
-                    SearchVariantSiteState::within_variant_site
             }
     };
 
@@ -725,13 +719,12 @@ TEST(SearchStates_Nested, MapIntoAndOutOfNestedSite_CorrectSearchStates) {
 
     SearchStates expected = {
             SearchState{
-                SA_Interval{1, 1},
-                VariantSitePath{
-                    VariantLocus{7, FIRST_ALLELE + 1},
-                    VariantLocus{5, FIRST_ALLELE + 1}
-                },
-                VariantSitePath{},
-                SearchVariantSiteState::outside_variant_site
+                    SA_Interval{1, 1},
+                    VariantSitePath{
+                            VariantLocus{7, FIRST_ALLELE + 1},
+                            VariantLocus{5, FIRST_ALLELE + 1}
+                    },
+                    VariantSitePath{},
             }
     };
     EXPECT_EQ(result, expected);
@@ -772,7 +765,6 @@ TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
                 SA_Interval{7, 7},
                 VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
                 VariantSitePath{},
-                SearchVariantSiteState::outside_variant_site
             }
     };
     EXPECT_EQ(result_direct_deletion, expected_direct_deletion);
@@ -789,7 +781,6 @@ TEST(ReadQuasimap_Nested, MapThroughDeletionAndExitEntry_CorrectSearchStates) {
                    VariantLocus{5, FIRST_ALLELE}
                },
                VariantSitePath{},
-               SearchVariantSiteState::outside_variant_site
            }
     };
     EXPECT_EQ(result_exit_entry, expected_exit_entry);

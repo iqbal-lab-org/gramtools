@@ -1,14 +1,16 @@
-#include <cctype>
-
 #include "gtest/gtest.h"
 
 #include "src_common/common.hpp"
 #include "build/kmer_index/build.hpp"
 #include "build/kmer_index/dump.hpp"
+#include "build/kmer_index/load.hpp"
 
 
 using namespace gram;
 
+/*********************/
+/* Dumping (Writing) */
+/*********************/
 
 TEST(DumpKmers, GivenTwoKmers_CorrectAllKmersStructure) {
     BuildParams parameters = {};
@@ -26,12 +28,88 @@ TEST(DumpKmers, GivenTwoKmers_CorrectAllKmersStructure) {
     EXPECT_TRUE(result);
 }
 
+/***********/
+/* Loading */
+/***********/
 
-TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
+TEST(DeserializeNextStats, GivenOneSearchStateWithThreePaths_CorrectlyIndexedKmerStats) {
+    sdsl::int_vector<> kmers_stats = {3, 1, 42, 7};
+    uint64_t stats_index = 0;
+    auto result = deserialize_next_stats(stats_index, kmers_stats);
+    IndexedKmerStats expected = {
+            3,
+            {1, 42, 7},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+TEST(DeserializeNextStats, GivenTwoSearchStateWithMultiplePaths_CorrectlyIndexedKmerStats) {
+    sdsl::int_vector<> kmers_stats = {3, 1, 42, 7, 2, 11, 33};
+    uint64_t stats_index = 0;
+
+    std::vector<IndexedKmerStats> all_stats = {};
+
+    auto stats = deserialize_next_stats(stats_index, kmers_stats);
+    all_stats.push_back(stats);
+    stats_index += stats.count_search_states + 1;
+
+    stats = deserialize_next_stats(stats_index, kmers_stats);
+    all_stats.push_back(stats);
+
+    const auto &result = all_stats;
+    std::vector<IndexedKmerStats> expected = {
+            {
+                    3,
+                    {1,  42, 7},
+            },
+            {
+                    2,
+                    {11, 33}
+            }
+    };
+    EXPECT_EQ(result, expected);
+}
+
+/************************/
+/* Dumping & loading */
+/************************/
+
+BuildParams setup_params(std::size_t const kmer_size){
     BuildParams parameters = {};
-    parameters.kmers_size = 4;
+    parameters.kmers_size = kmer_size;
     parameters.kmers_fpath = "@kmers_fpath";
+    parameters.kmers_stats_fpath = "@kmers_stats_fpath";
     parameters.sa_intervals_fpath = "@sa_intervals_fpath";
+    parameters.paths_fpath = "@paths_fpath";
+
+    return parameters;
+}
+
+TEST(DumpAndLoadIndex, SearchStatesWithNoVariants) {
+    auto parameters = setup_params(4);
+
+    KmerIndex kmer_index = {
+            {{4, 4, 4, 4},
+                    SearchStates {
+                            SearchState {
+                                    SA_Interval {20000, 22000},
+                            },
+                            SearchState {
+                                    SA_Interval {52, 53},
+                            },
+                            SearchState {
+                                    SA_Interval {62, 63},
+                            }
+                    }
+            }
+    };
+    ::kmer_index::dump(kmer_index, parameters);
+    auto result = ::kmer_index::load(parameters);
+    EXPECT_EQ(result, kmer_index);
+}
+
+TEST(DumpAndLoadIndex, SearchStateVariantsWithLargeIndices) {
+    auto parameters = setup_params(4);
 
     KmerIndex kmer_index = {
             {{1, 2, 3, 4},
@@ -39,41 +117,30 @@ TEST(DumpSaIntervals, GivenTwoSearchStates_CorrectSaIntervals) {
                             SearchState {
                                     SA_Interval {6, 6},
                                     VariantSitePath {
-                                            VariantLocus {5, FIRST_ALLELE}
+                                            VariantLocus {1200000000, FIRST_ALLELE} // > 1 billion sites
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {7, 42},
                                     VariantSitePath {
-                                            VariantLocus {5, FIRST_ALLELE + 1}
+                                            VariantLocus {5, 1200000000} // > 1 billion alleles
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             }
     };
 
-    sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
-    auto stats = calculate_stats(kmer_index);
-    dump_sa_intervals(stats, all_kmers, kmer_index, parameters);
+    ::kmer_index::dump(kmer_index, parameters);
+    auto result = ::kmer_index::load(parameters);
 
-    sdsl::int_vector<> result;
-    sdsl::load_from_file(result, parameters.sa_intervals_fpath);
-
-    sdsl::int_vector<> expected = {6, 6, 7, 42};
-    sdsl::util::bit_compress(expected);
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(result, kmer_index);
 }
 
 
-TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
-    BuildParams parameters = {};
-    parameters.kmers_size = 4;
-    parameters.kmers_fpath = "@kmers_fpath";
-    parameters.paths_fpath = "@paths_fpath";
+TEST(DumpAndLoadIndex, TwoPathsWithMultipleElements) {
+    auto parameters = setup_params(4);
 
     KmerIndex kmer_index = {
             {{1, 2, 3, 4},
@@ -83,8 +150,7 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
                                     VariantSitePath {
                                             VariantLocus {5, 1}
                                     },
-                                    VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
+                                    VariantSitePath {}
                             },
                             SearchState {
                                     SA_Interval {7, 42},
@@ -94,31 +160,21 @@ TEST(DumpPaths, GivenTwoPathsWithMultipleElements_CorrectSerializedPaths) {
                                     },
                                     VariantSitePath {
                                         VariantLocus{9, ALLELE_UNKNOWN }
-                                        },
-                                    SearchVariantSiteState::outside_variant_site
+                                        }
                             }
                     }
             }
     };
 
-    sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
-    auto stats = calculate_stats(kmer_index);
-    dump_paths(stats, all_kmers, kmer_index, parameters);
+    ::kmer_index::dump(kmer_index, parameters);
+    auto result = ::kmer_index::load(parameters);
 
-    sdsl::int_vector<> result;
-    sdsl::load_from_file(result, parameters.paths_fpath);
-
-    sdsl::int_vector<> expected = {5, 1, 7, 3, 5, 2, 9, ALLELE_UNKNOWN};
-    sdsl::util::bit_compress(expected);
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(result, kmer_index);
 }
 
 
-TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats) {
-    BuildParams parameters = {};
-    parameters.kmers_size = 4;
-    parameters.kmers_stats_fpath = "@kmers_stats_fpath";
-    parameters.kmers_fpath = "@kmers_fpath";
+TEST(DumpAndLoadIndex, TwoKmersWithMultipleSearchStates) {
+    auto parameters = setup_params(4);
 
     KmerIndex kmer_index = {
             {{1, 2, 3, 4},
@@ -129,7 +185,6 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                             VariantLocus {5, FIRST_ALLELE}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {7, 7},
@@ -137,7 +192,6 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                             VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {8, 8},
@@ -145,7 +199,6 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                             VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             },
@@ -155,7 +208,6 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                     SA_Interval {9, 10},
                                     VariantSitePath {},
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {11, 11},
@@ -164,35 +216,18 @@ TEST(DumpKmerEntryStats, GivenTwoKmersMultipleSearchStates_CorrectKmerEntryStats
                                             VariantLocus {7, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             }
     };
 
-    sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
-    auto stats = calculate_stats(kmer_index);
-    dump_kmers_stats(stats, all_kmers, kmer_index, parameters);
+    ::kmer_index::dump(kmer_index, parameters);
+    auto result = ::kmer_index::load(parameters);
 
-    sdsl::int_vector<> stats_kmer_entry;
-    sdsl::load_from_file(stats_kmer_entry, parameters.kmers_stats_fpath);
-
-    sdsl::int_vector<> expected_1 = {2, 0, 2, 3, 1, 1, 1};
-    sdsl::util::bit_compress(expected_1);
-
-    sdsl::int_vector<> expected_2 = {3, 1, 1, 1, 2, 0, 2};
-    sdsl::util::bit_compress(expected_2);
-
-    bool result = stats_kmer_entry == expected_1 or stats_kmer_entry == expected_2;
-    EXPECT_TRUE(result);
 }
 
-TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
-    BuildParams parameters = {};
-    parameters.kmers_size = 4;
-    parameters.kmers_stats_fpath = "@kmers_stats_fpath";
-    parameters.kmers_fpath = "@kmers_fpath";
-
+TEST(DumpAndLoadIndex, WithTraversingPaths) {
+    auto parameters = setup_params(4);
 
     KmerIndex kmer_index = {
             { {1, 2, 3, 4},
@@ -205,7 +240,6 @@ TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
                                     VariantSitePath{
                                             VariantLocus{7, ALLELE_UNKNOWN}
                                     },
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {7, 7},
@@ -213,7 +247,6 @@ TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
                                             VariantLocus {5, FIRST_ALLELE + 1}
                                     },
                                     VariantSitePath {},
-                                    SearchVariantSiteState::outside_variant_site
                             },
                             SearchState {
                                     SA_Interval {8, 8},
@@ -224,22 +257,11 @@ TEST(DumpKmerEntryStats, GivenTraversingPaths_CorrectKmerEntryStats) {
                                             VariantLocus{11, ALLELE_UNKNOWN},
                                             VariantLocus{9, ALLELE_UNKNOWN}
                                     },
-                                    SearchVariantSiteState::outside_variant_site
                             }
                     }
             }
     };
 
-    sdsl::int_vector<3> all_kmers = dump_kmers(kmer_index, parameters);
-    auto stats = calculate_stats(kmer_index);
-    dump_kmers_stats(stats, all_kmers, kmer_index, parameters);
-
-    sdsl::int_vector<> stats_kmer_entry;
-    sdsl::load_from_file(stats_kmer_entry, parameters.kmers_stats_fpath);
-
-    sdsl::int_vector<> expected = {3, 2, 1, 3};
-    sdsl::util::bit_compress(expected);
-
-    bool result = stats_kmer_entry == expected;
-    EXPECT_TRUE(result);
+    ::kmer_index::dump(kmer_index, parameters);
+    auto result = ::kmer_index::load(parameters);
 }

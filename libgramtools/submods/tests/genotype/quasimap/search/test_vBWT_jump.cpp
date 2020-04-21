@@ -257,7 +257,6 @@ TEST(SearchStateJump, AtSiteEntry_CorrectSearchStateJump) {
                 SA_Interval {16, 18},
                 VariantSitePath {},
                 VariantSitePath { VariantLocus{ 5, ALLELE_UNKNOWN }},
-                SearchVariantSiteState::within_variant_site
             }
     };
 
@@ -281,7 +280,6 @@ TEST(SearchStateJump, Allele2SiteExit_CorrectSearchStateJump) {
                     SA_Interval{15, 15},
                     VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
                     VariantSitePath{},
-                    SearchVariantSiteState::outside_variant_site,
             }
     };
     EXPECT_EQ(markers_search_states, expected);
@@ -303,7 +301,6 @@ TEST(SearchStateJump, Allele1SiteExit_CorrectSearchStateJump) {
                     SA_Interval{15, 15},
                     VariantSitePath{VariantLocus{5, FIRST_ALLELE}},
                     VariantSitePath{},
-                    SearchVariantSiteState::outside_variant_site,
             }
     };
     EXPECT_EQ(markers_search_states, expected);
@@ -348,7 +345,6 @@ TEST(SearchStateJump_Nested, DoubleExit_CorrectSearchStateJump){
                     VariantLocus {5, FIRST_ALLELE + 1}
                 },
                 VariantSitePath{},
-                SearchVariantSiteState::outside_variant_site
             }
     };
     EXPECT_EQ(markers_search_states, expected);
@@ -372,15 +368,14 @@ TEST(SearchStateJump_Nested, DoubleEntry_CorrectSearchStateJump) {
                 VariantSitePath {
                     VariantLocus{5, ALLELE_UNKNOWN}
                 },
-                SearchVariantSiteState::within_variant_site
             },
             SearchState{
                 SA_Interval{10, 11},
                 VariantSitePath{},
                 VariantSitePath{
-                    VariantLocus{7, ALLELE_UNKNOWN}
+                    VariantLocus{5, ALLELE_UNKNOWN},
+                    VariantLocus{7, ALLELE_UNKNOWN},
                 },
-                SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(markers_search_states, expected);
@@ -421,7 +416,6 @@ TEST(SearchStateJump_Nested, ExitToEntry_CorrectSearchStateJump) {
                 VariantSitePath{
                     VariantLocus{5, ALLELE_UNKNOWN}
                 },
-                SearchVariantSiteState::within_variant_site
             }
     };
     EXPECT_EQ(markers_search_states, expected);
@@ -460,7 +454,6 @@ TEST(SearchStateJump_Nested, DirectDeletion_CorrectSearchStateJump) {
                VariantSitePath{
                    VariantLocus{5, ALLELE_UNKNOWN}
                },
-               SearchVariantSiteState::within_variant_site
             },
 
             SearchState{
@@ -469,7 +462,6 @@ TEST(SearchStateJump_Nested, DirectDeletion_CorrectSearchStateJump) {
                     VariantLocus{5, FIRST_ALLELE + 1}
                 },
                 VariantSitePath{},
-                SearchVariantSiteState::outside_variant_site
             }
     };
 
