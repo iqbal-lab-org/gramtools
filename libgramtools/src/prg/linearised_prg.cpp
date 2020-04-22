@@ -32,7 +32,7 @@ PRG_String::PRG_String(std::string const &file_in, endianness en) :
         }
     };
     output_file = file_in;
-    map_and_normalise_ends();
+    map_ends_and_check_for_duplicates();
 
     // Rewrite `file_in`, in two cases:
     // - The PRG string was in legacy format (5G6C5)
@@ -42,10 +42,10 @@ PRG_String::PRG_String(std::string const &file_in, endianness en) :
 
 PRG_String::PRG_String(marker_vec const &v_in) {
     my_PRG_string = std::move(v_in);
-    map_and_normalise_ends();
+    map_ends_and_check_for_duplicates();
 };
 
-void PRG_String::map_and_normalise_ends() {
+void PRG_String::map_ends_and_check_for_duplicates() {
     int pos = 0;
     std::size_t v_size = my_PRG_string.size(); // Converts to signed
     Marker marker;

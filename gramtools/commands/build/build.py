@@ -135,15 +135,15 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
     command = [
         common.gramtools_exec_fpath,
         "build",
-        "--gram",
-        str(build_paths.gram_dir),
-        "--kmer-size",
+        "--gram_dir",
+        str(args.gram_dir),
+        "--ref",
+        str(args.reference),
+        "--kmer_size",
         str(args.kmer_size),
-        "--max-threads",
+        "--max_threads",
         str(args.max_threads),
-        "--all-kmers",  # Currently always build all kmers of given size
-        "--max-read-size",  # TODO: currently only used when --all-kmers is not passed. Maybe retire entirely.
-        "150",
+        "--all_kmers",  # Currently always build all kmers of given size
     ]
 
     if args.debug:
@@ -156,4 +156,4 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
         [("command", "".join(command)), ("stdout", entire_stdout)]
     )
     if command_result == False:
-        raise Exception("Error running gramtools build.")
+        raise Exception(f"Error running gramtools build: {entire_stdout}")

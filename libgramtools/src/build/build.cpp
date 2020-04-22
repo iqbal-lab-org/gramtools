@@ -1,5 +1,6 @@
-#include <build/parameters.hpp>
+#include "build/parameters.hpp"
 #include "build/build.hpp"
+#include "build/check_ref.hpp"
 
 
 using namespace gram;
@@ -26,6 +27,17 @@ void commands::build::run(BuildParams const &parameters) {
     //Need move, not copy assignment, else destructor can affect assigned-to object. Move is compiler default here anyway.
     prg_info.coverage_graph = std::move(generate_cov_graph(parameters, ps));
     timer.stop();
+
+    std::cout << "Checking ref is first path in prg...";
+    bool gzipped{false};
+    auto ref_name = parameters.fasta_ref;
+    if (ref_name.substr(ref_name.size() - 2) == "gz")
+        gzipped = true;
+    std::ifstream ref_fhandle(ref_name, std::ios::binary);
+    if (! ref_fhandle.is_open())
+        throw std::ios_base::failure("Could not open: " + ref_name);
+    PrgRefChecker(ref_fhandle, prg_info.coverage_graph, gzipped);
+    std::cout << "OK" << std::endl;
 
     prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
     std::cout << "Number of variant sites: " << prg_info.num_variant_sites << std::endl;

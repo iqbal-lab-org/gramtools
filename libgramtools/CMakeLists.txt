@@ -39,6 +39,7 @@ link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(EXTERN_LIBS
         boost_timer
         boost_chrono
+        boost_iostreams
         boost_program_options
         boost_serialization
         boost_system

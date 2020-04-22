@@ -81,7 +81,7 @@ private:
     /**
      * Discover where site boundaries lie, and convert any odd end markers to even end markers
      */
-    void map_and_normalise_ends();
+    void map_ends_and_check_for_duplicates();
 };
 
 

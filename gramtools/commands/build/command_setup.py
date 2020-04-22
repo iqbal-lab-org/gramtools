@@ -20,8 +20,7 @@ def setup_parser(common_parser, subparsers):
         "--ref",
         "--reference",
         help="Reference genome. Used to build non-variant parts of the prg (--vcf) "
-        "or to book-keep chromosome IDs and coordinates (--prg)."
-        "Pass 'None' for no book-keeping in --prg mode.",
+        "or to book-keep chromosome IDs and coordinates (--prg).",
         type=str,
         dest="reference",
         required=True,

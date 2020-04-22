@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <thread>
-#include <unordered_map>
 
 #include "genotype/quasimap/search/vBWT_jump.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"

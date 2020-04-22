@@ -31,6 +31,7 @@ class BuildAndGenotype:
     def __init__(self, test_data_dir):
         self.prg_file = str(data_dir / test_data_dir / "prg.bin")
         self.reads_file = str(data_dir / test_data_dir / "reads.fastq")
+        self.fasta_ref = str(data_dir / test_data_dir / "ref.fa")
 
         self.gram_dir = tempfile.mkdtemp()
         self.geno_dir = str(Path(self.gram_dir) / "run")
@@ -42,7 +43,7 @@ class BuildAndGenotype:
     def run_build(self):
         args = gramtools_main.root_parser.parse_args(
             f"build --gram_dir {self.gram_dir} --prg {self.prg_file} "
-            f" --reference None --kmer_size 5 --force".split()
+            f" --reference {self.fasta_ref} --kmer_size 5 --force".split()
         )
         build.run(args)
 
@@ -74,7 +75,7 @@ class twoSites_twoReads_NoNesting(unittest.TestCase):
         """
         Setup the attributes only once and share across the test cases
 
-        PRG : "AAA5CC6TA5AC7TTTT8GGG7"
+        PRG : "AAA[CC,TA]AC[TTTT,GGG]"
         Reads : "AAATAACGG" and "CACTTTT"
         """
         cls.test_data_dir = "IT1"
@@ -105,7 +106,7 @@ class twoSites_twoReadswithEquivClasses_NoNesting(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
-        PRG : "TT5AAAc6AAAg6gg7cAA8gAA8TTCAA"
+        PRG : "TT[AAAc,AAAg]gg[cAA,gAA]TTCAA"
         Reads : "TTAAA"; "AATTCAA"
         """
         cls.test_data_dir = "IT2"

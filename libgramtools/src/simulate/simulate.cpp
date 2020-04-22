@@ -1,3 +1,5 @@
+#include <iomanip>
+
 #include "simulate/simulate.hpp"
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
@@ -5,7 +7,6 @@
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/personalised_reference.hpp"
-#include <iomanip>
 
 using namespace gram::genotype;
 using namespace gram::simulate;
