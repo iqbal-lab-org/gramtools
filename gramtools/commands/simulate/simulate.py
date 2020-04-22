@@ -70,7 +70,7 @@ def _execute_command_cpp_simulate(simu_paths, args):
     if args.debug:
         command += ["--debug"]
 
-    command_result, entire_stdout = common.run_subprocess(command)
+    command_result = common.run_subprocess(command)
 
-    if command_result == False:
-        exit(1)
+    if not command_result.success:
+        raise Exception(f"Error running gramtools simulate:\n{command_result.stderr}")

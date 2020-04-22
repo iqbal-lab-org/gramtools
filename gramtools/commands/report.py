@@ -29,20 +29,16 @@ def with_report(f):
 
         report["success"] = success
         process_report = collections.OrderedDict(
-            {
-                "success": success,
-                "error_message": str(error),
-                "run_time": int(timer_end) - int(timer_start),
-            }
+            {"success": success, "run_time": int(timer_end) - int(timer_start)}
         )
 
         # The condition below accounts for the called function reporting as well.
-        if action not in report:
+        if action not in report["processes"]:
             report["processes"][action] = process_report
         else:
             report["processes"][action] = {
                 **process_report,
-                **report[action],
+                **report["processes"][action],
             }  # Place success status at very top
 
         if not success:

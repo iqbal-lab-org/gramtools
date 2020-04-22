@@ -100,7 +100,6 @@ class BuildPaths(ProjectPaths):
         self.build_path = ProjectPaths.path_fact(self.gram_dir)
         self.prg = self.build_path("prg")
         self.coords_file = self.build_path("prg_coords.tsv")
-        self.ref = self.build_path("original_reference.fasta")
         self.built_vcf = self.build_path("build.vcf")
         self.report = self.build_path("build_report.json")
         self.fm_index = self.build_path("fm_index")
@@ -112,9 +111,7 @@ class BuildPaths(ProjectPaths):
     def _check_ref_and_make_ref_link(self, ref_path):
         resolved_ref_path = Path.resolve(Path(ref_path))
         self.check_exists(resolved_ref_path)
-        if os.path.lexists(self.ref):
-            self.ref.unlink()
-        os.symlink(resolved_ref_path, self.ref)
+        self.ref = resolved_ref_path
 
     def _check_and_flatten_vcf_filenames(self, vcf: List[List[str]]):
         vcf_files = [Path(vcf_file) for arglist in vcf for vcf_file in arglist]

@@ -81,15 +81,19 @@ def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
     if args.debug:
         command += ["--debug"]
 
-    command_result, entire_stdout = common.run_subprocess(command)
+    command_result = common.run_subprocess(command)
     log.debug("Output run directory:\n%s", geno_paths.geno_dir)
 
     # Add extra reporting
-    geno_report[action] = collections.OrderedDict(
-        [("command", " ".join(command)), ("stdout", entire_stdout)]
+    geno_report["processes"][action] = collections.OrderedDict(
+        [
+            ("command", " ".join(command)),
+            ("stdout", command_result.stdout.splitlines()),
+            ("stderr", command_result.stderr.splitlines()),
+        ]
     )
-    if not command_result:
-        raise Exception("Error running gramtools genotype.")
+    if not command_result.success:
+        raise Exception(f"Error running gramtools genotype:\n{command_result.stderr}")
 
 
 @report.with_report

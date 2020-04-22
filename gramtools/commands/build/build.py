@@ -6,10 +6,12 @@ Once the prg is stored the back-end `build` routine is called, producing the en
 import shutil
 import logging
 import collections
+import gzip
 
 import cluster_vcf_records
 
 from gramtools.commands import common, report
+from gramtools.commands.paths import BuildPaths
 from . import vcf_to_prg_string
 from . import command_setup
 
@@ -72,11 +74,13 @@ def _skip_cluster_vcf_records(report, action, build_paths):
     shutil.copy(build_paths.input_vcfs[0], build_paths.built_vcf)
 
 
-## Combines records in one or more vcf files using external python utility.
-# Records where the REFs overlap are merged together and all possible haplotypes enumerated.
-# New path to 'vcf' is path to the combined vcf
 @report.with_report
-def _cluster_vcf_records(report, action, build_paths):
+def _cluster_vcf_records(report, action, build_paths: BuildPaths):
+    """
+    Combines records in one or more vcf files using external python utility.
+    Records where the REFs overlap are merged together and all possible haplotypes enumerated.
+    New path to 'vcf' is path to the combined vcf
+    """
     log.info(f"Running {action} on {build_paths.input_vcfs}.")
 
     cluster = cluster_vcf_records.vcf_clusterer.VcfClusterer(
@@ -88,9 +92,10 @@ def _cluster_vcf_records(report, action, build_paths):
     cluster.run()
 
 
-## Calls utility that converts a vcf and fasta reference into a linear prg.
 @report.with_report
 def _execute_command_generate_prg(report, action, build_paths):
+    """Calls utility that converts a vcf and fasta reference into a linear prg."""
+
     built_vcf = build_paths.built_vcf
     log.info(f"Running {action} on {built_vcf}")
 
@@ -111,9 +116,10 @@ def _execute_command_generate_prg(report, action, build_paths):
     )
 
 
-## Checks prg file exists and copies it to gram directory.
 @report.with_report
 def _skip_prg_construction(report, action, build_paths, args):
+    """Checks prg file exists and copies it to gram directory."""
+
     log.debug("PRG file provided, skipping construction")
     log.debug("Copying PRG file into gram directory")
     shutil.copyfile(args.prg, build_paths.prg)
@@ -128,9 +134,10 @@ def _skip_prg_construction(report, action, build_paths, args):
                 genome_file.write(line)
 
 
-## Executes `gram build` backend.
 @report.with_report
 def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
+    """Executes `gram build` backend."""
+
     log.info("Running backend build")
     command = [
         common.gramtools_exec_fpath,
@@ -149,11 +156,15 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
     if args.debug:
         command += ["--debug"]
 
-    command_result, entire_stdout = common.run_subprocess(command)
+    command_result = common.run_subprocess(command)
 
     # Add extra reporting
     build_report["processes"][action] = collections.OrderedDict(
-        [("command", "".join(command)), ("stdout", entire_stdout)]
+        [
+            ("command", " ".join(command)),
+            ("stdout", command_result.stdout.splitlines()),
+            ("stderr", command_result.stderr.splitlines()),
+        ]
     )
-    if command_result == False:
-        raise Exception(f"Error running gramtools build: {entire_stdout}")
+    if not command_result.success:
+        raise Exception(f"Error running gramtools build:\n{command_result.stderr}")

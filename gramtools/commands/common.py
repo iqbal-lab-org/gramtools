@@ -4,7 +4,8 @@ import os
 import hashlib
 import logging
 import subprocess
-from typing import List
+import gzip
+from typing import List, NamedTuple
 from pathlib import Path
 from collections import OrderedDict
 
@@ -25,7 +26,14 @@ _old_ld_library_path = (
 lib_paths = str(base_install_path / "lib") + ":" + _old_ld_library_path
 
 
-def run_subprocess(command: List):
+class CommandResult(NamedTuple):
+    success: bool
+    error_code: int
+    stdout: str = ""
+    stderr: str = ""
+
+
+def run_subprocess(command: List) -> CommandResult:
     command_str = " ".join(command)
     log.debug("Executing command:\n\n%s\n", command_str)
 
@@ -41,38 +49,22 @@ def run_subprocess(command: List):
         env={"LD_LIBRARY_PATH": lib_paths},
     )
 
-    command_result, entire_stdout = handle_process_result(process_handle)
-    return command_result, entire_stdout
+    command_result = handle_process_result(process_handle)
+    return command_result
 
 
-def handle_process_result(process_handle):
+def handle_process_result(process_handle: subprocess.Popen) -> CommandResult:
     """Report process results to logging."""
-    if process_handle.stdout is None:
-        return True
+    stdout, stderr = process_handle.communicate()
+    stdout = stdout.decode()
+    stderr = stderr.decode()
 
-    entire_stdout = []
-    for line in iter(process_handle.stdout.readline, b""):
-        formatted_line = line.decode("ascii")[:-1]
-        entire_stdout.append(formatted_line)
-
-    stdout, termination_message = process_handle.communicate()
     error_code = process_handle.returncode
-
-    if termination_message:
-        log.info(
-            "Process termination message:\n%s", termination_message.decode("utf-8")
-        )
-        log.info("Process termination code: %s", error_code)
-
     if error_code != 0:
-        log.error("Error code != 0")
-        log.error("stdout:\n")
-        print("\n".join(entire_stdout))
-        return False, entire_stdout
+        return CommandResult(False, error_code, stdout, stderr)
     else:
-        log.info("stdout:\n")
-        print("\n".join(entire_stdout))
-        return True, entire_stdout
+        log.info(f"stdout:\n{stdout}")
+        return CommandResult(True, error_code, stdout, stderr)
 
 
 def hash_command_paths(command_paths):
@@ -102,11 +94,17 @@ def _file_hash(file_path):
     return sha.hexdigest()
 
 
-def load_fasta(reference_file, sizes_only=False):
+def load_fasta(reference_file: Path, sizes_only=False):
+    if str(reference_file).endswith(".gz"):
+        ref_fhandle = gzip.open(str(reference_file), "rt")
+    else:
+        ref_fhandle = open(str(reference_file))
+
     ref_records = OrderedDict()
     # SeqIO: the id of the record is everything between ">" and the first space.
-    for seq_record in SeqIO.parse(reference_file, "fasta"):
+    for seq_record in SeqIO.parse(ref_fhandle, "fasta"):
         ref_records[seq_record.id] = str(seq_record.seq)
         if sizes_only:
             ref_records[seq_record.id] = len(ref_records[seq_record.id])
+    ref_fhandle.close()
     return ref_records

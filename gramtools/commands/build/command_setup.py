@@ -74,7 +74,7 @@ def setup_parser(common_parser, subparsers):
     )
 
 
-def setup_files(args) -> ProjectPaths:
+def setup_files(args) -> BuildPaths:
     """
     We also do some extra argument checking here.
     """
