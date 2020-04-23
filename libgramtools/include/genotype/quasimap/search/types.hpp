@@ -1,23 +1,14 @@
 /** @file
  * Defines the key data structures supporting `quasimap`ping.
  */
-#include "prg/prg_info.hpp"
-
-
 #ifndef GRAMTOOLS_SEARCH_TYPES_HPP
 #define GRAMTOOLS_SEARCH_TYPES_HPP
 
-namespace gram {
-    /**
-     * Expresses the positioning of the current search state relative to variant sites.
-     * Initialised at `unknown`.
-     */
-    enum class SearchVariantSiteState {
-        within_variant_site,
-        outside_variant_site,
-        unknown
-    };
+#include <list>
 
+#include "common/data_types.hpp"
+
+namespace gram {
     /** A path through variant sites is a list of allele/site combinations. */
     using VariantSitePath = std::vector<VariantLocus>;
     using VariantSitePaths = std::vector<VariantSitePath>;

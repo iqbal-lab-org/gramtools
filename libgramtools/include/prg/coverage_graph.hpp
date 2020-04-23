@@ -17,8 +17,6 @@
 #ifndef COV_GRAPH_HPP
 #define COV_GRAPH_HPP
 
-#include "linearised_prg.hpp"
-#include "prg/types.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -26,6 +24,9 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/unordered_map.hpp>
+
+#include "linearised_prg.hpp"
+#include "prg/types.hpp"
 
 using namespace gram;
 

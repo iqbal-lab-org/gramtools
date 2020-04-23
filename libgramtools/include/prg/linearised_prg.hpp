@@ -5,15 +5,15 @@
  */
 #ifndef PRG_STRING_HPP
 #define PRG_STRING_HPP
+
 #include <string>
 #include <set>
 #include <fstream>
 #include <cstring>
 #include <iostream>
 #include <assert.h>
-#include "common/data_types.hpp"
-#include "common/parameters.hpp"
 
+#include "common/data_types.hpp"
 
 using namespace gram;
 

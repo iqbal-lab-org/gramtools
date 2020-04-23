@@ -4,7 +4,7 @@
  * usable more generally for illustrative purposes.
  */
 #include <iostream>
-#include "src_common/common.hpp"
+#include "src_common/submod_resources.hpp"
 
 using namespace gram::submods;
 

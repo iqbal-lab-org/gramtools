@@ -19,7 +19,6 @@ void coverage::record::grouped_allele_counts(Coverage &coverage,
                                              uniqueLoci const& compatible_loci) {
     // We will store, for each variant site `Marker`, which alleles are traversed across
     // **all** (selected, ie site-equivalent) mapping instances of the processed read.
-    using AlleleIdSet = std::set<AlleleId>;
     std::unordered_map<Marker, AlleleIdSet> site_allele_group;
 
     // Loop through all loci and record the alleles compatible with each site

@@ -1,4 +1,5 @@
 #include "prg/make_data_structures.hpp"
+#include "prg/coverage_graph.hpp"
 #include <filesystem>
 
 namespace fs = std::filesystem;

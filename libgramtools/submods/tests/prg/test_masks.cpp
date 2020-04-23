@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "src_common/common.hpp"
+#include "src_common/submod_resources.hpp"
 #include "build/kmer_index/masks.hpp"
 
 

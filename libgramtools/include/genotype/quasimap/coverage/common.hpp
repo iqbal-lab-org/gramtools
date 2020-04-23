@@ -9,6 +9,7 @@
 
 #include "genotype/quasimap/search/types.hpp"
 #include "genotype/parameters.hpp"
+#include "prg/prg_info.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
 
 namespace gram {
@@ -69,7 +70,7 @@ public:
 
     LocusFinder() : search_state(), prg_info(nullptr) {};
 
-    LocusFinder(SearchState const search_state, info_ptr prg_info);
+    LocusFinder(SearchState search_state, info_ptr prg_info);
 
     /** Sanity check: are all variant site markers in the `SearchState` different? */
     void check_site_uniqueness(SearchState const& search_state);

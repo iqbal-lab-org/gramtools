@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 
-#include "src_common/common.hpp"
+#include "src_common/submod_resources.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "tests/common/common.hpp"
 

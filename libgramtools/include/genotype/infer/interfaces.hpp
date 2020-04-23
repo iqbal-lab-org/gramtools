@@ -7,6 +7,8 @@
 #define INFER_IFC
 
 #include <variant>
+
+#include "prg/types.hpp"
 #include "genotype/infer/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
 

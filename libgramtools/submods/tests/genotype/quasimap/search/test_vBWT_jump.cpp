@@ -19,7 +19,7 @@
 
 #include "gtest/gtest.h"
 
-#include "src_common/common.hpp"
+#include "src_common/submod_resources.hpp"
 #include "prg/prg_info.hpp"
 #include "build/kmer_index/build.hpp"
 #include "genotype/quasimap/search/vBWT_jump.hpp"

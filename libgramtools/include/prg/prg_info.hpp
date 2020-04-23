@@ -10,8 +10,8 @@
 #include <vector>
 #include <string>
 
-#include "prg/make_data_structures.hpp"
-#include "prg/linearised_prg.hpp"
+#include "prg/coverage_graph.hpp"
+#include "common/parameters.hpp"
 
 namespace gram {
 

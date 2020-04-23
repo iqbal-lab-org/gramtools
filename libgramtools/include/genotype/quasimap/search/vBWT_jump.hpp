@@ -1,8 +1,8 @@
 #ifndef GRAMTOOLS_vBWT_JUMP
 #define GRAMTOOLS_vBWT_JUMP
 
-#include "common/data_types.hpp"
 #include "genotype/quasimap/search/types.hpp"
+#include "prg/prg_info.hpp"
 #include <vector>
 
 namespace gram {

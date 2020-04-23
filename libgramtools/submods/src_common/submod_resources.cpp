@@ -1,5 +1,5 @@
 #include "build/kmer_index/masks.hpp"
-#include "common.hpp"
+#include "submod_resources.hpp"
 
 
 using namespace gram;

@@ -2,7 +2,7 @@
 
 #include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
 #include "genotype/quasimap/coverage/common.hpp"
-#include "src_common/common.hpp"
+#include "src_common/submod_resources.hpp"
 
 
 TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {

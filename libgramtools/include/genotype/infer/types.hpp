@@ -2,7 +2,7 @@
 #define GT_INFER_TYPES
 
 #include <memory>
-#include "prg/types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 
 namespace gram::genotype::infer {
     class Genotyper;

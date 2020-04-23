@@ -7,7 +7,7 @@
 
 #include "gtest/gtest.h"
 
-#include "src_common/common.hpp"
+#include "src_common/submod_resources.hpp"
 #include "build/kmer_index/build.hpp"
 #include "build/kmer_index/load.hpp"
 #include "build/kmer_index/dump.hpp"

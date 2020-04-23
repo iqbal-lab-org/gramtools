@@ -1,13 +1,16 @@
 /**@file
  * Defines coverage related operations for base-level allele coverage.
  */
-#include "genotype/quasimap/search/types.hpp"
-#include "genotype/quasimap/coverage/types.hpp"
-#include <optional>
-
 
 #ifndef GRAMTOOLS_ALLELE_BASE_HPP
 #define GRAMTOOLS_ALLELE_BASE_HPP
+
+#include <optional>
+
+#include "genotype/parameters.hpp"
+#include "prg/prg_info.hpp"
+#include "genotype/quasimap/search/types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
 
 namespace gram {
 

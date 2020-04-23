@@ -1,9 +1,11 @@
 #ifndef PRG_TYPES_HPP
 #define PRG_TYPES_HPP
 
-#include "common/data_types.hpp"
-#include <boost/shared_ptr.hpp>
 #include <map>
+
+#include <boost/shared_ptr.hpp>
+
+#include "common/data_types.hpp"
 
 //Forward-declaration for making coverage_Graph available
 class coverage_Graph;
@@ -28,11 +30,6 @@ namespace gram{
      * The top-level key is a site ID, and you then access each haplogroup in the inner map.
      */
     using child_map = std::unordered_map<Marker, haplo_map >;
-
-    // coverage-related
-    using CovCount = uint16_t;
-    using PerBaseCoverage = std::vector<CovCount>; /**< Number of reads mapped to each base of an allele */
-    using PerAlleleCoverage = std::vector<CovCount>; /**< Number of reads mapped to each of several alleles */
 }
 
 #endif //PRG_TYPES_HPP
