@@ -25,8 +25,6 @@ include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/json.cmake)
 add_dependencies(htslib zlib)
 
-## Boost ##
-find_package(BZip2)
 find_package(OpenMP REQUIRED)
 
 ### Include headers ####
