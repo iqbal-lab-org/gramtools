@@ -10,7 +10,7 @@
 
 #include "genotype/read_stats.hpp"
 #include "build/kmer_index/kmer_index_types.hpp"
-#include "coverage/common.hpp"
+#include "genotype/quasimap/coverage/coverage_common.hpp"
 
 #include "search/encapsulated_search.hpp"
 

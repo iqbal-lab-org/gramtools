@@ -1,8 +1,9 @@
-#include <cctype>
 #include "gtest/gtest.h"
+
+#include "genotype/quasimap/coverage/coverage_common.hpp"
+
 #include "src_common/submod_resources.hpp"
-#include "genotype/quasimap/coverage/common.hpp"
-#include "tests/common/mocks.hpp"
+#include "tests/test_resources/mocks.hpp"
 
 using namespace gram;
 

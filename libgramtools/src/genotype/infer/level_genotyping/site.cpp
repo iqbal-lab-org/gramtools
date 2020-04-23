@@ -1,5 +1,5 @@
 #include "genotype/infer/level_genotyping/site.hpp"
-#include "genotype/infer/output_specs/json_common.hpp"
+#include "genotype/infer/output_specs/coverage_common.hpp"
 
 using namespace gram::genotype::infer;
 

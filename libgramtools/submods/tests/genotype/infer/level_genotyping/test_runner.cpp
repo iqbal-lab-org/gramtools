@@ -5,11 +5,13 @@
  */
 
 #include "gtest/gtest.h"
-#include "../mocks.hpp"
-#include "tests/common/common.hpp"
+
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
+
+#include "tests/genotype/infer/mocks.hpp"
+#include "tests/test_resources/test_resources.hpp"
 
 TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes){
     std::string prg{"AATAA5C6G6AA7C8G8AA"};

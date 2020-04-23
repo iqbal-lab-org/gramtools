@@ -1,5 +1,5 @@
 #include "genotype/infer/output_specs/json_site_spec.hpp"
-#include "genotype/infer/output_specs/json_common.hpp"
+#include "genotype/infer/output_specs/coverage_common.hpp"
 #include "genotype/infer/types.hpp"
 
 using namespace gram::json;

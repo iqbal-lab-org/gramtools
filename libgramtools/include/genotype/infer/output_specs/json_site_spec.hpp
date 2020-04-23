@@ -2,7 +2,7 @@
 #define SITE_JSON_SPEC
 
 #include "common/data_types.hpp"
-#include "json_common.hpp"
+#include "coverage_common.hpp"
 
 namespace gram::json {
     struct site_rescaler {

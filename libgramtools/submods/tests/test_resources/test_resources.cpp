@@ -1,5 +1,8 @@
-#include "common.hpp"
+#include "prg/prg_info.hpp"
 #include "genotype/quasimap/quasimap.hpp"
+
+#include "test_resources.hpp"
+#include "src_common/submod_resources.hpp"
 
 using namespace gram;
 

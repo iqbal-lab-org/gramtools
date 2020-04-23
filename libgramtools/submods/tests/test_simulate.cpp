@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
+
 #include "simulate/simulate.hpp"
-#include "tests/common/mocks.hpp"
+
+#include "tests/test_resources/mocks.hpp"
 
 using namespace gram::simulate;
 

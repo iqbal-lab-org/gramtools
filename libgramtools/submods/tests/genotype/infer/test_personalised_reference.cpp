@@ -1,9 +1,11 @@
 #include "gtest/gtest.h"
+
 #include "genotype/infer/personalised_reference.hpp"
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "prg/coverage_graph.hpp"
+
 #include "mocks.hpp"
-#include "tests/common/common.hpp"
+#include "tests/test_resources/test_resources.hpp"
 
 using namespace gram::genotype;
 

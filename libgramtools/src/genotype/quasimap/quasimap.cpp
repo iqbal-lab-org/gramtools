@@ -2,7 +2,7 @@
 
 #include "genotype/quasimap/search/BWT_search.hpp"
 #include "genotype/quasimap/search/vBWT_jump.hpp"
-#include "genotype/quasimap/coverage/common.hpp"
+#include "genotype/quasimap/coverage/coverage_common.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 
 #include <omp.h>

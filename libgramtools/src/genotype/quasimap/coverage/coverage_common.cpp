@@ -2,7 +2,7 @@
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
 
-#include "genotype/quasimap/coverage/common.hpp"
+#include "genotype/quasimap/coverage/coverage_common.hpp"
 #include "common/random.hpp"
 
 

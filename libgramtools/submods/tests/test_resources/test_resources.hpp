@@ -1,15 +1,14 @@
 #ifndef TEST_SRC_COMMON
 #define TEST_SRC_COMMON
 
-#include "src_common/submod_resources.hpp"
 #include "build/kmer_index/build.hpp"
-#include "genotype/quasimap/coverage/common.hpp"
 #include "genotype/read_stats.hpp"
+#include "genotype/parameters.hpp"
+
+#include "types.hpp"
 
 using namespace gram;
 
-using prg_positions = std::vector<std::size_t>;
-using covG_ptrPair = std::pair<covG_ptr, covG_ptr>;
 
 /**
  * Given a `cov_graph` and a set of positions in the PRG string,

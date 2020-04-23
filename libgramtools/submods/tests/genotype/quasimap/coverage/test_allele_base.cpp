@@ -2,10 +2,9 @@
 
 #include "gtest/gtest.h"
 
-
 #include "src_common/submod_resources.hpp"
+#include "tests/test_resources/test_resources.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
-#include "tests/common/common.hpp"
 
 using namespace gram::coverage::per_base;
 

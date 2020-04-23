@@ -2,7 +2,6 @@
 #define COMMON_GEN_PRG
 
 #include "prg/prg_info.hpp"
-#include "common/data_types.hpp"
 
 
 namespace gram::submods{

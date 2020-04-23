@@ -1,10 +1,13 @@
+#include <memory>
+
 #include "mocks.hpp"
 #include "gtest/gtest.h"
 
-#include "tests/common/common.hpp"
 #include "genotype/infer/allele_extracter.hpp"
-#include <memory>
-#include <boost/shared_ptr.hpp>
+#include "prg/types.hpp"
+#include "prg/coverage_graph.hpp"
+
+#include "tests/test_resources/test_resources.hpp"
 
 using namespace ::testing;
 
@@ -51,7 +54,7 @@ TEST_F(AlleleCombineTest, oneAlleleHaploidGenotype_oneCorrectCombinationAllele){
             }
     };
     EXPECT_EQ(result, expected);
-};
+}
 
 
 TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele){

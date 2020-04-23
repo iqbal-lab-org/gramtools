@@ -17,7 +17,9 @@
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
-#include "tests/common/common.hpp"
+
+#include "src_common/submod_resources.hpp"
+#include "tests/test_resources/test_resources.hpp"
 
 TEST(ReverseComplementRead, GivenRead_ReverseComplementReadReturned) {
     gram::Sequence read = {1, 2, 1, 3, 4};

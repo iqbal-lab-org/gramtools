@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 
-#include "genotype/quasimap/coverage/common.hpp"
+#include "genotype/quasimap/coverage/coverage_common.hpp"
 #include "genotype/quasimap/coverage/allele_sum.hpp"
 
 

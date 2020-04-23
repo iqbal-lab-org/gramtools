@@ -3,7 +3,7 @@
 */
 #include "genotype/quasimap/search/types.hpp"
 #include "genotype/quasimap/coverage/types.hpp"
-#include "common.hpp"
+#include "coverage_common.hpp"
 
 
 #ifndef GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP

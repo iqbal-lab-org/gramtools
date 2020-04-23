@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "prg/coverage_graph.hpp"
-#include "tests/common/common.hpp"
+#include "tests/test_resources/test_resources.hpp"
 
 using namespace gram;
 namespace fs = std::filesystem;
