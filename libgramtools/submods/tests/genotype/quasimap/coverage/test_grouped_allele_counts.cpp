@@ -94,27 +94,7 @@ TEST(GroupedAlleleCount, MultipleReads_CorrectCoverage) {
 }
 
 
-bool valid_hash_allele_groups(const AlleleGroupHash &allele_ids_groups_hash,
-                              const HashSet<AlleleIds> &correct_allele_ids_groups) {
-    std::unordered_set<uint64_t> seen_hashes;
-    for (const auto &entry: allele_ids_groups_hash) {
-        auto allele_ids = entry.first;
-        bool allele_ids_correct = correct_allele_ids_groups.find(allele_ids)
-                                  != correct_allele_ids_groups.end();
-        if (not allele_ids_correct)
-            return false;
-
-        auto hash = entry.second;
-        bool hash_seen = seen_hashes.find(hash) != seen_hashes.end();
-        if (hash_seen)
-            return false;
-        seen_hashes.insert(hash);
-    }
-    return true;
-}
-
-
-TEST(GroupedAlleleCount, GivenSitesGroupedAlleleCounts_CorrectlyAssignHashValuesToAlleleIdsGroups) {
+TEST(GroupedAlleleCount, GivenSitesGroupedAlleleCounts_CorrectHashing) {
     SitesGroupedAlleleCounts grouped_allele_counts = {
             GroupedAlleleCounts {
                     {AlleleIds {1, 3}, 1},
@@ -125,77 +105,179 @@ TEST(GroupedAlleleCount, GivenSitesGroupedAlleleCounts_CorrectlyAssignHashValues
             }
     };
     auto result = hash_allele_groups(grouped_allele_counts);
-    HashSet<AlleleIds> expected = {
+
+    // Test allele IDs in the gped allele counts are all registered and hashed
+    HashSet<AlleleIds> allele_ids;
+    for (auto const& entry: result) allele_ids.insert(entry.first);
+    HashSet<AlleleIds> expected_allele_ids = {
             AlleleIds {1, 3},
-            AlleleIds {1, 4},
             AlleleIds {2},
+            AlleleIds {1, 4},
     };
-    auto correct = valid_hash_allele_groups(result, expected);
-    EXPECT_TRUE(correct);
+    EXPECT_EQ(allele_ids, expected_allele_ids);
+
+    // Test group IDs are distinct and 'full': allocated from 0 & increasing by one
+    std::vector<uint64_t> group_ids;
+    for (auto const& entry: result) group_ids.push_back(entry.second);
+    std::sort(group_ids.begin(), group_ids.end());
+
+    std::vector<uint64_t> expected_group_ids{0, 1, 2};
+    EXPECT_EQ(group_ids, expected_group_ids);
 }
 
+TEST(GroupedAlleleCount_IDToCount, OneSite_CorrectGroupIDToCounts){
+   SitesGroupedAlleleCounts sites = {
+           {{AlleleIds {0, 1}, 19}, {AlleleIds {0}, 2}}
+   };
 
-
-TEST(GroupedAlleleCount, GivenSingleSite_CorrectJsonString) {
-    GroupedAlleleCounts site = {
-            {AlleleIds {1, 3}, 1},
-            {AlleleIds {1, 4}, 2}
+    AlleleGroupHash allele_ids_groups_hash = {
+            {AlleleIds{0},    0},
+            {AlleleIds{0, 1}, 1},
     };
+
+    SitesGroupIDToCounts expected{ // Ordered by the key
+            {{"0", 2}, {"1", 19}}
+    };
+    auto result = get_group_id_counts(sites, allele_ids_groups_hash);
+    EXPECT_EQ(result, expected);
+}
+
+TEST(GroupedAlleleCount_IDToCount, TwoSites_CorrectGroupIDToCounts){
+    SitesGroupedAlleleCounts sites = {
+            {
+                    {AlleleIds {1, 3}, 1},
+                    {AlleleIds {1, 4}, 2}
+            },
+            {
+                    {AlleleIds {2}, 10},
+                    {AlleleIds {3, 4}, 2},
+                    {AlleleIds {1, 3}, 20},
+            },
+    };
+    AlleleGroupHash allele_ids_groups_hash = {
+            {AlleleIds {1, 3}, 0},
+            {AlleleIds {1, 4}, 1},
+            {AlleleIds {2}, 2},
+            {AlleleIds {3, 4}, 3},
+    };
+
+    SitesGroupIDToCounts expected{
+            {
+                    {"0", 1},
+                    {"1", 2}
+            },
+            {
+                    {"0", 20},
+                    {"2", 10},
+                    {"3", 2},
+            },
+    };
+    auto result = get_group_id_counts(sites, allele_ids_groups_hash);
+    EXPECT_EQ(result, expected);
+}
+
+TEST(ReverseAlleleGroupHash, Succeeds){
     AlleleGroupHash allele_ids_groups_hash = {
             {AlleleIds {1, 3}, 42},
             {AlleleIds {1, 4}, 43}
     };
-    auto result = dump_site(allele_ids_groups_hash, site);
-    std::string expected = R"({"43":2,"42":1})";
-    EXPECT_EQ(result, expected);
+    GroupIDToAlleles reversed = get_group_id_alleles(allele_ids_groups_hash);
+    GroupIDToAlleles expected{
+            {"42", AlleleIds{1, 3}},
+            {"43", AlleleIds{1, 4}},
+    };
+    EXPECT_EQ(reversed, expected);
 }
 
-
-TEST(GroupedAlleleCount, GivenMultipleSites_CorrectSitesCountsJsonString) {
-    SitesGroupedAlleleCounts sites = {
-            GroupedAlleleCounts {
-                    {AlleleIds {1, 3}, 1},
-                    {AlleleIds {1, 4}, 3}
-            },
-            GroupedAlleleCounts {
-                    {AlleleIds {2}, 2}
-            }
-    };
+TEST(ReverseAlleleGroupHash, IsOrderedByNumericValue){
+    // Lexicographically, "30" < "9", but gets ordered by numeric value
     AlleleGroupHash allele_ids_groups_hash = {
-            {AlleleIds {1, 3}, 42},
-            {AlleleIds {1, 4}, 43},
-            {AlleleIds {2},    44}
+            {AlleleIds {1, 3}, 30},
+            {AlleleIds {1, 4}, 9}
     };
-    auto result = dump_site_counts(allele_ids_groups_hash, sites);
-    std::string expected = R"("site_counts":[{"43":3,"42":1},{"44":2}])";
-    EXPECT_EQ(result, expected);
+    GroupIDToAlleles reversed = get_group_id_alleles(allele_ids_groups_hash);
+    GroupIDToAlleles expected{
+            {"9", AlleleIds{1, 4}},
+            {"30", AlleleIds{1, 3}},
+    };
+    EXPECT_EQ(reversed, expected);
+}
+
+/*
+ * The underlying data structures are maps, such that one can always expect
+ * the groups to be listed in increasing integer order, both for `site_counts` (for each site)
+ * and for `allele_groups`.
+ */
+class TestGetJSON : public ::testing::Test{
+protected:
+    void SetUp(){
+        site1 = {
+                {AlleleIds {1, 3}, 1},
+                {AlleleIds {1, 4}, 2}
+        };
+        site2 = {
+                {AlleleIds {0}, 19},
+                {AlleleIds {1, 4}, 5}
+        };
+
+        group_ids = AlleleGroupHash{
+                {AlleleIds{1, 3}, 0},
+                {AlleleIds{1, 4}, 2},
+                {AlleleIds{0}, 1},
+        };
+    }
+    SitesGroupedAlleleCounts sites;
+    GroupedAlleleCounts site1, site2;
+    AlleleGroupHash group_ids;
+    std::string expected_allele_groups = R"({"0":[1,3],"1":[0],"2":[1,4]})";
+    std::string expected_site_one_counts = R"([{"0":1,"2":2}])";
+    std::string expected_site_two_counts = R"([{"1":19,"2":5}])";
+    std::string expected_all_counts = R"([{"0":1,"2":2},{"1":19,"2":5}])";
+};
+
+TEST_F(TestGetJSON, AlleleIds_CorrectJson) {
+    auto result = get_json(sites, group_ids);
+    auto result_allele_groups =
+            result.at("grouped_allele_counts").at("allele_groups").dump();
+    EXPECT_EQ(result_allele_groups, expected_allele_groups);
 }
 
 
-TEST(GroupedAlleleCount, GivenHashedAlleleIdsGroups_CorrectAlleleGroupsJsonString) {
-    AlleleGroupHash allele_ids_groups_hash = {
-            {AlleleIds {1, 3}, 42},
-            {AlleleIds {1, 4}, 43},
-            {AlleleIds {2},    44}
-    };
-    auto result = dump_allele_groups(allele_ids_groups_hash);
-    std::string expected = R"("allele_groups":{"44":[2],"43":[1,4],"42":[1,3]})";
-    EXPECT_EQ(result, expected);
+TEST_F(TestGetJSON, SiteOne_CorrectJson) {
+    sites.push_back(site1);
+    auto result = get_json(sites, group_ids);
+    auto result_site_counts = result.at("grouped_allele_counts").at("site_counts").dump();
+    EXPECT_EQ(result_site_counts, expected_site_one_counts);
+}
+
+TEST_F(TestGetJSON, SiteTwo_CorrectJson) {
+    sites.push_back(site2);
+    auto result = get_json(sites, group_ids);
+    auto result_site_counts = result.at("grouped_allele_counts").at("site_counts").dump();
+    EXPECT_EQ(result_site_counts, expected_site_two_counts);
+}
+
+// Empty (no coverage) sites get an empty entry
+TEST_F(TestGetJSON, EmptySites_CorrectJson) {
+    sites.push_back(GroupedAlleleCounts{});
+    sites.push_back(GroupedAlleleCounts{});
+    auto result = get_json(sites, group_ids);
+    auto result_site_counts = result.at("grouped_allele_counts").at("site_counts").dump();
+    std::string expected_site_counts = R"([{},{}])";
+    EXPECT_EQ(result_site_counts, expected_site_counts);
 }
 
 
-TEST(GroupedAlleleCount, GivenMultipleSites_CorrectFullJsonString) {
-    SitesGroupedAlleleCounts sites = {
-            GroupedAlleleCounts {
-                    {AlleleIds {1, 3}, 1},
-                    {AlleleIds {1, 4}, 3}
-            },
-            GroupedAlleleCounts {
-                    {AlleleIds {2}, 2}
-            }
-    };
-    auto result = dump_grouped_allele_counts(sites);
-    std::string expected = R"({"grouped_allele_counts":{"site_counts":[{"0":3,"1":1},{"2":2}],"allele_groups":{"0":[1,4],"2":[2],"1":[1,3]}}})";
-    std::cout << expected << std::endl;
+TEST_F(TestGetJSON, TwoSites_CorrectFullJson) {
+    sites.push_back(site1);
+    sites.push_back(site2);
+    auto result = get_json(sites, group_ids).dump();
+    // Entries get alphabetically sorted
+    std::string expected = std::string(R"({"grouped_allele_counts":{"allele_groups":)")
+            + expected_allele_groups
+            + std::string(R"(,"site_counts":)")
+            + expected_all_counts
+            + std::string("}}");
     EXPECT_EQ(result, expected);
 }
+

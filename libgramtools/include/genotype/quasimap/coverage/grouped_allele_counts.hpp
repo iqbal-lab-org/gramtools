@@ -1,13 +1,18 @@
 /** @file
 * Defines coverage related operations for base-level allele coverage.
 */
-#include "genotype/quasimap/search/types.hpp"
-#include "genotype/quasimap/coverage/types.hpp"
-#include "coverage_common.hpp"
 
 
 #ifndef GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP
 #define GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP
+
+#include <nlohmann/json.hpp>
+
+#include "genotype/quasimap/search/types.hpp"
+#include "genotype/quasimap/coverage/types.hpp"
+#include "coverage_common.hpp"
+
+using JSON = nlohmann::json;
 
 namespace gram {
     namespace coverage {
@@ -44,25 +49,23 @@ namespace gram {
      */
     AlleleGroupHash hash_allele_groups(const SitesGroupedAlleleCounts &sites);
 
-    /**
-     * String-serialise a single site count.
-     * Outputs an allele group ID and a count of reads mapped to that allele ID combination.
-     * If no read has mapped to the site, outputs an empty entry ("{}").
-     */
-    std::string dump_site(const AlleleGroupHash &allele_ids_groups_hash,
-                          const GroupedAlleleCounts &site);
+    struct numericStringComparator {
+        bool operator()(const std::string& lhs, const std::string& rhs) const {
+            return std::stoi(lhs) < std::stoi(rhs);
+        }
+    };
 
-    /**
-     * String-serialise site counts in JSON format.
-     * Site counts is an array where each element refers to a site.
-     * @see dump_site()
-     */
-    std::string dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
-                                 const SitesGroupedAlleleCounts &sites);
+    using GroupIDToCounts = std::map<std::string, CovCount, numericStringComparator>;
+    using SitesGroupIDToCounts = std::vector<GroupIDToCounts>;
+    using GroupIDToAlleles = std::map<std::string, AlleleIds, numericStringComparator>;
 
-    std::string dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash);
+    SitesGroupIDToCounts get_group_id_counts(SitesGroupedAlleleCounts const& sites,
+                                             AlleleGroupHash const& allele_ids_groups_hash);
 
-    std::string dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sites);
+    GroupIDToAlleles get_group_id_alleles(AlleleGroupHash const& allele_ids_group_hash);
+
+
+    JSON get_json(const SitesGroupedAlleleCounts &sites, AlleleGroupHash const &allele_ids_groups_hash);
 }
 
 #endif //GRAMTOOLS_GROUPED_ALLELE_COUNTS_HPP

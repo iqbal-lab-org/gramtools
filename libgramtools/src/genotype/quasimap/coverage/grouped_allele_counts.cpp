@@ -65,81 +65,43 @@ AlleleGroupHash gram::hash_allele_groups(const SitesGroupedAlleleCounts &sites) 
     return allele_ids_groups_hash;
 }
 
-
-std::string gram::dump_site(const AlleleGroupHash &allele_ids_groups_hash,
-                            const GroupedAlleleCounts &site) {
-    std::stringstream stream;
-    stream << "{";
-    auto i = 0;
-    for (const auto &allele_entry: site) {
-        auto allele_ids_group = allele_entry.first;
-        uint64_t group_ID = allele_ids_groups_hash.at(allele_ids_group);
-        auto count = allele_entry.second;
-
-        stream << "\"" << (int) group_ID << "\":" << (int) count;
-        if (i++ < site.size() - 1)
-            stream << ",";
-    }
-    stream << "}";
-    return stream.str();
-}
-
-
-std::string gram::dump_site_counts(const AlleleGroupHash &allele_ids_groups_hash,
-                                   const SitesGroupedAlleleCounts &sites) {
-    std::stringstream stream;
-    stream << "\"site_counts\":[";
-    auto i = 0;
-    // Call dump_site() for each site, regardless of whether it has any coverage information at all.
-    for (const auto &site: sites) {
-        stream << dump_site(allele_ids_groups_hash, site);
-        if (i++ < sites.size() - 1)
-            stream << ",";
-    }
-    stream << "]";
-    return stream.str();
-}
-
-
-std::string gram::dump_allele_groups(const AlleleGroupHash &allele_ids_groups_hash) {
-    std::stringstream stream;
-    stream << "\"allele_groups\":{";
-    auto i = 0;
-    for (const auto &entry: allele_ids_groups_hash) {
-        auto allele_ids_group = entry.first;
-        uint64_t group_hash = entry.second;
-        stream << "\"" << (int) group_hash << "\":[";
-        auto j = 0;
-        for (const auto &allele_id: allele_ids_group) {
-            stream << (int) allele_id;
-            if (j++ < allele_ids_group.size() - 1)
-                stream << ",";
+SitesGroupIDToCounts gram::get_group_id_counts(SitesGroupedAlleleCounts const& sites,
+                                               AlleleGroupHash const& allele_ids_groups_hash){
+    SitesGroupIDToCounts result(sites.size());
+    std::size_t num_processed{0};
+    for (auto const& site: sites){
+        GroupIDToCounts site_groups;
+        for (auto const& equiv_class_count: site){
+           auto group_id = allele_ids_groups_hash.at(equiv_class_count.first);
+           site_groups[std::to_string(group_id)] = equiv_class_count.second;
         }
-        stream << "]";
-        if (i++ < allele_ids_groups_hash.size() - 1)
-            stream << ",";
+        result.at(num_processed++) = site_groups;
     }
-    stream << "}";
-    return stream.str();
+    return result;
 }
 
+GroupIDToAlleles gram::get_group_id_alleles(AlleleGroupHash const& allele_ids_group_hash){
+    GroupIDToAlleles result;
+    for (auto const& entry: allele_ids_group_hash)
+        result[std::to_string(entry.second)] = entry.first;
+    return result;
+}
 
-std::string gram::dump_grouped_allele_counts(const SitesGroupedAlleleCounts &sites) {
-    auto allele_ids_groups_hash = hash_allele_groups(sites);
-    std::stringstream stream;
-    stream << "{\"grouped_allele_counts\":{";
-    stream << dump_site_counts(allele_ids_groups_hash, sites);
-    stream << ",";
-    stream << dump_allele_groups(allele_ids_groups_hash);
-    stream << "}}";
-    return stream.str();
+JSON gram::get_json(const SitesGroupedAlleleCounts &sites, AlleleGroupHash const &allele_ids_groups_hash) {
+    auto group_id_alleles = get_group_id_alleles(allele_ids_groups_hash);
+    auto group_id_counts = get_group_id_counts(sites, allele_ids_groups_hash);
+    JSON result;
+    result["grouped_allele_counts"]["site_counts"] = group_id_counts;
+    result["grouped_allele_counts"]["allele_groups"] = group_id_alleles;
+    return result;
 }
 
 
 void coverage::dump::grouped_allele_counts(const Coverage &coverage,
                                            const GenotypeParams &parameters) {
-    std::string json_string = dump_grouped_allele_counts(coverage.grouped_allele_counts);
+    auto allele_ids_groups_hash = hash_allele_groups(coverage.grouped_allele_counts);
+    auto json = get_json(coverage.grouped_allele_counts, allele_ids_groups_hash);
     std::ofstream file;
     file.open(parameters.grouped_allele_counts_fpath);
-    file << json_string << std::endl;
+    file << json << std::endl;
 }
