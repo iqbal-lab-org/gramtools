@@ -7,9 +7,9 @@ gramtools/version/commit_version.py
 *.egg-info
 *.pyc
 gramtools/lib
-libgramtools/submods/tests/test_main
-libgramtools/submods/print_fm_index/print_fm_index
-libgramtools/submods/encode_prg/encode_prg
+libgramtools/tests/test_main
+libgramtools/submods/encode_prg
+libgramtools/submods/print_fm_index
 doc/html
 *~
 *.swp

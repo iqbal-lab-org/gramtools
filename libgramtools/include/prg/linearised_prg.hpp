@@ -60,11 +60,7 @@ public:
     endianness get_endianness() const { return en; };
     std::unordered_map<Marker, int> get_end_positions() const { return end_positions;};
 
-    friend std::ostream &operator<<(std::ostream &out, PRG_String const &e) {
-        for (auto &s : e.my_PRG_string) out << s;
-        return out;
-    }
-
+    friend std::ostream &operator<<(std::ostream &out, PRG_String const &e);
     friend bool operator==(PRG_String const& first, PRG_String const& second);
 
     /*

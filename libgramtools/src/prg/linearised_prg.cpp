@@ -106,6 +106,11 @@ void PRG_String::write(std::string const &fname, endianness en) {
     out.close();
 }
 
+std::ostream &operator<<(std::ostream &out, PRG_String const &e) {
+    for (auto &s : e.my_PRG_string) out << s << " ";
+    return out;
+}
+
 bool operator==(PRG_String const &first, PRG_String const &second) {
     auto const &p_1 = first.get_PRG_string();
     auto const &p_2 = second.get_PRG_string();
