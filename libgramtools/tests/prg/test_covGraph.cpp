@@ -286,18 +286,19 @@ protected:
 TEST_F(cov_G_Builder_nested_adjMarkers, adjMarkerWiring){
     //"[A,]A[[G,A]A,C,T]"
     covG_ptr entry;
-   entry = c.bubble_starts.at(5);
-   EXPECT_EQ(entry, c.random_access[0].node); // Consistent site numbering, sanity check
-   auto& expected_exit = c.bubble_ends.at(5);
-   // Expect direct edge between the site starting at index 0 and its site end
-   EXPECT_EQ(entry->get_edges().back(), expected_exit);
+    entry = c.bubble_starts.at(5);
+    EXPECT_EQ(entry, c.random_access[0].node); // Consistent site numbering, sanity check
+    auto& expected_exit = c.bubble_ends.at(5);
+    EXPECT_EQ(entry->get_edges().size(), 2);
+    // Expect direct edge between the site starting at index 0 and its site end
+    EXPECT_EQ(entry->get_edges().at(1), expected_exit);
 
     entry = c.bubble_starts.at(7);
     EXPECT_EQ(entry, c.random_access[5].node); // Consistent site numbering, sanity check
     auto& expected_next_entry = c.bubble_starts.at(9);
     // Expect direct edge between the site starting at index 5 and the site starting at index 6
     EXPECT_EQ(entry->get_edges()[0], expected_next_entry);
-};
+}
 
 TEST_F(cov_G_Builder_nested_adjMarkers, bubbleOrdering){
     //"[A,]A[[G,A]A,C,T]"

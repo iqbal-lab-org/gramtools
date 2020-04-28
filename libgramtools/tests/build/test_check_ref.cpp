@@ -23,6 +23,12 @@ TEST(GetFirstPrgPath, NonNestedPrg){
     EXPECT_EQ(ref_path, std::string{"ACGGACAC"});
 }
 
+TEST(GetFirstPrgPath, NonNestedPrg2){
+    auto cov_graph = setup_cov_graph("A[AAA,GG]GG[A,]CAC");
+    auto ref_path = PrgRefChecker::get_first_prg_path(cov_graph);
+    EXPECT_EQ(ref_path, std::string{"AAAAGGACAC"});
+}
+
 TEST(GetFirstPrgPath, NestedPrg){
     auto cov_graph = setup_cov_graph("[AC[CG,C]TTT[C[A,G],G]T,GG]CA[A,G[A,C]]C");
     auto ref_path = PrgRefChecker::get_first_prg_path(cov_graph);
