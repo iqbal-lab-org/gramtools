@@ -34,19 +34,18 @@ class CommandResult(NamedTuple):
 
 
 def run_subprocess(command: List) -> CommandResult:
-    command_str = " ".join(command)
-    log.debug("Executing command:\n\n%s\n", command_str)
+    log.debug("Executing command:\n\n%s\n", " ".join(command))
 
     current_working_directory = os.getcwd()
     log.debug("Using current working directory:\n%s", current_working_directory)
 
     process_handle = subprocess.Popen(
-        command_str,
+        command,
         cwd=current_working_directory,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        shell=True,
         env={"LD_LIBRARY_PATH": lib_paths},
+        universal_newlines=True,
     )
 
     command_result = handle_process_result(process_handle)
@@ -55,16 +54,18 @@ def run_subprocess(command: List) -> CommandResult:
 
 def handle_process_result(process_handle: subprocess.Popen) -> CommandResult:
     """Report process results to logging."""
+    captured_stdout = ""
+    for line in iter(process_handle.stdout):
+        captured_stdout += f"{line}"
+        print(line, end="")
+
     stdout, stderr = process_handle.communicate()
-    stdout = stdout.decode()
-    stderr = stderr.decode()
 
     error_code = process_handle.returncode
     if error_code != 0:
-        return CommandResult(False, error_code, stdout, stderr)
+        return CommandResult(False, error_code, captured_stdout, stderr)
     else:
-        log.info(f"stdout:\n{stdout}")
-        return CommandResult(True, error_code, stdout, stderr)
+        return CommandResult(True, error_code, captured_stdout, stderr)
 
 
 def hash_command_paths(command_paths):

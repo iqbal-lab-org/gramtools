@@ -39,8 +39,8 @@ BuildParams commands::build::parse_parameters(po::variables_map &vm, const po::p
         po::notify(vm);
     }
     catch(const std::exception &e){
-        std::cout << e.what() << std::endl;
-        std::cout << build_description << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << build_description << std::endl;
         exit(1);
     }
 

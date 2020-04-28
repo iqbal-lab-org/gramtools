@@ -42,7 +42,7 @@ def with_report(f):
             }  # Place success status at very top
 
         if not success:
-            log.error(f"{error.__class__.__name__} raised with message: {error}")
+            log.error(f"{error}")
             log.error(
                 f"Unsuccessful {action}. " f"Process reported to {command_paths.report}"
             )

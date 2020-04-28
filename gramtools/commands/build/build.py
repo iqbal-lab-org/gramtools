@@ -167,4 +167,4 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
         ]
     )
     if not command_result.success:
-        raise Exception(f"Error running gramtools build:\n{command_result.stderr}")
+        raise Exception(f"while running backend build:\n{command_result.stderr}")
