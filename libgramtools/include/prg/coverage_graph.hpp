@@ -270,13 +270,14 @@ public:
      * Makes the map of marker targets used during mapping
      */
     void map_targets();
-    void entry_targets(marker_type prev_t, Marker prev_m, Marker cur_m);
-    void allele_exit_targets(marker_type prev_t, Marker prev_m, Marker cur_m, AlleleId cur_allele_ID);
+    void make_site_entry_target(marker_type prev_t, Marker prev_m, Marker cur_m);
+    void make_site_exit_target(marker_type prev_t, Marker prev_m, Marker cur_m, AlleleId cur_allele_ID);
+    void make_allele_end_target(marker_type prev_t, Marker prev_m, Marker cur_m, AlleleId cur_allele_ID);
     /**
      * Site exit points can point to different variant markers (site start & end)
      * Here we test for prior presence of the allele marker in the `target_map` and insert or update accordingly
      */
-    void add_exit_target(Marker cur_m, targeted_marker& new_t_m);
+    void add_exit_target(Marker cur_m, targeted_marker const new_t_m);
 
     /*
      * variables & data structures

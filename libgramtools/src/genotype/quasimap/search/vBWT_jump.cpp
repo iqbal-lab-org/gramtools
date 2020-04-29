@@ -20,27 +20,6 @@ SA_Interval gram::get_allele_marker_sa_interval(const Marker &allele_marker_char
 
 
 /**
- * Given an allele (=even) marker SA interval, make one search state containing them all.
- * We will record the allele id later, if and when each allele gets out.
- * @param current_search_state: gets passed so as to chain onto list of previously traversed VariantLoci
- */
-SearchState get_allele_search_state(const Marker &allele_marker,
-                                    const SA_Interval &allele_marker_sa_interval,
-                                    const SearchState &current_search_state,
-                                    const PRG_Info &prg_info) {
-
-
-    auto site_boundary_marker = allele_marker - 1;
-    SearchState search_state = current_search_state;
-    search_state.sa_interval.first = allele_marker_sa_interval.first;
-    search_state.sa_interval.second = allele_marker_sa_interval.second;
-
-    search_state.traversing_path.push_back(VariantLocus{site_boundary_marker, ALLELE_UNKNOWN});
-
-    return search_state;
-}
-
-/**
  * Deals with a read mapping into a variant site's end point.
  * The SA index of each allele's end gets added as a new SearchState.
  * Because a variant site end is found, the read needs to be able to map through all alleles of this site.
@@ -51,27 +30,21 @@ SearchState entering_site_search_state(const Marker &allele_marker,
 
     // Get full SA interval of the corresponding allele marker.
     auto allele_marker_sa_interval =
-            get_allele_marker_sa_interval(allele_marker,
-                                          prg_info);
-    // Get one `SearchState` for the whole site, with populated cache.
-    auto allele_search_state = get_allele_search_state(allele_marker,
-                                                       allele_marker_sa_interval,
-                                                       current_search_state,
-                                                       prg_info);
+            get_allele_marker_sa_interval(allele_marker, prg_info);
 
-    return allele_search_state;
+    // Add site to traversing path
+    SearchState new_search_state = current_search_state;
+    new_search_state.sa_interval.first = allele_marker_sa_interval.first;
+    new_search_state.sa_interval.second = allele_marker_sa_interval.second;
+    new_search_state.traversing_path.push_back(VariantLocus{allele_marker - 1, ALLELE_UNKNOWN});
+
+    return new_search_state;
 }
 
 /**
  * Add to the variant path taken the site and allele markers
  * They can be present at the back of the `traversing_path` in which case we appropriately set the allele_id
  * and move the marker to the `traversed_path`
- *
- * @note ABOUT kmer index serialisation
- * When we enter a var site, we set the `SearchVariantSiteState` enum to 'within_variant'.
- * Kmer index serialisation is lossy: we lose the `SearchVariantSiteState` if it is set: ie
- * when re-loading the index, it goes to `unknown`.
- * Thus we should not rely on this enum to * ascertain if we have previously entered the site.
  */
 void update_variant_site_path(SearchState &affected_search_state,
                               const uint64_t allele_id,
@@ -265,7 +238,7 @@ gram::extend_targets_site_entry(VariantLocus const &target_locus, SearchState co
     // Traverse each target in the map and add it as an extension
     for (auto &mapped_target : target_map.at(variant_marker)) {
         if (is_site_marker(mapped_target.ID)) { // Case: direct deletion
-            assert(mapped_target.direct_deletion_allele != 0);
+            assert(mapped_target.direct_deletion_allele != ALLELE_UNKNOWN);
             VariantLocus site_exit_locus{mapped_target.ID, mapped_target.direct_deletion_allele};
             extensions.push_back({site_exit_locus, new_search_state, false});
 

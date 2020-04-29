@@ -6,9 +6,6 @@
 #include "../test_resources/test_resources.hpp"
 
 using namespace gram;
-namespace fs = std::filesystem;
-
-auto const test_data_dir = fs::path(__FILE__).parent_path().parent_path() / "test_data";
 
 auto first{FIRST_ALLELE};
 auto unkn{ALLELE_UNKNOWN};
@@ -29,14 +26,14 @@ TEST(InconsistentPRG_site_with_no_alleles, fails){
     EXPECT_THROW(cov_Graph_Builder{s}, std::runtime_error);
 }
 
-TEST(InconsistentPRG_site_one_allele, fails) {
+TEST(InconsistentPRG_site_with_one_allele, fails) {
     marker_vec m{5,2,6,2,7,1,8,3,8}; // "[C]C[A,G]"
     PRG_String s{m};
     EXPECT_THROW(cov_Graph_Builder{s}, std::runtime_error);
 }
 
 
-TEST(coverage_Graph, Nestedness){
+TEST(coverage_Graph, is_nested_status){
     std::string prg{"ATCG[GC,G]A[AT,T]A"};
     marker_vec v = prg_string_to_ints(prg);
     PRG_String p{v};
@@ -89,14 +86,90 @@ TEST(coverage_Graph, SequencePositions2) {
     EXPECT_EQ(9, bubble_11.first->get_pos());
 }
 
+TEST(TargetMap, SiteEntry_ThreeCases){
+    /*
+     * line1: 6->7    : site_entry from site_exit
+     * line2: 9->11   : site_entry from site_entry
+     * line3: 14->15  : site_entry from allele_end
+     */
+    marker_vec v{
+            5, 1, 6, 2, 6, 7, 1, 2, 8, 2, 8,
+            2, 9, 11, 1, 12, 3, 12, 2, 10, 1, 10,
+            1, 13, 2, 14, 15, 1, 16, 2, 16, 4, 14
+    };
+
+    PRG_String p{v};
+    coverage_Graph c{p};
+    target_m expected{
+            {7, {targeted_marker{6, ALLELE_UNKNOWN}}},
+            {11, {targeted_marker{9, ALLELE_UNKNOWN}}},
+            {15, {targeted_marker{13, ALLELE_UNKNOWN}}},
+    };
+    EXPECT_EQ(c.target_map, expected);
+}
+
+TEST(TargetMap, SiteExit_TwoCases){
+    /*
+     * line1: 20->16  : site_exit from site_exit
+     * line2: 8->8    : site_exit from allele_end
+     *
+     * The case site_exit from site_entry fails: it implies an empty site.
+     * This failure expectation is tested in `InconsistentPRG`
+     */
+    marker_vec v{
+        15, 1, 16, 2, 19, 1, 20, 2, 20, 16,
+        3, 3, 7, 4, 8, 8, 1          // Direct deletion
+    };
+
+    PRG_String p{v};
+    coverage_Graph c{p};
+    target_m expected{
+            {16, {targeted_marker{20, ALLELE_UNKNOWN}}},
+            {8, {targeted_marker{7, FIRST_ALLELE + 1}}},
+    };
+    EXPECT_EQ(c.target_map, expected);
+}
+
+TEST(TargetMap, AlleleEnd_ThreeCases){
+    /*
+     * line1: 12->10 : allele_end from site_exit
+     * line2: 5->6   : allele_end from site_entry
+     * line3: 8->8   : allele_end from allele_end
+     */
+    marker_vec v{
+            2, 3, 9, 2, 11, 3, 12, 3, 12, 10, 1, 10,
+            4, 4, 4, 5, 6, 4, 6,           // Direct deletion
+            1, 2, 3, 7, 2, 8, 8, 1, 8      // Direct deletion
+    };
+
+    PRG_String p{v};
+    coverage_Graph c{p};
+    target_m expected{
+            {6, {targeted_marker{5, FIRST_ALLELE}}},
+            {8, {targeted_marker{7, FIRST_ALLELE + 1}}},
+            {10, {targeted_marker{12, ALLELE_UNKNOWN}}},
+    };
+    EXPECT_EQ(c.target_map, expected);
+}
+
+TEST(TargetMap, AlleleMarkerWithMultipleTargets){
+    marker_vec v{2, 3, 7, 8, 3, 9, 2, 10, 1, 10, 8, 3};
+    PRG_String p{v};
+    coverage_Graph c{p};
+    target_m expected{
+            {8,
+             {
+                     targeted_marker{7, FIRST_ALLELE},
+                     targeted_marker{10, ALLELE_UNKNOWN},
+             }},
+    };
+    EXPECT_EQ(c.target_map, expected);
+}
+
 
 /*
  * -----------------------
  * `cov_Graph_Builder` tests
- * NOTE: the best way to understand these tests is to draw the DAG corresponding to the PRG String being tested,
- * labeling nodes with their expected attributes (eg position, site/allele ID).
- *
- * Use test fixtures: single data, multiple tests
  * -----------------------
  */
 class cov_G_Builder_nested : public ::testing::Test {
@@ -376,6 +449,9 @@ TEST_F(cov_G_Builder_nested_adjMarkers, ParentalMap) {
     EXPECT_EQ(c.par_map, expected);
 }
 
+
+namespace fs = std::filesystem;
+auto const test_data_dir = fs::path(__FILE__).parent_path().parent_path() / "test_data";
 
 // Make a coverage graph, serialise it to disk, reload into another coverage graph,
 // and test the two are equal (provided equality has been properly defined).
