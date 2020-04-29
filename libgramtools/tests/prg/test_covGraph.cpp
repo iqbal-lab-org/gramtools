@@ -1,4 +1,5 @@
 #include <filesystem>
+
 #include "gtest/gtest.h"
 
 #include "prg/coverage_graph.hpp"
@@ -12,83 +13,6 @@ auto const test_data_dir = fs::path(__FILE__).parent_path().parent_path() / "tes
 auto first{FIRST_ALLELE};
 auto unkn{ALLELE_UNKNOWN};
 
-/*
- * -----------------------
- * `PRG String` tests
- * -----------------------
- */
-
-TEST(PRGString, Load_from_File){
-    /*
-     * The tested file is the binary output of running `make_prg` on the following MSA:
-                             ">R1\n"
-                             "AAAAAAAAA\n"
-                             ">R2\n"
-                             "AATAAAAAA\n"
-                             ">R3\n"
-                             "AAAAATAAA\n"
-                             ">R4\n"
-                             "TTTTTTTTT\n"
-                             ">R5\n"
-                             "TTATTTTTT\n"
-                             ">R6\n"
-                             "TTTTTATTT\n";
-     */
-    fs::path path(test_data_dir / "twoSegregatingClasses.fasta.max_nest10.min_match1.bin");
-    PRG_String l = PRG_String(path.generic_string());
-    std::string expected{"[AA[A,T]AA[A,T]AAA,TT[A,T]TT[A,T]TTT]"};
-    auto res = ints_to_prg_string(l.get_PRG_string());
-    EXPECT_EQ(expected, res);
-}
-
-class PRGString_WriteAndRead : public ::testing::Test {
-protected:
-    void SetUp() {
-        fname = "@pstring_out";
-        std::string prg_string{"A[A,C]T[GGG,G]C"};
-        expected_markers = prg_string_to_ints(prg_string);
-        p = PRG_String(expected_markers);
-    }
-
-    void TearDown() {
-        if (remove(fname.c_str()) != 0){
-            std::cerr << "Could not delete the built file " << fname;
-            exit(1);
-        }
-    }
-    std::string fname;
-    marker_vec expected_markers;
-    PRG_String p;
-};
-
-TEST_F(PRGString_WriteAndRead, WriteAndReadLittleEndian){
-    // Little Endian should be the default for read and write
-    p.write(fname);
-
-    // Load it into another object
-    PRG_String p2{fname};
-    EXPECT_EQ(p2.get_endianness(), endianness::little);
-    EXPECT_EQ(expected_markers, p2.get_PRG_string());
-}
-
-TEST_F(PRGString_WriteAndRead, WriteAndReadBigEndian){
-    p.write(fname, endianness::big);
-
-    // Load it into another object
-    PRG_String p2{fname, endianness::big};
-    EXPECT_EQ(p2.get_endianness(), endianness::big);
-    EXPECT_EQ(expected_markers, p2.get_PRG_string());
-}
-
-TEST(PRGString, ExitPoint_MapPositions){
-    marker_vec t{5,1,6,2,7,1,8,3,8,6}; // Ie: "[A,C[A,T]]"
-    PRG_String l = PRG_String(t);
-    std::unordered_map<Marker,int> expected_end_positions{
-            {6 ,9},
-            {8, 8}
-    };
-    EXPECT_EQ(expected_end_positions, l.get_end_positions());
-}
 
 /**
  * Given inconsistent PRGs, prg_string/cov_graph construction fails
@@ -110,6 +34,61 @@ TEST(InconsistentPRG_site_one_allele, fails) {
     PRG_String s{m};
     EXPECT_THROW(cov_Graph_Builder{s}, std::runtime_error);
 }
+
+
+TEST(coverage_Graph, Nestedness){
+    std::string prg{"ATCG[GC,G]A[AT,T]A"};
+    marker_vec v = prg_string_to_ints(prg);
+    PRG_String p{v};
+    coverage_Graph g{p};
+
+    EXPECT_FALSE(g.is_nested);
+
+    std::string nested_prg{"[A,]A[[G,A]A,C,T]"};
+    marker_vec nested_v = prg_string_to_ints(nested_prg);
+    PRG_String nested_p{nested_v};
+    coverage_Graph nested_g{nested_p};
+
+    EXPECT_TRUE(nested_g.is_nested);
+}
+
+TEST(coverage_Graph, SequencePositions) {
+    // Check POS is based on first (REF) allele of each site
+    std::string prg{"ATCG[G[A,CCC]C,G]A[AT,T]A"};
+    marker_vec v = prg_string_to_ints(prg);
+    PRG_String p{v};
+    coverage_Graph g{p};
+
+    auto bubble_5 = get_bubble_nodes(g.bubble_map, 5);
+    EXPECT_EQ(4, bubble_5.first->get_pos());
+
+    auto bubble_7 = get_bubble_nodes(g.bubble_map, 7);
+    EXPECT_EQ(5, bubble_7.first->get_pos());
+
+    auto bubble_9 = get_bubble_nodes(g.bubble_map, 9);
+    EXPECT_EQ(8, bubble_9.first->get_pos());
+}
+
+TEST(coverage_Graph, SequencePositions2) {
+    // Check POS is updated for first allele only in sites with nesting
+    std::string prg{"ATCG[G[A,CCC]C,GGG[AAA,C]]AA[T,C]"};
+    marker_vec v = prg_string_to_ints(prg);
+    PRG_String p{v};
+    coverage_Graph g{p};
+
+    auto bubble_5 = get_bubble_nodes(g.bubble_map, 5);
+    EXPECT_EQ(4, bubble_5.first->get_pos());
+
+    auto bubble_7 = get_bubble_nodes(g.bubble_map, 7);
+    EXPECT_EQ(5, bubble_7.first->get_pos());
+
+    auto bubble_9 = get_bubble_nodes(g.bubble_map, 9);
+    EXPECT_EQ(7, bubble_9.first->get_pos());
+
+    auto bubble_11 = get_bubble_nodes(g.bubble_map, 11);
+    EXPECT_EQ(9, bubble_11.first->get_pos());
+}
+
 
 /*
  * -----------------------
@@ -395,59 +374,6 @@ TEST_F(cov_G_Builder_nested_adjMarkers, ParentalMap) {
             {9 , VariantLocus{7, first} }
     };
     EXPECT_EQ(c.par_map, expected);
-}
-
-TEST(coverage_Graph, Nestedness){
-    std::string prg{"ATCG[GC,G]A[AT,T]A"};
-    marker_vec v = prg_string_to_ints(prg);
-    PRG_String p{v};
-    coverage_Graph g{p};
-
-    EXPECT_FALSE(g.is_nested);
-
-    std::string nested_prg{"[A,]A[[G,A]A,C,T]"};
-    marker_vec nested_v = prg_string_to_ints(nested_prg);
-    PRG_String nested_p{nested_v};
-    coverage_Graph nested_g{nested_p};
-
-    EXPECT_TRUE(nested_g.is_nested);
-}
-
-TEST(coverage_Graph, SequencePositions) {
-    // Check POS is based on first (REF) allele of each site
-    std::string prg{"ATCG[G[A,CCC]C,G]A[AT,T]A"};
-    marker_vec v = prg_string_to_ints(prg);
-    PRG_String p{v};
-    coverage_Graph g{p};
-
-    auto bubble_5 = get_bubble_nodes(g.bubble_map, 5);
-    EXPECT_EQ(4, bubble_5.first->get_pos());
-
-    auto bubble_7 = get_bubble_nodes(g.bubble_map, 7);
-    EXPECT_EQ(5, bubble_7.first->get_pos());
-
-    auto bubble_9 = get_bubble_nodes(g.bubble_map, 9);
-    EXPECT_EQ(8, bubble_9.first->get_pos());
-}
-
-TEST(coverage_Graph, SequencePositions2) {
-    // Check POS is updated for first allele only in sites with nesting
-    std::string prg{"ATCG[G[A,CCC]C,GGG[AAA,C]]AA[T,C]"};
-    marker_vec v = prg_string_to_ints(prg);
-    PRG_String p{v};
-    coverage_Graph g{p};
-
-    auto bubble_5 = get_bubble_nodes(g.bubble_map, 5);
-    EXPECT_EQ(4, bubble_5.first->get_pos());
-
-    auto bubble_7 = get_bubble_nodes(g.bubble_map, 7);
-    EXPECT_EQ(5, bubble_7.first->get_pos());
-
-    auto bubble_9 = get_bubble_nodes(g.bubble_map, 9);
-    EXPECT_EQ(7, bubble_9.first->get_pos());
-
-    auto bubble_11 = get_bubble_nodes(g.bubble_map, 11);
-    EXPECT_EQ(9, bubble_11.first->get_pos());
 }
 
 

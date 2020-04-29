@@ -3,9 +3,41 @@
 #include "submod_resources.hpp"
 #include "build/kmer_index/masks.hpp"
 
+TEST(GenerateSitesMask, TwoVariantSites_CorrectSitesMask) {
+const auto prg_raw = encode_prg("a5g6t6cc7g8tt8aa8");
+auto prg_info = generate_prg_info(prg_raw);
+auto result = generate_sites_mask(prg_info.encoded_prg);
+sdsl::int_vector<> expected = {
+        0,
+        0, 5, 0, 5, 0,
+        0, 0,
+        0, 7, 0, 7, 7, 0, 7, 7, 0
+};
+sdsl::util::bit_compress(expected);
+EXPECT_EQ(result, expected);
+}
 
-using namespace gram;
+TEST(GenerateSitesMask, GivenMultiSitePrg_CorrectSitesMask) {
+    auto prg_raw = encode_prg("a5g6t6cc11g12tt12");
+    auto prg_info = generate_prg_info(prg_raw);
 
+    auto result = generate_sites_mask(prg_info.encoded_prg);
+    sdsl::int_vector<> expected = {0, 0, 5, 0, 5, 0, 0, 0, 0, 11, 0, 11, 11, 0};
+    sdsl::util::bit_compress(expected);
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateSitesMask, SingleVariantSiteTwoAlleles_CorrectSitesMask) {
+    const auto prg_raw = encode_prg("a5g6t6c");
+    auto prg_info = generate_prg_info(prg_raw);
+    auto result = generate_sites_mask(prg_info.encoded_prg);
+    sdsl::int_vector<> expected = {
+            0, 0, 5, 0, 5, 0, 0
+    };
+    sdsl::util::bit_compress(expected);
+    EXPECT_EQ(result, expected);
+}
 
 TEST(LoadAlleleMask, GivenComplexAlleleMask_SaveAndLoadFromFileCorrectly) {
     auto prg_raw = encode_prg("a5g6ttt6cc7aa8t8a");

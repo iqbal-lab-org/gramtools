@@ -123,61 +123,6 @@ bool operator==(PRG_String const &first, PRG_String const &second) {
     return true;
 }
 
-/**************************
- * Not Supporting nesting**
- **************************/
-
-/**
- * Converts a sequence of digits (0-9) into a single integer.
- */
-uint64_t concat_marker_digits(const std::vector<int> &marker_digits) {
-    uint64_t marker = 0;
-    for (const auto &digit: marker_digits)
-        marker = marker * 10 + digit;
-    return marker;
-}
-
-/**
- * Write out marker digits to the encoded prg as a single integer.
- * @see concat_marker_digits()
- */
-void flush_marker_digits(std::vector<int> &marker_digits,
-                         marker_vec &encoded_prg,
-                         uint64_t &count_chars) {
-    if (marker_digits.empty())
-        return;
-
-    uint64_t marker = concat_marker_digits(marker_digits);
-    encoded_prg[count_chars++] = marker;
-    marker_digits.clear();
-}
-
-marker_vec gram::encode_prg(const std::string &prg_raw) {
-    marker_vec encoded_prg(prg_raw.length(), 0);
-
-    uint64_t count_chars = 0;
-    // TODO: this should be possible without storing each individual digit
-    std::vector<int> marker_digits;
-    for (const auto &c: prg_raw) {
-        EncodeResult encode_result = encode_char(c);
-
-        if (encode_result.is_dna) {
-            // `flush_marker_digits` flushes any latent marker characters
-            flush_marker_digits(marker_digits, encoded_prg, count_chars);
-            encoded_prg[count_chars++] = encode_result.character;
-            continue;
-        }
-
-        // else: record the digit, and stand ready to record another
-        // TODO: check that character is numeric?
-        marker_digits.push_back(encode_result.character);
-    }
-    flush_marker_digits(marker_digits, encoded_prg, count_chars);
-
-    encoded_prg.resize(count_chars);
-    return encoded_prg;
-}
-
 std::string gram::ints_to_prg_string(std::vector<Marker> const& int_vec){
     std::string readable_string(int_vec.size(), '0');
     std::unordered_map<int,int> last_allele_indices; // Will record where to close the sites.
@@ -255,3 +200,60 @@ marker_vec gram::prg_string_to_ints(std::string const& string_prg) {
     // BOOST_LOG_TRIVIAL(info) << "Number of sites produced: " << (max_var_marker -3 ) / 2;
     return encoded_prg;
 }
+
+
+/**************************
+ * Not Supporting nesting**
+ **************************/
+
+/**
+ * Converts a sequence of digits (0-9) into a single integer.
+ */
+uint64_t concat_marker_digits(const std::vector<int> &marker_digits) {
+    uint64_t marker = 0;
+    for (const auto &digit: marker_digits)
+        marker = marker * 10 + digit;
+    return marker;
+}
+
+/**
+ * Write out marker digits to the encoded prg as a single integer.
+ * @see concat_marker_digits()
+ */
+void flush_marker_digits(std::vector<int> &marker_digits,
+                         marker_vec &encoded_prg,
+                         uint64_t &count_chars) {
+    if (marker_digits.empty())
+        return;
+
+    uint64_t marker = concat_marker_digits(marker_digits);
+    encoded_prg[count_chars++] = marker;
+    marker_digits.clear();
+}
+
+marker_vec gram::encode_prg(const std::string &prg_raw) {
+    marker_vec encoded_prg(prg_raw.length(), 0);
+
+    uint64_t count_chars = 0;
+    // TODO: this should be possible without storing each individual digit
+    std::vector<int> marker_digits;
+    for (const auto &c: prg_raw) {
+        EncodeResult encode_result = encode_char(c);
+
+        if (encode_result.is_dna) {
+            // `flush_marker_digits` flushes any latent marker characters
+            flush_marker_digits(marker_digits, encoded_prg, count_chars);
+            encoded_prg[count_chars++] = encode_result.character;
+            continue;
+        }
+
+        // else: record the digit, and stand ready to record another
+        // TODO: check that character is numeric?
+        marker_digits.push_back(encode_result.character);
+    }
+    flush_marker_digits(marker_digits, encoded_prg, count_chars);
+
+    encoded_prg.resize(count_chars);
+    return encoded_prg;
+}
+

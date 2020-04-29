@@ -17,22 +17,12 @@
 
 using namespace gram;
 
-namespace gram{
-    enum class endianness{big, little};
-
-    /** Converts linearised PRG as int vector to a more readable string.
-     *  We use the following notation: '[' opens a site, ',' delimits alleles in a site, ']' closes a site.
-     * */
-    std::string ints_to_prg_string(std::vector<Marker> const& int_vec);
-
-
-    /**
-     * Convert a nested PRG string to int representation, with linear site numbering.
-     * The site numbering is based on the fixed order in which '[' chars are encountered;
-     * thus int -> prg_string -> int can lose original site numbering.
-     */
-    std::vector<Marker> prg_string_to_ints(std::string const& string_prg);
+namespace gram {
+    enum class endianness {
+        big, little
+    };
 }
+
 
 /**********************
  * Supporting nesting**
@@ -80,6 +70,20 @@ private:
     void map_ends_and_check_for_duplicates();
 };
 
+namespace gram{
+/** Converts linearised PRG as int vector to a more readable string.
+ *  We use the following notation: '[' opens a site, ',' delimits alleles in a site, ']' closes a site.
+ * */
+std::string ints_to_prg_string(std::vector<Marker> const& int_vec);
+
+
+/**
+ * Convert a nested PRG string to int representation, with linear site numbering.
+ * The site numbering is based on the fixed order in which '[' chars are encountered;
+ * thus int -> prg_string -> int can lose original site numbering.
+ */
+std::vector<Marker> prg_string_to_ints(std::string const& string_prg);
+}
 
 /**************************
  * Not Supporting nesting**
