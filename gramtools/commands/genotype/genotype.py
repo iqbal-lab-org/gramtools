@@ -63,7 +63,7 @@ def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
         "--gram_dir",
         str(geno_paths.gram_dir),
         "--reads",
-        " ".join([str(read_file) for read_file in geno_paths.reads_files]),
+        *list(map(str, geno_paths.reads_files)),
         "--sample_id",
         args.sample_id,
         "--ploidy",

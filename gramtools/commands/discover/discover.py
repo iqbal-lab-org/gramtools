@@ -11,7 +11,7 @@ import collections
 import json
 
 from pysam import VariantFile, VariantRecord
-import cortex
+import cortex.calls as cortex
 
 from gramtools.commands.paths import DiscoverPaths
 from gramtools.commands.common import load_fasta
@@ -29,7 +29,7 @@ def run(args):
 
     # call variants using `cortex`
     log.debug("Running cortex")
-    cortex.calls(
+    cortex.run(
         disco_paths.pers_ref, disco_paths.reads_files, disco_paths.discov_vcf_cortex
     )
 
