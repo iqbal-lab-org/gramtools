@@ -15,7 +15,7 @@ import cortex.calls as cortex
 
 from gramtools.commands.paths import DiscoverPaths
 from gramtools.commands.common import load_fasta
-from .region_mapper import RegionMapper, ChromSizes, _Regions
+from .seq_region_map import RegionMapper, ChromSizes, SeqRegions
 
 log = logging.getLogger("gramtools")
 
@@ -68,7 +68,7 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
     derived_records = VariantFile(disco_paths.discov_vcf_cortex).fetch()
 
     region_mapper = RegionMapper(base_records, chrom_sizes)
-    flagged_personalised_regions = region_mapper.get_mapped()
+    flagged_personalised_regions = region_mapper.get_map()
 
     new_vcf_records = []
     for vcf_record in derived_records:
@@ -117,7 +117,7 @@ def _modify_vcf_record(vcf_record, **new_attributes):
 
 
 def _rebase_vcf_record(
-    vcf_record: VariantRecord, personalised_reference_regions: _Regions
+    vcf_record: VariantRecord, personalised_reference_regions: SeqRegions
 ):
     """Change `vcf_record` to be expressed relative to a different reference."""
 
@@ -135,17 +135,19 @@ def _rebase_vcf_record(
     first_region = personalised_reference_regions[region_index]
 
     # Case: hitting variant region. We rebase at the beginning of the variant region.
-    if first_region.is_site:
-        rebased_pos = first_region.base_pos
+    if first_region.is_variant_region:
+        rebased_pos = first_region.base_ref_start
 
         # We also straight away pre-pend any preceding variation relative to the base ref
-        if vcf_record.pos > first_region.inf_pos:
-            record_inset = vcf_record.pos - first_region.inf_pos
+        if vcf_record.pos > first_region.pers_ref_start:
+            record_inset = vcf_record.pos - first_region.pers_ref_start
             rebased_alt = first_region.vcf_record_alt[:record_inset] + rebased_alt
 
     # Case: hitting non-variant region. We rebase at where the vcf_record starts, in base ref coordinates.
     else:
-        rebased_pos = first_region.base_pos + (vcf_record.pos - first_region.inf_pos)
+        rebased_pos = first_region.base_ref_start + (
+            vcf_record.pos - first_region.pers_ref_start
+        )
 
     while ref_seq_left:
         region = personalised_reference_regions[region_index]
@@ -154,7 +156,7 @@ def _rebase_vcf_record(
         # NOTE that region.length is 'overloaded': if a non-var region, it is the fixed interval between var regions.
         # If a var region, it is the inferred_vcf record's alt length (ref and alt lengths can differ).
         consumable = region.length - (
-            vcf_record.pos + consumed_reference - region.inf_pos
+            vcf_record.pos + consumed_reference - region.pers_ref_start
         )
 
         if consumable >= (reference_length - consumed_reference):
@@ -163,7 +165,7 @@ def _rebase_vcf_record(
         else:
             to_consume = consumable
 
-        if region.is_site:
+        if region.is_variant_region:
             rebased_ref += region.vcf_record_ref
 
         else:
@@ -178,10 +180,10 @@ def _rebase_vcf_record(
     assert consumed_reference == len(vcf_record.ref)
 
     # Deal with the last region: post-pend any sequence in alt record if we finish in a variant site.
-    if region.is_site:
+    if region.is_variant_region:
         cur_pos = vcf_record.pos + consumed_reference
         # The inset will be < 0 if there is a part of the (inferred vcf record's) alt which has not been
-        inset = cur_pos - (region.inf_pos + region.length)
+        inset = cur_pos - (region.pers_ref_start + region.length)
         if inset < 0:
             rebased_alt += region.vcf_record_alt[inset:]
 
@@ -232,7 +234,7 @@ def _find_start_region_index(vcf_record: VariantRecord, marked_regions):
     selected_region = marked_regions[region_index]
 
     # Case: record_start_pos was not found exactly.
-    if selected_region.inf_pos > record_start_pos:
+    if selected_region.pers_ref_start > record_start_pos:
         region_index -= 1
 
     return region_index

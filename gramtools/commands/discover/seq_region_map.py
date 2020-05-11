@@ -1,27 +1,40 @@
-from typing import List, Dict, Iterable
-from pysam import VariantFile, VariantRecord
+from typing import List, Dict, Iterable, Union
+
+from pysam import VariantRecord
 
 VariantRecords = Iterable[VariantRecord]
-ChromSizes = Dict[str, int]
+Chrom = str
+ChromSizes = Dict[Chrom, int]
 
 
-class _Region:
+class SeqRegion:
     """Mapping between vcf records in two coordinate spaces
     """
 
     def __init__(
-        self, base_pos, inf_pos, length, vcf_record_ref=None, vcf_record_alt=None
+        self,
+        base_pos: int,
+        inf_pos: int,
+        length: int,
+        vcf_record_ref: Union[str, None] = None,
+        vcf_record_alt: Union[str, None] = None,
     ):
         # Start coordinates
-        self.base_pos = base_pos
-        self.inf_pos = inf_pos
+        self.base_ref_start = base_pos
+        self.pers_ref_start = inf_pos
 
-        self.length = length
         self.vcf_record_ref = vcf_record_ref
         self.vcf_record_alt = vcf_record_alt
 
+        if self.vcf_record_alt is not None and length is not None:
+            if length != len(self.vcf_record_alt):
+                raise ValueError(
+                    f"{length} must be length of {vcf_record_alt} when both are provided."
+                )
+        self.length = length
+
     @property
-    def is_site(self):
+    def is_variant_region(self):
         return self.vcf_record_ref is not None
 
     def __eq__(self, other):
@@ -31,46 +44,38 @@ class _Region:
         return str(self.__dict__)
 
     def __lt__(self, other):
-        if isinstance(other, _Region):
-            return self.inf_pos < other.inf_pos
+        if isinstance(other, SeqRegion):
+            return self.pers_ref_start < other.pers_ref_start
         else:
-            return self.inf_pos < other
+            return self.pers_ref_start < other
 
 
-_Regions = List[_Region]
-_Regions_Map = Dict[str, _Regions]
+SeqRegions = List[SeqRegion]
+SeqRegionsMap = Dict[Chrom, SeqRegions]
 
 
-class _ref_positions:
-    def __init__(self, base_pos, derived_pos):
-        self.base_pos = base_pos
-        self.derived_pos = derived_pos
+class _PosTracker:
+    def __init__(self, base_ref_pos: int, pers_ref_pos: int):
+        self.base_ref_pos = base_ref_pos
+        self.pers_ref_pos = pers_ref_pos
 
 
 class RegionMapper:
     def __init__(self, base_records: VariantRecords, chrom_sizes: ChromSizes):
-        self.base_recs = base_records
         self.chrom_sizes = chrom_sizes
-        self.all_regions: Dict[
-            str, List[_Region]
-        ] = {}  # Maps each CHROM to a list of _Regions
-        self.chrom_pos: Dict[str, _ref_positions] = {}
-
-    def get_mapped(self):
-        if len(self.all_regions) > 0:
-            return self.all_regions
+        self.map: SeqRegionsMap = dict()
+        self.pos_trackers: Dict[Chrom, _PosTracker] = {}
 
         prev_chrom_key, prev_record = None, None
 
-        for record in self.base_recs:
+        for record in base_records:
             chrom_key = record.chrom
-            # Switch contigs
-            if chrom_key not in self.all_regions:
+            if chrom_key not in self.map:
                 self._new_chrom(chrom_key, prev_chrom_key)
             else:
                 self._enforce_contiguity(chrom_key, prev_chrom_key, record, prev_record)
 
-            base_pos = self.chrom_pos[chrom_key].base_pos
+            base_pos = self.pos_trackers[chrom_key].base_ref_pos
             if record.pos > base_pos:  # Build non-variant region
                 region_length = record.pos - base_pos
                 self._add_invariant_region(chrom_key, region_length)
@@ -79,21 +84,22 @@ class RegionMapper:
             prev_chrom_key = chrom_key
             prev_record = record
 
-        if len(self.all_regions) == 0:
+        if len(self.map) == 0:
             raise ValueError("No records in provided vcf.")
 
         chrom_size = self.chrom_sizes[chrom_key]
-        base_pos = self.chrom_pos[chrom_key].base_pos
+        base_pos = self.pos_trackers[chrom_key].base_ref_pos
         if base_pos <= chrom_size:
             self._add_invariant_region(chrom_key, chrom_size - base_pos + 1)
 
         self.map_invariant_chroms()
 
-        return self.all_regions
+    def get_map(self):
+        return self.map
 
     @property
     def num_processed_chroms(self):
-        return len(self.all_regions.keys())
+        return len(self.map.keys())
 
     def map_invariant_chroms(self):
         """
@@ -101,41 +107,43 @@ class RegionMapper:
         We need to map those so that variants found against them are recognised
         """
         for chrom in self.chrom_sizes:
-            if chrom not in self.all_regions:
-                self.all_regions[chrom] = [_Region(1, 1, self.chrom_sizes[chrom])]
+            if chrom not in self.map:
+                self.map[chrom] = [SeqRegion(1, 1, self.chrom_sizes[chrom])]
 
     def _new_chrom(self, chrom_key, prev_chrom_key):
         # New chrom; make sure capture the end of the previous chrom
         if self.num_processed_chroms > 0:
-            prev_base_pos = self.chrom_pos[prev_chrom_key].base_pos
+            prev_base_pos = self.pos_trackers[prev_chrom_key].base_ref_pos
             prev_chrom_size = self.chrom_sizes[prev_chrom_key]
             if prev_base_pos <= prev_chrom_size:
                 region_length = prev_chrom_size - prev_base_pos + 1
                 self._add_invariant_region(prev_chrom_key, region_length)
 
-        self.all_regions[chrom_key] = []
-        self.chrom_pos[chrom_key] = _ref_positions(1, 1)
+        self.map[chrom_key] = list()
+        self.pos_trackers[chrom_key] = _PosTracker(1, 1)
 
     def _add_invariant_region(self, chrom_key, region_length: int):
-        ref_positions = self.chrom_pos[chrom_key]
+        ref_positions = self.pos_trackers[chrom_key]
 
-        region_set = self.all_regions[chrom_key]
-        perform_extension = len(region_set) > 0 and not region_set[-1].is_site
+        focal_regions: SeqRegions = self.map[chrom_key]
+        perform_extension = (
+            len(focal_regions) > 0 and not focal_regions[-1].is_variant_region
+        )
         if perform_extension:
             # Case: REF called variant region follows, or is followed by, invariant region
-            region_set[-1].length += region_length
+            focal_regions[-1].length += region_length
         else:
-            non_var_region = _Region(
-                base_pos=ref_positions.base_pos,
-                inf_pos=ref_positions.derived_pos,
+            non_var_region = SeqRegion(
+                base_pos=ref_positions.base_ref_pos,
+                inf_pos=ref_positions.pers_ref_pos,
                 length=region_length,
             )
-            self.all_regions[chrom_key].append(non_var_region)
-        ref_positions.base_pos += region_length
-        ref_positions.derived_pos += region_length
+            self.map[chrom_key].append(non_var_region)
+        ref_positions.base_ref_pos += region_length
+        ref_positions.pers_ref_pos += region_length
 
     def _add_variant_region(self, chrom_key, vcf_record: VariantRecord):
-        ref_positions = self.chrom_pos[chrom_key]
+        ref_positions = self.pos_trackers[chrom_key]
         picked_alleles = vcf_record.samples[0]["GT"]
         if set(picked_alleles) == {None}:
             picked_allele = 0  # null GT, take ref allele
@@ -143,17 +151,17 @@ class RegionMapper:
             picked_allele = picked_alleles[0]
 
         if picked_allele != 0:
-            var_region = _Region(
-                base_pos=ref_positions.base_pos,
-                inf_pos=ref_positions.derived_pos,
+            var_region = SeqRegion(
+                base_pos=ref_positions.base_ref_pos,
+                inf_pos=ref_positions.pers_ref_pos,
                 length=len(vcf_record.alts[picked_allele - 1]),
                 vcf_record_ref=vcf_record.ref,
                 vcf_record_alt=str(vcf_record.alts[picked_allele - 1]),
             )
 
-            self.all_regions[chrom_key].append(var_region)
-            ref_positions.base_pos += len(vcf_record.ref)
-            ref_positions.derived_pos += var_region.length
+            self.map[chrom_key].append(var_region)
+            ref_positions.base_ref_pos += len(vcf_record.ref)
+            ref_positions.pers_ref_pos += var_region.length
         else:
             self._add_invariant_region(chrom_key, len(vcf_record.ref))
 
