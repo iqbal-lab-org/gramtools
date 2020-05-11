@@ -1,9 +1,8 @@
-from unittest import TestCase
-import os
-import collections
+from unittest import TestCase, main as unittest_main
 
 from gramtools.tests.mocks import _MockVcfRecord
 from gramtools.commands.discover import discover
+from gramtools.commands.discover.seq_region_map import SearchableSeqRegionsMap
 
 
 class TestRebaseVcfRecord(TestCase):
@@ -12,11 +11,12 @@ class TestRebaseVcfRecord(TestCase):
         # derived sequence:   T G   CGG
         chrom_sizes = {"JAC": 5}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
-        mapped_regions = discover.RegionMapper(base_records, chrom_sizes).get_map()
+        region_map = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_searcher = SearchableSeqRegionsMap(region_map)
 
         discov_record = _MockVcfRecord(pos=3, ref="C", alts=["G"])
         new_vcf_record = discover._rebase_vcf_record(
-            discov_record, list(mapped_regions.values())[0]
+            discov_record, "JAC", region_searcher
         )
 
         result = _MockVcfRecord(
@@ -34,11 +34,12 @@ class TestRebaseVcfRecord(TestCase):
 
         chrom_sizes = {"chr1": 7, "chr2": 5}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"], chrom="chr1")]
-        mapped_regions = discover.RegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=1, ref="TT", alts=["GA"], chrom="chr2")
         new_vcf_record = discover._rebase_vcf_record(
-            discov_record, mapped_regions["chr2"]
+            discov_record, "chr2", region_searcher
         )
         self.assertEqual(discov_record, new_vcf_record)
 
@@ -47,11 +48,12 @@ class TestRebaseVcfRecord(TestCase):
         # derived sequence:   T G   CGG
         chrom_sizes = {"JAC": 7}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
-        mapped_regions = discover.RegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=1, ref="TG", alts=["TAA"])
         new_vcf_record = discover._rebase_vcf_record(
-            discov_record, mapped_regions["JAC"]
+            discov_record, "JAC", region_searcher
         )
 
         result = _MockVcfRecord(
@@ -72,12 +74,13 @@ class TestRebaseVcfRecord(TestCase):
         # secondary: T G   CGG
         chrom_sizes = {"JAC": 7}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
+        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=1, ref="TGCG", alts=["GGCT"])
 
-        mapped_regions = discover.RegionMapper(base_records, chrom_sizes).get_map()
         new_vcf_record = discover._rebase_vcf_record(
-            discov_record, list(mapped_regions.values())[0]
+            discov_record, "JAC", region_searcher
         )
 
         result = _MockVcfRecord(
@@ -100,12 +103,13 @@ class TestRebaseVcfRecord(TestCase):
             _MockVcfRecord(pos=2, ref="TAT", alts=["G"]),
             _MockVcfRecord(pos=8, ref="T", alts=["TCTGC"]),
         ]
+        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=9, ref="G", alts=["A"])
 
-        mapped_regions = discover.RegionMapper(base_records, chrom_sizes).get_map()
         new_vcf_record = discover._rebase_vcf_record(
-            discov_record, list(mapped_regions.values())[0]
+            discov_record, "JAC", region_searcher
         )
 
         result = _MockVcfRecord(
@@ -115,7 +119,7 @@ class TestRebaseVcfRecord(TestCase):
 
         self.assertEqual(expected, result)
 
-    def test_Deletion_OnTopOfDeletion_WithExtraDeletionInNonSite(self):
+    def test_multiple_deletions(self):
         """
         A test case where we discover a deletion on top of a deletion in a variant site;
         as well as an extra deletion in a non-variant site.
@@ -134,12 +138,12 @@ class TestRebaseVcfRecord(TestCase):
             _MockVcfRecord(pos=1, ref="CAA", alts=["C"]),
             _MockVcfRecord(pos=5, ref="GCTA", alts=["GAT"]),
         ]
+        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=4, ref="ATC", alts=["A"])
-
-        mapped_regions = discover.RegionMapper(base_records, chrom_sizes).get_map()
         new_vcf_record = discover._rebase_vcf_record(
-            discov_record, list(mapped_regions.values())[0]
+            discov_record, "JAC", region_searcher
         )
 
         result = _MockVcfRecord(
@@ -151,4 +155,4 @@ class TestRebaseVcfRecord(TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest_main()

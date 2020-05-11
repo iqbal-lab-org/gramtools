@@ -1,4 +1,5 @@
-from typing import List, Dict, Iterable, Union
+from typing import List, Dict, Iterable, Union, Callable
+from enum import Enum, auto
 
 from pysam import VariantRecord
 
@@ -60,7 +61,7 @@ class _PosTracker:
         self.pers_ref_pos = pers_ref_pos
 
 
-class RegionMapper:
+class SeqRegionMapper:
     def __init__(self, base_records: VariantRecords, chrom_sizes: ChromSizes):
         self.chrom_sizes = chrom_sizes
         self.map: SeqRegionsMap = dict()
@@ -173,3 +174,55 @@ class RegionMapper:
         assert (
             vcf_rec.pos > prev_vcf_rec.pos
         ), f"Records not in increasing pos order: {prev_vcf_rec} and {vcf_rec}"
+
+
+class BisectTarget(Enum):
+    BASE_REF = auto()
+    PERS_REF = auto()
+
+
+class SearchableSeqRegionsMap:
+    def __init__(self, map: SeqRegionsMap):
+        self._map = map
+
+    def bisect(self, chrom: Chrom, pos: int, mode: BisectTarget):
+        if mode not in BisectTarget:
+            raise ValueError(f"mode argument should be of type {BisectTarget}")
+        regions: SeqRegions = self._map[chrom]
+        if mode is BisectTarget.BASE_REF:
+            return self._bisect(regions, pos, self.base_ref_gt)
+        else:
+            return self._bisect(regions, pos, self.pers_ref_gt)
+
+    def get_region(self, chrom: Chrom, region_index: int):
+        return self._map[chrom][region_index]
+
+    @staticmethod
+    def base_ref_gt(region: SeqRegion, pos: int):
+        return region.base_ref_start > pos
+
+    @staticmethod
+    def pers_ref_gt(region: SeqRegion, pos: int):
+        return region.pers_ref_start > pos
+
+    def _bisect(
+        self,
+        regions: SeqRegions,
+        pos: int,
+        cmp_function: Callable[[SeqRegion, int], bool],
+    ):
+        """
+        First, does right bisection: find the index of the element in `regions`
+            for which all preceding elements have start position <= `pos`,
+            and all other elements have start position > `pos`
+        Then returns that - 1 so that we get the region which has start position <= `pos`
+        """
+        lo = 0
+        hi = len(regions)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if cmp_function(regions[mid], pos):
+                hi = mid
+            else:
+                lo = mid + 1
+        return lo - 1

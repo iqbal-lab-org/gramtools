@@ -4,10 +4,8 @@ Works on a haploid personalised reference produced by gramtools `genotype`
 Any newly discovered variants get rebased, ie expressed in the original prg
     reference coordinate space.
 """
-from typing import List, Dict, Iterable
-import bisect
+from typing import List
 import logging
-import collections
 import json
 
 from pysam import VariantFile, VariantRecord
@@ -15,7 +13,14 @@ import cortex.calls as cortex
 
 from gramtools.commands.paths import DiscoverPaths
 from gramtools.commands.common import load_fasta
-from .seq_region_map import RegionMapper, ChromSizes, SeqRegions
+from .seq_region_map import (
+    Chrom,
+    ChromSizes,
+    SeqRegionsMap,
+    SeqRegionMapper,
+    SearchableSeqRegionsMap,
+    BisectTarget,
+)
 
 log = logging.getLogger("gramtools")
 
@@ -67,29 +72,22 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
     base_records = VariantFile(disco_paths.geno_vcf).fetch()
     derived_records = VariantFile(disco_paths.discov_vcf_cortex).fetch()
 
-    region_mapper = RegionMapper(base_records, chrom_sizes)
-    flagged_personalised_regions = region_mapper.get_map()
+    region_map: SeqRegionsMap = SeqRegionMapper(base_records, chrom_sizes).get_map()
+    region_searcher = SearchableSeqRegionsMap(region_map)
 
     new_vcf_records = []
     for vcf_record in derived_records:
         chrom_key = vcf_record.chrom
 
         if check_records:
-            if (
-                check_ref_consistent(
-                    vcf_record, inferred_refs[chrom_key], var_unplaced_records
-                )
-                is False
+            if not check_ref_consistent(
+                vcf_record, inferred_refs[chrom_key], var_unplaced_records
             ):
                 continue  # Do not process inconsistent records
 
-        regions_list = flagged_personalised_regions.get(chrom_key, None)
-        assert regions_list is not None, (
-            f"Error: ref ID {chrom_key} in vcf record {vcf_record} is not"
-            f" present in vcf from infer {disco_paths.geno_vcf}"
+        new_vcf_records.append(
+            _rebase_vcf_record(vcf_record, chrom_key, region_searcher)
         )
-
-        new_vcf_records.append(_rebase_vcf_record(vcf_record, regions_list))
 
     if check_records and len(var_unplaced_records) > 0:
         log.warning(
@@ -117,22 +115,23 @@ def _modify_vcf_record(vcf_record, **new_attributes):
 
 
 def _rebase_vcf_record(
-    vcf_record: VariantRecord, personalised_reference_regions: SeqRegions
+    vcf_record: VariantRecord, chrom: Chrom, region_searcher: SearchableSeqRegionsMap
 ):
     """Change `vcf_record` to be expressed relative to a different reference."""
 
-    # Get index of region containing the start of the `vcf_record`.
-    region_index = _find_start_region_index(vcf_record, personalised_reference_regions)
+    # Get index of personalised ref region containing the start of the `vcf_record`.
+    region_index = region_searcher.bisect(chrom, vcf_record.pos, BisectTarget.PERS_REF)
 
     consumed_reference = 0  # Position in the inferred ref. sequence
     reference_length = len(vcf_record.ref)
     ref_seq_left = True
 
-    # we will build the rebased_ref as we traverse the regions. We will use the vcf_record alt and pre-pend and/or post-pend to it if necessary.
+    # Build the rebased_ref as we traverse the regions,
+    # using the vcf_record alt and pre-pend and/or post-pend to it if necessary.
     rebased_ref, rebased_alt = "", str(vcf_record.alts[0])
 
     # Let's rebase the position straight away
-    first_region = personalised_reference_regions[region_index]
+    first_region = region_searcher.get_region(chrom, region_index)
 
     # Case: hitting variant region. We rebase at the beginning of the variant region.
     if first_region.is_variant_region:
@@ -150,7 +149,7 @@ def _rebase_vcf_record(
         )
 
     while ref_seq_left:
-        region = personalised_reference_regions[region_index]
+        region = region_searcher.get_region(chrom, region_index)
         # Check how much of the vcf_record ref (inferred reference) can be consumed by the current region.
         # If the current region can consume at least what is left of the vcf_record ref, loop ends.
         # NOTE that region.length is 'overloaded': if a non-var region, it is the fixed interval between var regions.
@@ -205,39 +204,15 @@ def _add_contig_lines(disco_paths: DiscoverPaths):
     if list(derived_vcf_contigs) == list():  # Need to add contig headers
         base_vcf_contigs = VariantFile(disco_paths.geno_vcf).header.contigs
         with open(disco_paths.discov_vcf_cortex) as f_in:
-            all = f_in.readlines()
+            all_lines = f_in.readlines()
         with open(disco_paths.discov_vcf_cortex, "w") as f_out:
             insert = True
-            for line in all:
+            for line in all_lines:
                 f_out.write(line)
                 if (line[0] != "##") and insert:
                     for contig in base_vcf_contigs:
                         f_out.write(f"##contig=<ID={contig}>\n")
                     insert = False
-
-
-## Return the marked `_Region` containing the position referred to by `vcf_record`.
-def _find_start_region_index(vcf_record: VariantRecord, marked_regions):
-    record_start_pos = vcf_record.pos
-
-    # Binary search on a sorted array. '<' comparator is overloaded in `_Region` definition to allow the search.
-    # The produced index is:
-    # * If a region with start pos == record_start_pos is found, returns that index (specifically, the first occurrence)
-    # * If such a region is not found, returns the index of the region with start pos **strictly** greater than record_start_pos
-    # IN THAT CASE, we need to return the region index one smaller; so that the region's interval includes record_start_pos.
-    region_index = bisect.bisect_left(marked_regions, record_start_pos)
-
-    #  Case: `record_start_index` is larger than any _Region start.
-    if region_index > len(marked_regions) - 1:
-        region_index = len(marked_regions) - 1
-
-    selected_region = marked_regions[region_index]
-
-    # Case: record_start_pos was not found exactly.
-    if selected_region.pers_ref_start > record_start_pos:
-        region_index -= 1
-
-    return region_index
 
 
 def enforce_genotyping_was_haploid(disco_paths: DiscoverPaths):
@@ -268,9 +243,3 @@ def check_ref_consistent(
         var_unplaced_records.append(str(vcf_record))
         return False
     return True
-
-
-## Generator to always yield the first allele (ref) of a variant site.
-def _alwaysRef():
-    while True:
-        yield 0
