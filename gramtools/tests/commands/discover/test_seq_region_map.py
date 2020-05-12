@@ -1,4 +1,7 @@
 from unittest import TestCase
+from tempfile import mkdtemp
+from pathlib import Path
+from shutil import rmtree
 
 from gramtools.tests.mocks import _MockVcfRecord
 from gramtools.commands.discover.seq_region_map import (
@@ -24,15 +27,15 @@ class TestRegionMapping(TestCase):
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
 
         expected = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=1,
                 vcf_record_ref="TAT",
                 vcf_record_alt="G",
             ),
-            SeqRegion(base_pos=5, inf_pos=3, length=3),
+            SeqRegion(base_ref_start=5, pers_ref_start=3, length=3),
         ]
         self.assertEqual(expected, result["JAC"])
 
@@ -44,7 +47,7 @@ class TestRegionMapping(TestCase):
         ]
         chrom_sizes = {"JAC": 7}
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
-        expected = [SeqRegion(base_pos=1, inf_pos=1, length=7)]
+        expected = [SeqRegion(base_ref_start=1, pers_ref_start=1, length=7)]
         self.assertEqual(expected, result["JAC"])
 
     def test_AltLongerThanRef_CorrectRegion(self):
@@ -56,15 +59,15 @@ class TestRegionMapping(TestCase):
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
 
         expected = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=5,
                 vcf_record_ref="TAT",
                 vcf_record_alt="GCCAC",
             ),
-            SeqRegion(base_pos=5, inf_pos=7, length=3),
+            SeqRegion(base_ref_start=5, pers_ref_start=7, length=3),
         ]
         self.assertEqual(expected, result["JAC"])
 
@@ -80,23 +83,23 @@ class TestRegionMapping(TestCase):
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
 
         expected = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=5,
                 vcf_record_ref="TAT",
                 vcf_record_alt="GCCAC",
             ),
-            SeqRegion(base_pos=5, inf_pos=7, length=1),
+            SeqRegion(base_ref_start=5, pers_ref_start=7, length=1),
             SeqRegion(
-                base_pos=6,
-                inf_pos=8,
+                base_ref_start=6,
+                pers_ref_start=8,
                 length=3,
                 vcf_record_ref="G",
                 vcf_record_alt="TTT",
             ),
-            SeqRegion(base_pos=7, inf_pos=11, length=1),
+            SeqRegion(base_ref_start=7, pers_ref_start=11, length=1),
         ]
 
         self.assertEqual(expected, result["JAC"])
@@ -113,42 +116,34 @@ class TestRegionMapping(TestCase):
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
 
         expected = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=5,
                 vcf_record_ref="TAT",
                 vcf_record_alt="GCCAC",
             ),
             SeqRegion(
-                base_pos=5,
-                inf_pos=7,
+                base_ref_start=5,
+                pers_ref_start=7,
                 length=3,
                 vcf_record_ref="C",
                 vcf_record_alt="TCT",
             ),
             SeqRegion(
-                base_pos=6,
-                inf_pos=10,
+                base_ref_start=6,
+                pers_ref_start=10,
                 length=2,
                 vcf_record_ref="G",
                 vcf_record_alt="AA",
             ),
-            SeqRegion(base_pos=7, inf_pos=12, length=1),
+            SeqRegion(base_ref_start=7, pers_ref_start=12, length=1),
         ]
 
         self.assertEqual(expected, list(result.values())[0])
 
     def test_TwoRecords_TwoDifferentChroms(self):
-        # CHROM 1:
-        #   base sequence:      GAA ATTC CAA
-        #   derived sequence:   GAA A    CAA
-
-        # CHROM 2:
-        #   base sequence:      GCGCA A   CG
-        #   derived sequence:   GCGCA AAC CG
-
         base_records = [
             _MockVcfRecord(pos=4, ref="ATTC", alts=["A"], chrom="Chrom_1"),
             _MockVcfRecord(pos=6, ref="A", alts=["AAC"], chrom="Chrom_2"),
@@ -158,27 +153,27 @@ class TestRegionMapping(TestCase):
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
 
         expected_Chrom_1 = [
-            SeqRegion(base_pos=1, inf_pos=1, length=3),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=3),
             SeqRegion(
-                base_pos=4,
-                inf_pos=4,
+                base_ref_start=4,
+                pers_ref_start=4,
                 length=1,
                 vcf_record_ref="ATTC",
                 vcf_record_alt="A",
             ),
-            SeqRegion(base_pos=8, inf_pos=5, length=3),
+            SeqRegion(base_ref_start=8, pers_ref_start=5, length=3),
         ]
 
         expected_Chrom_2 = [
-            SeqRegion(base_pos=1, inf_pos=1, length=5),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=5),
             SeqRegion(
-                base_pos=6,
-                inf_pos=6,
+                base_ref_start=6,
+                pers_ref_start=6,
                 length=3,
                 vcf_record_ref="A",
                 vcf_record_alt="AAC",
             ),
-            SeqRegion(base_pos=7, inf_pos=9, length=2),
+            SeqRegion(base_ref_start=7, pers_ref_start=9, length=2),
         ]
         expectations = {"Chrom_1": expected_Chrom_1, "Chrom_2": expected_Chrom_2}
         for key in expectations:
@@ -198,26 +193,24 @@ class TestRegionMapping(TestCase):
 
     def test_chrom_with_no_records(self):
         """
-        Can find variants against a chromosome with no initial variation
+        Need to map chroms with no initial variation too
         """
-        # CHROM1:
-        #   base sequence:      CAAC
-        #   derived sequence:   CAAC
-        # CHROM2:
-        #   base sequence:      A T CAA
-        #   derived sequence:   A A CAA
         base_records = [_MockVcfRecord(pos=2, ref="T", alts=["A"], chrom="Chrom_2")]
 
         chrom_sizes = {"Chrom_1": 4, "Chrom_2": 5}
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
 
-        expected_Chrom_1 = [SeqRegion(base_pos=1, inf_pos=1, length=4)]
+        expected_Chrom_1 = [SeqRegion(base_ref_start=1, pers_ref_start=1, length=4)]
         expected_Chrom_2 = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2, inf_pos=2, length=1, vcf_record_ref="T", vcf_record_alt="A"
+                base_ref_start=2,
+                pers_ref_start=2,
+                length=1,
+                vcf_record_ref="T",
+                vcf_record_alt="A",
             ),
-            SeqRegion(base_pos=3, inf_pos=3, length=3),
+            SeqRegion(base_ref_start=3, pers_ref_start=3, length=3),
         ]
 
         expectations = {"Chrom_1": expected_Chrom_1, "Chrom_2": expected_Chrom_2}
@@ -228,15 +221,15 @@ class TestRegionMapping(TestCase):
 class TestSearchRegions(TestCase):
     def test_base_ref_pers_ref_same_results(self):
         mapped_regions = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=3,
                 vcf_record_ref="TAT",
                 vcf_record_alt="GCC",
             ),
-            SeqRegion(base_pos=5, inf_pos=5, length=3),
+            SeqRegion(base_ref_start=5, pers_ref_start=5, length=3),
         ]
 
         vcf_record_in_var_region = _MockVcfRecord(pos=2, ref="GC", alts=["GA"])
@@ -253,15 +246,15 @@ class TestSearchRegions(TestCase):
 
     def test_pers_ref_further_than_base_ref(self):
         mapped_regions = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=1,
                 vcf_record_ref="TAT",
                 vcf_record_alt="G",
             ),
-            SeqRegion(base_pos=5, inf_pos=3, length=3),
+            SeqRegion(base_ref_start=5, pers_ref_start=3, length=3),
         ]
 
         vcf_record = _MockVcfRecord(pos=4, ref="G", alts=["A"])
@@ -277,17 +270,17 @@ class TestSearchRegions(TestCase):
 
     def test_base_ref_further_than_pers_ref(self):
         mapped_regions = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=5,
                 vcf_record_ref="TAT",
                 vcf_record_alt="GCCAC",
             ),
             SeqRegion(
-                base_pos=5,
-                inf_pos=7,
+                base_ref_start=5,
+                pers_ref_start=7,
                 length=3,
                 vcf_record_ref="G",
                 vcf_record_alt="TTT",
@@ -305,17 +298,17 @@ class TestSearchRegions(TestCase):
 
     def test_retrieve_searched_region(self):
         mapped_regions_1 = [
-            SeqRegion(base_pos=1, inf_pos=1, length=1),
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
             SeqRegion(
-                base_pos=2,
-                inf_pos=2,
+                base_ref_start=2,
+                pers_ref_start=2,
                 length=5,
                 vcf_record_ref="TAT",
                 vcf_record_alt="GCCAC",
             ),
         ]
 
-        mapped_regions_2 = [SeqRegion(base_pos=1, inf_pos=1, length=200)]
+        mapped_regions_2 = [SeqRegion(base_ref_start=1, pers_ref_start=1, length=200)]
 
         searcher = SearchableSeqRegionsMap(
             {"chr1": mapped_regions_1, "chr2": mapped_regions_2}
@@ -336,3 +329,77 @@ class TestSearchRegions(TestCase):
         self.assertEqual(
             searcher.get_region(vcf_record.chrom, its_index), mapped_regions_1[1]
         )
+
+
+class TestSearcherSerialisation(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.mapped_regions = [
+            SeqRegion(base_ref_start=1, pers_ref_start=1, length=1),
+            SeqRegion(
+                base_ref_start=2,
+                pers_ref_start=2,
+                length=2,
+                vcf_record_ref="TAT",
+                vcf_record_alt="CC",
+            ),
+        ]
+
+    def test_json_serialise_SeqRegions(self):
+        reg1 = self.mapped_regions[0].to_json()
+        expected = {
+            "SeqRegion": {"base_ref_start": 1, "pers_ref_start": 1, "length": 1}
+        }
+        self.assertEqual(expected, reg1)
+
+        reg2 = self.mapped_regions[1].to_json()
+        expected = {
+            "SeqRegion": {
+                "base_ref_start": 2,
+                "pers_ref_start": 2,
+                "length": 2,
+                "vcf_record_ref": "TAT",
+                "vcf_record_alt": "CC",
+            }
+        }
+        self.assertEqual(expected, reg2)
+
+    def test_json_deserialise_SeqRegion(self):
+        reg1 = {"SeqRegion": {"base_ref_start": 1, "pers_ref_start": 1, "length": 1}}
+        self.assertEqual(self.mapped_regions[0], SeqRegion.from_json(reg1))
+
+        reg2 = {
+            "SeqRegion": {
+                "base_ref_start": 2,
+                "pers_ref_start": 2,
+                "length": 2,
+                "vcf_record_ref": "TAT",
+                "vcf_record_alt": "CC",
+            }
+        }
+        self.assertEqual(self.mapped_regions[1], SeqRegion.from_json(reg2))
+
+    def test_dump_and_load_recapitulates_map(self):
+        searcher = SearchableSeqRegionsMap({"JAC": self.mapped_regions})
+        tmpdir = Path(mkdtemp())
+        tmpfile = tmpdir / "map.json"
+        searcher.dump_to(tmpfile)
+        loaded_searcher = SearchableSeqRegionsMap.load_from(tmpfile)
+        self.assertEqual(searcher, loaded_searcher)
+        rmtree(tmpdir)
+
+    def test_dump_and_load_without_sequences(self):
+        """
+        Serialisation without the REF and ALT SeqRegion sequences
+        """
+        searcher = SearchableSeqRegionsMap({"JAC": self.mapped_regions})
+        tmpdir = Path(mkdtemp())
+        tmpfile = tmpdir / "map.json"
+        searcher.dump_to(tmpfile, dump_sequences=False)
+        loaded_searcher = SearchableSeqRegionsMap.load_from(tmpfile)
+
+        self.assertEqual(
+            searcher.get_region("JAC", 0), loaded_searcher.get_region("JAC", 0)
+        )
+        self.assertEqual(SeqRegion(2, 2, 2), loaded_searcher.get_region("JAC", 1))
+        rmtree(tmpdir)

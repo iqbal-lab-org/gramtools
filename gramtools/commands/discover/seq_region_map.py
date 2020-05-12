@@ -1,5 +1,7 @@
 from typing import List, Dict, Iterable, Union, Callable
 from enum import Enum, auto
+import json
+from pathlib import Path
 
 from pysam import VariantRecord
 
@@ -14,15 +16,15 @@ class SeqRegion:
 
     def __init__(
         self,
-        base_pos: int,
-        inf_pos: int,
+        base_ref_start: int,
+        pers_ref_start: int,
         length: int,
         vcf_record_ref: Union[str, None] = None,
         vcf_record_alt: Union[str, None] = None,
     ):
         # Start coordinates
-        self.base_ref_start = base_pos
-        self.pers_ref_start = inf_pos
+        self.base_ref_start = base_ref_start
+        self.pers_ref_start = pers_ref_start
 
         self.vcf_record_ref = vcf_record_ref
         self.vcf_record_alt = vcf_record_alt
@@ -44,11 +46,20 @@ class SeqRegion:
     def __repr__(self):
         return str(self.__dict__)
 
-    def __lt__(self, other):
-        if isinstance(other, SeqRegion):
-            return self.pers_ref_start < other.pers_ref_start
-        else:
-            return self.pers_ref_start < other
+    def to_json(self, dump_sequences: bool = True) -> Dict:
+        dumped_attrs = self.__dict__.copy()
+        if not dump_sequences:
+            dumped_attrs["vcf_record_ref"] = dumped_attrs["vcf_record_alt"] = None
+        for attr in self.__dict__:
+            if dumped_attrs[attr] is None:
+                dumped_attrs.pop(attr)
+        return {"SeqRegion": dumped_attrs}
+
+    @staticmethod
+    def from_json(dct: Dict) -> Union["SeqRegion", Dict]:
+        if "SeqRegion" in dct:
+            return SeqRegion(**dct["SeqRegion"])
+        return dct
 
 
 SeqRegions = List[SeqRegion]
@@ -135,8 +146,8 @@ class SeqRegionMapper:
             focal_regions[-1].length += region_length
         else:
             non_var_region = SeqRegion(
-                base_pos=ref_positions.base_ref_pos,
-                inf_pos=ref_positions.pers_ref_pos,
+                base_ref_start=ref_positions.base_ref_pos,
+                pers_ref_start=ref_positions.pers_ref_pos,
                 length=region_length,
             )
             self.map[chrom_key].append(non_var_region)
@@ -153,8 +164,8 @@ class SeqRegionMapper:
 
         if picked_allele != 0:
             var_region = SeqRegion(
-                base_pos=ref_positions.base_ref_pos,
-                inf_pos=ref_positions.pers_ref_pos,
+                base_ref_start=ref_positions.base_ref_pos,
+                pers_ref_start=ref_positions.pers_ref_pos,
                 length=len(vcf_record.alts[picked_allele - 1]),
                 vcf_record_ref=vcf_record.ref,
                 vcf_record_alt=str(vcf_record.alts[picked_allele - 1]),
@@ -226,3 +237,25 @@ class SearchableSeqRegionsMap:
             else:
                 lo = mid + 1
         return lo - 1
+
+    def __eq__(self, other: "SearchableSeqRegionsMap"):
+        return self._map == other._map
+
+    class JsonEncode(json.JSONEncoder):
+        dump_sequences: bool
+
+        def default(self, obj):
+            if isinstance(obj, SeqRegion):
+                return obj.to_json(self.dump_sequences)
+            return json.JSONEncoder.default(self, obj)
+
+    def dump_to(self, fname: Path, dump_sequences=True) -> None:
+        self.JsonEncode.dump_sequences = dump_sequences
+        with fname.open("w") as fout:
+            json.dump(self._map, fout, cls=self.JsonEncode)
+
+    @staticmethod
+    def load_from(fname: Path) -> "SearchableSeqRegionsMap":
+        with fname.open("r") as fin:
+            loaded_map = json.load(fin, object_hook=SeqRegion.from_json)
+            return SearchableSeqRegionsMap(loaded_map)

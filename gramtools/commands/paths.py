@@ -198,6 +198,7 @@ class DiscoverPaths(ProjectPaths):
 
         self.discov_vcf_cortex = self.disco_dir / "cortex.vcf"
         self.final_vcf = self.disco_dir / "final.vcf"
+        self.rebasing_map = self.disco_dir / "rebasing_map.json"
 
     def setup(self):
         super().initial_setup()

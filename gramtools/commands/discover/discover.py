@@ -74,6 +74,7 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
 
     region_map: SeqRegionsMap = SeqRegionMapper(base_records, chrom_sizes).get_map()
     region_searcher = SearchableSeqRegionsMap(region_map)
+    region_searcher.dump_to(disco_paths.rebasing_map, dump_sequences=False)
 
     new_vcf_records = []
     for vcf_record in derived_records:
