@@ -11,16 +11,12 @@ import shutil
 import unittest
 from pathlib import Path
 
-from gramtools import gramtools_main
 from gramtools.commands import paths
 from gramtools.commands.build import build
 from gramtools.commands.genotype import genotype, utils
+import gramtools.tests.integration_tests as it_tests
 
-
-base_dir = Path(__file__ + "/../../../").resolve()
-data_dir = base_dir / "tests" / "data" / "prgs"
-
-gramtools_main._setup_parser()
+data_dir = it_tests.data_dir
 
 
 class BuildAndGenotype:
@@ -28,7 +24,7 @@ class BuildAndGenotype:
     In charge of calling build, quasimap, and loading the coverage produced in quasimap
     """
 
-    def __init__(self, test_data_dir):
+    def __init__(self, test_data_dir: Path):
         self.prg_file = str(data_dir / test_data_dir / "prg.bin")
         self.reads_file = str(data_dir / test_data_dir / "reads.fastq")
         self.fasta_ref = str(data_dir / test_data_dir / "ref.fa")
@@ -41,14 +37,14 @@ class BuildAndGenotype:
         shutil.rmtree(self.gram_dir)
 
     def run_build(self):
-        args = gramtools_main.root_parser.parse_args(
+        args = it_tests.gramtools_main.root_parser.parse_args(
             f"build --gram_dir {self.gram_dir} --prg {self.prg_file} "
             f" --reference {self.fasta_ref} --kmer_size 5 --force".split()
         )
         build.run(args)
 
     def run_genotype(self):
-        args = gramtools_main.root_parser.parse_args(
+        args = it_tests.gramtools_main.root_parser.parse_args(
             f"genotype --gram_dir {self.gram_dir} --genotype_dir "
             f"{self.geno_dir} --reads {self.reads_file} --sample_id test --force".split()
         )

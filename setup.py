@@ -158,7 +158,7 @@ setuptools.setup(
         "Cython == 0.29.16",
         "scipy == 1.4.1",
         "pysam == 0.15.4",
-        "py-cortex-api >= 1.0",
+        "py-cortex-api == 2.0",
         "cluster_vcf_records >= 0.9.2",
     ],
     test_suite="gramtools.tests",

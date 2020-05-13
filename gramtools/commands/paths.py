@@ -180,7 +180,7 @@ class GenotypePaths(ProjectPaths):
 
 class DiscoverPaths(ProjectPaths):
     def __init__(self, discovery_dir, genotype_dir, force=False):
-        self.disco_dir = Path.resolve(Path(discovery_dir))
+        self.disco_dir = Path(discovery_dir).resolve()
         super().__init__(self.disco_dir, force)
 
         # Build paths from genotype dir

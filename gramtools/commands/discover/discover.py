@@ -34,9 +34,14 @@ def run(args):
 
     # call variants using `cortex`
     log.debug("Running cortex")
-    cortex.run(
-        disco_paths.pers_ref, disco_paths.reads_files, disco_paths.discov_vcf_cortex
-    )
+    cortex_args = {
+        "reference_fasta": disco_paths.pers_ref,
+        "reads_files": disco_paths.reads_files,
+        "output_vcf_file_path": disco_paths.discov_vcf_cortex,
+    }
+    if hasattr(args, "mem_height"):  # Allows for low memory integration tests
+        cortex_args["mem_height"] = getattr(args, "mem_height")
+    cortex.run(**cortex_args)
 
     chrom_sizes: ChromSizes = load_fasta(disco_paths.pers_ref, sizes_only=True)
 

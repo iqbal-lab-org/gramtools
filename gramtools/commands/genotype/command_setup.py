@@ -1,6 +1,3 @@
-from ..paths import ProjectPaths, GenotypePaths
-
-
 def setup_parser(common_parser, subparsers):
     parser = subparsers.add_parser("genotype", parents=[common_parser])
     parser.add_argument(

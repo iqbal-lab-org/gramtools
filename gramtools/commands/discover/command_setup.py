@@ -23,13 +23,3 @@ def setup_parser(common_parser, subparsers):
         type=str,
         required=True,
     )
-
-    parser.add_argument(
-        "--reads",
-        help="Reads files for variant discovery.\n"
-        "By default we use the ones from gramtools `genotype`.",
-        nargs="+",
-        action="append",
-        type=str,
-        required=False,
-    )
