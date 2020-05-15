@@ -26,6 +26,17 @@ In-memory tests, via mocking pysam and fasta loading
 
 @mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
 @mock.patch("gramtools.commands.build.vcf_to_prg_string.VariantFile", spec=True)
+class Test_MemberFunctions(TestCase):
+    def test_nonACGT_fails_to_convert(self, mock_var_file, mock_load_fasta):
+        mock_var_file.return_value.fetch.return_value = iter([])
+        mock_load_fasta.return_value = {}
+        converter = Vcf_to_prg("", "", "")
+        with self.assertRaises(ValueError):
+            converter._to_bytes("N")
+
+
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")
+@mock.patch("gramtools.commands.build.vcf_to_prg_string.VariantFile", spec=True)
 class Test_VcfToPrgString(TestCase):
     chroms = {"ref1": "AGCAGC", "ref2": "CCC", "ref3": "GGG"}
 

@@ -10,6 +10,7 @@ Behaviour:
 from collections import defaultdict
 import logging
 import sys
+from typing import Union, List, Tuple
 
 from pysam import VariantFile, VariantRecord
 
@@ -19,17 +20,8 @@ sys.tracebacklimit = 0
 logger = logging.getLogger("vcf_to_prg_string")
 logger.setLevel(logging.WARNING)
 
-to_upper = {"a": "A", "c": "C", "g": "G", "t": "T"}
-nuc_translation = {"A": 1, "C": 2, "G": 3, "T": 4}
+nuc_translation = {"A": 1, "a": 1, "C": 2, "c": 2, "G": 3, "g": 3, "T": 4, "t": 4}
 int_translation = {1: "A", 2: "C", 3: "G", 4: "T"}
-
-
-def nucleotide_to_integer(nucleotide):
-    nucleotide = to_upper.get(nucleotide, nucleotide)
-    try:
-        return nuc_translation[nucleotide]
-    except KeyError:
-        raise ValueError("Did not receive a nucleotide ({A,C,G,T}")
 
 
 def integer_to_nucleotide(integer):
@@ -43,18 +35,60 @@ class ReferenceError(Exception):
     pass
 
 
-class _Template_Vcf_to_prg(object):
+class Vcf_to_prg(object):
+    """
+    Args:
+        mode : if 'legacy' a T/G SNP is built as '5T6G5',
+               if 'normal' is built as '5T6G6'
+    """
+
     acceptable_modes = {"legacy", "normal"}
     NUM_BYTES = 4  # Number of bytes for each serialised integer
+    ENDIANNESS = "little"
 
-    def __init__(self):
-        self.prg_vector: Map[str, List[int]] = defaultdict(list)
+    def __init__(self, vcf_file, reference_file, prg_output_file, mode="normal"):
+        self.prg_bytes: Map[str, bytearray] = defaultdict(bytearray)
         self.num_sites = 0
         self.processed_refs = list()
-        self.f_out = None
         self.skipped_records: int = 0
 
-    def _check_record_ref(self, rec: VariantRecord):
+        if mode not in self.acceptable_modes:
+            raise ValueError(f"Mode not in {self.acceptable_modes}")
+
+        self.f_out_prefix = prg_output_file
+        self.vcf_in = VariantFile(vcf_file).fetch()
+        self.ref_in = reference_file
+
+        self.ref_records = load_fasta(reference_file)
+
+        self._make_prg(mode)
+        if self.skipped_records > 0:
+            logger.warning(
+                f"Skipped {self.skipped_records} because of no 'PASS' in their FORMAT column"
+            )
+
+    def _from_bytes(self, to_convert: bytes) -> int:
+        return int.from_bytes(to_convert, self.ENDIANNESS)
+
+    def _to_bytes(self, to_convert: Union[str, int]) -> bytes:
+        int_to_convert = to_convert
+        if isinstance(to_convert, str):
+            try:
+                int_to_convert = nuc_translation[to_convert]
+            except KeyError:
+                raise ValueError(
+                    f"Did not receive a nucleotide: {to_convert} not in {{A,C,G,T}}"
+                )
+        return int_to_convert.to_bytes(self.NUM_BYTES, self.ENDIANNESS)
+
+    def _get_ref_slice(self, chrom, start, end=0) -> bytearray:
+        if end == 0:
+            res = self.ref_records[chrom][start - 1 :]
+        else:
+            res = self.ref_records[chrom][start - 1 : end - 1]
+        return bytearray(b"".join(map(self._to_bytes, res)))
+
+    def _check_record_ref(self, rec: VariantRecord) -> None:
         # Make sure the vcf record refers to a valid ref sequence ID
         if rec.chrom not in self.ref_records:
             raise ReferenceError(
@@ -67,66 +101,33 @@ class _Template_Vcf_to_prg(object):
                     f"Vcf record REF sequence does not match ref ID {rec.chrom} "
                 )
 
-    def _record_to_prg_rep(self, site_marker, mode):
+    def _record_to_prg_rep(self, site_marker: int, mode: str) -> bytearray:
         """
         Go from a vcf record to its prg string representation:
             * (legacy) site markers flank the variant site
             * (normal) site marker at start, allele marker everywhere else.
         """
-        prg_rep = [site_marker]
-        allele_marker = site_marker + 1
-        alleles = [[nucleotide_to_integer(nt) for nt in self.vcf_record.ref]]
-        for alt_allele in self.vcf_record.alts:
-            alleles.append([nucleotide_to_integer(nt) for nt in str(alt_allele)])
-        if mode == "normal":
-            for allele in alleles:
-                prg_rep.extend(allele + [allele_marker])
+        # Add initial site marker + ref allele
+        prg_rep: bytearray = bytearray(self._to_bytes(site_marker))
+        prg_rep += b"".join(map(self._to_bytes, self.vcf_record.ref))
 
-        elif mode == "legacy":
-            for i, allele in enumerate(alleles):
-                if i < len(alleles) - 1:
-                    prg_rep.extend(allele + [allele_marker])
-                else:
-                    prg_rep.extend(allele + [site_marker])
+        # Add allele markers + alt alleles
+        allele_marker = site_marker + 1
+        prg_rep += self._to_bytes(allele_marker)
+        num_alts = len(self.vcf_record.alts)
+        for i, alt_allele in enumerate(self.vcf_record.alts):
+            prg_rep += b"".join(map(self._to_bytes, str(alt_allele)))
+            pushed_marker = allele_marker
+            if mode == "legacy" and i == num_alts - 1:
+                pushed_marker -= 1
+            prg_rep += self._to_bytes(pushed_marker)
         return prg_rep
 
-    def _get_ref_slice(self, chrom, start, end=0):
-        ref_seq = self.ref_records[chrom]
-        res = ref_seq[start - 1 :]
-        if end != 0:
-            res = res[: end - start]
-        res = list(map(nucleotide_to_integer, res))  # Convert to integers
-        return res
-
-    def _get_ref_records_with_no_variants(self):
+    def _get_ref_records_with_no_variants(self) -> Tuple[str, bytearray]:
         diff = set(self.ref_records).difference(set(self.processed_refs))
         for id in diff:
-            seq = [nucleotide_to_integer(nt) for nt in self.ref_records[id]]
+            seq = bytearray(b"".join(map(self._to_bytes, self.ref_records[id])))
             yield id, seq
-
-
-class Vcf_to_prg(_Template_Vcf_to_prg):
-    """
-    Args:
-        mode : if 'legacy' a T/G SNP is built as '5T6G5',
-               if 'normal' is built as '5T6G6'
-    """
-
-    def __init__(self, vcf_file, reference_file, prg_output_file, mode="normal"):
-        super().__init__()
-        if mode not in self.acceptable_modes:
-            raise ValueError(f"Mode not in {self.acceptable_modes}")
-
-        self.f_out_prefix = prg_output_file
-        self.vcf_in = VariantFile(vcf_file).fetch()
-        self.ref_in = reference_file
-
-        self.ref_records = load_fasta(reference_file)
-        self._make_prg(mode)
-        if self.skipped_records > 0:
-            logger.warning(
-                f"Skipped {self.skipped_records} because of no 'PASS' in their FORMAT column"
-            )
 
     def next_rec(self):
         try:
@@ -157,9 +158,7 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
 
             if vcf_chrom != ref_chrom:
                 if ref_chrom is not None:
-                    self.prg_vector[ref_chrom] += self._get_ref_slice(
-                        ref_chrom, ref_pos
-                    )
+                    self.prg_bytes[ref_chrom] += self._get_ref_slice(ref_chrom, ref_pos)
                     self.processed_refs.append(ref_chrom)
                 ref_pos = 1
                 ref_chrom = vcf_chrom
@@ -172,54 +171,48 @@ class Vcf_to_prg(_Template_Vcf_to_prg):
                 continue
 
             if vcf_pos > ref_pos:
-                self.prg_vector[ref_chrom] += self._get_ref_slice(
+                self.prg_bytes[ref_chrom] += self._get_ref_slice(
                     vcf_chrom, ref_pos, vcf_pos
                 )
                 ref_pos = vcf_pos
 
-            self.prg_vector[ref_chrom] += self._record_to_prg_rep(cur_site_marker, mode)
+            self.prg_bytes[ref_chrom] += self._record_to_prg_rep(cur_site_marker, mode)
             ref_pos += len(self.vcf_record.ref)
             cur_site_marker += 2
 
         # End condition: might have some invariant reference left
         if ref_chrom is not None:
-            self.prg_vector[ref_chrom] += self._get_ref_slice(ref_chrom, ref_pos)
+            self.prg_bytes[ref_chrom] += self._get_ref_slice(ref_chrom, ref_pos)
             self.processed_refs.append(vcf_chrom)
 
         # End condition #2 : might have records with no variants
         for ref_chrom, ref_seq in self._get_ref_records_with_no_variants():
-            self.prg_vector[ref_chrom] += ref_seq
+            self.prg_bytes[ref_chrom] += ref_seq
             self.processed_refs.append(ref_chrom)
 
-    def _get_ints(self):
-        contiguous = [self.prg_vector[ref_chrom] for ref_chrom in self.ref_records]
-        return sum(contiguous, [])  # Flattens list
+    def _get_ints(self) -> List[int]:
+        contiguous_ints = list()
+        for ref_chrom in self.ref_records:
+            chrom_bytes = self.prg_bytes[ref_chrom]
+            for inset in range(0, len(chrom_bytes), self.NUM_BYTES):
+                contiguous_ints.append(
+                    self._from_bytes(chrom_bytes[inset : inset + self.NUM_BYTES])
+                )
+        return contiguous_ints
 
     def _get_string(self):
-        prg_string = ""
-        for ref_chrom in self.ref_records:
-            for x in self.prg_vector[ref_chrom]:
-                prg_string += integer_to_nucleotide(x)
-        return prg_string
+        prg_ints = self._get_ints()
+        return "".join(map(integer_to_nucleotide, prg_ints))
 
     def _write_bytes(self):
-        """
-        Write an integer
-        By default, writes an **unsigned integer**
-        Endianness: big or little
-        :return:
-        """
+        bytes = bytearray()
+        for ref_chrom in self.ref_records:
+            bytes += self.prg_bytes[ref_chrom]
         with open(f"{self.f_out_prefix}", "wb") as f_out:
-            for ref_chrom in self.ref_records:
-                for integer in self.prg_vector[ref_chrom]:
-                    f_out.write(integer.to_bytes(self.NUM_BYTES, "little"))
+            f_out.write(bytes)
 
     def _write_string(self):
-        # Construct it
-        prg_string = ""
-        for ref_chrom in self.ref_records:
-            for x in self.prg_vector[ref_chrom]:
-                prg_string += integer_to_nucleotide(x)
+        prg_string = self._get_string()
         with open(f"{self.f_out_prefix}.prg", "w") as f_out:
             f_out.write(prg_string)
 
