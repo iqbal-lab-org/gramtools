@@ -58,26 +58,21 @@ set(INCLUDE
 file(GLOB_RECURSE SOURCE_FILES
         ${SOURCE}/*.cpp)
 
-file(GLOB_RECURSE INCLUDE_FILES
-        ${INCLUDE}/*.hpp)
-
 #########################
 ####  libgramtools   ####
 #########################
 add_library(gramtools STATIC
-        ${SOURCE_FILES}
-        ${INCLUDE_FILES})
+        ${SOURCE_FILES})
 target_include_directories(gramtools PUBLIC
         ${INCLUDE}
         ${EXTERNAL_INCLUDE_DIR}
-        ${BZIP_INCLUDE_DIRS}
-        ${LZMA_INCLUDE_DIR})
+        ${PROJECT_SOURCE_DIR}/libgramtools/lib
+        )
 target_link_libraries(gramtools LINK_PUBLIC
         ${EXTERN_LIBS}
-        ${BZIP2_LIBRARIES}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
         OpenMP::OpenMP_CXX
-        -lstdc++fs -lpthread -lrt -lm -llzma
+        -lstdc++fs -lpthread -lrt -lm
 		)
 target_compile_features(gramtools PUBLIC cxx_std_17)
 set_target_properties(gramtools
@@ -96,9 +91,6 @@ add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/lib
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/lib/libgramtools.a
-        ${PROJECT_SOURCE_DIR}/gramtools/lib
-        COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_BINARY_DIR}/lib/*
         ${PROJECT_SOURCE_DIR}/gramtools/lib)
 
@@ -112,8 +104,7 @@ add_dependencies(gram py_git_version)
 target_include_directories(gram PUBLIC
         ${INCLUDE}
         ${EXTERNAL_INCLUDE_DIR}
-        ${BZIP_INCLUDE_DIRS}
-        ${LZMA_INCLUDE_DIR})
+        )
 target_link_libraries(gram LINK_PUBLIC gramtools )
 set_target_properties(gram
         PROPERTIES
