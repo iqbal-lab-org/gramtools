@@ -15,7 +15,7 @@ namespace gram::genotype::infer::probabilities{
         virtual double compute_prob(params const& query) const = 0;
 
     public:
-        virtual ~AbstractPmf(){}
+        virtual ~AbstractPmf() = default;
         double operator()(params const& query);
         memoised_params const& get_probs() const { return probs; }
     };
@@ -30,16 +30,11 @@ namespace gram::genotype::infer::probabilities{
             lambda = other.lambda;
             return *this;
         }
-        PoissonLogPmf& operator=(const PoissonLogPmf&& other) {
-            probs = std::move(other.probs);
-            lambda = std::move(other.lambda);
-            return *this;
-        }
         PoissonLogPmf(PoissonLogPmf const& other){
             probs = other.probs;
             lambda = other.lambda;
         }
-        PoissonLogPmf(params const& parameterisation);
+        explicit PoissonLogPmf(params const& parameterisation);
     };
 }
 

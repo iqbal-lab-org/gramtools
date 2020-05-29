@@ -1,4 +1,5 @@
 #include <cmath>
+
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "prg/coverage_graph.hpp"
@@ -53,7 +54,6 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
 
     auto mean_cov_depth = read_stats.get_mean_cov_depth();
     auto mean_pb_error = read_stats.get_mean_pb_error();
-    PoissonLogPmf poisson_prob{params{mean_cov_depth}};
     l_stats = std::move(make_l_stats(mean_cov_depth, mean_pb_error));
 
     // Genotype each bubble in the PRG, in most nested to less nested order.
@@ -65,8 +65,9 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
         auto extracted_alleles = extracter.get_alleles();
         auto& gped_covs_for_site = gped_covs.at(site_index);
 
-        auto genotyped = LevelGenotyperModel(&extracted_alleles, &gped_covs_for_site,
-                                             ploidy, &l_stats, ! extracter.ref_allele_got_made_naturally());
+        ModelData data(&extracted_alleles, &gped_covs_for_site,
+                       ploidy, &l_stats, ! extracter.ref_allele_got_made_naturally());
+        auto genotyped = LevelGenotyperModel(data);
         auto genotyped_site = genotyped.get_site();
         genotyped_site->set_pos(bubble_pair.first->get_pos());
         genotyped_records.at(site_index) = genotyped_site;

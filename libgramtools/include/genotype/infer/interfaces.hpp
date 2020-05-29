@@ -116,7 +116,7 @@ namespace gram::genotype::infer {
 
     /**
      * Genotyping model interface.
-     * Each derived model implements the production of an abstract site.
+     * Each derived model implements the production of a site.
      */
     class GenotypingModel {
         virtual gt_site_ptr get_site() = 0;

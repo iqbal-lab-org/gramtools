@@ -25,6 +25,21 @@ namespace gram::genotype::infer {
         mutable poisson_pmf poisson_half_depth;
     };
 
+    struct ModelData{
+        allele_vector const *input_alleles;
+        GroupedAlleleCounts const *gp_counts;
+        Ploidy ploidy;
+        likelihood_related_stats const *l_stats;
+        bool ignore_ref_allele = false;
+
+        ModelData() : gp_counts(nullptr) {};
+
+        ModelData(allele_vector const *input_alleles, GroupedAlleleCounts const *gp_counts,
+                Ploidy ploidy, likelihood_related_stats const *l_stats,
+        bool ignore_ref_allele = false) : input_alleles(input_alleles), gp_counts(gp_counts),
+        ploidy(ploidy), l_stats(l_stats), ignore_ref_allele(ignore_ref_allele){};
+    };
+
     /**
     Genotyping model using:
       * coverage equivalence-classes
@@ -33,10 +48,7 @@ namespace gram::genotype::infer {
       * invalidation of nested bubbles
     */
     class LevelGenotyperModel : GenotypingModel {
-        allele_vector *alleles;
-        GroupedAlleleCounts const *gp_counts;
-        Ploidy ploidy;
-        likelihood_related_stats const *l_stats;
+        ModelData data;
 
         // Computed at construction time
         PerAlleleCoverage haploid_allele_coverages; /**< Coverage counts compatible with single alleles */
@@ -49,15 +61,12 @@ namespace gram::genotype::infer {
         std::shared_ptr <LevelGenotypedSite> genotyped_site; // What the class will build
 
     public:
-        LevelGenotyperModel() : gp_counts(nullptr) {}
-
         /**
          * @param ignore_ref_allele if true, the ref allele was not produced naturally,
          * and we do not consider it for genotyping
          */
-        LevelGenotyperModel(allele_vector const *input_alleles, GroupedAlleleCounts const *gp_counts,
-                            Ploidy ploidy, likelihood_related_stats const *l_stats,
-                            bool ignore_ref_allele = false);
+        LevelGenotyperModel() = default;
+        LevelGenotyperModel(ModelData& input_data);
 
 
         /***********************
@@ -107,7 +116,6 @@ namespace gram::genotype::infer {
                                                   multiplicities const &haplogroup_multiplicities);
         /**
          * For producing the diploid combinations.
-         * Credit: https://stackoverflow.com/a/9430993/12519542
          */
         std::vector <GtypedIndices> get_permutations(const GtypedIndices &indices, std::size_t const subset_size);
 

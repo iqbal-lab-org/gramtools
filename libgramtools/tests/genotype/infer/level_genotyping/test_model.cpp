@@ -216,7 +216,8 @@ TEST(TestLevelGenotyperModel_Failure, GivenOneAlleleOnly_Breaks){
     };
     GroupedAlleleCounts gp_counts;
     likelihood_related_stats l_stats;
-    EXPECT_DEATH(LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false), "");
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    EXPECT_DEATH(LevelGenotyperModel gtyper(data), "");
 }
 
 class TestLevelGenotyperModel_NullGTs : public ::testing::Test {
@@ -233,13 +234,15 @@ protected:
 
 TEST_F(TestLevelGenotyperModel_NullGTs , Given0MeanCoverage_ReturnsNullGenotypedSite) {
     l_stats.mean_cov_depth = 0;
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    auto genotyped = LevelGenotyperModel(data);
 
     EXPECT_TRUE(genotyped.get_site()->is_null());
 }
 
 TEST_F(TestLevelGenotyperModel_NullGTs , GivenNoCoverageOnAllAlleles_ReturnsNullGenotypedSite) {
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    auto genotyped = LevelGenotyperModel(data);
 
     EXPECT_TRUE(genotyped.get_site()->is_null());
 }
@@ -258,12 +261,14 @@ TEST(TestLevelGenotyperModel_Coverage, GivenTwoAlleles_CorrectCoverages){
     double mean_cov_depth{30}, mean_pb_error{0.01};
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
-    auto haploid = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    auto haploid = LevelGenotyperModel(data);
     auto hap_gt = haploid.get_site_gtype_info();
     allele_coverages hap_exp{1, 34}; // The REF should get its singleton (= specific) coverage (value 1)
     EXPECT_EQ(hap_gt.allele_covs, hap_exp);
 
-    auto diploid = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    data.ploidy = Ploidy::Diploid;
+    auto diploid = LevelGenotyperModel(data);
     auto dip_gt = diploid.get_site_gtype_info();
     GtypedIndices expected_diploid_gt{1, 1};
     EXPECT_EQ(dip_gt.genotype, expected_diploid_gt);
@@ -290,7 +295,8 @@ protected:
 
 
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectHaploidCall) {
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    auto genotyped = LevelGenotyperModel(data);
 
     auto gt_info = genotyped.get_site_gtype_info();
     allele_vector expected_alleles{
@@ -309,7 +315,8 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorr
 
 
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectDiploidCall) {
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    auto genotyped = LevelGenotyperModel(data);
 
     auto gtype = genotyped.get_site()->get_genotype();
 
@@ -335,7 +342,8 @@ TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype){
 
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    auto genotyped = LevelGenotyperModel(data);
     auto gtype = genotyped.get_site()->get_genotype();
     GtypedIndices expected_gtype{1, 1};
     EXPECT_EQ(gtype, expected_gtype);
@@ -363,7 +371,8 @@ protected:
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_CorrectGenotype){
 
-    auto genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    auto genotyped = LevelGenotyperModel(data);
     auto gtype_info = genotyped.get_site_gtype_info();
     allele_vector expected_alleles{
             alleles.at(0), // REF is not called, but still makes it in here
@@ -381,10 +390,12 @@ TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_Co
 }
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenDifferentPloidies_CorrectNumberOfProducedGenotypes) {
-    auto haploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    auto haploid_genotyped = LevelGenotyperModel(data);
     EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 4);
 
-    auto diploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    data.ploidy = Ploidy::Diploid;
+    auto diploid_genotyped = LevelGenotyperModel(data);
     // Expected number of genotypes: 4 diploid homozygous + (4 choose 2) diploid heterozygous
     EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 10);
 }
@@ -406,10 +417,12 @@ TEST(TestLevelGenotyperModel_IgnoredREF, GivenSeveralAllelesAndIgnoredREF_Correc
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
     // The last param to LevelGenotyperModel is whether to avoid using the REF
-    auto haploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, true);
+    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, true);
+    auto haploid_genotyped = LevelGenotyperModel(data);
     EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 2);
 
-    auto diploid_genotyped = LevelGenotyperModel(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, true);
+    data.ploidy = Ploidy::Diploid;
+    auto diploid_genotyped = LevelGenotyperModel(data);
     // Two homs and one het. Note this only works if you have singleton coverage on each haplogroup
     EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 3);
 }
