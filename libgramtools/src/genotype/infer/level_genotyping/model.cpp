@@ -201,7 +201,7 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(allele_vector const
 
     for ( auto const& allele : input_alleles ){
 
-        auto coverages = compute_diploid_coverage(*data.gp_counts, AlleleIds{allele.haplogroup, allele.haplogroup},
+        auto coverages = compute_diploid_coverage(data.gp_counts, AlleleIds{allele.haplogroup, allele.haplogroup},
                 haplogroup_multiplicities);
         double cov_on_allele = coverages.first;
         auto cov_not_on_allele = total_coverage - cov_on_allele;
@@ -243,7 +243,7 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(allele_vector con
                 allele_1.haplogroup,
                 allele_2.haplogroup
         };
-        auto coverages = compute_diploid_coverage(*data.gp_counts, haplogroups, haplogroup_multiplicities);
+        auto coverages = compute_diploid_coverage(data.gp_counts, haplogroups, haplogroup_multiplicities);
         auto allele_1_cov = coverages.first;
         auto allele_2_cov = coverages.second;
 
@@ -313,25 +313,25 @@ void LevelGenotyperModel::CallGenotype(allele_vector const *input_alleles, bool 
 
 LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_data)
 {
-    assert(data.input_alleles->size() > 1);
+    assert(data.input_alleles.size() > 1);
     genotyped_site = std::make_shared<LevelGenotypedSite>();
 
-    total_coverage = count_total_coverage(*data.gp_counts);
+    total_coverage = count_total_coverage(data.gp_counts);
     if (total_coverage == 0 || data.l_stats->mean_cov_depth == 0){
         // Give the null genotyped site the first allele for extraction to be possible
-        genotyped_site->set_alleles(allele_vector{data.input_alleles->at(0)});
+        genotyped_site->set_alleles(allele_vector{data.input_alleles.at(0)});
         genotyped_site->make_null();
         return;
     }
 
     allele_vector used_alleles;
     if (data.ignore_ref_allele)
-        used_alleles = allele_vector{data.input_alleles->begin() + 1, data.input_alleles->end()};
-    else used_alleles = *data.input_alleles;
+        used_alleles = allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
+    else used_alleles = data.input_alleles;
 
     auto haplogroup_multiplicities = get_haplogroup_multiplicities(used_alleles);
     genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size()); // Used in invalidation process
-    set_haploid_coverages(*data.gp_counts, haplogroup_multiplicities.size());
+    set_haploid_coverages(data.gp_counts, haplogroup_multiplicities.size());
     assign_coverage_to_empty_alleles(used_alleles);
 
     if (data.ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods(used_alleles);
@@ -340,6 +340,6 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_dat
         compute_heterozygous_log_likelihoods(used_alleles, haplogroup_multiplicities);
     }
 
-    CallGenotype(data.input_alleles, data.ignore_ref_allele, haplogroup_multiplicities);
+    CallGenotype(&data.input_alleles, data.ignore_ref_allele, haplogroup_multiplicities);
 }
 

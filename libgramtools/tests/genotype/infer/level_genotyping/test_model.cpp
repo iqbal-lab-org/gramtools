@@ -216,7 +216,7 @@ TEST(TestLevelGenotyperModel_Failure, GivenOneAlleleOnly_Breaks){
     };
     GroupedAlleleCounts gp_counts;
     likelihood_related_stats l_stats;
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     EXPECT_DEATH(LevelGenotyperModel gtyper(data), "");
 }
 
@@ -234,14 +234,14 @@ protected:
 
 TEST_F(TestLevelGenotyperModel_NullGTs , Given0MeanCoverage_ReturnsNullGenotypedSite) {
     l_stats.mean_cov_depth = 0;
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
 
     EXPECT_TRUE(genotyped.get_site()->is_null());
 }
 
 TEST_F(TestLevelGenotyperModel_NullGTs , GivenNoCoverageOnAllAlleles_ReturnsNullGenotypedSite) {
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
 
     EXPECT_TRUE(genotyped.get_site()->is_null());
@@ -261,7 +261,7 @@ TEST(TestLevelGenotyperModel_Coverage, GivenTwoAlleles_CorrectCoverages){
     double mean_cov_depth{30}, mean_pb_error{0.01};
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto haploid = LevelGenotyperModel(data);
     auto hap_gt = haploid.get_site_gtype_info();
     allele_coverages hap_exp{1, 34}; // The REF should get its singleton (= specific) coverage (value 1)
@@ -295,7 +295,7 @@ protected:
 
 
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectHaploidCall) {
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
 
     auto gt_info = genotyped.get_site_gtype_info();
@@ -315,7 +315,7 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorr
 
 
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorrectDiploidCall) {
-    ModelData data(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Diploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
 
     auto gtype = genotyped.get_site()->get_genotype();
@@ -342,7 +342,7 @@ TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype){
 
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
-    ModelData data(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Diploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
     auto gtype = genotyped.get_site()->get_genotype();
     GtypedIndices expected_gtype{1, 1};
@@ -371,7 +371,7 @@ protected:
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_CorrectGenotype){
 
-    ModelData data(&alleles, &gp_counts, Ploidy::Diploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Diploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
     auto gtype_info = genotyped.get_site_gtype_info();
     allele_vector expected_alleles{
@@ -390,7 +390,7 @@ TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_Co
 }
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenDifferentPloidies_CorrectNumberOfProducedGenotypes) {
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, false);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto haploid_genotyped = LevelGenotyperModel(data);
     EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 4);
 
@@ -417,7 +417,7 @@ TEST(TestLevelGenotyperModel_IgnoredREF, GivenSeveralAllelesAndIgnoredREF_Correc
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
 
     // The last param to LevelGenotyperModel is whether to avoid using the REF
-    ModelData data(&alleles, &gp_counts, Ploidy::Haploid, &l_stats, true);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, true);
     auto haploid_genotyped = LevelGenotyperModel(data);
     EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 2);
 

@@ -62,7 +62,7 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     std::cout << "Running genotyping" << std::endl;
     timer.start("Genotyping");
     LevelGenotyper genotyper{prg_info.coverage_graph, quasimap_stats.coverage.grouped_allele_counts,
-                             readstats, parameters.ploidy};
+                             readstats, parameters.ploidy, true};
     timer.stop();
 
     std::ifstream coords_file(parameters.prg_coords_fpath);

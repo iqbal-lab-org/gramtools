@@ -28,10 +28,11 @@ public:
     LevelGenotyper(child_map const& ch, gt_sites const& sites) : Genotyper(sites, ch) {}
 
     LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
-                   ReadStats const &read_stats, Ploidy const ploidy);
+                   ReadStats const &read_stats, Ploidy const ploidy, bool get_gcp = false);
 
     header_vec get_model_specific_headers() override;
 
+    void compute_confidence_percentiles();
     static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
     static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
 

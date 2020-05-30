@@ -13,8 +13,9 @@ namespace gram::genotype::infer {
     public:
         ~LevelGenotypedSite() override = default;
 
-        void set_gt_conf(double const& val) {this->gt_conf = val;}
-        void set_gt_conf_percentile(double const& val) {this->gt_conf_percentile = val;}
+        double get_gt_conf() const {return gt_conf;}
+        void set_gt_conf(double const& val) {gt_conf = val;}
+        void set_gt_conf_percentile(double const& val) {gt_conf_percentile = val;}
 
         site_entries get_model_specific_entries() override;
         void null_model_specific_entries() override;

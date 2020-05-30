@@ -1,4 +1,7 @@
 #include <cmath>
+#include <random>
+
+#include "GCP/GCP.h"
 
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/allele_extracter.hpp"
@@ -14,7 +17,10 @@ header_vec LevelGenotyper::get_model_specific_headers(){
         vcf_meta_info_line{"FORMAT", "GT_CONF",
                            "Genotype confidence as "
                  "likelihood ratio of called and next most likely genotype.",
-                 "1", "Float"}
+                 "1", "Float"},
+        vcf_meta_info_line{"FORMAT", "GT_CONF_PERCENTILE",
+                    "Percent of calls expected to have lower GT_CONF",
+                    "1", "Float"}
     };
     return result;
 }
@@ -42,10 +48,76 @@ CovCount LevelGenotyper::find_minimum_non_error_cov(double mean_pb_error, poisso
     return min_count;
 }
 
+class ModelDataProducer : public GCP::Model<ModelData>{
+private:
+    likelihood_related_stats const* l_stats;
+    Ploidy ploidy;
+public:
+    ModelDataProducer(likelihood_related_stats const* l_stats, Ploidy ploidy)
+    : l_stats(l_stats), ploidy(ploidy) {};
+
+    ModelData produce_data() override {
+        std::binomial_distribution<CovCount> b(l_stats->mean_cov_depth, l_stats->mean_pb_error);
+        std::poisson_distribution<CovCount> p(l_stats->mean_cov_depth);
+        CovCount const correct_cov = p(random_number_generator);
+        CovCount const incorrect_cov = b(random_number_generator);
+        allele_vector alleles{
+            Allele{"A", {correct_cov}, 0},
+            Allele{"A", {incorrect_cov}, 1},
+        };
+        GroupedAlleleCounts gped_counts{
+                {{0}, correct_cov},
+                {{1}, incorrect_cov},
+        };
+        return ModelData(alleles, gped_counts, ploidy, l_stats);
+    }
+};
+
+/**
+ * Draws empirical confidences from the genotyped sites
+ * and complements them with simulations if there are not enough.
+ */
+void LevelGenotyper::compute_confidence_percentiles() {
+    constexpr uint16_t distrib_size{10000};
+    std::vector<double> confidences(distrib_size);
+    auto insertion_point = confidences.begin();
+
+    // Case: draw all needed confidences at random from sites
+    if (genotyped_records.size() > distrib_size){
+        std::random_device rd;
+        std::mt19937 generator(rd());
+        std::uniform_int_distribution<> distrib(0, genotyped_records.size() - 1);
+        while (insertion_point != confidences.end()) {
+            auto selected_entry = distrib(generator);
+            auto selected_site =
+                    std::dynamic_pointer_cast<LevelGenotypedSite>(genotyped_records.at(selected_entry));
+            *insertion_point++ = selected_site->get_gt_conf();
+        }
+    }
+    // Case: draw all empirical confidences + simulate up to required number
+    else {
+        for (auto const& site : genotyped_records)
+            *insertion_point++ = std::dynamic_pointer_cast<LevelGenotypedSite>(site)->get_gt_conf();
+        auto num_simulations = std::distance(insertion_point, confidences.end());
+        // Perform simulations
+        GCP::Model<ModelData>* data_producer = new ModelDataProducer(&l_stats, ploidy);
+        GCP::Simulator<ModelData, LevelGenotyperModel> simulator(data_producer);
+        auto simu = simulator.simulate(num_simulations);
+        std::copy(simu.begin(), simu.end(), insertion_point);
+    }
+    // Add percentiles
+    GCP::Percentiler percentiler(confidences);
+    for (auto const& site : genotyped_records){
+        auto conf = std::dynamic_pointer_cast<LevelGenotypedSite>(site)->get_gt_conf();
+        std::dynamic_pointer_cast<LevelGenotypedSite>(site)->set_gt_conf_percentile(
+                percentiler.get_confidence_percentile(conf)
+                );
+    }
+}
 
 
 LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
-                               ReadStats const &read_stats, Ploidy const ploidy) :
+                               ReadStats const &read_stats, Ploidy const ploidy, bool get_gcp) :
                                ploidy(ploidy){
     this->cov_graph = &cov_graph;
     this->gped_covs = &gped_covs;
@@ -65,7 +137,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
         auto extracted_alleles = extracter.get_alleles();
         auto& gped_covs_for_site = gped_covs.at(site_index);
 
-        ModelData data(&extracted_alleles, &gped_covs_for_site,
+        ModelData data(extracted_alleles, gped_covs_for_site,
                        ploidy, &l_stats, ! extracter.ref_allele_got_made_naturally());
         auto genotyped = LevelGenotyperModel(data);
         auto genotyped_site = genotyped.get_site();
@@ -77,5 +149,6 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
 
         run_invalidation_process(genotyped_site, site_ID);
     }
+    if (get_gcp) compute_confidence_percentiles();
 }
 

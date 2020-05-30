@@ -26,15 +26,15 @@ namespace gram::genotype::infer {
     };
 
     struct ModelData{
-        allele_vector const *input_alleles;
-        GroupedAlleleCounts const *gp_counts;
+        allele_vector const input_alleles;
+        GroupedAlleleCounts const gp_counts;
         Ploidy ploidy;
         likelihood_related_stats const *l_stats;
         bool ignore_ref_allele = false;
 
-        ModelData() : gp_counts(nullptr) {};
+        ModelData() : gp_counts(){}
 
-        ModelData(allele_vector const *input_alleles, GroupedAlleleCounts const *gp_counts,
+        ModelData(allele_vector const input_alleles, GroupedAlleleCounts const gp_counts,
                 Ploidy ploidy, likelihood_related_stats const *l_stats,
         bool ignore_ref_allele = false) : input_alleles(input_alleles), gp_counts(gp_counts),
         ploidy(ploidy), l_stats(l_stats), ignore_ref_allele(ignore_ref_allele){};
@@ -159,6 +159,8 @@ namespace gram::genotype::infer {
 
         gt_site_ptr get_site() override { return std::static_pointer_cast<gt_site>(genotyped_site); }
         gtype_information get_site_gtype_info() {return genotyped_site->get_all_gtype_info();}
+        // For use by GCP library
+        double get_genotype_confidence() { return genotyped_site->get_gt_conf(); }
     };
 }
 
