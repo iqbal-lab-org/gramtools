@@ -164,6 +164,26 @@ TEST_F(LG_SnpsNestedInTwoHaplotypes, MapReads_CorrectlyInvalidatedSites){
     EXPECT_FLOAT_EQ(json_result.at("GT_CONF").at(0), 0.);
 }
 
+TEST(GCPSimulation, GivenDifferentNumGenotypedSites_ConsistentNumConfidences){
+    auto l_stats = LevelGenotyper::make_l_stats(20, 0.1);
+    Ploidy ploidy{Ploidy::Haploid};
+
+    gt_sites sites(CONF_DISTRIB_SIZE);
+    for (int i{0}; i < CONF_DISTRIB_SIZE; i++) {
+        auto site = std::make_shared<LevelGenotypedSite>();
+        site->set_gt_conf(10);
+        sites.at(i) = std::static_pointer_cast<gt_site>(site);
+    }
+    auto confidences = LevelGenotyper::get_gtconf_distrib(sites, l_stats, ploidy);
+    EXPECT_EQ(CONF_DISTRIB_SIZE, confidences.size());
+    std::set<double> unique(confidences.begin(), confidences.end());
+    EXPECT_EQ(1, unique.size());
+
+    sites.resize(10);
+    confidences = LevelGenotyper::get_gtconf_distrib(sites, l_stats, ploidy);
+    EXPECT_EQ(CONF_DISTRIB_SIZE, confidences.size());
+}
+
 TEST(LevelGenotyperInvalidation, GivenChildMapAndCandidateHaplos_CorrectHaplosWithSites){
     // site 7 lives on haplogroup 0 of site 5, and sites 9 and 11 live on its haplogroup 1.
     parental_map par_map{

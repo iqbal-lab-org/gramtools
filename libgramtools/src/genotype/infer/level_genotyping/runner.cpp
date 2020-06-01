@@ -77,44 +77,49 @@ public:
  * Draws empirical confidences from the genotyped sites
  * and complements them with simulations if there are not enough.
  */
-void LevelGenotyper::compute_confidence_percentiles() {
-    constexpr uint16_t distrib_size{10000};
+std::vector<double> LevelGenotyper::get_gtconf_distrib(gt_sites const& input_sites,
+                                        likelihood_related_stats const& input_lstats,
+                                        Ploidy const& input_ploidy) {
+    constexpr uint16_t distrib_size{CONF_DISTRIB_SIZE};
     std::vector<double> confidences(distrib_size);
     auto insertion_point = confidences.begin();
 
     // Case: draw all needed confidences at random from sites
-    if (genotyped_records.size() > distrib_size){
+    if (input_sites.size() > distrib_size){
         std::random_device rd;
         std::mt19937 generator(rd());
-        std::uniform_int_distribution<> distrib(0, genotyped_records.size() - 1);
+        std::uniform_int_distribution<> distrib(0, input_sites.size() - 1);
         while (insertion_point != confidences.end()) {
             auto selected_entry = distrib(generator);
             auto selected_site =
-                    std::dynamic_pointer_cast<LevelGenotypedSite>(genotyped_records.at(selected_entry));
+                    std::dynamic_pointer_cast<LevelGenotypedSite>(input_sites.at(selected_entry));
             *insertion_point++ = selected_site->get_gt_conf();
         }
     }
     // Case: draw all empirical confidences + simulate up to required number
     else {
-        for (auto const& site : genotyped_records)
+        for (auto const& site : input_sites)
             *insertion_point++ = std::dynamic_pointer_cast<LevelGenotypedSite>(site)->get_gt_conf();
         auto num_simulations = std::distance(insertion_point, confidences.end());
         // Perform simulations
-        GCP::Model<ModelData>* data_producer = new ModelDataProducer(&l_stats, ploidy);
+        GCP::Model<ModelData>* data_producer = new ModelDataProducer(&input_lstats, input_ploidy);
         GCP::Simulator<ModelData, LevelGenotyperModel> simulator(data_producer);
         auto simu = simulator.simulate(num_simulations);
         std::copy(simu.begin(), simu.end(), insertion_point);
     }
-    // Add percentiles
+    std::sort(confidences.begin(), confidences.end());
+    return confidences;
+}
+
+void add_percentiles(gt_sites const& input_sites, std::vector<double> const& confidences){
     GCP::Percentiler percentiler(confidences);
-    for (auto const& site : genotyped_records){
+    for (auto const& site : input_sites){
         auto conf = std::dynamic_pointer_cast<LevelGenotypedSite>(site)->get_gt_conf();
         std::dynamic_pointer_cast<LevelGenotypedSite>(site)->set_gt_conf_percentile(
                 percentiler.get_confidence_percentile(conf)
-                );
+        );
     }
 }
-
 
 LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                                ReadStats const &read_stats, Ploidy const ploidy, bool get_gcp) :
@@ -149,6 +154,9 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
 
         run_invalidation_process(genotyped_site, site_ID);
     }
-    if (get_gcp) compute_confidence_percentiles();
+    if (get_gcp) {
+        auto confidences = get_gtconf_distrib(genotyped_records, l_stats, ploidy);
+        add_percentiles(genotyped_records, confidences);
+    }
 }
 
