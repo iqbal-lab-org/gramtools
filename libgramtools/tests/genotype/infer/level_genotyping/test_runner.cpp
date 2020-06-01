@@ -165,7 +165,7 @@ TEST_F(LG_SnpsNestedInTwoHaplotypes, MapReads_CorrectlyInvalidatedSites){
 }
 
 TEST(GCPSimulation, GivenDifferentNumGenotypedSites_ConsistentNumConfidences){
-    auto l_stats = LevelGenotyper::make_l_stats(20, 0.1);
+    auto l_stats = LevelGenotyper::make_l_stats(20, 10, 0.1);
     Ploidy ploidy{Ploidy::Haploid};
 
     gt_sites sites(CONF_DISTRIB_SIZE);

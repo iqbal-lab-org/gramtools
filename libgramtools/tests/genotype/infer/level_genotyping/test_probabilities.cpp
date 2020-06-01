@@ -49,8 +49,8 @@ TEST(MinCovMoreLikelyThanError, GivenMeanDepthAndErrorRate_CorrectMinCovThreshol
 
     std::size_t index{0};
     while(index < mean_depths.size()) {
-        PoissonLogPmf pmf(params{mean_depths.at(index)});
-        auto min_cov_t = g.find_minimum_non_error_cov(pb_error_rates.at(index), &pmf);
+        auto pmf = std::make_shared<PoissonLogPmf>(params{mean_depths.at(index)});
+        auto min_cov_t = g.find_minimum_non_error_cov(pb_error_rates.at(index), pmf);
         EXPECT_EQ(min_cov_t, expected_min_cov_thresholds.at(index));
         ++index;
     }

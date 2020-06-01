@@ -26,24 +26,48 @@ header_vec LevelGenotyper::get_model_specific_headers(){
 }
 
 likelihood_related_stats
-LevelGenotyper::make_l_stats(double mean_cov_depth, double mean_pb_error){
-    PoissonLogPmf poisson_prob{params{mean_cov_depth}};
+LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double const mean_pb_error) {
+    pmf_ptr pmf, pmf_half_depth;
+    double prob_no_zero{0}, prob_no_zero_half_depth{0};
+    if (var_cov > mean_cov){
+        // Case: use negative binomial.
+        // Infer its parameters from cov depth mean and variance
+        double num_successes = pow(var_cov, 2) / (var_cov - mean_cov);
+        double success_prob = num_successes / (mean_cov + num_successes);
+        pmf = std::make_shared<NegBinomLogPmf>(params{num_successes, success_prob});
+        prob_no_zero = log(1 - pow(success_prob, num_successes));
+
+        num_successes = pow(var_cov, 2) / (var_cov - mean_cov / 2);
+        success_prob = num_successes / (mean_cov / 2 + num_successes);
+        pmf_half_depth = std::make_shared<NegBinomLogPmf>(params{num_successes, success_prob});
+        prob_no_zero_half_depth = log(1 - pow(success_prob, num_successes));
+    }
+    else {
+        pmf = std::make_shared<PoissonLogPmf>(params{mean_cov});
+        prob_no_zero = log(1 - exp(mean_cov * -1));
+
+        pmf_half_depth = std::make_shared<PoissonLogPmf>(params{mean_cov / 2});
+        prob_no_zero_half_depth = log(1 - exp(mean_cov * -0.5));
+    }
 
     // store natural log of pb error also because of its use in likelihood formulae
     return likelihood_related_stats{
-        mean_cov_depth,
-        mean_pb_error, log(mean_pb_error),
-        log(1 - exp(-mean_cov_depth)),
-        log(1 - exp(-mean_cov_depth / 2)),
-        find_minimum_non_error_cov(mean_pb_error, &poisson_prob),
-        poisson_prob,
-        PoissonLogPmf{params{mean_cov_depth / 2}}
+            mean_cov,
+            mean_pb_error,
+            log(mean_pb_error),
+            pmf->operator()(params{0}),
+            pmf_half_depth->operator()(params{0}),
+            prob_no_zero,
+            prob_no_zero_half_depth,
+            find_minimum_non_error_cov(mean_pb_error, pmf),
+            pmf,
+            pmf_half_depth
     };
 }
 
-CovCount LevelGenotyper::find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob) {
-    CovCount min_count{1};
-    while ( (*poisson_prob)(params{static_cast<double>(min_count)}) <= log(pow(mean_pb_error, min_count)) )
+CovCount LevelGenotyper::find_minimum_non_error_cov(double mean_pb_error, pmf_ptr pmf) {
+    double min_count{1};
+    while ((*pmf)(params{min_count}) <= min_count * log(mean_pb_error))
         ++min_count;
     return min_count;
 }
@@ -129,9 +153,10 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
     child_m = build_child_map(cov_graph.par_map); // Required for site invalidation
     genotyped_records.resize(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
 
-    auto mean_cov_depth = read_stats.get_mean_cov_depth();
+    auto mean_cov = read_stats.get_mean_cov();
+    auto var_cov = read_stats.get_var_cov();
     auto mean_pb_error = read_stats.get_mean_pb_error();
-    l_stats = std::move(make_l_stats(mean_cov_depth, mean_pb_error));
+    l_stats = std::move(make_l_stats(mean_cov, var_cov, mean_pb_error));
 
     // Genotype each bubble in the PRG, in most nested to less nested order.
     for (auto const& bubble_pair : cov_graph.bubble_map){

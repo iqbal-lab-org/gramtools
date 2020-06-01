@@ -25,16 +25,15 @@ namespace gram::genotype::infer::probabilities{
         double compute_prob(params const& query) const override;
     public:
         PoissonLogPmf() : lambda(0) {}
-        PoissonLogPmf& operator=(const PoissonLogPmf& other) {
-            probs = other.probs;
-            lambda = other.lambda;
-            return *this;
-        }
-        PoissonLogPmf(PoissonLogPmf const& other){
-            probs = other.probs;
-            lambda = other.lambda;
-        }
         explicit PoissonLogPmf(params const& parameterisation);
+    };
+
+    class NegBinomLogPmf : public AbstractPmf{
+        // k: number of successes; p: probability of success
+        double k, p;
+        double compute_prob(params const& query) const override;
+    public:
+        explicit NegBinomLogPmf(params const& parameterisation);
     };
 }
 

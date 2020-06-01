@@ -55,7 +55,7 @@ TEST(ReadMappingStats, GivenCovStructAndParMap_CorrectMappingRelatedStats) {
     };
     stats.compute_coverage_depth(cov, par_map);
 
-    EXPECT_FLOAT_EQ(stats.get_mean_cov_depth(), 10); // mean of 20 and 0
+    EXPECT_FLOAT_EQ(stats.get_mean_cov(), 10); // mean of 20 and 0
     EXPECT_EQ(stats.get_num_sites_noCov(), 1); // The site with index 2 has no cov
     EXPECT_EQ(stats.get_num_sites_total(), 2); // There are two level 1 sites and one nested one.
 }
@@ -78,7 +78,7 @@ TEST(ReadMappingStats, GivenThreeMappedReadsNonNestedPRG_CorrectMappingRelatedSt
 
     auto stats = setup.read_stats;
     // Map 3 reads to site 1, and 0 to site 2, so expect mean of (3 + 0) / 2
-    EXPECT_FLOAT_EQ(stats.get_mean_cov_depth(),1.5);
+    EXPECT_FLOAT_EQ(stats.get_mean_cov(),1.5);
     EXPECT_EQ(stats.get_num_sites_noCov(), 1);
     EXPECT_EQ(stats.get_num_sites_total(), 2);
 }
@@ -95,7 +95,7 @@ TEST(ReadMappingStats, GivenTwoMappedReadsNestedPRG_CorrectMappingRelatedStats){
     setup.quasimap_reads(reads);
 
     auto stats = setup.read_stats;
-    EXPECT_FLOAT_EQ(stats.get_mean_cov_depth(), 2);
+    EXPECT_FLOAT_EQ(stats.get_mean_cov(), 2);
     EXPECT_EQ(stats.get_num_sites_noCov(), 0);
     EXPECT_EQ(stats.get_num_sites_total(), 1);
 }

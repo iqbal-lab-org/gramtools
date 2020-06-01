@@ -107,7 +107,7 @@ void gram::ReadStats::compute_coverage_depth(Coverage const& coverage, parental_
 
     // And record it all at the object level.
     this->mean_cov_depth = mean_coverage;
-    this->variance_depth = variance_coverage;
+    this->variance_cov_depth = variance_coverage;
     this->num_sites_noCov = num_sites_noCov;
     this->num_sites_total = num_sites_processed;
 }
@@ -123,7 +123,7 @@ void gram::ReadStats::serialise(const std::string &json_output_fpath){
     {"Mean": )" << this->mean_cov_depth << ",";
 
     outf << R"(
-    "Variance": )" << this->variance_depth << ",";
+    "Variance": )" << this->variance_cov_depth << ",";
 
     outf << R"(
     "num_sites_noCov": )" << this->num_sites_noCov << ",";

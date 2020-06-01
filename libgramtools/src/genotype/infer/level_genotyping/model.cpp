@@ -184,11 +184,11 @@ void LevelGenotyperModel::compute_haploid_log_likelihoods(allele_vector const &i
        double frac_non_error_positions = num_non_error_positions / allele.pbCov.size();
 
        double log_likelihood = (
-              data.l_stats->poisson_full_depth.operator()(params{cov_on_allele}) +
-              data.l_stats->log_mean_pb_error * cov_not_on_allele +
-              frac_non_error_positions * data.l_stats->log_no_zero +
-              (1 - frac_non_error_positions) * data.l_stats->mean_cov_depth * -1
-              );
+               data.l_stats->pmf_full_depth->operator()(params{cov_on_allele}) +
+               data.l_stats->log_mean_pb_error * cov_not_on_allele +
+               frac_non_error_positions * data.l_stats->log_no_zero +
+               (1 - frac_non_error_positions) * data.l_stats->log_zero
+       );
 
        likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
        ++allele_index;
@@ -212,10 +212,10 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(allele_vector const
         double frac_non_error_positions = num_non_error_positions / allele.pbCov.size();
 
         double log_likelihood = (
-                2 * data.l_stats->poisson_half_depth.operator()(params{cov_on_allele}) +
+                2 * data.l_stats->pmf_half_depth->operator()(params{cov_on_allele}) +
                 data.l_stats->log_mean_pb_error * cov_not_on_allele +
                 frac_non_error_positions * data.l_stats->log_no_zero +
-                (1 - frac_non_error_positions) * data.l_stats->mean_cov_depth * -1
+                (1 - frac_non_error_positions) * data.l_stats->log_zero
         );
 
         likelihoods.insert({log_likelihood, GtypedIndices{allele_index, allele_index}});
@@ -259,13 +259,11 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(allele_vector con
                 allele_2_len;
 
         double log_likelihood =
-                data.l_stats->poisson_half_depth.operator()(params{allele_1_cov}) +
-                data.l_stats->poisson_half_depth.operator()(params{allele_2_cov}) +
+                data.l_stats->pmf_half_depth->operator()(params{allele_1_cov}) +
+                data.l_stats->pmf_half_depth->operator()(params{allele_2_cov}) +
                 (total_coverage - allele_1_cov - allele_2_cov) * data.l_stats->log_mean_pb_error +
-                allele_1_frac_non_err_pos * data.l_stats->log_no_zero_half_depth +
-                allele_2_frac_non_err_pos * data.l_stats->log_no_zero_half_depth +
-                (1 - allele_1_frac_non_err_pos + 1 - allele_2_frac_non_err_pos) *
-                        (-1 * data.l_stats->mean_cov_depth / 2);
+                (allele_1_frac_non_err_pos + allele_2_frac_non_err_pos) * data.l_stats->log_no_zero_half_depth +
+                (1 - allele_1_frac_non_err_pos + 1 - allele_2_frac_non_err_pos) * data.l_stats->log_zero_half_depth;
         likelihoods.insert({log_likelihood, combo});
     }
 }

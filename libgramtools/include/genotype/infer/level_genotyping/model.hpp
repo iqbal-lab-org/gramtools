@@ -7,8 +7,7 @@
 #include "probabilities.hpp"
 
 using namespace gram;
-using poisson_pmf = gram::genotype::infer::probabilities::PoissonLogPmf;
-using poisson_pmf_ptr = poisson_pmf*;
+using pmf_ptr = std::shared_ptr<gram::genotype::infer::probabilities::AbstractPmf>;
 
 namespace gram::genotype::infer {
     using numCredibleCounts = std::size_t;
@@ -17,12 +16,13 @@ namespace gram::genotype::infer {
     using memoised_coverages = std::map<AlleleIds, allele_coverages>;
 
     struct likelihood_related_stats {
-        double mean_cov_depth,
-                mean_pb_error, log_mean_pb_error,
+        double mean_cov_depth, mean_pb_error,
+                log_mean_pb_error,
+                log_zero, log_zero_half_depth,
                 log_no_zero, log_no_zero_half_depth;
         CovCount credible_cov_t; /**< minimum coverage count to qualify as actual coverage (per-base)*/
-        mutable poisson_pmf poisson_full_depth;
-        mutable poisson_pmf poisson_half_depth;
+        pmf_ptr pmf_full_depth;
+        pmf_ptr pmf_half_depth;
     };
 
     struct ModelData{

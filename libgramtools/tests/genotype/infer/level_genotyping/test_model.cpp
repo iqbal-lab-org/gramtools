@@ -229,7 +229,7 @@ protected:
 
     GroupedAlleleCounts gp_counts{};
     double mean_cov_depth{15}, mean_pb_error{0.01};
-    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 };
 
 TEST_F(TestLevelGenotyperModel_NullGTs , Given0MeanCoverage_ReturnsNullGenotypedSite) {
@@ -259,7 +259,7 @@ TEST(TestLevelGenotyperModel_Coverage, GivenTwoAlleles_CorrectCoverages){
     };
 
     double mean_cov_depth{30}, mean_pb_error{0.01};
-    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 
     ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto haploid = LevelGenotyperModel(data);
@@ -290,7 +290,7 @@ protected:
     };
 
     double mean_cov_depth{15}, mean_pb_error{0.01};
-    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 };
 
 
@@ -340,7 +340,7 @@ TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype){
             { {1}, 20 },
     };
 
-    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 
     ModelData data(alleles, gp_counts, Ploidy::Diploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
@@ -366,7 +366,7 @@ protected:
             { {1}, 30 },
     };
     double mean_cov_depth{30}, mean_pb_error{0.01};
-    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 };
 
 TEST_F(TestLevelGenotyperModel_FourAlleles, GivenHaploGroup1SupportingMeanCov_CorrectGenotype){
@@ -414,7 +414,7 @@ TEST(TestLevelGenotyperModel_IgnoredREF, GivenSeveralAllelesAndIgnoredREF_Correc
             { {1}, 8 },
     };
     double mean_cov_depth{8}, mean_pb_error{0.01};
-    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_pb_error);
+    likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 
     // The last param to LevelGenotyperModel is whether to avoid using the REF
     ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, true);

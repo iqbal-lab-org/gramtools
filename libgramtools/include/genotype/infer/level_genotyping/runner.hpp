@@ -37,8 +37,8 @@ public:
     std::vector<double> static get_gtconf_distrib(gt_sites const& input_sites,
                                                   likelihood_related_stats const& input_lstats,
                                                   Ploidy const& input_ploidy);
-    static CovCount find_minimum_non_error_cov(double mean_pb_error, poisson_pmf_ptr poisson_prob);
-    static likelihood_related_stats make_l_stats(double mean_cov_depth, double mean_pb_error);
+    static CovCount find_minimum_non_error_cov(double mean_pb_error, pmf_ptr pmf);
+    static likelihood_related_stats make_l_stats(double const mean_cov, double const var_cov, double const mean_pb_error);
 
 };
 }
