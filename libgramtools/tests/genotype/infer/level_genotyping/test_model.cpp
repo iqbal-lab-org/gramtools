@@ -311,6 +311,13 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenCoverage_ReturnsCorr
     // The genotype needs to get rescaled: it is index 2 in original allele vector, but 1 in retained alleles
     GtypedIndices expected_gtype{1};
     EXPECT_EQ(gt_info.genotype, expected_gtype);
+
+    // Check neg binomial also gets right call
+    // Neg binomial gets used when variance cov depth exceed mean cov depth
+    l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_cov_depth + 1, mean_pb_error);
+    auto genotyped_nbinom = LevelGenotyperModel(data);
+    gt_info = genotyped_nbinom.get_site_gtype_info();
+    EXPECT_EQ(gt_info.genotype, expected_gtype);
 }
 
 

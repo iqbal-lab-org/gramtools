@@ -2,12 +2,10 @@
 #define LVLGT_MODEL
 
 #include "genotype/parameters.hpp"
-#include "genotype/quasimap/coverage/types.hpp"
 #include "site.hpp"
 #include "probabilities.hpp"
 
 using namespace gram;
-using pmf_ptr = std::shared_ptr<gram::genotype::infer::probabilities::AbstractPmf>;
 
 namespace gram::genotype::infer {
     using numCredibleCounts = std::size_t;
@@ -15,15 +13,7 @@ namespace gram::genotype::infer {
     using likelihood_map = std::multimap<double, GtypedIndices, std::greater<double>>;
     using memoised_coverages = std::map<AlleleIds, allele_coverages>;
 
-    struct likelihood_related_stats {
-        double mean_cov_depth, mean_pb_error,
-                log_mean_pb_error,
-                log_zero, log_zero_half_depth,
-                log_no_zero, log_no_zero_half_depth;
-        CovCount credible_cov_t; /**< minimum coverage count to qualify as actual coverage (per-base)*/
-        pmf_ptr pmf_full_depth;
-        pmf_ptr pmf_half_depth;
-    };
+    using namespace probabilities;
 
     struct ModelData{
         allele_vector const input_alleles;

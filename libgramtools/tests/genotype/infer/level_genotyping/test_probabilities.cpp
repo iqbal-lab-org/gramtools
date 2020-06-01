@@ -12,33 +12,63 @@ TEST(ProbabilityMemoisation, GivenSameQueryParamsTwice_ProbabilityOnlyComputedOn
             .Times(1)
             .WillOnce(Return(0.5));
 
-    float prob1 = pmf(params{1.5});
-    EXPECT_FLOAT_EQ(prob1, 0.5);
-    float prob2 = pmf(params{1.5});
-    EXPECT_FLOAT_EQ(prob2, prob1);
+    double prob1 = pmf(params{1.5});
+    EXPECT_DOUBLE_EQ(prob1, 0.5);
+    double prob2 = pmf(params{1.5});
+    EXPECT_DOUBLE_EQ(prob2, prob1);
 }
 
-TEST(PoissonLogPmf, GivenConstructedObject_Poisson0IsAlreadyMemoised){
-    PoissonLogPmf pmf(params{2});
-    auto probs = pmf.get_probs();
+TEST(LikelihoodStats, DynamicChoiceOfProbDistribution){
+    // test based on failed dynamic casting producing nullptr, which evaluates to false
+
+    // here variance <= mean_cov_depth, so chooses Poisson
+    auto lstats = LevelGenotyper::make_l_stats(10, 5, 0.01);
+    EXPECT_FALSE(std::dynamic_pointer_cast<NegBinomLogPmf>(lstats.pmf_full_depth));
+    EXPECT_TRUE(std::dynamic_pointer_cast<PoissonLogPmf>(lstats.pmf_full_depth));
+
+    // here variance > mean cov depth, so chooses Negative Binomial
+    lstats = LevelGenotyper::make_l_stats(10, 15, 0.01);
+    EXPECT_FALSE(std::dynamic_pointer_cast<PoissonLogPmf>(lstats.pmf_full_depth));
+    EXPECT_TRUE(std::dynamic_pointer_cast<NegBinomLogPmf>(lstats.pmf_full_depth));
+}
+
+TEST(LogPmfs, GivenConstructedObject_Poisson0IsAlreadyMemoised){
+    pmf_ptr pmf;
+    pmf = std::make_shared<PoissonLogPmf>(params{2});
+    auto probs = pmf->get_probs();
     EXPECT_EQ(probs.size(), 1);
     EXPECT_EQ(probs.at(params{0}), -2);
+
+    pmf = std::make_shared<NegBinomLogPmf>(params{2, 0.5});
+    probs = pmf->get_probs();
+    EXPECT_EQ(probs.size(), 1);
 }
 
-TEST(PoissonLogPmf, GivenKnownProbability_LogPoissonValueIsCorrect){
-    /**
-     * I computed the 'known' probs using Python 3.6.9, scipy 1.2.0. Function: scipy.stats.poisson.pmf()
-     */
-    PoissonLogPmf pmf(params{2});
 
-    float known_log_poisson{-1.3068528194400546}; // = ln(Poisson(lambda = 2, count = 2))
-    auto prob = pmf(params{2});
-    EXPECT_FLOAT_EQ(prob, known_log_poisson);
+/*
+ * truth probs computed using scipy 1.2.0 on Python 3.6.9.
+ * Function: scipy.stats.<distrib>.pmf()
+ */
+TEST(LogPmfs, GivenTruthProbabilities_LogPmfValuesCorrect){
+    PoissonLogPmf dpois{params{2}};
+    double known1{-1.3068528194400546}; // = ln(Poisson(lambda = 2, count = 2))
+    auto res1 = dpois(params{2});
+    EXPECT_FLOAT_EQ(res1, known1);
 
-    PoissonLogPmf pmf_float_mean(params{2.5});
-    float known_log_poisson2{-1.3605657168116352}; // = ln(Poisson(lambda = 2, count = 2.5))
-    auto prob2 = pmf_float_mean(params{2});
-    EXPECT_FLOAT_EQ(prob2, known_log_poisson2);
+    dpois = PoissonLogPmf{params{2.5}};
+    double known2{-1.3605657168116352}; // = ln(Poisson(lambda = 2, count = 2.5))
+    auto res2 = dpois(params{2});
+    EXPECT_DOUBLE_EQ(res2, known2);
+
+    auto dnbinom = std::make_shared<NegBinomLogPmf>(params{2, 0.5});
+    known1 = -1.6739764335716716;
+    res1 = (*dnbinom)(params{2});
+    EXPECT_DOUBLE_EQ(res1, known1);
+
+    dnbinom = std::make_shared<NegBinomLogPmf>(params{2.5, 0.5});
+    known2 = -2.3056313146033682;
+    res2 = (*dnbinom)(params{4});
+    EXPECT_DOUBLE_EQ(res2, known2);
 }
 
 TEST(MinCovMoreLikelyThanError, GivenMeanDepthAndErrorRate_CorrectMinCovThreshold){

@@ -32,6 +32,6 @@ namespace gram::genotype::infer::probabilities{
     double NegBinomLogPmf::compute_prob(params const& query) const {
         assert(query.size() == 1);
         auto cov{query.at(0)};
-        return (lgamma(k + cov - 1) - lgamma(cov) - lgamma(k - 1) + k * log(p) + cov * log(1 - p));
+        return (lgamma(k + cov) - lgamma(cov + 1) - lgamma(k) + k * log(p) + cov * log(1 - p));
     }
 }
