@@ -44,8 +44,8 @@ namespace gram::genotype::infer::probabilities{
 
     using pmf_ptr = std::shared_ptr<AbstractPmf>;
     struct likelihood_related_stats {
-        double mean_cov_depth, mean_pb_error,
-                log_mean_pb_error,
+        params data_params;
+        double log_mean_pb_error,
                 log_zero, log_zero_half_depth,
                 log_no_zero, log_no_zero_half_depth;
         CovCount credible_cov_t; /**< minimum coverage count to qualify as actual coverage (per-base)*/

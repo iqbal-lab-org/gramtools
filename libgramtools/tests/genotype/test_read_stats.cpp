@@ -78,7 +78,8 @@ TEST(ReadMappingStats, GivenThreeMappedReadsNonNestedPRG_CorrectMappingRelatedSt
 
     auto stats = setup.read_stats;
     // Map 3 reads to site 1, and 0 to site 2, so expect mean of (3 + 0) / 2
-    EXPECT_FLOAT_EQ(stats.get_mean_cov(),1.5);
+    EXPECT_DOUBLE_EQ(stats.get_mean_cov(),1.5);
+    EXPECT_DOUBLE_EQ(stats.get_var_cov(),2.25);
     EXPECT_EQ(stats.get_num_sites_noCov(), 1);
     EXPECT_EQ(stats.get_num_sites_total(), 2);
 }
@@ -95,7 +96,8 @@ TEST(ReadMappingStats, GivenTwoMappedReadsNestedPRG_CorrectMappingRelatedStats){
     setup.quasimap_reads(reads);
 
     auto stats = setup.read_stats;
-    EXPECT_FLOAT_EQ(stats.get_mean_cov(), 2);
+    EXPECT_DOUBLE_EQ(stats.get_mean_cov(), 2);
+    EXPECT_DOUBLE_EQ(stats.get_var_cov(), 0);
     EXPECT_EQ(stats.get_num_sites_noCov(), 0);
     EXPECT_EQ(stats.get_num_sites_total(), 1);
 }

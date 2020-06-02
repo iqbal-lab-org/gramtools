@@ -28,14 +28,16 @@ header_vec LevelGenotyper::get_model_specific_headers(){
 likelihood_related_stats
 LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double const mean_pb_error) {
     pmf_ptr pmf, pmf_half_depth;
+    params data_params;
     double prob_no_zero{0}, prob_no_zero_half_depth{0};
     if (var_cov > mean_cov){
         // Case: use negative binomial.
         // Infer its parameters from cov depth mean and variance
-        double num_successes = pow(var_cov, 2) / (var_cov - mean_cov);
+        double num_successes = pow(mean_cov, 2) / (var_cov - mean_cov);
         double success_prob = num_successes / (mean_cov + num_successes);
         pmf = std::make_shared<NegBinomLogPmf>(params{num_successes, success_prob});
         prob_no_zero = log(1 - pow(success_prob, num_successes));
+        data_params = params{mean_cov, num_successes, success_prob, mean_pb_error};
 
         num_successes = pow(var_cov, 2) / (var_cov - mean_cov / 2);
         success_prob = num_successes / (mean_cov / 2 + num_successes);
@@ -48,12 +50,12 @@ LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double
 
         pmf_half_depth = std::make_shared<PoissonLogPmf>(params{mean_cov / 2});
         prob_no_zero_half_depth = log(1 - exp(mean_cov * -0.5));
+        data_params = params{mean_cov, mean_pb_error};
     }
 
     // store natural log of pb error also because of its use in likelihood formulae
     return likelihood_related_stats{
-            mean_cov,
-            mean_pb_error,
+            data_params,
             log(mean_pb_error),
             pmf->operator()(params{0}),
             pmf_half_depth->operator()(params{0}),
@@ -81,10 +83,23 @@ public:
     : l_stats(l_stats), ploidy(ploidy) {};
 
     ModelData produce_data() override {
-        std::binomial_distribution<CovCount> b(l_stats->mean_cov_depth, l_stats->mean_pb_error);
-        std::poisson_distribution<CovCount> p(l_stats->mean_cov_depth);
-        CovCount const correct_cov = p(random_number_generator);
+        CovCount correct_cov;
+        if (std::dynamic_pointer_cast<PoissonLogPmf>(l_stats->pmf_full_depth)){
+            std::poisson_distribution<CovCount> dpois(l_stats->data_params.at(0));
+            correct_cov = dpois(random_number_generator);
+        }
+        else{
+            std::negative_binomial_distribution<CovCount> dnbinom(
+                    l_stats->data_params.at(1),
+                    l_stats->data_params.at(2));
+            correct_cov = dnbinom(random_number_generator);
+        }
+
+        std::binomial_distribution<CovCount> b(
+                l_stats->data_params.at(0),
+                l_stats->data_params.at(l_stats->data_params.size() - 1));
         CovCount const incorrect_cov = b(random_number_generator);
+        
         allele_vector alleles{
             Allele{"A", {correct_cov}, 0},
             Allele{"A", {incorrect_cov}, 1},

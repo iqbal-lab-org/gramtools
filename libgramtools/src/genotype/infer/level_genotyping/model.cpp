@@ -315,7 +315,7 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_dat
     genotyped_site = std::make_shared<LevelGenotypedSite>();
 
     total_coverage = count_total_coverage(data.gp_counts);
-    if (total_coverage == 0 || data.l_stats->mean_cov_depth == 0){
+    if (total_coverage == 0 || data.l_stats->data_params.at(0) == 0){
         // Give the null genotyped site the first allele for extraction to be possible
         genotyped_site->set_alleles(allele_vector{data.input_alleles.at(0)});
         genotyped_site->make_null();

@@ -233,7 +233,7 @@ protected:
 };
 
 TEST_F(TestLevelGenotyperModel_NullGTs , Given0MeanCoverage_ReturnsNullGenotypedSite) {
-    l_stats.mean_cov_depth = 0;
+    l_stats.data_params.at(0) = 0;
     ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     auto genotyped = LevelGenotyperModel(data);
 
