@@ -51,18 +51,25 @@ set(EXTERN_LIBS
 #########################
 set(SOURCE
         ${PROJECT_SOURCE_DIR}/libgramtools/src)
-set(INCLUDE
-        ${PROJECT_SOURCE_DIR}/libgramtools/include)
-
 
 file(GLOB_RECURSE SOURCE_FILES
         ${SOURCE}/*.cpp)
+
+set(INCLUDE
+        ${PROJECT_SOURCE_DIR}/libgramtools/include)
+
+file(GLOB_RECURSE HEADER_FILES
+        ${INCLUDE}/*.hpp)
+
+
 
 #########################
 ####  libgramtools   ####
 #########################
 add_library(gramtools STATIC
-        ${SOURCE_FILES})
+        ${SOURCE_FILES}
+        ${HEADER_FILES} # For IDE to recognise header files as part of a target
+        )
 target_include_directories(gramtools PUBLIC
         ${INCLUDE}
         ${EXTERNAL_INCLUDE_DIR}

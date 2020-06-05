@@ -203,14 +203,12 @@ void cov_Graph_Builder::exit_site(Marker const &m) {
                 );
 
     // Update the current Locus
-    try {
+    if (par_map.find(site_ID) != par_map.end()) {
         cur_Locus = par_map.at(site_ID);
         if (cur_Locus.second == FIRST_ALLELE) first_allele = true;
     }
     // Means we were in a level 1 site; we will no longer be in a site
-    catch(std::out_of_range&e){
-        cur_Locus = std::make_pair(0,ALLELE_UNKNOWN);
-    }
+    else cur_Locus = std::make_pair(0,ALLELE_UNKNOWN);
 
     backWire = site_exit;
     cur_pos = site_exit->get_pos();

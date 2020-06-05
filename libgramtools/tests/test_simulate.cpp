@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "simulate/simulate.hpp"
+#include "simulate/induce_genotypes.hpp"
+#include "prg/linearised_prg.hpp"
+#include "prg/coverage_graph.hpp"
 
 #include "test_resources/mocks.hpp"
 
@@ -54,4 +57,56 @@ TEST_F(MakeRandomGenotypedSite, GivenIgnoreREFAllele_CorrectSite){
             alleles.at(1)
     };
     EXPECT_EQ(site->get_alleles(), expected_als);
+}
+
+class TestInduceGenotypes : public ::testing::Test{
+protected:
+    coverage_Graph g;
+    covG_ptr graph_end;
+    TestInduceGenotypes(){
+        auto encoded_prg = prg_string_to_ints("AA[A,C,G]TG[AC,[G,T]CA]CCC");
+        PRG_String p{encoded_prg};
+        g = coverage_Graph{p};
+        auto cur_Node = g.root;
+        while (cur_Node->get_num_edges() > 0)
+            cur_Node = cur_Node->get_edges().at(0);
+        graph_end = cur_Node;
+    }
+};
+
+TEST_F(TestInduceGenotypes, GivenSequenceNotInGraph_ThrowsError){
+    std::string absent_sequence{"AACTGACTTT"};
+    EXPECT_THROW(thread_sequence(g.root, absent_sequence), NoEndpoints);
+}
+
+TEST_F(TestInduceGenotypes, GivenSequenceInGraphButIncomplete_ThrowsError){
+    std::string sequence{"AACTGACC"};
+    EXPECT_THROW(thread_sequence(g.root, sequence), NoEndpoints);
+}
+
+TEST_F(TestInduceGenotypes, GivenSequenceInGraphAndComplete_GetSingleEndpoint){
+    std::string goodseq1{"AACTGACCCC"};
+    auto result = thread_sequence(g.root, goodseq1);
+    EXPECT_EQ(result->get_prg_node(), graph_end);
+    EXPECT_EQ(result->get_offset(), 10);
+
+    std::string goodseq2{"AAATGGCACCC"};
+    result = thread_sequence(g.root, goodseq2);
+    EXPECT_EQ(result->get_prg_node(), graph_end);
+    EXPECT_EQ(result->get_offset(), 11);
+}
+
+TEST(InduceGenotypesAmbiguous, GivenMultiplePossiblePathsInPrg_ThrowsError){
+    /*
+     * This highlights that the prg construction process needs to be sequence coherent:
+     * Same sequences should not be produceable inside a site, or across full PRG.
+     */
+    auto ambiguous_prg = prg_string_to_ints("AA[A,AA]A[AA,A]T");
+    // An equivalent, unambiguous prg is "AA[AA,AAA,AAAA]AT"
+    auto g = coverage_Graph{PRG_String{ambiguous_prg}};
+    EXPECT_THROW(thread_sequence(g.root, "AAAAAAT"),TooManyEndpoints);
+
+    ambiguous_prg = prg_string_to_ints("AT[CA,C[C,A]]GG");
+    g = coverage_Graph{PRG_String{ambiguous_prg}};
+    EXPECT_THROW(thread_sequence(g.root, "ATCAGG"),TooManyEndpoints);
 }
