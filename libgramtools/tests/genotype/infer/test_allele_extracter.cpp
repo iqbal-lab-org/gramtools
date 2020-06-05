@@ -14,6 +14,8 @@ using namespace ::testing;
 class AlleleCombineTest : public ::testing::Test {
 protected:
 
+    AlleleCombineTest() {}
+
     std::shared_ptr<MockGenotypedSite> site_ptr = std::make_shared<MockGenotypedSite>();
     gt_sites sites{
             site_ptr

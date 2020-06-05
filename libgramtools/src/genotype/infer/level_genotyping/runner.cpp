@@ -187,10 +187,11 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
         auto genotyped = LevelGenotyperModel(data);
         auto genotyped_site = genotyped.get_site();
         genotyped_site->set_pos(bubble_pair.first->get_pos());
-        genotyped_records.at(site_index) = genotyped_site;
         // Line below is so that when allele extraction occurs and jumps through a previously
         // genotyped site, it knows where in the graph to resume from.
-        genotyped_records.at(site_index)->set_site_end_node(bubble_pair.second);
+        genotyped_site->set_site_end_node(bubble_pair.second);
+
+        genotyped_records.at(site_index) = genotyped_site;
 
         run_invalidation_process(genotyped_site, site_ID);
     }

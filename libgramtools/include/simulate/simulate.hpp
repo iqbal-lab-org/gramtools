@@ -4,18 +4,10 @@
 #include "parameters.hpp"
 #include "genotype/infer/interfaces.hpp"
 #include "common/random.hpp"
-#include "genotype/infer/output_specs/fields.hpp"
 
 using namespace gram::genotype::infer;
 
 namespace gram::simulate {
-    class RandomGenotypedSite : public GenotypedSite {
-    public:
-        RandomGenotypedSite() = default;
-        site_entries get_model_specific_entries() override{ return {}; }
-        void null_model_specific_entries() override {}
-    };
-
     using Seed = uint32_t;
 
     class RandomGenotyper : public Genotyper {

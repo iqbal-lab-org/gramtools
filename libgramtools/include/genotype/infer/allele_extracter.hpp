@@ -2,6 +2,7 @@
 #define ALLELE_EXTRACTER_HPP
 
 #include "types.hpp"
+#include "prg/types.hpp"
 
 using namespace gram;
 

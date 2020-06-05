@@ -1,12 +1,14 @@
 #include <iomanip>
 
-#include "simulate/simulate.hpp"
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/personalised_reference.hpp"
+
+#include "simulate/simulate.hpp"
+#include "simulate/induce_genotypes.hpp"
 
 using namespace gram::genotype;
 using namespace gram::simulate;
@@ -28,11 +30,9 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
             auto genotyped_site = make_randomly_genotyped_site(&rand, extracter.get_alleles(),
                     extracter.ref_allele_got_made_naturally());
             genotyped_site->set_pos(bubble_pair.first->get_pos());
+            genotyped_site->set_site_end_node(bubble_pair.second);
 
             genotyped_records.at(site_index) = genotyped_site;
-            // Line below is so that when allele extraction occurs and jumps through a previously
-            // genotyped site, it knows where in the graph to resume from.
-            genotyped_records.at(site_index)->set_site_end_node(bubble_pair.second);
 
             run_invalidation_process(genotyped_site, site_ID);
         }
@@ -54,7 +54,7 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
             picked_index = 1;
         }
 
-        auto result = std::make_shared<RandomGenotypedSite>();
+        auto result = std::make_shared<SimulatedSite>();
         result->populate_site(gtype_information{
            picked_alleles,
            GtypedIndices{static_cast<int>(picked_index)},
