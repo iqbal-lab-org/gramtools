@@ -94,7 +94,7 @@ void gram::simulate::apply_genotypes(nt_ptr const& end_point, gt_sites const& si
               site->populate_site(gtype_information{
                  site_alleles,
                  GtypedIndices{0},
-                 {0},
+                 {1},
                  1,
                  AlleleIds{0}});
             else {
@@ -104,7 +104,7 @@ void gram::simulate::apply_genotypes(nt_ptr const& end_point, gt_sites const& si
                         GtypedIndices{1},
                         {0, 1},
                         1,
-                        AlleleIds{0, extracted_allele.haplogroup}
+                        AlleleIds{extracted_allele.haplogroup}
                 });
             }
         }

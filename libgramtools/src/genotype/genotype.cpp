@@ -73,7 +73,7 @@ void gram::commands::genotype::run(GenotypeParams const& parameters){
     auto gtyper = std::make_shared<LevelGenotyper>(genotyper);
     auto sample_json = make_json_prg(gtyper, tracker);
     sample_json->set_sample_info(parameters.sample_id, "made by gramtools genotype");
-    geno_json_fhandle << std::setw(4) << sample_json->get_prg() << std::endl;
+    geno_json_fhandle << sample_json->get_prg() << std::endl;
     geno_json_fhandle.close();
 
     auto sites = genotyper.get_genotyped_records();

@@ -167,7 +167,7 @@ void induce_genotypes_all_seqs(json_prg_ptr& simu_json, coverage_Graph const& in
                 add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
             }
             fasta_seq.clear();
-            fasta_id = line.substr(1);
+            fasta_id = line.substr(1, line.find(" ") - 1); // Take first word of header only
         }
         else if (! fasta_id.empty())
                 fasta_seq += line;
@@ -190,7 +190,7 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
 
     // Write JSON
     std::ofstream geno_json_fhandle(parameters.json_out_fpath);
-    geno_json_fhandle << std::setw(4) << simu_json->get_prg() << std::endl;
+    geno_json_fhandle << simu_json->get_prg() << std::endl;
     geno_json_fhandle.close();
 }
 

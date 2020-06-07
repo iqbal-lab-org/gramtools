@@ -206,13 +206,22 @@ class DiscoverPaths(ProjectPaths):
 
 
 class SimulatePaths(ProjectPaths):
-    def __init__(self, output_dir, sample_id: str, prg_filepath, force=False):
+    def __init__(
+        self,
+        output_dir,
+        sample_id: str,
+        prg_filepath,
+        induce_genotypes: str,
+        force=False,
+    ):
         self.sim_dir = Path(output_dir).resolve()
         super().__init__(self.sim_dir, force)
 
         self.prg_fpath = Path(prg_filepath).resolve()
         self.json_out = self.sim_dir / f"{sample_id}.json"
         self.fasta_out = self.sim_dir / f"{sample_id}.fasta"
+        if induce_genotypes != "":
+            self.input_multifasta = Path(induce_genotypes).resolve()
 
     def setup(self):
         if not self.sim_dir.exists():
@@ -220,6 +229,8 @@ class SimulatePaths(ProjectPaths):
             self.made_output_dir = True
 
         self.check_exists(self.prg_fpath)
+        if hasattr(self, "input_multifasta"):
+            self.check_exists(self.input_multifasta)
         for path in [self.json_out, self.fasta_out]:
             if path.exists() and not self.force:
                 self.raise_error(

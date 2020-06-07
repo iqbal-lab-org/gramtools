@@ -16,8 +16,8 @@ def setup_parser(common_parser, subparsers):
         required=True,
     )
     parser.add_argument(
-        "--max_num_paths",
         "-n",
+        "--max_num_paths",
         help="Number of paths through the prg to simulate. \n"
         "Duplicates are removed, so this is an upper bound.",
         type=int,
@@ -32,17 +32,28 @@ def setup_parser(common_parser, subparsers):
         default="sim",
     )
     parser.add_argument(
-        "--output_dir",
         "-o",
+        "--output_dir",
         help="directory containing outputs",
         type=str,
         required=False,
         default=".",
     )
+    parser.add_argument(
+        "-i",
+        "--induce_genotypes",
+        help="Input multifasta to produce genotypes of.\n"
+        "Fails if any of the sequences is not present or is multicopy in the prg.",
+        type=str,
+        required=False,
+        default="",
+    )
 
 
 def run(args):
-    simu_paths = SimulatePaths(args.output_dir, args.sample_id, args.prg, args.force)
+    simu_paths = SimulatePaths(
+        args.output_dir, args.sample_id, args.prg, args.induce_genotypes, args.force
+    )
     simu_paths.setup()
 
     log.info("Start process: simulate")
@@ -54,6 +65,9 @@ def run(args):
 
 
 def _execute_command_cpp_simulate(simu_paths, args):
+    input_multifasta = list()
+    if hasattr(simu_paths, "input_multifasta"):
+        input_multifasta.extend(["--i", str(simu_paths.input_multifasta)])
     command = [
         common.gramtools_exec_fpath,
         "simulate",
@@ -65,7 +79,7 @@ def _execute_command_cpp_simulate(simu_paths, args):
         args.sample_id,
         "--o",
         str(simu_paths.output_dir),
-    ]
+    ] + input_multifasta
 
     if args.debug:
         command += ["--debug"]

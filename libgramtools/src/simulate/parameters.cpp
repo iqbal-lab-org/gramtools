@@ -18,7 +18,7 @@ SimulateParams commands::simulate::parse_parameters(po::variables_map &vm,
             ("sample_id", po::value<std::string>(&parameters.sample_id)->required(),
              "Prefixes output filenames and sample IDs in output files")
             ("o", po::value<std::string>(&output_dir_fpath)->required(),
-             "directory containing outputs"),
+             "directory containing outputs")
             ("i", po::value<std::string>(&parameters.input_sequences_fpath),
                     "input sequences to induce genotypes on");
 
