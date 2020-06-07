@@ -3,10 +3,10 @@ from unittest import mock, TestCase
 import shutil
 from pathlib import Path
 
+from pysam import VariantFile
+
 from gramtools.commands.discover import discover
 import gramtools.tests.integration_tests as it_tests
-
-from pysam import VariantFile
 
 
 class DiscoverRunner:
