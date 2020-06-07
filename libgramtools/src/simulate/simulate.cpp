@@ -1,23 +1,27 @@
 #include <iomanip>
 
+#include <boost/iostreams/filtering_streambuf.hpp>
+
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/personalised_reference.hpp"
+#include "common/file_read.hpp"
 
 #include "simulate/simulate.hpp"
 #include "simulate/induce_genotypes.hpp"
+
 
 using namespace gram::genotype;
 using namespace gram::simulate;
 
 namespace gram::simulate {
 
-RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
+SimulationGenotyper::SimulationGenotyper(coverage_Graph const &cov_graph) {
         this->cov_graph = &cov_graph;
-        child_m = build_child_map(cov_graph.par_map); // Required for site invalidation
+        child_m = build_child_map(cov_graph.par_map); // Required for site invalidation & json output
         genotyped_records.resize(cov_graph.bubble_map.size()); // Pre-allocate one slot for each bubble in the PRG
 
         // Genotype each bubble in the PRG, in most nested to less nested order.
@@ -69,47 +73,53 @@ RandomGenotyper::RandomGenotyper(coverage_Graph const &cov_graph) {
     }
 }
 
-void gram::commands::simulate::run(SimulateParams const& parameters){
-    PRG_String prg{parameters.encoded_prg_fpath};
-    coverage_Graph cov_g{prg};
+SimulationGenotyper::SimulationGenotyper(coverage_Graph const &cov_graph, gt_sites const& input_sites){
+    this->cov_graph = &cov_graph;
+    child_m = build_child_map(cov_graph.par_map); // Required for site invalidation & json output
+    genotyped_records = input_sites;
+}
 
-    std::string desc{"path through prg made by gramtools simulate"};
+void add_new_json(json_prg_ptr& simu_json, gtyper_ptr const& gtyper, SegmentTracker& tracker,
+        bool& first, std::string const& sample_id, std::string const& desc){
+    auto new_json = make_json_prg(gtyper, tracker);
+    if (first){
+        simu_json = new_json;
+        simu_json->set_sample_info(sample_id, desc);
+        first = false;
+    }
+    else {
+        new_json->set_sample_info(sample_id, desc);
+        simu_json->combine_with(*new_json);
+    }
+}
+
+void simulate_paths(json_prg_ptr& simu_json, coverage_Graph const& cov_graph,
+                    SimulateParams const& parameters){
+    std::string desc{"path through prg made by gramtools simulate"}, sample_id;
     unique_Fastas unique_simu_paths;
     Fastas ordered_simu_paths;
-    json_prg_ptr simu_json;
     bool first{true};
-    std::string sample_id;
 
     std::stringstream coords_file{""};
     SegmentTracker tracker(coords_file);
 
-    uint64_t num_runs{0};
-    uint64_t num_sampled{0};
+    uint64_t num_runs{0}, num_sampled{0};
     while (num_runs < parameters.max_num_paths){
-       RandomGenotyper gtyper(cov_g);
-       auto ptr_gtyper = std::make_shared<RandomGenotyper>(gtyper);
-       auto genotyped_records = gtyper.get_genotyped_records();
-       auto new_p_ref = get_personalised_ref(cov_g.root, genotyped_records, tracker).at(0);
-
-       if (unique_simu_paths.find(new_p_ref) == unique_simu_paths.end()){
-           num_sampled++;
-           sample_id = parameters.sample_id + std::to_string(num_sampled);
-           new_p_ref.set_ID(sample_id);
-           new_p_ref.set_desc("made by gramtools simulate");
-           unique_simu_paths.insert(new_p_ref);
-           ordered_simu_paths.push_back(new_p_ref);
-           auto new_json = make_json_prg(ptr_gtyper, tracker);
-           if (first){
-               simu_json = new_json;
-               simu_json->set_sample_info(sample_id, desc);
-               first = false;
-           }
-           else {
-               new_json->set_sample_info(sample_id, desc);
-               simu_json->combine_with(*new_json);
-           }
-       }
         num_runs++;
+        auto gtyper = std::make_shared<SimulationGenotyper>(cov_graph);
+        auto genotyped_records = gtyper->get_genotyped_records();
+        auto new_p_ref = get_personalised_ref(cov_graph.root, genotyped_records, tracker).at(0);
+
+        if (unique_simu_paths.find(new_p_ref) != unique_simu_paths.end()) continue;
+
+        num_sampled++;
+        sample_id = parameters.sample_id + std::to_string(num_sampled);
+        new_p_ref.set_ID(sample_id);
+        new_p_ref.set_desc("made by gramtools simulate");
+        unique_simu_paths.insert(new_p_ref);
+        ordered_simu_paths.push_back(new_p_ref);
+
+        add_new_json(simu_json, gtyper, tracker, first, sample_id, desc);
     }
 
     std::cout << "Made " << unique_simu_paths.size() << " simulated paths." << std::endl;
@@ -118,6 +128,65 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
     std::ofstream fasta_fhandle(parameters.fasta_out_fpath);
     for (auto& simu_path : ordered_simu_paths) fasta_fhandle << simu_path << std::endl;
     fasta_fhandle.close();
+}
+
+
+gt_sites induce_genotypes_one_seq(gt_sites const& template_sites, coverage_Graph const& input_prg,
+        std::string const& sequence){
+   gt_sites result;
+   result.reserve(template_sites.size());
+   for (auto const& template_site : template_sites){
+       auto downcasted = std::dynamic_pointer_cast<SimulatedSite>(template_site);
+       result.push_back(std::make_shared<SimulatedSite>(*downcasted));
+   }
+
+   auto endpoint = thread_sequence(input_prg.root, sequence);
+   apply_genotypes(endpoint, result);
+   return result;
+}
+
+void induce_genotypes_all_seqs(json_prg_ptr& simu_json, coverage_Graph const& input_prg,
+        std::string const& fasta_fpath){
+    boost::iostreams::filtering_istreambuf in;
+    std::ifstream fhandle(fasta_fpath, std::ios::binary);
+    if (! fhandle.is_open())
+        throw std::ios_base::failure("Could not open: " + fasta_fpath);
+    input_fasta(in, fhandle, is_gzipped(fasta_fpath));
+    std::istream getter{&in};
+
+    auto template_sites = make_nulled_sites(input_prg);
+    bool first{true};
+    std::stringstream coords_file{""};
+    SegmentTracker tracker(coords_file);
+    std::string line, fasta_id, fasta_seq, desc{"induced genotypes made by gramtools simulate"};
+    while(std::getline(getter, line)) {
+        if (line[0] == '>') {
+            if (!fasta_seq.empty()) {
+                auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg, fasta_seq);
+                auto gtyper = std::make_shared<SimulationGenotyper>(input_prg, gtyped_sites);
+                add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
+            }
+            fasta_seq.clear();
+            fasta_id = line.substr(1);
+        }
+        else if (! fasta_id.empty())
+                fasta_seq += line;
+    }
+    if (! fasta_seq.empty() && !fasta_id.empty()) {
+        auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg, fasta_seq);
+        auto gtyper = std::make_shared<SimulationGenotyper>(input_prg, gtyped_sites);
+        add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
+    }
+}
+
+void gram::commands::simulate::run(SimulateParams const& parameters){
+    PRG_String prg{parameters.encoded_prg_fpath};
+    coverage_Graph cov_g{prg};
+    json_prg_ptr simu_json;
+
+    if (parameters.input_sequences_fpath.empty())
+       simulate_paths(simu_json, cov_g, parameters);
+    else induce_genotypes_all_seqs(simu_json, cov_g, parameters.input_sequences_fpath);
 
     // Write JSON
     std::ofstream geno_json_fhandle(parameters.json_out_fpath);
@@ -125,7 +194,7 @@ void gram::commands::simulate::run(SimulateParams const& parameters){
     geno_json_fhandle.close();
 }
 
-header_vec RandomGenotyper::get_model_specific_headers(){
+header_vec SimulationGenotyper::get_model_specific_headers(){
    return header_vec{
        vcf_meta_info_line{
            "Model", "Simulated_Path"

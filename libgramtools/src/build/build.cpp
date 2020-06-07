@@ -1,6 +1,7 @@
 #include "build/parameters.hpp"
 #include "build/build.hpp"
 #include "build/check_ref.hpp"
+#include "common/file_read.hpp"
 
 
 using namespace gram;
@@ -29,14 +30,11 @@ void commands::build::run(BuildParams const &parameters) {
     timer.stop();
 
     std::cout << "Checking ref is first path in prg...";
-    bool gzipped{false};
     auto ref_name = parameters.fasta_ref;
-    if (ref_name.substr(ref_name.size() - 2) == "gz")
-        gzipped = true;
     std::ifstream ref_fhandle(ref_name, std::ios::binary);
     if (! ref_fhandle.is_open())
         throw std::ios_base::failure("Could not open: " + ref_name);
-    PrgRefChecker(ref_fhandle, prg_info.coverage_graph, gzipped);
+    PrgRefChecker(ref_fhandle, prg_info.coverage_graph, is_gzipped(ref_name));
     std::cout << "OK" << std::endl;
 
     prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();

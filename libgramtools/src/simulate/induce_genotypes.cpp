@@ -96,8 +96,7 @@ void gram::simulate::apply_genotypes(nt_ptr const& end_point, gt_sites const& si
                  GtypedIndices{0},
                  {0},
                  1,
-                 AlleleIds{0}
-              });
+                 AlleleIds{0}});
             else {
                 site_alleles.push_back(extracted_allele);
                 site->populate_site(gtype_information{
@@ -107,7 +106,6 @@ void gram::simulate::apply_genotypes(nt_ptr const& end_point, gt_sites const& si
                         1,
                         AlleleIds{0, extracted_allele.haplogroup}
                 });
-
             }
         }
         cur_Node = cur_Node->get_parent();

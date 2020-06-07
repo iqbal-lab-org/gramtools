@@ -7,10 +7,10 @@ namespace gram{
 
     class SimulateParams : public CommonParameters {
     public:
-        std::string json_out_fpath;
-        std::string fasta_out_fpath;
+        std::string json_out_fpath, fasta_out_fpath;
         std::string sample_id;
         uint64_t max_num_paths;
+        std::string input_sequences_fpath;
     };
 
     namespace commands::simulate {

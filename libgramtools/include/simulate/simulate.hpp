@@ -10,13 +10,18 @@ using namespace gram::genotype::infer;
 namespace gram::simulate {
     using Seed = uint32_t;
 
-    class RandomGenotyper : public Genotyper {
+    class SimulationGenotyper : public Genotyper {
     public:
         /**
          * The genotyping process is the same in form to `gram::genotype::infer::LevelGenotyper`
          * except that genotype is randomly assigned among the list of alleles.
          */
-        RandomGenotyper(coverage_Graph const &cov_graph);
+        SimulationGenotyper(coverage_Graph const &cov_graph);
+
+        /**
+         * For taking in directly genotyped sites
+         */
+        SimulationGenotyper(coverage_Graph const &cov_graph, gt_sites const& input_sites);
 
         header_vec get_model_specific_headers() override;
     };

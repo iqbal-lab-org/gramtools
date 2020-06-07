@@ -1,39 +1,19 @@
-#include <boost/iostreams/categories.hpp> // input_filter_tag
-#include <boost/iostreams/operations.hpp> // get, WOULD_BLOCK
 #include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/gzip.hpp> // decompressor
 
 #include "build/check_ref.hpp"
-
+#include "common/file_read.hpp"
 
 using namespace boost::iostreams;
 
-struct to_upper_filter {
-    typedef char              char_type;
-    typedef input_filter_tag  category;
-
-    template<typename Source>
-    int get(Source& src)
-    {
-        int c = boost::iostreams::get(src);
-        if (c == EOF) return c;
-        return std::toupper((unsigned char) c);
-    }
-};
-
-gram::PrgRefChecker::PrgRefChecker(std::istream &fasta_ref_handle, coverage_Graph const &cov_graph, bool gzipped) {
-    filtering_istreambuf in;
-    in.push(to_upper_filter());
-    if (gzipped){
-        in.push(gzip_decompressor());
-    }
-    in.push(fasta_ref_handle);
+gram::PrgRefChecker::PrgRefChecker(std::istream &fasta_ref_handle, coverage_Graph const &cov_graph,
+                                   bool const gzipped) {
+    boost::iostreams::filtering_istreambuf in;
+    input_fasta(in, fasta_ref_handle, gzipped);
+    std::istream getter{&in};
 
     std::string prg_first_path = get_first_prg_path(cov_graph);
     uint32_t prg_offset{0};
-
     std::string line, ref_seq;
-    std::istream getter{&in};
     while(std::getline(getter, line)){
         if (line[0] == '>') continue;
         ref_seq += line;
