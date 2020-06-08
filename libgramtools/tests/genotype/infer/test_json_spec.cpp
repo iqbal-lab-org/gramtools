@@ -16,8 +16,8 @@ namespace gram::json{
 class MockJsonSite : public Json_Site {
 public:
     MockJsonSite() : Json_Site() {}
-    MockJsonSite(MockJsonSite const& other){
-        this->json_site = other.json_site;
+    MockJsonSite(std::shared_ptr<Json_Site> other){
+        this->json_site = other->get_site();
     }
 
     void set_json(JSON const& json){ this->json_site = json;}
@@ -103,7 +103,7 @@ class Site_Combine_Fail : public ::testing::Test{
 protected:
     void SetUp(){
         JSON_data_store data;
-        the_site_json = data.site1_samples.at(0)->get_site_copy();
+        the_site_json = data.site1_samples.at(0)->get_site();
         // site: MockJsonSite sample1({"CTCCT", "CTT"}, {0, 0}, {0, 0}, {10, 2}, {11});
         fixed_site.set_site(the_site_json);
     }
@@ -151,10 +151,10 @@ TEST(Site_Json_CombiMap, Add2Samples_CorrectCombiMap){
     allele_combi_map result;
     MockJsonSite site;
 
-    JSON sample1 = data.site1_samples.at(0)->get_site_copy();
+    JSON sample1 = data.site1_samples.at(0)->get_site();
     site.build_allele_combi_map(sample1, result);
 
-    JSON sample2 = data.site1_samples.at(1)->get_site_copy();
+    JSON sample2 = data.site1_samples.at(1)->get_site();
     site.build_allele_combi_map(sample2, result);
 
     allele_combi_map expected{
@@ -174,10 +174,10 @@ TEST(Site_Json_RescaleEntries, GivenCombiMap_CorrectRescaledJSON){
 
     JSON_data_store data;
     auto sample2 = data.site1_samples.at(1);
-    auto result = sample2->rescale_entries(m);
+    sample2->rescale_entries(m);
     MockJsonSite expected_site({"CTCCT", "CTT"}, {2, 2}, {1, 1}, {2, 0, 10}, 11,
             3, "gene1");
-    EXPECT_EQ(result, expected_site.get_site());
+    EXPECT_EQ(sample2->get_site(), expected_site.get_site());
 }
 
 TEST(Site_Json_AppendEntries, GivenTwoGtedSites_CorrectAppending){
@@ -303,17 +303,29 @@ TEST(PRG_Combine_SampleNames, GivenNamedJSONs_CanForceOrNotForceMerge){
     EXPECT_EQ(prg1.get_prg().at("Samples"), expected);
 }
 
-TEST(PRG_Combine_Success, GivenTwoPrgs_CorrectCombined){
+TEST(PRG_Combine_Successs2_cpy, GivenTwoPrgs_CorrectCombined){
+    /**
+     * This is a bit convoluted, but here is explanation:
+     * we take a copy of each of four genotyped sites: two samples genotyped at two sites.
+     *
+     * We need these copies because calling `combine_with` on a json_prg modifies both sites
+     * (copied-to and copied-from) in-place.
+     *
+     * Then we test manual site combining, and that the json_prg combining did the right thing.
+     */
     JSON_data_store data;
 
-    MockJsonSite s1_cpy, s2_cpy;
-    s1_cpy.set_site(data.site1_samples.at(0)->get_site());
-    s2_cpy.set_site(data.site2_samples.at(0)->get_site());
+    MockJsonSite site1_sample1(data.site1_samples.at(0));
+    MockJsonSite site1_sample2(data.site1_samples.at(1));
+
+    MockJsonSite site2_sample1(data.site2_samples.at(0));
+    MockJsonSite site2_sample2(data.site2_samples.at(1));
+
     data.prg1.combine_with(data.prg2);
 
-    s1_cpy.combine_with(*data.site1_samples.at(1));
-    EXPECT_EQ(data.prg1.get_prg().at("Sites").at(0), s1_cpy.get_site());
+    site1_sample1.combine_with(site1_sample2);
+    EXPECT_EQ(data.prg1.get_prg().at("Sites").at(0), site1_sample1.get_site());
 
-    s2_cpy.combine_with(*data.site2_samples.at(1));
-    EXPECT_EQ(data.prg1.get_prg().at("Sites").at(1), s2_cpy.get_site());
+    site2_sample1.combine_with(site2_sample2);
+    EXPECT_EQ(data.prg1.get_prg().at("Sites").at(1), site2_sample1.get_site());
 }

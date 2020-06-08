@@ -11,10 +11,9 @@ void add_or_check_allele(std::string const& allele, gram::AlleleId const& hapg, 
         m.insert({allele, site_rescaler{insertion_index++, hapg}});
     }
     else if (m.at(allele).hapg != hapg){
-        std::string msg("Allele has two HAPG values: ");
-        msg = msg + std::to_string(hapg) +
-              std::string(" vs ") +
-              std::to_string(m.at(allele).hapg);
+        std::string msg("Allele " + allele + " has two HAPG values: " + std::to_string(hapg)
+        + " vs " + std::to_string(m.at(allele).hapg) +
+                                ". The PRG is ambiguous at this site.\n");
         throw JSONConsistencyException(msg);
     }
 }
@@ -52,9 +51,8 @@ allele_vec Json_Site::get_all_alleles(allele_combi_map& m){
     return result;
 }
 
-JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
-    auto result = json_site;
-    auto const num_samples{result.at("GT").size()};
+void Json_Site::rescale_entries(allele_combi_map const &m){
+    auto const num_samples{json_site.at("GT").size()};
 
     std::size_t sample_num{0};
     while (sample_num < num_samples){
@@ -62,12 +60,11 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
             sample_num++;
             continue;
         }
-        GtypedIndices gts = result.at("GT").at(sample_num);
+        GtypedIndices gts = json_site.at("GT").at(sample_num);
 
         allele_coverages const covs = json_site.at("COV").at(sample_num);
         allele_coverages new_covs(m.size(), 0);
-        std::vector<std::string> alleles;
-        for (auto const& allele: json_site.at("ALS")) alleles.push_back(allele);
+        auto alleles = json_site.at("ALS");
 
         if (alleles.size() != covs.size())
             throw JSONConsistencyException("Different number of ALS and COV entries");
@@ -84,11 +81,10 @@ JSON Json_Site::rescale_entries(allele_combi_map const &m) const{
             auto const rescaled_idx = m.at(allele).index;
             new_covs.at(rescaled_idx) = covs.at(j);
         }
-        result.at("GT").at(sample_num) = gts;
-        result.at("COV").at(sample_num) = new_covs;
+        json_site.at("GT").at(sample_num) = gts;
+        json_site.at("COV").at(sample_num) = new_covs;
         sample_num++;
     }
-    return result;
 }
 
 void Json_Site::append_entries_from(JSON const& json_site){
@@ -99,8 +95,8 @@ void Json_Site::append_entries_from(JSON const& json_site){
     }
 }
 
-void Json_Site::combine_with(const Json_Site &other){
-    auto other_json = other.get_site_copy();
+void Json_Site::combine_with(Json_Site &other){
+    auto& other_json = other.get_site();
     std::string this_ref = json_site.at("ALS").at(0);
     if (this_ref != other_json.at("ALS").at(0)){
         std::string msg("Sites do not have same 'reference' allele: ");
@@ -125,11 +121,9 @@ void Json_Site::combine_with(const Json_Site &other){
     build_allele_combi_map(json_site, m);
     build_allele_combi_map(other_json, m);
 
-    auto this_rescaled = rescale_entries(m);
-    this_rescaled.at("ALS") = get_all_alleles(m);
-    set_site(this_rescaled);
-    JSON other_rescaled = other.rescale_entries(m);
-
-    append_entries_from(other_rescaled);
+    rescale_entries(m);
+    json_site.at("ALS") = get_all_alleles(m);
+    other.rescale_entries(m);
+    append_entries_from(other.get_site());
 }
 

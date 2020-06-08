@@ -14,24 +14,11 @@ namespace gram::json{
     using json_site_ptr = std::shared_ptr<Json_Site>;
     using json_site_vec = std::vector<json_site_ptr>;
 
-    class JSONParseException : public std::exception{
-    protected:
-        std::string msg;
-    public:
-        virtual char const* what() const throw(){ return msg.c_str(); }
-    };
 
-    class JSONCombineException : public JSONParseException{
-    public:
-        JSONCombineException(std::string msg) {
-            this->msg = std::string("JSONCombineException: "+ msg); }
-    };
-
-    class JSONConsistencyException : public JSONParseException{
-    public:
-        JSONConsistencyException(std::string msg) {
-            this->msg = std::string("JSONConsistencyException: "+ msg); }
-    };
+class JSONCombineException : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+using JSONConsistencyException = JSONCombineException;
 }
 
 namespace gram::json::spec {

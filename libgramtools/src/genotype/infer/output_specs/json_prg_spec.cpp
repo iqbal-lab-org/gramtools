@@ -17,7 +17,7 @@ void Json_Prg::set_sample_info(std::string const& name, std::string const& desc)
 
 void Json_Prg::add_site(json_site_ptr json_site){
    sites.push_back(json_site);
-   json_prg.at("Sites").push_back(json_site->get_site_copy());
+   json_prg.at("Sites").push_back(json_site->get_site());
 }
 
 void Json_Prg::add_header(vcf_meta_info_line header){
@@ -30,8 +30,8 @@ void Json_Prg::add_header(vcf_meta_info_line header){
     }
 }
 
-void Json_Prg::add_samples(const Json_Prg &other, const bool force) {
-    auto other_prg = other.get_prg();
+void Json_Prg::add_samples(Json_Prg &other, const bool force) {
+    auto& other_prg = other.get_prg();
     if (other_prg.at("Sites").at(0).at("GT").size() !=
     other_prg.at("Samples").size())
         throw JSONConsistencyException("Merged in JSON does not have number of GT arrays"
@@ -40,7 +40,7 @@ void Json_Prg::add_samples(const Json_Prg &other, const bool force) {
     std::map<std::string, std::size_t> duplicates;
     for (auto const& e : json_prg.at("Samples")) duplicates.insert({e.at("Name"), 1});
 
-    for (const auto& sample_entry : other_prg.at("Samples")){
+    for (auto& sample_entry : other_prg.at("Samples")){
         std::string const name = sample_entry.at("Name");
         std::string used_name = name;
         if (duplicates.find(name) != duplicates.end()){
@@ -53,13 +53,12 @@ void Json_Prg::add_samples(const Json_Prg &other, const bool force) {
         }
         else duplicates.insert({name, 1});
 
-        auto entry_cpy = sample_entry;
-        entry_cpy.at("Name") = used_name;
-        json_prg.at("Samples").push_back(entry_cpy);
+        sample_entry.at("Name") = used_name;
+        json_prg.at("Samples").push_back(sample_entry);
     }
 }
 
-void Json_Prg::combine_with(const Json_Prg &other, bool force) {
+void Json_Prg::combine_with(Json_Prg &other, bool force) {
     auto other_prg = other.get_prg();
     if (json_prg.at("Model") != other_prg.at("Model"))
         throw JSONCombineException("JSONs have different models");

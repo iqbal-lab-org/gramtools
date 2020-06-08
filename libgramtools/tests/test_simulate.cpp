@@ -171,7 +171,7 @@ TEST_F(TestInduceGenotypes_ApplyGenotypes, GivenNonRefThreadedSeq_CorrectGenotyp
         auto result = site->get_all_gtype_info();
         EXPECT_EQ(result.alleles.size(), 2);
         EXPECT_EQ(result.genotype, GtypedIndices{1});
-        EXPECT_EQ(result.haplogroups.size(), 2);
+        EXPECT_EQ(result.haplogroups.size(), 1);
 
         expected_seqs.push_back(result.alleles.back().sequence);
         expected_ids.push_back(result.haplogroups.back());

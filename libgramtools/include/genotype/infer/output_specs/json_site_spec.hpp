@@ -14,8 +14,8 @@ namespace gram::json {
 
     class Json_Site {
     protected:
-        JSON json_site;
 
+        JSON json_site;
     public:
         Json_Site() {
             auto site_fields = spec::json_site_fields();
@@ -34,12 +34,12 @@ namespace gram::json {
 
         allele_vec get_all_alleles(allele_combi_map &m);
 
-        JSON rescale_entries(allele_combi_map const &m) const;
+        void rescale_entries(allele_combi_map const &m);
 
-        void combine_with(const Json_Site &other);
+        void combine_with(Json_Site &other);
 
         JSON const &get_site() const { return json_site; }
-        JSON get_site_copy() const { return json_site; }
+        JSON& get_site() { return json_site; }
 
         void set_site(JSON const &json_site) { this->json_site = json_site; }
         void set_pos(std::size_t pos) { json_site.at("POS") = pos; }
