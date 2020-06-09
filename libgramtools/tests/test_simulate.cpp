@@ -77,22 +77,22 @@ protected:
 
 TEST_F(TestInduceGenotypes_ThreadSequence, GivenSequenceNotInGraph_ThrowsError){
     std::string absent_sequence{"AACTGACTTT"};
-    EXPECT_THROW(thread_sequence(g.root, absent_sequence), NoEndpoints);
+    EXPECT_THROW(thread_sequence(g.root, absent_sequence, ""), NoEndpoints);
 }
 
 TEST_F(TestInduceGenotypes_ThreadSequence, GivenSequenceInGraphButIncomplete_ThrowsError){
     std::string sequence{"AACTGACC"};
-    EXPECT_THROW(thread_sequence(g.root, sequence), NoEndpoints);
+    EXPECT_THROW(thread_sequence(g.root, sequence, ""), NoEndpoints);
 }
 
 TEST_F(TestInduceGenotypes_ThreadSequence, GivenSequenceInGraphAndComplete_GetSingleEndpoint){
     std::string goodseq1{"AACTGACCCC"};
-    auto result = thread_sequence(g.root, goodseq1);
+    auto result = thread_sequence(g.root, goodseq1, "");
     EXPECT_EQ(result->get_prg_node(), graph_end);
     EXPECT_EQ(result->get_offset(), 10);
 
     std::string goodseq2{"AAATGGCACCC"};
-    result = thread_sequence(g.root, goodseq2);
+    result = thread_sequence(g.root, goodseq2, "");
     EXPECT_EQ(result->get_prg_node(), graph_end);
     EXPECT_EQ(result->get_offset(), 11);
 }
@@ -105,11 +105,11 @@ TEST(InduceGenotypesAmbiguous, GivenMultiplePossiblePathsInPrg_ThrowsError){
     auto ambiguous_prg = prg_string_to_ints("AA[A,AA]A[AA,A]T");
     // An equivalent, unambiguous prg is "AA[AA,AAA,AAAA]AT"
     auto g = coverage_Graph{PRG_String{ambiguous_prg}};
-    EXPECT_THROW(thread_sequence(g.root, "AAAAAAT"),TooManyEndpoints);
+    EXPECT_THROW(thread_sequence(g.root, "AAAAAAT", ""), TooManyEndpoints);
 
     ambiguous_prg = prg_string_to_ints("AT[CA,C[C,A]]GG");
     g = coverage_Graph{PRG_String{ambiguous_prg}};
-    EXPECT_THROW(thread_sequence(g.root, "ATCAGG"),TooManyEndpoints);
+    EXPECT_THROW(thread_sequence(g.root, "ATCAGG", ""), TooManyEndpoints);
 }
 
 TEST(InduceGenotypes_MakeNullSites, SitesAreNullGTAndHaveRefSeqOnly){
@@ -140,7 +140,7 @@ protected:
 };
 
 TEST_F(TestInduceGenotypes_ApplyGenotypes, GivenRefThreadedSeq_CorrectGenotypedSites){
-    auto endpoint = thread_sequence(g.root, "ATAATACA");
+    auto endpoint = thread_sequence(g.root, "ATAATACA", "");
     apply_genotypes(endpoint, sites);
 
     for (auto const& site : gt_sites{sites.begin(), sites.begin() + 2}){
@@ -161,7 +161,7 @@ TEST_F(TestInduceGenotypes_ApplyGenotypes, GivenRefThreadedSeq_CorrectGenotypedS
 }
 
 TEST_F(TestInduceGenotypes_ApplyGenotypes, GivenNonRefThreadedSeq_CorrectGenotypedSites) {
-    auto endpoint = thread_sequence(g.root, "ATCAAGGGGACA");
+    auto endpoint = thread_sequence(g.root, "ATCAAGGGGACA", "");
     apply_genotypes(endpoint, sites);
     std::vector<std::string> expected_seqs;
     AlleleIds expected_ids;

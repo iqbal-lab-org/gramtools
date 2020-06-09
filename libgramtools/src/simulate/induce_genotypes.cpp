@@ -39,7 +39,8 @@ gt_sites gram::simulate::make_nulled_sites(coverage_Graph const& input_prg) {
 }
 
 
-nt_ptr gram::simulate::thread_sequence(covG_ptr root, std::string const& sequence){
+nt_ptr gram::simulate::thread_sequence(covG_ptr root, std::string const &sequence, std::string const &seq_id,
+                                       bool const no_ambiguous) {
     auto cur_Node = std::make_shared<const NodeThread>(nullptr, root, 0);
     nt_ptr_v to_visit{cur_Node}, endpoints;
     while (not to_visit.empty()){
@@ -53,13 +54,16 @@ nt_ptr gram::simulate::thread_sequence(covG_ptr root, std::string const& sequenc
     std::string msg{};
     switch(endpoints.size()){
         case 0:
-            msg = "Could not thread a path through the prg for sequence: \n" + sequence;
+            msg = "Could not thread a path through the prg for sequence: " + seq_id;
             throw NoEndpoints(msg);
         case 1:
             return endpoints.back();
         default:
-            msg = "Found more than one path through the prg for sequence: \n" + sequence;
-            throw TooManyEndpoints(msg);
+            msg = "Found more than one path through the prg for sequence: " + seq_id;
+            if (no_ambiguous)
+                throw TooManyEndpoints(msg);
+            std::cerr << msg << std::endl;
+            return endpoints.front();
     }
 }
 

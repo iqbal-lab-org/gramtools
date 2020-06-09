@@ -24,7 +24,9 @@ namespace gram::simulate{
     class NoEndpoints : public std::runtime_error{
         using std::runtime_error::runtime_error;
     };
-    using TooManyEndpoints = NoEndpoints;
+    class TooManyEndpoints : public std::runtime_error{
+        using std::runtime_error::runtime_error;
+    };
 
 
 class NodeThread : public std::enable_shared_from_this<NodeThread const>{
@@ -52,7 +54,9 @@ class NodeThread : public std::enable_shared_from_this<NodeThread const>{
     };
 
     gt_sites make_nulled_sites(coverage_Graph const& input_prg);
-    nt_ptr thread_sequence(covG_ptr root, std::string const& sequence);
+    nt_ptr
+    thread_sequence(covG_ptr root, std::string const &sequence,
+            std::string const &seq_id, bool const no_ambiguous = true);
     void apply_genotypes(nt_ptr const& end_point, gt_sites const& sites);
 }
 

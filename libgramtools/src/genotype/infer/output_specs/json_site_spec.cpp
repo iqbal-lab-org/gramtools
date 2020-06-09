@@ -11,10 +11,9 @@ void add_or_check_allele(std::string const& allele, gram::AlleleId const& hapg, 
         m.insert({allele, site_rescaler{insertion_index++, hapg}});
     }
     else if (m.at(allele).hapg != hapg){
-        std::string msg("Allele " + allele + " has two HAPG values: " + std::to_string(hapg)
-        + " vs " + std::to_string(m.at(allele).hapg) +
-                                ". The PRG is ambiguous at this site.\n");
-        throw JSONConsistencyException(msg);
+        std::string msg("Warning: Allele " + allele + " has two HAPG values: " + std::to_string(hapg)
+        + " vs " + std::to_string(m.at(allele).hapg));
+        std::cerr << msg;
     }
 }
 

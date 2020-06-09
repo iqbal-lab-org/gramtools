@@ -1,5 +1,3 @@
-#include <iomanip>
-
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include "prg/coverage_graph.hpp"
@@ -132,7 +130,7 @@ void simulate_paths(json_prg_ptr& simu_json, coverage_Graph const& cov_graph,
 
 
 gt_sites induce_genotypes_one_seq(gt_sites const& template_sites, coverage_Graph const& input_prg,
-        std::string const& sequence){
+        std::string const& sequence, std::string const& seq_id){
    gt_sites result;
    result.reserve(template_sites.size());
    for (auto const& template_site : template_sites){
@@ -140,7 +138,9 @@ gt_sites induce_genotypes_one_seq(gt_sites const& template_sites, coverage_Graph
        result.push_back(std::make_shared<SimulatedSite>(*downcasted));
    }
 
-   auto endpoint = thread_sequence(input_prg.root, sequence);
+   nt_ptr endpoint;
+   endpoint = thread_sequence(input_prg.root, sequence, seq_id, false);
+
    apply_genotypes(endpoint, result);
    return result;
 }
@@ -162,7 +162,7 @@ void induce_genotypes_all_seqs(json_prg_ptr& simu_json, coverage_Graph const& in
     while(std::getline(getter, line)) {
         if (line[0] == '>') {
             if (!fasta_seq.empty()) {
-                auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg, fasta_seq);
+                auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg, fasta_seq, fasta_id);
                 auto gtyper = std::make_shared<SimulationGenotyper>(input_prg, gtyped_sites);
                 add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
             }
@@ -173,7 +173,7 @@ void induce_genotypes_all_seqs(json_prg_ptr& simu_json, coverage_Graph const& in
                 fasta_seq += line;
     }
     if (! fasta_seq.empty() && !fasta_id.empty()) {
-        auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg, fasta_seq);
+        auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg, fasta_seq, fasta_id);
         auto gtyper = std::make_shared<SimulationGenotyper>(input_prg, gtyped_sites);
         add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
     }
