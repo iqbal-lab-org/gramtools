@@ -24,9 +24,15 @@ SitesAlleleBaseCoverage gram::coverage::generate::allele_base_non_nested(const P
         SitePbCoverage& referent = allele_base_coverage.at(site_index);
 
         for (auto const& allele_node : bubble_entry.first->get_edges()){
-            assert(allele_node->is_in_bubble());
-            // Add as many 0's in the allele as there are bases in the node
-           referent.emplace_back(PerBaseCoverage(allele_node->get_coverage()));
+            if (allele_node->is_bubble_end()) {
+                // Case: direct deletion allele
+                referent.emplace_back(PerBaseCoverage());
+            }
+            else{
+                assert(allele_node->is_in_bubble());
+                // Add one coverage entr per base in the allele
+                referent.emplace_back(PerBaseCoverage(allele_node->get_coverage()));
+            }
         }
     }
     return allele_base_coverage;

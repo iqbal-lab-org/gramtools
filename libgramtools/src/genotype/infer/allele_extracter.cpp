@@ -45,7 +45,7 @@ void AlleleExtracter::allele_paste(allele_vector& existing, covG_ptr sequence_no
 allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_ptr haplogroup_start, covG_ptr site_end) {
     allele_vector haplogroup_alleles{
             {"", {}, haplogroup}
-    }; // Make one empty allele as starting point
+    }; // Make one empty allele as starting point, allows for direct deletion
     covG_ptr cur_Node{haplogroup_start};
     bool first_advance{true};
 
@@ -68,7 +68,6 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
         }
         else if (! first_advance && cur_Node->is_bubble_end()) ;
 
-        // We have an allele. Note this condition allows for a direct deletion, which will paste an empty sequence
         else {
             allele_paste(haplogroup_alleles, cur_Node);
             if (haplogroup == 0) to_paste_allele = Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};

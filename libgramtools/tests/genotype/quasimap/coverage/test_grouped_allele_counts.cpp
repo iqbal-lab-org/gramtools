@@ -16,8 +16,25 @@ TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(GroupedAlleleCount, GivenSingleMapping_CorrectCoverage) {
+    auto prg_raw = prg_string_to_ints("gct[c,,t]ac[cc,a]");
+    auto prg_info = generate_prg_info(prg_raw);
+    auto coverage = coverage::generate::empty_structure(prg_info);
 
-TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
+    uniqueLoci compatible_loci = {
+            VariantLocus{5, FIRST_ALLELE + 1},
+    };
+    coverage::record::grouped_allele_counts(coverage, compatible_loci);
+    auto result = coverage.grouped_allele_counts;
+    SitesGroupedAlleleCounts expected = {
+            GroupedAlleleCounts {{AlleleIds {FIRST_ALLELE + 1}, 1}},
+            GroupedAlleleCounts {},
+    };
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GroupedAlleleCount, GivenMultipleMappings_CorrectCoverage) {
     auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
     auto prg_info = generate_prg_info(prg_raw);
     auto coverage = coverage::generate::empty_structure(prg_info);
@@ -26,32 +43,12 @@ TEST(GroupedAlleleCount, GivenTwoSearchStates_CorrectCoverage) {
             VariantLocus{7, FIRST_ALLELE},
             VariantLocus{5, FIRST_ALLELE},
             VariantLocus{5, FIRST_ALLELE + 1}
-
     };
     coverage::record::grouped_allele_counts(coverage, compatible_loci);
     auto result = coverage.grouped_allele_counts;
     SitesGroupedAlleleCounts expected = {
             GroupedAlleleCounts {{AlleleIds {0, 1}, 1}},
             GroupedAlleleCounts {{AlleleIds {0}, 1}},
-    };
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GroupedAlleleCount, GivenSingleSearchState_CorrectCoverage) {
-    auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
-    auto prg_info = generate_prg_info(prg_raw);
-    auto coverage = coverage::generate::empty_structure(prg_info);
-
-    uniqueLoci compatible_loci = {
-            VariantLocus{5, FIRST_ALLELE + 2},
-
-    };
-    coverage::record::grouped_allele_counts(coverage, compatible_loci);
-    auto result = coverage.grouped_allele_counts;
-    SitesGroupedAlleleCounts expected = {
-            GroupedAlleleCounts {{AlleleIds {2}, 1}},
-            GroupedAlleleCounts {},
     };
     EXPECT_EQ(result, expected);
 }

@@ -19,7 +19,7 @@ json_prg_ptr make_json_prg(gtyper_ptr const &gtyper, SegmentTracker &tracker) {
 }
 
 void populate_json_prg(Json_Prg& json_prg, gtyper_ptr const& gtyper){
-    JSON cur_json = json_prg.get_prg();
+    auto& cur_json = json_prg.get_prg();
     auto cov_graph = gtyper->get_cov_g();
     auto child_m = gtyper->get_child_m();
     auto genotyped_records = gtyper->get_genotyped_records();

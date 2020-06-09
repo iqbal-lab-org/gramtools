@@ -7,18 +7,23 @@
 using JSON = nlohmann::json;
 using namespace gram::genotype::output_spec;
 
-namespace gram::json{
+namespace gram::json {
     class Json_Prg;
+
     class Json_Site;
+
     using json_prg_ptr = std::shared_ptr<Json_Prg>;
     using json_site_ptr = std::shared_ptr<Json_Site>;
     using json_site_vec = std::vector<json_site_ptr>;
 
 
-class JSONCombineException : public std::runtime_error {
-    using std::runtime_error::runtime_error;
-};
-using JSONConsistencyException = JSONCombineException;
+    class JSONCombineException : public std::runtime_error {
+        using std::runtime_error::runtime_error;
+    };
+
+    class JSONConsistencyException : public std::runtime_error {
+        using std::runtime_error::runtime_error;
+    };
 }
 
 namespace gram::json::spec {

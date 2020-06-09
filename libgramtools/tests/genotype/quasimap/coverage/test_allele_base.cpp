@@ -69,17 +69,17 @@ TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphOneSite_CorrectStructure
     EXPECT_EQ(actual, expected);
 }
 
-TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphTwoSites_CorrectStructure){
-    auto prg_raw = encode_prg("ac5a6c6tt6atg7gggg8g8cc");
+TEST(AlleleBaseCoverageStructure, GivenNonNestedCovGraphTwoSitesAndOneEmptyAllele_CorrectStructure){
+    auto prg_raw = prg_string_to_ints("ac[a,c,tt]atg[gggg,,a]cc");
     auto prg_info = generate_prg_info(prg_raw);
 
     SitesAlleleBaseCoverage expected{
             SitePbCoverage{
-                    PerBaseCoverage{0}, PerBaseCoverage{0},
-                    PerBaseCoverage{0, 0}
+                    {0}, {0},
+                    {0, 0}
             },
             SitePbCoverage{
-                    PerBaseCoverage{0, 0, 0, 0}, PerBaseCoverage{0}
+                    {0, 0, 0, 0}, {}, {0}
             }
     };
     auto actual = coverage::generate::allele_base_non_nested(prg_info);
@@ -369,7 +369,7 @@ TEST_F(PbCovRecorder_TwoSitesNoNesting, ReadCoversTwoSites_CorrectCoverageNodes)
             PerBaseCoverage{}
     };
 
-EXPECT_EQ(expected_coverage, actual_coverage);
+    EXPECT_EQ(expected_coverage, actual_coverage);
 }
 
 
@@ -391,29 +391,30 @@ EXPECT_EQ(expected_coverage, actual_coverage);
 }
 
 /*
-PRG: AAT[ATAT,AA]AAA
+PRG: AAT[ATAT,AA,]AGG
 i	BWT	SA	text_suffix
-0	A	15	0
-1	A	14	A 0
-2	A	13	A A 0
-3	6	12	A A A 0
-4	0	0	A A T 5 A T A T 6 A A 6 A A A 0
-5	6	9	A A 6 A A A 0
-6	5	4	A T A T 6 A A 6 A A A 0
-7	A	1	A T 5 A T A T 6 A A 6 A A A 0
-8	T	6	A T 6 A A 6 A A A 0
-9	A	10	A 6 A A A 0
-10	A	5	T A T 6 A A 6 A A A 0
-11	A	2	T 5 A T A T 6 A A 6 A A A 0
-12	A	7	T 6 A A 6 A A A 0
-13	T	3	5 A T A T 6 A A 6 A A A 0
-14	A	11	6 A A A 0
-15	T	8	6 A A 6 A A A 0
+0	G	16	0
+1	0	0	A A T 5 A T A T 6 A A 6 6 A G G 0
+2	6	9	A A 6 6 A G G 0
+3	6	13	A G G 0
+4	5	4	A T A T 6 A A 6 6 A G G 0
+5	A	1	A T 5 A T A T 6 A A 6 6 A G G 0
+6	T	6	A T 6 A A 6 6 A G G 0
+7	A	10	A 6 6 A G G 0
+8	G	15	G 0
+9	A	14	G G 0
+10	A	5	T A T 6 A A 6 6 A G G 0
+11	A	2	T 5 A T A T 6 A A 6 6 A G G 0
+12	A	7	T 6 A A 6 6 A G G 0
+13	T	3	5 A T A T 6 A A 6 6 A G G 0
+14	T	8	6 A A 6 6 A G G 0
+15	6	12	6 A G G 0
+16	A	11	6 6 A G G 0
  */
-class PbCovRecorder_WithRepeatsNoNesting : public ::testing::Test {
+class PbCovRecorder_WithRepeatsAndEmptyAllele : public ::testing::Test {
 protected:
     void SetUp() {
-        std::string raw_prg = "AAT[ATAT,AA]AAA";
+        std::string raw_prg = "AAT[ATAT,AA,]AGG";
         marker_vec v = prg_string_to_ints(raw_prg);
         prg_info = generate_prg_info(v);
     }
@@ -424,11 +425,11 @@ protected:
     std::size_t read1_size = 4;
     SearchStates read_1{
         SearchState{
-                SA_Interval{6, 6},
+                SA_Interval{4, 4},
                 VariantSitePath{}
         },
         SearchState{
-                SA_Interval{7, 7},
+                SA_Interval{5, 5},
                 VariantSitePath{VariantLocus{5, FIRST_ALLELE}}
         }
     };
@@ -437,14 +438,23 @@ protected:
     std::size_t read2_size = 5;
     SearchState read_2{
         SearchState{
-            SA_Interval{7, 7},
+            SA_Interval{5, 5},
             VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}}
         }
     };
+
+    // Read: AATAGG, occurs from pos 0, goes through deletion
+    std::size_t read3_size = 5;
+    SearchState read_3{
+            SearchState{
+                    SA_Interval{1, 1},
+                    VariantSitePath{VariantLocus{5, FIRST_ALLELE + 2}}
+            }
+    };
 };
 
-TEST_F(PbCovRecorder_WithRepeatsNoNesting, RepeatedMultiMappedRead_CoverageOnlyAddedOnce){
-    // PRG: "AAT[ATAT,AA]AAA" ; Read: ATAT
+TEST_F(PbCovRecorder_WithRepeatsAndEmptyAllele , RepeatedMultiMappedRead_CoverageOnlyAddedOnce){
+    // PRG: "AAT[ATAT,AA,]AGG" ; Read: ATAT
     PbCovRecorder{prg_info, read_1, read1_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
@@ -457,18 +467,24 @@ TEST_F(PbCovRecorder_WithRepeatsNoNesting, RepeatedMultiMappedRead_CoverageOnlyA
     EXPECT_EQ(expected_coverage, actual_coverage);
 }
 
-TEST_F(PbCovRecorder_WithRepeatsNoNesting, MapAReadMultipleSeparateTimes_CoverageCorrectlyMultiplyAdded){
-    // PRG: "AAT[ATAT,AA]AAA" ; Read: ATAAA
+TEST_F(PbCovRecorder_WithRepeatsAndEmptyAllele, MapAReadMultipleSeparateTimes_CoverageCorrectlyMultiplyAdded){
+    // PRG: "AAT[ATAT,AA]AGG" ; Read: ATAAA
     uint16_t i;
     for (i = 0; i <= 2; i++) PbCovRecorder{prg_info, SearchStates{read_2}, read2_size};
     auto actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
 
     SitePbCoverage expected_coverage{
             PerBaseCoverage{},
-            PerBaseCoverage{0, 0, 0, 0}, PerBaseCoverage{i, i},
+            PerBaseCoverage{0, 0, 0, 0}, PerBaseCoverage{3, 3},
             PerBaseCoverage{}
     };
 
+    EXPECT_EQ(expected_coverage, actual_coverage);
+
+    // Collect coverage on the deletion read: ATAGG
+    // No pb coverage recorded for it as it is not represented as a node
+    for (i = 0; i <= 4; i++) PbCovRecorder{prg_info, SearchStates{read_3}, read3_size};
+    actual_coverage = collect_coverage(prg_info.coverage_graph, all_sequence_node_positions);
     EXPECT_EQ(expected_coverage, actual_coverage);
 }
 

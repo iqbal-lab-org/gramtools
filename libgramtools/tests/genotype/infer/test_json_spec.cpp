@@ -134,10 +134,13 @@ TEST_F(Site_Combine_Fail, GivenDifferentPOSAllele_Fails){
     ASSERT_THROW(fixed_site.combine_with(test_site), JSONCombineException);
 }
 
-TEST_F(Site_Combine_Fail, GivenInconsistenHAPGs_Fails){
+TEST_F(Site_Combine_Fail, GivenInconsistenHAPGs_DoesNotFail){
+    // PRGs can be ambiguous: a sequence can have multiple paths through a variant site.
+    // TODO This is not desirable, as it amounts to loss of information (the combined allele
+    // will get the previously known HAPG value and lose its own)
     the_site_json.at("HAPG").at(0).at(0) = 1;
     test_site.set_site(the_site_json);
-    ASSERT_THROW(fixed_site.combine_with(test_site), JSONConsistencyException);
+    ASSERT_NO_THROW(fixed_site.combine_with(test_site));
 }
 
 TEST_F(Site_Combine_Fail, GivenDifferentCOVandALSCardinality_Fails){
