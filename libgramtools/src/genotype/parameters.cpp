@@ -41,23 +41,21 @@ void validate(boost::any& v,
 
 GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
                                                 const po::parsed_options &parsed) {
-    std::string gram_dirpath;
+    GenotypeParams parameters = {};
+    std::vector<std::string> reads_fpaths;
     std::string run_dirpath;
-    std::string sample_id;
     ploidy_argument ploidy;
-    uint32_t kmer_size;
-    std::vector<std::string> reads;
 
     po::options_description genotype_description("genotype options");
     genotype_description.add_options()
-                                ("gram_dir", po::value<std::string>(&gram_dirpath)->required(),
+                                ("gram_dir", po::value<std::string>(&parameters.gram_dirpath)->required(),
                                  "gramtools directory")
-                                ("reads", po::value<std::vector<std::string>>(&reads)->multitoken()->required(),
+                                ("reads", po::value<std::vector<std::string>>(&reads_fpaths)->multitoken()->required(),
                                  "file containing reads (FASTA or FASTQ)")
-                                ("sample_id", po::value<std::string>(&sample_id)->required())
+                                ("sample_id", po::value<std::string>(&parameters.sample_id)->required())
                                 ("ploidy", po::value<ploidy_argument>(&ploidy)->required(),
                                         "expected ploidy of the sample. Choices: {haploid, diploid}")
-                                ("kmer_size", po::value<uint32_t>(&kmer_size)->required(),
+                                ("kmer_size", po::value<uint32_t>(&parameters.kmers_size)->required(),
                                  "kmer size that got used in build step")
                                 ("genotype_dir", po::value<std::string>(&run_dirpath)->required(),
                                  "output directory")
@@ -80,13 +78,11 @@ GenotypeParams commands::genotype::parse_parameters(po::variables_map &vm,
         exit(1);
     }
 
-    GenotypeParams parameters = {};
-    fill_common_parameters(parameters, gram_dirpath);
+    fill_common_parameters(parameters, parameters.gram_dirpath);
+    for (auto& elem : reads_fpaths) elem = fs::absolute(fs::path(elem)).string();
+    parameters.reads_fpaths = reads_fpaths;
 
     parameters.ploidy = ploidy.get();
-    parameters.sample_id = sample_id;
-    parameters.kmers_size = kmer_size;
-    parameters.reads_fpaths = reads;
 
     std::string cov_dirpath = mkdir(run_dirpath, "coverage");
     std::string geno_dirpath = mkdir(run_dirpath, "genotype");
