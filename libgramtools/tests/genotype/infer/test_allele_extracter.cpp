@@ -166,6 +166,9 @@ TEST(AllelePasteTest, TwoAllelesOneCoverageNode_CorrectlyAppendedSequenceandCove
 
 class AlleleExtracter_NestedPRG : public ::testing::Test{
 protected:
+    void SetUp(){
+        second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
+    }
     std::shared_ptr<MockGenotypedSite> first_site_ptr = std::make_shared<MockGenotypedSite>();
     std::shared_ptr<MockGenotypedSite> second_site_ptr = std::make_shared<MockGenotypedSite>();
     gt_sites genotyped_sites = gt_sites{
@@ -199,7 +202,6 @@ TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNestedBubble_Cor
            allele_vector{
                    {"C", {0}, 0}
            });
-    second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 
@@ -219,7 +221,6 @@ TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingTriploidNestedBubble_Co
                     {"A", {0}, 1},
                     {"G", {0}, 2}
             });
-    second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 
@@ -241,7 +242,6 @@ TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNonREFNestedBubb
                     {"C", {0}, 0},
                     {"G", {0}, 2}
             });
-    second_site_ptr->set_site_end_node(nested_bubble_nodes.second);
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 
@@ -253,6 +253,28 @@ TEST_F(AlleleExtracter_NestedPRG, OuterBubbleEncompassingHaploidNonREFNestedBubb
     };
 
     EXPECT_FALSE(extracter.ref_allele_got_made_naturally());
+    EXPECT_EQ(extracter.get_alleles(), expected);
+}
+
+TEST_F(AlleleExtracter_NestedPRG, NestedBubbleHasNextBestAllele_NextBestAlleleGetsProduced){
+    second_site_ptr->set_genotype(GtypedIndices{1});
+    second_site_ptr->set_alleles(
+            allele_vector{
+                    {"C", {0}, 0},
+                    {"G", {0}, 2}
+            });
+    second_site_ptr->set_next_best_allele(Allele{"A", {0}, 1});
+
+    AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
+
+    // The REF (first allele in the site) needs to have gotten placed at index 0
+    allele_vector expected{
+            { "GCCCT", {0, 0, 0, 0, 0}, 0 },
+            { "GCCGT", {0, 0, 0, 0, 0}, 0 },
+            { "GCCAT", {0, 0, 0, 0, 0}, 0 },
+            { "TTA", {0, 0, 0}, 1 }
+    };
+
     EXPECT_EQ(extracter.get_alleles(), expected);
 }
 

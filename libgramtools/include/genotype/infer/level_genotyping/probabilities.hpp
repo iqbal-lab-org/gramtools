@@ -43,8 +43,22 @@ namespace gram::genotype::infer::probabilities{
 
 
     using pmf_ptr = std::shared_ptr<AbstractPmf>;
+    struct DataParams{
+        double mean_cov{-1};
+        double mean_pb_error{-1};
+        double num_successes{-1};
+        double success_prob{-1};
+        DataParams() = default;
+        DataParams(double const input_mean_cov, double const input_mean_pb_error)
+            : mean_cov(input_mean_cov), mean_pb_error(input_mean_pb_error) {}
+        bool operator==(DataParams const& other) const{
+            return mean_cov == other.mean_cov && mean_pb_error == other.mean_pb_error
+            && num_successes == other.num_successes && success_prob == other.success_prob;
+        }
+    };
+
     struct likelihood_related_stats {
-        params data_params;
+        DataParams data_params;
         double log_mean_pb_error,
                 log_zero, log_zero_half_depth,
                 log_no_zero, log_no_zero_half_depth;

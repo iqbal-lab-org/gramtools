@@ -23,13 +23,15 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing, std
     assert( 0 <= site_index && site_index < genotyped_sites->size() );
     gt_site_ptr referent_site = genotyped_sites->at(site_index);
 
-    allele_vector genotyped_alleles = referent_site->get_unique_genotyped_alleles();
-    allele_vector combinations(existing.size() * genotyped_alleles.size());
+    allele_vector relevant_alleles = referent_site->get_unique_genotyped_alleles();
+    if (referent_site->get_next_best_allele())
+        relevant_alleles.emplace_back(referent_site->get_next_best_allele().value());
+    allele_vector combinations(existing.size() * relevant_alleles.size());
 
     std::size_t insertion_index{0};
     for (auto const& allele : existing){
-        for (auto const& genotyped_allele : genotyped_alleles){
-            combinations.at(insertion_index) = allele + genotyped_allele;
+        for (auto const& added_allele : relevant_alleles){
+            combinations.at(insertion_index) = allele + added_allele;
             ++insertion_index;
         }
     }

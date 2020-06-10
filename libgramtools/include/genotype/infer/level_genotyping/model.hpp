@@ -49,19 +49,14 @@ namespace gram::genotype::infer {
         // Computed at run time
         likelihood_map likelihoods; // Store highest likelihoods first
         std::shared_ptr <LevelGenotypedSite> genotyped_site; // What the class will build
+        Allele ref_allele;
 
     public:
-        /**
-         * @param ignore_ref_allele if true, the ref allele was not produced naturally,
-         * and we do not consider it for genotyping
-         */
         LevelGenotyperModel() = default;
         LevelGenotyperModel(ModelData& input_data);
 
 
-        /***********************
-         **** Preparations *****
-         ***********************/
+        /*_______Preparations______*/
         std::size_t count_total_coverage(GroupedAlleleCounts const &gp_counts);
 
         std::vector<bool> get_haplogroup_multiplicities(allele_vector const &input_alleles);
@@ -75,10 +70,7 @@ namespace gram::genotype::infer {
         void assign_coverage_to_empty_alleles(allele_vector &input_alleles);
 
 
-        /***********************
-         ****  Likelihoods *****
-         ***********************/
-
+        /*_______Likelihoods______*/
         /**
          * Counts the number of positions in an allele with coverage above threshold `credible_cov_t`.
          * This threshold is the coverage at which true coverage is more likely than erroneous (sequencing error-based)
@@ -104,16 +96,12 @@ namespace gram::genotype::infer {
          */
         void compute_heterozygous_log_likelihoods(allele_vector const &input_alleles,
                                                   multiplicities const &haplogroup_multiplicities);
-        /**
-         * For producing the diploid combinations.
-         */
+
+        /** For producing the diploid combinations. */
         std::vector <GtypedIndices> get_permutations(const GtypedIndices &indices, std::size_t const subset_size);
 
-        /***********************
-         ****   Coverages   ****
-         ***********************/
+        /*_______Coverages______*/
         /**
-         *
          * Note: Due to nesting, the alleles can be from the same haplogroup; in which case, they have the same
          * haploid coverage, and they get assigned half of it each.
          */
@@ -126,18 +114,25 @@ namespace gram::genotype::infer {
                                          multiplicities const &hap_mults);
 
 
-        /***********************
-         ****  Make result *****
-         ***********************/
+        /*_______Make result______*/
+        /**
+         * @param ignore_ref_allele true signals the ref allele is not a candidate for genotyping
+         */
+        void CallGenotype(allele_vector const& input_alleles, bool ignore_ref_allele, multiplicities hap_mults);
 
-        void CallGenotype(allele_vector const *input_alleles, bool ignore_ref_allele, multiplicities hap_mults);
+        /**
+         * In nested genotyping configurations, can get bad calls looking very confident if small errors are made
+         * at nested bubbles.
+         * This function picks up the next best allele for consideration to reduce this bias.
+         */
+        void set_next_best_allele(allele_vector const& input_alleles, GtypedIndices const& chosen_gt,
+                GtypedIndices const& next_best_gt);
 
         AlleleIds get_haplogroups(allele_vector const &alleles, GtypedIndices const &gtype) const;
 
         /**
          * Express genotypes as relative to chosen alleles.
-         * For eg, {0, 2, 4} in the original set of possible alleles goes to {0, 1, 2} in the 3 called alleles (yes,
-         * this is Triploid example).
+         * For eg, {0, 2, 4} in the original set of possible alleles goes to {0, 1, 2} in the 3 called alleles.
          */
         GtypedIndices rescale_genotypes(GtypedIndices const &genotypes);
 

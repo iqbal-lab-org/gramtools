@@ -8,6 +8,7 @@
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
+#include "genotype/infer/level_genotyping/model.hpp"
 
 using namespace gram::genotype::output_spec;
 
@@ -32,7 +33,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
     auto mean_cov = read_stats.get_mean_cov();
     auto var_cov = read_stats.get_var_cov();
     auto mean_pb_error = read_stats.get_mean_pb_error();
-    l_stats = std::move(make_l_stats(mean_cov, var_cov, mean_pb_error));
+    l_stats = make_l_stats(mean_cov, var_cov, mean_pb_error);
 
     // Genotype each bubble in the PRG, in most nested to less nested order.
     for (auto const& bubble_pair : cov_graph.bubble_map){
@@ -127,7 +128,7 @@ void LevelGenotyper::run_invalidation_process(lvlgt_site_ptr const& genotyped_si
 likelihood_related_stats
 LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double const mean_pb_error) {
     pmf_ptr pmf, pmf_half_depth;
-    params data_params;
+    DataParams data_params{mean_cov, mean_pb_error};
     double prob_no_zero{0}, prob_no_zero_half_depth{0};
     if (var_cov > mean_cov){
         // Case: use negative binomial.
@@ -136,7 +137,8 @@ LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double
         double success_prob = num_successes / (mean_cov + num_successes);
         pmf = std::make_shared<NegBinomLogPmf>(params{num_successes, success_prob});
         prob_no_zero = log(1 - pow(success_prob, num_successes));
-        data_params = params{mean_cov, num_successes, success_prob, mean_pb_error};
+        data_params.num_successes = num_successes;
+        data_params.success_prob = success_prob;
 
         num_successes = pow(var_cov, 2) / (var_cov - mean_cov / 2);
         success_prob = num_successes / (mean_cov / 2 + num_successes);
@@ -149,7 +151,6 @@ LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double
 
         pmf_half_depth = std::make_shared<PoissonLogPmf>(params{mean_cov / 2});
         prob_no_zero_half_depth = log(1 - exp(mean_cov * -0.5));
-        data_params = params{mean_cov, mean_pb_error};
     }
 
     // store natural log of pb error also because of its use in likelihood formulae
@@ -184,19 +185,19 @@ public:
     ModelData produce_data() override {
         CovCount correct_cov;
         if (std::dynamic_pointer_cast<PoissonLogPmf>(l_stats->pmf_full_depth)){
-            std::poisson_distribution<CovCount> dpois(l_stats->data_params.at(0));
+            std::poisson_distribution<CovCount> dpois(l_stats->data_params.mean_cov);
             correct_cov = dpois(random_number_generator);
         }
         else{
             std::negative_binomial_distribution<CovCount> dnbinom(
-                    l_stats->data_params.at(1),
-                    l_stats->data_params.at(2));
+                    l_stats->data_params.num_successes,
+                    l_stats->data_params.success_prob);
             correct_cov = dnbinom(random_number_generator);
         }
 
         std::binomial_distribution<CovCount> b(
-                l_stats->data_params.at(0),
-                l_stats->data_params.at(l_stats->data_params.size() - 1));
+                l_stats->data_params.mean_cov,
+                l_stats->data_params.mean_pb_error);
         CovCount const incorrect_cov = b(random_number_generator);
         
         allele_vector alleles{

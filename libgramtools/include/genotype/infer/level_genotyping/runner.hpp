@@ -12,7 +12,9 @@
 
 #define CONF_DISTRIB_SIZE 10000
 
-#include "model.hpp"
+#include "site.hpp"
+#include "genotype/parameters.hpp"
+#include "probabilities.hpp"
 #include "genotype/read_stats.hpp"
 
 using namespace gram::genotype::infer;
@@ -46,7 +48,7 @@ public:
                                                   likelihood_related_stats const& input_lstats,
                                                   Ploidy const& input_ploidy);
     static CovCount find_minimum_non_error_cov(double mean_pb_error, pmf_ptr pmf);
-    static likelihood_related_stats make_l_stats(double const mean_cov, double const var_cov, double const mean_pb_error);
+    static likelihood_related_stats make_l_stats(double mean_cov, double var_cov, double mean_pb_error);
 
 };
 }

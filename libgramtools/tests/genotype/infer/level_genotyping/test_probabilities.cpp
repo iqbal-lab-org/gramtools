@@ -25,7 +25,7 @@ TEST(LikelihoodStats, DynamicChoiceOfProbDistribution){
     auto lstats = LevelGenotyper::make_l_stats(10, 5, 0.01);
     EXPECT_FALSE(std::dynamic_pointer_cast<NegBinomLogPmf>(lstats.pmf_full_depth));
     EXPECT_TRUE(std::dynamic_pointer_cast<PoissonLogPmf>(lstats.pmf_full_depth));
-    EXPECT_EQ(lstats.data_params, (std::vector<double>{10., 0.01}));
+    EXPECT_EQ(lstats.data_params, (DataParams{10., 0.01}));
 
     // here variance > mean cov depth, so chooses Negative Binomial
     lstats = LevelGenotyper::make_l_stats(10, 15, 0.01);
@@ -39,15 +39,18 @@ TEST(LikelihoodStats, DynamicDataParams){
 
     // chooses Poisson: output mean_cov, pb_err_rate
     auto lstats = LevelGenotyper::make_l_stats(10, 5, 0.01);
-    EXPECT_EQ(lstats.data_params, (std::vector<double>{10., 0.01}));
+    EXPECT_EQ(lstats.data_params, (DataParams{10., 0.01}));
 
     // chooses Negative Binomial: output mean_cov, num_successes, prob_success, pb_err_rate
     lstats = LevelGenotyper::make_l_stats(10, 20, 0.01);
-    EXPECT_EQ(lstats.data_params, (std::vector<double>{10., 10., 0.5, 0.01}));
+    DataParams expected(10., 0.01);
+    expected.num_successes = 10.;
+    expected.success_prob = 0.5;
+    EXPECT_EQ(lstats.data_params, expected);
 
     // Test can get back original mean and variance from nbinom params
-    auto num_successes = lstats.data_params.at(1);
-    auto prob_success = lstats.data_params.at(2);
+    auto num_successes = lstats.data_params.num_successes;
+    auto prob_success = lstats.data_params.success_prob;
     EXPECT_EQ(int(num_successes * (1 - prob_success) / prob_success), 10);
     EXPECT_EQ(int(num_successes * (1 - prob_success) / pow(prob_success, 2)), 20);
 }

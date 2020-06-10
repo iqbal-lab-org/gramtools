@@ -6,7 +6,7 @@
 #ifndef INFER_IFC
 #define INFER_IFC
 
-#include <variant>
+#include <optional>
 
 #include "prg/types.hpp"
 #include "genotype/infer/types.hpp"
@@ -51,6 +51,8 @@ namespace gram::genotype::infer {
         std::size_t pos = 0;
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
+        /**< Allows for considering more options when ambiguous gt call */
+        std::optional<Allele> next_best_allele = std::nullopt;
 
     public:
         GenotypedSite() = default;
@@ -62,6 +64,7 @@ namespace gram::genotype::infer {
         allele_vector const get_alleles() const { return gtype_info.alleles; }
         std::size_t const get_pos() const { return pos; }
         covG_ptr const get_site_end_node() const { return site_end_node; }
+        std::optional<Allele> const& get_next_best_allele() {return next_best_allele;}
 
         /** Whether the site is null genotyped */
         bool is_null() const {
@@ -79,6 +82,7 @@ namespace gram::genotype::infer {
         void set_genotype(GtypedIndices const& gtype){ gtype_info.genotype = gtype; }
         void const set_pos(std::size_t pos) { this->pos = pos; }
         void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
+        void set_next_best_allele(Allele const& allele) {next_best_allele = allele;}
 
         virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;

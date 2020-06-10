@@ -16,8 +16,8 @@ namespace gram::genotype::infer {
     std::set<GtypedIndex> distinct_genotypes;
     if (! is_null()){
         // NOTE/CRUCIAL: this sorts the genotypes (eg 1,0 goes to 0, 1), which is REQUIRED for REF allele production
-        distinct_genotypes = std::set<GtypedIndex>(genotype.begin(), genotype.end());
-    } else distinct_genotypes = std::set<GtypedIndex>{0}; // If null genotype, take the reference only
+        distinct_genotypes.insert(genotype.begin(), genotype.end());
+    } else distinct_genotypes.insert(0); // If null genotype, take the reference only
 
     allele_vector result(distinct_genotypes.size());
 
