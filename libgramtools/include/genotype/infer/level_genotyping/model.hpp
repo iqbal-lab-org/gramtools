@@ -125,8 +125,8 @@ namespace gram::genotype::infer {
          * at nested bubbles.
          * This function picks up the next best allele for consideration to reduce this bias.
          */
-        void set_next_best_allele(allele_vector const& input_alleles, GtypedIndices const& chosen_gt,
-                GtypedIndices const& next_best_gt);
+        void set_next_best_alleles(allele_vector const &input_alleles, GtypedIndices const &chosen_gt,
+                                   GtypedIndices const &next_best_gt, bool const use_chosen_gt = false);
 
         AlleleIds get_haplogroups(allele_vector const &alleles, GtypedIndices const &gtype) const;
 

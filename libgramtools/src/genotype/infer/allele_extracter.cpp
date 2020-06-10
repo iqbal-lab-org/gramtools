@@ -24,8 +24,10 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing, std
     gt_site_ptr referent_site = genotyped_sites->at(site_index);
 
     allele_vector relevant_alleles = referent_site->get_unique_genotyped_alleles();
-    if (referent_site->get_next_best_allele())
-        relevant_alleles.emplace_back(referent_site->get_next_best_allele().value());
+    if (referent_site->get_next_best_alleles()){
+       allele_vector const& to_add =  referent_site->get_next_best_alleles().value();
+       relevant_alleles.insert(relevant_alleles.end(), to_add.begin(), to_add.end());
+    }
     allele_vector combinations(existing.size() * relevant_alleles.size());
 
     std::size_t insertion_index{0};

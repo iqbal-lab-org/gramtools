@@ -302,15 +302,23 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(allele_vector con
     }
 }
 
-void LevelGenotyperModel::set_next_best_allele(allele_vector const& input_alleles, GtypedIndices const& chosen_gt,
-        GtypedIndices const& next_best_gt){
-    auto chosen_allele = input_alleles.at(chosen_gt.at(0));
-    auto next_best_allele = input_alleles.at(next_best_gt.at(0));
+void LevelGenotyperModel::set_next_best_alleles(allele_vector const &input_alleles, GtypedIndices const &chosen_gt,
+                                                GtypedIndices const &next_best_gt, bool const use_chosen_gt) {
+    auto& chosen_allele = input_alleles.at(chosen_gt.at(0));
+    auto& next_best_allele = input_alleles.at(next_best_gt.at(0));
     bool low_total_cov = total_coverage < data.l_stats->data_params.mean_cov / 4;
     bool low_relative_cov =
             haploid_allele_coverages.at(chosen_allele.haplogroup) <
             haploid_allele_coverages.at(next_best_allele.haplogroup) * 2;
-    if (low_total_cov || low_relative_cov) genotyped_site->set_next_best_allele(next_best_allele);
+
+    if (low_total_cov || low_relative_cov) {
+        std::set<GtypedIndex> unique{next_best_gt.begin(), next_best_gt.end()};
+        if (use_chosen_gt)
+            unique.insert(chosen_gt.begin(), chosen_gt.end());
+        allele_vector result;
+        for (auto const& gt : unique) result.push_back(input_alleles.at(gt));
+        genotyped_site->set_next_best_alleles(result);
+    }
 }
 
 void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles, bool ignore_ref_allele,
@@ -320,14 +328,19 @@ void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles, bool 
     auto best_likelihood = it->first;
     ++it;
     auto gt_confidence = best_likelihood - it->first;
+    auto next_best_gt = it->second;
 
     if (gt_confidence == 0.){
+        // The site itself gets no genotype call
         genotyped_site->set_alleles(allele_vector{ref_allele});
+        // But it gets forwarded the alleles, to propagate the uncertainty to any parent site
+        set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, true);
+
         genotyped_site->make_null();
         return;
     }
 
-    set_next_best_allele(input_alleles, chosen_gt, it->second);
+    set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, 0);
 
     // Correct the genotype indices if needed
     if (ignore_ref_allele) for (auto& gt : chosen_gt) gt++;
@@ -345,7 +358,7 @@ void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles, bool 
 
     // Add the REF allele (and its coverage) to the set of chosen alleles if it was not called
     if (rescaled_gt.at(0) != 0) {
-        chosen_alleles = prepend(chosen_alleles, input_alleles.at(0));
+        chosen_alleles = prepend(chosen_alleles, ref_allele);
         auto ref_cov = (double)singleton_allele_coverages.at(0);
         if (hap_mults.at(0)) ref_cov /= 2;
         allele_covs = prepend(allele_covs, ref_cov);

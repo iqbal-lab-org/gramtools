@@ -263,7 +263,7 @@ TEST_F(AlleleExtracter_NestedPRG, NestedBubbleHasNextBestAllele_NextBestAlleleGe
                     {"C", {0}, 0},
                     {"G", {0}, 2}
             });
-    second_site_ptr->set_next_best_allele(Allele{"A", {0}, 1});
+    second_site_ptr->set_next_best_alleles(allele_vector{Allele{"A", {0}, 1}});
 
     AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second, genotyped_sites};
 

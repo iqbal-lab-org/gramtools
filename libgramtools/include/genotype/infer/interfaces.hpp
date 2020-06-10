@@ -52,7 +52,7 @@ namespace gram::genotype::infer {
         covG_ptr site_end_node;
         std::size_t num_haplogroups = 0; /**< The number of outgoing edges from the bubble start */
         /**< Allows for considering more options when ambiguous gt call */
-        std::optional<Allele> next_best_allele = std::nullopt;
+        std::optional<allele_vector> next_best_alleles = std::nullopt;
 
     public:
         GenotypedSite() = default;
@@ -64,7 +64,7 @@ namespace gram::genotype::infer {
         allele_vector const get_alleles() const { return gtype_info.alleles; }
         std::size_t const get_pos() const { return pos; }
         covG_ptr const get_site_end_node() const { return site_end_node; }
-        std::optional<Allele> const& get_next_best_allele() {return next_best_allele;}
+        std::optional<allele_vector> const& get_next_best_alleles() {return next_best_alleles;}
 
         /** Whether the site is null genotyped */
         bool is_null() const {
@@ -82,7 +82,7 @@ namespace gram::genotype::infer {
         void set_genotype(GtypedIndices const& gtype){ gtype_info.genotype = gtype; }
         void const set_pos(std::size_t pos) { this->pos = pos; }
         void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
-        void set_next_best_allele(Allele const& allele) {next_best_allele = allele;}
+        void set_next_best_alleles(allele_vector const& alleles) {next_best_alleles = alleles;}
 
         virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;

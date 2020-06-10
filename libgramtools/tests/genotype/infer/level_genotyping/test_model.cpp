@@ -346,7 +346,7 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenNegBinomialPmfGetsUs
 TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenPoorCoverages_NextBestAlleleGetsSet){
     ModelData normal_coverage(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     LevelGenotyperModel expect_no_next_best_allele(normal_coverage);
-    EXPECT_FALSE( expect_no_next_best_allele.get_site()->get_next_best_allele());
+    EXPECT_FALSE( expect_no_next_best_allele.get_site()->get_next_best_alleles());
 
     gp_counts = GroupedAlleleCounts{
             { {0}, 1 },
@@ -355,7 +355,7 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenPoorCoverages_NextBe
     };
     ModelData low_total_coverage(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     LevelGenotyperModel expect_next_best_allele(low_total_coverage);
-    EXPECT_TRUE(expect_next_best_allele.get_site()->get_next_best_allele());
+    EXPECT_TRUE(expect_next_best_allele.get_site()->get_next_best_alleles());
 
     gp_counts = GroupedAlleleCounts{
             { {0}, 14 },
@@ -364,7 +364,7 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage, GivenPoorCoverages_NextBe
     };
     ModelData low_cov_difference(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
     LevelGenotyperModel expect_next_best_allele2(low_cov_difference);
-    EXPECT_TRUE(expect_next_best_allele2.get_site()->get_next_best_allele());
+    EXPECT_TRUE(expect_next_best_allele2.get_site()->get_next_best_alleles());
 }
 
 
