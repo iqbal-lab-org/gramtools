@@ -20,6 +20,7 @@ using namespace gram::genotype::infer::probabilities;
 
 namespace gram::genotype::infer {
 
+using lvlgt_site_ptr = std::shared_ptr<LevelGenotypedSite>;
 
 class LevelGenotyper : public Genotyper {
     likelihood_related_stats l_stats;
@@ -33,6 +34,13 @@ public:
                    ReadStats const &read_stats, Ploidy ploidy, bool get_gcp = false);
 
     header_vec get_model_specific_headers() override;
+
+    /**
+     * Invalidation of non-chosen haplogroups in nested prgs
+     */
+    AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
+    void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
+    void run_invalidation_process(lvlgt_site_ptr const& genotyped_site, Marker const& site_ID);
 
     std::vector<double> static get_gtconf_distrib(gt_sites const& input_sites,
                                                   likelihood_related_stats const& input_lstats,

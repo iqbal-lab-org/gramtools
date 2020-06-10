@@ -6,7 +6,6 @@
 
 #include "gtest/gtest.h"
 
-#include "genotype/quasimap/quasimap.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 
@@ -212,13 +211,13 @@ TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying
     child_map child_m = build_child_map(par_map);
 
     gt_sites sites(3);
-    auto site1 = std::make_shared<MockGenotypedSite>();
+    auto site1 = std::make_shared<LevelGenotypedSite>();
     site1->set_num_haplogroups(5);
     sites.at(1) = site1;
 
     // SiteID 9 will get nulled by site 7.
     // Then when site 5 nulls site 7, I want site 9 to signal it is already nulled.
-    auto site2 = std::make_shared<MockGenotypedSite>();
+    auto site2 = std::make_shared<LevelGenotypedSite>();
     site2->set_num_haplogroups(5);
     sites.at(2) = site2;
 

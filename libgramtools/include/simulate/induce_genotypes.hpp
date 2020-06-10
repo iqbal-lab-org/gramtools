@@ -1,7 +1,7 @@
 #ifndef GMTOOLS_SIMU_INDUCE_GTS_HPP
 #define GMTOOLS_SIMU_INDUCE_GTS_HPP
 
-#include "genotype/infer/interfaces.hpp"
+#include "genotype/infer/level_genotyping/site.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 #include "prg/coverage_graph.hpp"
 
@@ -10,7 +10,7 @@
 
 namespace gram::simulate{
     using namespace genotype::infer;
-    class SimulatedSite : public GenotypedSite {
+    class SimulatedSite : public LevelGenotypedSite {
     public:
         SimulatedSite() = default;
         site_entries get_model_specific_entries() override{ return {}; }

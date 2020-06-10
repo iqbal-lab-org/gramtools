@@ -29,23 +29,6 @@ namespace gram::genotype::infer {
     return result;
 }
 
-AlleleIds const GenotypedSite::get_nonGenotyped_haplogroups() const{
-    assert(! is_null());
-    assert(gtype_info.alleles.size() > 0);
-    assert(num_haplogroups > 0);
-    AlleleIds result;
-
-    AlleleIdSet genotyped_haplogroups;
-    for (auto const& gt : gtype_info.genotype){
-       genotyped_haplogroups.insert(gtype_info.alleles.at(gt).haplogroup);
-    }
-
-    for (AlleleId i{0}; i < num_haplogroups; i++){
-        if (genotyped_haplogroups.find(i) == genotyped_haplogroups.end())
-            result.push_back(i);
-    }
-    return result;
-}
 
 AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_alleles,
                                                    GtypedIndices const& input_gts) const{
@@ -56,49 +39,5 @@ AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_al
     return result;
 }
 
-void Genotyper::run_invalidation_process(gt_site_ptr const& genotyped_site, Marker const& site_ID) {
-    // Invalidation process attempted only if this site contains 1+ site
-    if (!genotyped_site->is_null() && child_m.find(site_ID) != child_m.end()) {
-        auto candidate_haplogroups =
-                genotyped_site->get_nonGenotyped_haplogroups();
-        auto haplogroups_with_sites = get_haplogroups_with_sites(site_ID, candidate_haplogroups);
-        invalidate_if_needed(site_ID, haplogroups_with_sites);
-    }
-}
-
-AlleleIds Genotyper::get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const{
-    AlleleIds result{};
-    if (child_m.find(site_ID) == child_m.end()) return result;
-    auto child_entry = child_m.at(site_ID);
-    for (auto const& candidate : candidate_haplogroups){
-        if (child_entry.find(candidate) != child_entry.end()) result.push_back(candidate);
-    }
-    return result;
-}
-
-void Genotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups){
-    if (haplogroups.size() == 0) return;
-
-    std::vector<VariantLocus> to_process;
-    for (auto const& haplogroup : haplogroups) to_process.push_back(VariantLocus{parent_site_ID, haplogroup});
-
-    VariantLocus cur_locus;
-    while (to_process.size() > 0){
-        cur_locus = to_process.back();
-        to_process.pop_back();
-
-        // We know the site/haplogroup combination bears 1+ site so use .at() .
-        auto sites_on_haplogroup = child_m.at(cur_locus.first).at(cur_locus.second);
-        for (auto const& child_marker : sites_on_haplogroup){
-            auto referent_site = genotyped_records.at(siteID_to_index(child_marker));
-            if (referent_site->is_null()) continue;
-            referent_site->make_null();
-
-            auto all_haplos = referent_site->get_all_haplogroups();
-            auto haplos_with_sites = get_haplogroups_with_sites(child_marker, all_haplos);
-            for (auto const& h : haplos_with_sites) to_process.push_back(VariantLocus{child_marker,h});
-        }
-    }
-}
 
 }

@@ -78,6 +78,7 @@ namespace gram::genotype::infer {
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
         void set_genotype(GtypedIndices const& gtype){ gtype_info.genotype = gtype; }
         void const set_pos(std::size_t pos) { this->pos = pos; }
+        void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
 
         virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;
@@ -85,8 +86,6 @@ namespace gram::genotype::infer {
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
         bool const has_alleles() const { return gtype_info.alleles.size() > 0; }
 
-        void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
-        void set_num_haplogroups(std::size_t const &num_haps) { num_haplogroups = num_haps; }
 
         /**
          * Given alleles and GT, return the alleles referred to by GT
@@ -95,19 +94,6 @@ namespace gram::genotype::infer {
                 (allele_vector const &all_alleles, GtypedIndices const &genotype) const;
         allele_vector const get_unique_genotyped_alleles() const {
             return get_unique_genotyped_alleles(gtype_info.alleles, gtype_info.genotype);
-        }
-
-        /**
-         * Produce the haplogroups that have not been genotyped, for use in nested
-         * site invalidation.
-         */
-        AlleleIds const get_nonGenotyped_haplogroups() const;
-
-        AlleleIds const get_all_haplogroups() const {
-            assert(num_haplogroups > 0);
-            AlleleIds result;
-            for (std::size_t idx{0}; idx < num_haplogroups; idx++) result.push_back(idx);
-            return result;
         }
 
         AlleleIds get_genotyped_haplogroups(allele_vector const& input_alleles, GtypedIndices const& input_gts) const;
@@ -142,9 +128,6 @@ namespace gram::genotype::infer {
         auto const& get_child_m() const {return child_m;}
 
         virtual header_vec get_model_specific_headers() = 0;
-        void run_invalidation_process(gt_site_ptr const& genotyped_site, Marker const& site_ID);
-        AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
-        void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
     };
 }
 

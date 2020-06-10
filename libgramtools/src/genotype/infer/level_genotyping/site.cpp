@@ -3,6 +3,24 @@
 
 using namespace gram::genotype::infer;
 
+gram::AlleleIds const LevelGenotypedSite::get_nonGenotyped_haplogroups() const{
+    assert(! is_null());
+    assert(gtype_info.alleles.size() > 0);
+    assert(num_haplogroups > 0);
+    AlleleIds result;
+
+    AlleleIdSet genotyped_haplogroups;
+    for (auto const& gt : gtype_info.genotype){
+        genotyped_haplogroups.insert(gtype_info.alleles.at(gt).haplogroup);
+    }
+
+    for (AlleleId i{0}; i < num_haplogroups; i++){
+        if (genotyped_haplogroups.find(i) == genotyped_haplogroups.end())
+            result.push_back(i);
+    }
+    return result;
+}
+
 site_entries LevelGenotypedSite::get_model_specific_entries(){
     site_entry<double> gt_conf_entry {
            "FORMAT", "GT_CONF", {gt_conf}, true

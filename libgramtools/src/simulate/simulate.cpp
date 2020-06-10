@@ -40,7 +40,7 @@ SimulationGenotyper::SimulationGenotyper(coverage_Graph const &cov_graph) {
         }
     }
 
-    gt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand, allele_vector const &alleles,
+    lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand, allele_vector const &alleles,
                                              bool const use_ref_allele) {
         allele_vector picked_alleles{alleles.begin(), alleles.begin() + 1};  // Always pick REF
         uint32_t picked_index;
