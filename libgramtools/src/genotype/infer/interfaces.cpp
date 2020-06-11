@@ -29,8 +29,13 @@ namespace gram::genotype::infer {
     return result;
 }
 
+    bool const GenotypedSite::has_filter(std::string const& name) const{
+        auto last = gtype_info.filters.end();
+        return std::find(gtype_info.filters.begin(), last, name) != last;
+    }
 
-AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_alleles,
+
+    AlleleIds GenotypedSite::get_genotyped_haplogroups(allele_vector const& input_alleles,
                                                    GtypedIndices const& input_gts) const{
     AlleleIds result;
     for (auto const& gt : input_gts){

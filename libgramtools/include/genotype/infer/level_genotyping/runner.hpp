@@ -37,18 +37,21 @@ public:
 
     header_vec get_model_specific_headers() override;
 
+    void propagate_filter(std::string const& name, Marker const& parent_site_ID);
+
     /**
      * Invalidation of non-chosen haplogroups in nested prgs
      */
     AlleleIds get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const;
+
     void invalidate_if_needed(Marker const& parent_site_ID, AlleleIds haplogroups);
     void run_invalidation_process(lvlgt_site_ptr const& genotyped_site, Marker const& site_ID);
 
+    static likelihood_related_stats make_l_stats(double mean_cov, double var_cov, double mean_pb_error);
+    static CovCount find_minimum_non_error_cov(double mean_pb_error, pmf_ptr pmf);
     std::vector<double> static get_gtconf_distrib(gt_sites const& input_sites,
                                                   likelihood_related_stats const& input_lstats,
                                                   Ploidy const& input_ploidy);
-    static CovCount find_minimum_non_error_cov(double mean_pb_error, pmf_ptr pmf);
-    static likelihood_related_stats make_l_stats(double mean_cov, double var_cov, double mean_pb_error);
 
 };
 }

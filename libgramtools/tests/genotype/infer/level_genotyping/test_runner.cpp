@@ -18,11 +18,9 @@ TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes){
     prg_setup setup;
     setup.setup_numbered_prg(prg, kmers);
 
-    allele_vector gt_alleles;
     GenomicRead_vector reads;
     // Multiple reads going through 5:1 and 7:1
     for (int i = 0; i < 5; i++) reads.push_back(GenomicRead("Read", "AATAACAACAA", "???????????"));
-
     // One read going through 5:2 and 7:1
     reads.push_back(GenomicRead("ErrorRead", "AATAAGAACAA", "???????????"));
 
@@ -32,13 +30,11 @@ TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes){
                              setup.read_stats, Ploidy::Haploid);
     auto gt_recs = genotyper.get_genotyped_records();
 
-    gt_alleles = gt_recs.at(siteID_to_index(5))->get_unique_genotyped_alleles();
-    allele_vector expected_alleles{ Allele{"C", {5}, 0} };
-    EXPECT_EQ(gt_alleles, expected_alleles);
+    allele_vector gt_alleles = gt_recs.at(siteID_to_index(5))->get_unique_genotyped_alleles();
+    EXPECT_EQ(gt_alleles, (allele_vector{ Allele{"C", {5}, 0}}));
 
     gt_alleles = gt_recs.at(0)->get_unique_genotyped_alleles();
-    expected_alleles = allele_vector{ Allele{"C", {5}, 0} };
-    EXPECT_EQ(gt_alleles, expected_alleles);
+    EXPECT_EQ(gt_alleles, (allele_vector{Allele{"C", {5}, 0}}));
 }
 
 TEST(LevelGenotyping, Given2SiteNestedPRG_CorrectGenotypes){
@@ -47,7 +43,6 @@ TEST(LevelGenotyping, Given2SiteNestedPRG_CorrectGenotypes){
     prg_setup setup;
     setup.setup_bracketed_prg(prg, kmers);
 
-    allele_vector gt_alleles;
     GenomicRead_vector reads;
     // Multiple reads going through first allele of each site
     for (int i = 0; i < 5; i++) reads.push_back(GenomicRead("Read", "AATAACCCGAA", "???????????"));
@@ -60,17 +55,11 @@ TEST(LevelGenotyping, Given2SiteNestedPRG_CorrectGenotypes){
                              setup.read_stats, Ploidy::Haploid);
     auto gt_recs = genotyper.get_genotyped_records();
 
-    gt_alleles = gt_recs.at(1)->get_unique_genotyped_alleles();
-    allele_vector expected_alleles{
-            Allele{"G", {5}, 1}
-    };
-    EXPECT_EQ(gt_alleles, expected_alleles);
+    allele_vector gt_alleles = gt_recs.at(1)->get_unique_genotyped_alleles();
+    EXPECT_EQ(gt_alleles, (allele_vector{Allele{"G", {5}, 1}}));
 
     gt_alleles = gt_recs.at(0)->get_unique_genotyped_alleles();
-    expected_alleles = allele_vector{
-            Allele{"CCCG", {5, 5, 5, 5}, 0}
-    };
-    EXPECT_EQ(gt_alleles, expected_alleles);
+    EXPECT_EQ(gt_alleles, (allele_vector{Allele{"CCCG", {5, 5, 5, 5}, 0}}));
 }
 
 TEST(LevelGenotyper, GivenPRGWithDirectDeletion_CorrectlyCalledEmptyAllele){
@@ -201,25 +190,31 @@ TEST(LevelGenotyperInvalidation, GivenChildMapAndCandidateHaplos_CorrectHaplosWi
     EXPECT_EQ(empty_query, AlleleIds{});
 }
 
-using ::testing::InSequence;
-using ::testing::Return;
-TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying){
+class LevelGenotyperPropagation : public ::testing::Test{
+protected:
     parental_map par_map{
             {7, VariantLocus{5, FIRST_ALLELE}},
             {9, VariantLocus{7, FIRST_ALLELE + 1}},
     };
     child_map child_m = build_child_map(par_map);
+    gt_sites sites;
+    void SetUp(){
+        sites = gt_sites{
+            std::make_shared<LevelGenotypedSite>(),std::make_shared<LevelGenotypedSite>(),
+            std::make_shared<LevelGenotypedSite>()
+        };
+    }
+};
 
-    gt_sites sites(3);
-    auto site1 = std::make_shared<LevelGenotypedSite>();
+TEST_F(LevelGenotyperPropagation, GivenNestingStructure_CorrectGenotypeNullifying){
+
+    auto site1 = std::dynamic_pointer_cast<LevelGenotypedSite>(sites.at(1));
     site1->set_num_haplogroups(5);
-    sites.at(1) = site1;
 
     // SiteID 9 will get nulled by site 7.
     // Then when site 5 nulls site 7, I want site 9 to signal it is already nulled.
-    auto site2 = std::make_shared<LevelGenotypedSite>();
+    auto site2 = std::dynamic_pointer_cast<LevelGenotypedSite>(sites.at(2));
     site2->set_num_haplogroups(5);
-    sites.at(2) = site2;
 
     LevelGenotyper g{child_m, sites};
 
@@ -229,7 +224,14 @@ TEST(LevelGenotyperInvalidation, GivenNestingStructure_CorrectGenotypeNullifying
     EXPECT_TRUE(site2->is_null());
 
     EXPECT_FALSE(site1->is_null());
-    // And this call to invalidate site 7, without attempting to invalidate site 9 which was already so by above call.
+    // And this call to invalidate site 7
     g.invalidate_if_needed(5, AlleleIds{0});
     EXPECT_TRUE(site1->is_null());
+}
+
+TEST_F(LevelGenotyperPropagation, CorrectFilterPropagation){
+    LevelGenotyper g{child_m, sites};
+    g.propagate_filter("AMBIG", 5);
+    EXPECT_TRUE(sites.at(1)->has_filter("AMBIG"));
+    EXPECT_TRUE(sites.at(2)->has_filter("AMBIG"));
 }

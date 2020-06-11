@@ -92,6 +92,7 @@ namespace gram::genotype::infer {
 
         std::size_t const &get_num_haplogroups() { return num_haplogroups; }
         bool const has_alleles() const { return gtype_info.alleles.size() > 0; }
+        bool const has_filter(std::string const& name) const;
 
 
         /**

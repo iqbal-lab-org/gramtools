@@ -22,6 +22,7 @@ void add_percentiles(gt_sites const& input_sites, std::vector<double> const& con
     }
 }
 
+
 LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlleleCounts const &gped_covs,
                                ReadStats const &read_stats, Ploidy const ploidy, bool get_gcp) :
         ploidy(ploidy){
@@ -58,6 +59,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const &cov_graph, SitesGroupedAlle
 
         auto downcasted = std::dynamic_pointer_cast<LevelGenotypedSite>(genotyped_site);
         run_invalidation_process(downcasted, site_ID);
+        if (genotyped_site->has_filter("AMBIG")) propagate_filter("AMBIG", site_ID);
     }
     if (get_gcp) {
         auto confidences = get_gtconf_distrib(genotyped_records, l_stats, ploidy);
@@ -77,6 +79,35 @@ header_vec LevelGenotyper::get_model_specific_headers(){
                     "1", "Float"}
     };
     return result;
+}
+
+void LevelGenotyper::propagate_filter(std::string const& name, Marker const& parent_site_ID){
+    std::vector<Marker> to_process{parent_site_ID};
+    Marker cur_ID;
+    while (! to_process.empty()){
+        cur_ID = to_process.back();
+        to_process.pop_back();
+        if (child_m.find(cur_ID) == child_m.end()) continue;
+        for (auto const& pair: child_m.at(cur_ID)){
+            for (auto const& child_marker : pair.second){
+                auto referent_site = genotyped_records.at(siteID_to_index(child_marker));
+                if (! referent_site->has_filter(name)){
+                    referent_site->set_filter(name);
+                    to_process.emplace_back(child_marker);
+                }
+            }
+        }
+    }
+}
+
+void LevelGenotyper::run_invalidation_process(lvlgt_site_ptr const& genotyped_site, Marker const& site_ID) {
+    // Invalidation process attempted only if this site contains 1+ site
+    if (child_m.find(site_ID) != child_m.end()) {
+        auto candidate_haplogroups =
+                genotyped_site->get_nonGenotyped_haplogroups();
+        auto haplogroups_with_sites = get_haplogroups_with_sites(site_ID, candidate_haplogroups);
+        invalidate_if_needed(site_ID, haplogroups_with_sites);
+    }
 }
 
 AlleleIds LevelGenotyper::get_haplogroups_with_sites(Marker const& site_ID, AlleleIds candidate_haplogroups) const{
@@ -115,15 +146,6 @@ void LevelGenotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleId
     }
 }
 
-void LevelGenotyper::run_invalidation_process(lvlgt_site_ptr const& genotyped_site, Marker const& site_ID) {
-    // Invalidation process attempted only if this site contains 1+ site
-    if (child_m.find(site_ID) != child_m.end()) {
-        auto candidate_haplogroups =
-                genotyped_site->get_nonGenotyped_haplogroups();
-        auto haplogroups_with_sites = get_haplogroups_with_sites(site_ID, candidate_haplogroups);
-        invalidate_if_needed(site_ID, haplogroups_with_sites);
-    }
-}
 
 likelihood_related_stats
 LevelGenotyper::make_l_stats(double const mean_cov, double const var_cov, double const mean_pb_error) {

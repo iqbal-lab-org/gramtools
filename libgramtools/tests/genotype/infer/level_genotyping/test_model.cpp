@@ -221,6 +221,7 @@ TEST(TestLevelGenotyperModel_Failure, GivenOneAlleleOnly_Breaks){
     EXPECT_DEATH(LevelGenotyperModel gtyper(data), "");
 }
 
+
 class TestLevelGenotyperModel_NullGTs : public ::testing::Test {
 protected:
     allele_vector alleles{
@@ -232,6 +233,14 @@ protected:
     double mean_cov_depth{15}, mean_pb_error{0.01};
     likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 };
+
+TEST_F(TestLevelGenotyperModel_NullGTs, GivenDuplicatedAllele_NullGTandFilterSet){
+    alleles.emplace_back("A", PerBaseCoverage{1}, 1);
+    ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
+    LevelGenotyperModel gtyper(data);
+    EXPECT_TRUE(gtyper.get_site()->is_null());
+    EXPECT_TRUE(gtyper.get_site()->has_filter("AMBIG"));
+}
 
 TEST_F(TestLevelGenotyperModel_NullGTs , Given0MeanCoverage_ReturnsNullGenotypedSite) {
     l_stats.data_params.mean_cov = 0;
