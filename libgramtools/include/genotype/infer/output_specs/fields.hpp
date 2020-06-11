@@ -73,28 +73,15 @@ namespace gram::genotype::output_spec {
 
     using header_vec = std::vector<vcf_meta_info_line>;
 
-    static header_vec const vcf_format_headers() {
+    static header_vec const common_headers() {
         header_vec result{
-                vcf_meta_info_line{
-                        "FORMAT",
-                        "GT",
-                        "Genotype",
-                        "1",
-                        "String"},
-                vcf_meta_info_line{
-                        "FORMAT",
-                        "DP",
-                        "Total read depth on variant site",
-                        "1",
-                        "Integer"},
-                vcf_meta_info_line{
-                        "FORMAT",
-                        "COV",
-                        "Read coverage on each allele",
-                        "R",
-                        "Integer"}
+            vcf_meta_info_line{ "FORMAT", "GT", "Genotype", "1", "String"},
+            vcf_meta_info_line{ "FORMAT", "DP", "Total read depth on variant site", "1", "Integer"},
+            vcf_meta_info_line{ "FORMAT", "COV", "Read coverage on each allele", "R", "Integer"},
+            vcf_meta_info_line{ "FORMAT", "FT", "Filters failed in a sample", "1", "String"},
+            vcf_meta_info_line{"FILTER", "AMBIG", "Ambiguous site. Different variant paths can produce the same sequence."}
         };
-    return result;
+        return result;
     }
 }
 

@@ -18,7 +18,7 @@ namespace gram::json {
         JSON json_site;
     public:
         Json_Site() {
-            auto site_fields = spec::json_site_fields();
+            auto site_fields = spec::site_fields();
             for (const auto &element : site_fields.items()) {
                 json_site.emplace(element.key(), JSON::array());
             }
@@ -46,12 +46,6 @@ namespace gram::json {
         void set_segment(std::string ID){ this->json_site.at("SEG") = ID; }
     };
 
-    class LevelGenotyped_Json_Site : public Json_Site {
-    public:
-        LevelGenotyped_Json_Site() : Json_Site() {
-            json_site.emplace("GT_CONF", JSON::array());
-        }
-    };
 }
 
 #endif //SITE_JSON_SPEC

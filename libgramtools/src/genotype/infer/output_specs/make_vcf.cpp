@@ -3,9 +3,6 @@
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 #include "prg/coverage_graph.hpp"
-#include <filesystem>
-
-namespace fs = std::filesystem;
 
 void write_vcf(gram::GenotypeParams const &params, gtyper_ptr const &gtyper, SegmentTracker &tracker) {
     auto fout = bcf_open(params.genotyped_vcf_fpath.c_str(), "wz"); // Writer
@@ -38,7 +35,7 @@ void populate_vcf_hdr(bcf_hdr_t *hdr, gtyper_ptr gtyper, gram::GenotypeParams co
         bcf_hdr_append(hdr, header.to_string().c_str());
     }
 
-    header_vec format_headers = vcf_format_headers(); // Common headers
+    header_vec format_headers = common_headers(); // Common headers
     for (auto& header: format_headers)
         bcf_hdr_append(hdr, header.to_string().c_str());
 }
@@ -94,6 +91,7 @@ void populate_vcf_site(bcf_hdr_t *header, bcf1_t *record, gt_site_ptr site, Segm
     // Set POS. Pass in a 0-based
     record->pos = tracker.get_relative_pos(site->get_pos());
 
+    // Set GT
     auto gtype_info = site->get_all_gtype_info();
     std::vector<int32_t> gtypes = gtype_info.genotype;
     if (site->is_null()){
@@ -104,15 +102,23 @@ void populate_vcf_site(bcf_hdr_t *header, bcf1_t *record, gt_site_ptr site, Segm
     }
     bcf_update_genotypes(header, record, gtypes.data(), gtypes.size());
 
+    // Set DP
     str_vec total_cov{std::to_string(gtype_info.total_coverage)};
     bcf_update_format_string(header, record, "DP", reinterpret_cast<char const **>(total_cov.data()), 1);
 
+    // Set COV
     auto covs = gtype_info.allele_covs;
     if (covs.size() > 0){
         std::vector<float> depths;
         for (auto const& cov : covs) depths.push_back((float)cov);
         bcf_update_format_float(header, record, "COV", depths.data(), depths.size());
     }
+
+    // Set FT
+    str_vec filters;
+    if (gtype_info.filters.empty()) filters = str_vec{"PASS"};
+    else filters = gtype_info.filters;
+    bcf_update_format_string(header, record, "FT", reinterpret_cast<char const **>(filters.data()), 1);
 
     std::string als;
     for (auto const& al : gtype_info.alleles) {

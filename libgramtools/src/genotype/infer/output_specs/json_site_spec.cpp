@@ -87,7 +87,7 @@ void Json_Site::rescale_entries(allele_combi_map const &m){
 }
 
 void Json_Site::append_entries_from(JSON const& json_site){
-    std::vector<std::string> entries{"GT", "HAPG", "COV", "DP"};
+    std::vector<std::string> entries{"GT", "HAPG", "COV", "DP", "FT"};
     for (auto const& entry : entries){
         for (auto const& element : json_site.at(entry))
             this->json_site.at(entry).push_back(element);

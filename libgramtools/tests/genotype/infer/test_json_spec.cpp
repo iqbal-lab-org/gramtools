@@ -284,7 +284,7 @@ TEST_F(PRG_Combine_Fail, GivenDifferentSiteSpecs_Fails){
 
 TEST_F(PRG_Combine_Fail, GivenDifferentNumOfSites_Fails){
     json_prg2.set_prg(the_prg);
-    json_prg2.add_site(std::make_shared<LevelGenotyped_Json_Site>());
+    json_prg2.add_site(std::make_shared<Json_Site>());
     ASSERT_THROW(json_prg1.combine_with(json_prg2, false), JSONCombineException);
 }
 

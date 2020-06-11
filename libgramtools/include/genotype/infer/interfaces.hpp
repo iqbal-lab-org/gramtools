@@ -20,6 +20,7 @@ namespace gram::genotype::output_spec {
 using namespace gram::genotype::output_spec;
 
 namespace gram::genotype::infer {
+    using Filters = std::vector<std::string>;
 
     /**
      * Used in allele extraction but also in level genotyper
@@ -40,6 +41,7 @@ namespace gram::genotype::infer {
         allele_coverages allele_covs;
         std::size_t total_coverage; /**< Total coverage on this site */
         AlleleIds haplogroups;
+        Filters filters;
     };
 
     /**

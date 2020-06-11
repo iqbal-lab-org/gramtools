@@ -28,8 +28,7 @@ namespace gram::json {
 
 namespace gram::json::spec {
 
-    static JSON json_site_fields(){
-        header_vec h = vcf_format_headers();
+    static JSON site_fields(){
         JSON result =
                 {
                         {"POS",
@@ -43,23 +42,35 @@ namespace gram::json::spec {
                         },
                         {"HAPG",
                                 {{"Desc", "Sample haplogroups of genotyped alleles"}},
-                        }
+                        },
                 };
 
         // Populate with headers common with vcf output
-        for (auto const& header : h){
-            result[header.ID] = { {"Desc", header.desc} };
+        for (auto const& header : common_headers()){
+            if (header.meta_type == "FORMAT")
+                result[header.ID] = { {"Desc", header.desc} };
+        }
+        return result;
+    }
+
+    static JSON filters(){
+        JSON result;
+        // Populate with headers common with vcf output
+        for (auto const& header : common_headers()){
+            if (header.meta_type == "FILTER")
+                result[header.ID] = { {"Desc", header.desc} };
         }
         return result;
     }
 
     const JSON json_prg{
-            {"Model", "UNKNOWN"},
-            {"Site_Fields", json_site_fields()},
-            {"Samples", JSON::array()},
-            {"Sites", JSON::array()},
-            {"Lvl1_Sites", JSON::array()},
-            {"Child_Map", JSON::object()}
+            {"Model",       "UNKNOWN"},
+            {"Site_Fields", site_fields()},
+            {"Filters",     filters()},
+            {"Samples",     JSON::array()},
+            {"Sites",       JSON::array()},
+            {"Lvl1_Sites",  JSON::array()},
+            {"Child_Map",   JSON::object()}
     };
 }
 

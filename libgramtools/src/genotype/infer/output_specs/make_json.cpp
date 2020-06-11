@@ -67,9 +67,9 @@ json_site_ptr make_json_site(gt_site_ptr const& gt_site){
     else json_site.at("GT").push_back(JSON(gtype_info.genotype));
 
     json_site.at("HAPG").push_back(JSON(gtype_info.haplogroups));
-
-    json_site.at("COV").push_back(JSON(gtype_info.allele_covs));
     json_site.at("DP").push_back(gtype_info.total_coverage);
+    json_site.at("COV").push_back(JSON(gtype_info.allele_covs));
+    json_site.at("FT").push_back(JSON(gtype_info.filters));
 
     add_model_specific_entries(json_site, gt_site->get_model_specific_entries());
     result->set_site(json_site);
