@@ -11,6 +11,14 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_dat
     ref_allele = data.input_alleles.at(0);
     genotyped_site = std::make_shared<LevelGenotypedSite>();
 
+    allele_vector used_alleles;
+    if (data.ignore_ref_allele)
+        used_alleles = allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
+    else used_alleles = data.input_alleles;
+
+    auto haplogroup_multiplicities = get_haplogroup_multiplicities(used_alleles);
+    genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size()); // Used in invalidation process
+
     total_coverage = count_total_coverage(data.gp_counts);
     if (total_coverage == 0 || data.l_stats->data_params.mean_cov == 0){
         // Null gt site still gets ref allele, for reporting and for allele extraction to work
@@ -19,13 +27,6 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_dat
         return;
     }
 
-    allele_vector used_alleles;
-    if (data.ignore_ref_allele)
-        used_alleles = allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
-    else used_alleles = data.input_alleles;
-
-    auto haplogroup_multiplicities = get_haplogroup_multiplicities(used_alleles);
-    genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size()); // Used in invalidation process
     set_haploid_coverages(data.gp_counts, haplogroup_multiplicities.size());
     assign_coverage_to_empty_alleles(used_alleles);
 

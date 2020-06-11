@@ -117,7 +117,7 @@ void LevelGenotyper::invalidate_if_needed(Marker const& parent_site_ID, AlleleId
 
 void LevelGenotyper::run_invalidation_process(lvlgt_site_ptr const& genotyped_site, Marker const& site_ID) {
     // Invalidation process attempted only if this site contains 1+ site
-    if (!genotyped_site->is_null() && child_m.find(site_ID) != child_m.end()) {
+    if (child_m.find(site_ID) != child_m.end()) {
         auto candidate_haplogroups =
                 genotyped_site->get_nonGenotyped_haplogroups();
         auto haplogroups_with_sites = get_haplogroups_with_sites(site_ID, candidate_haplogroups);
