@@ -43,10 +43,12 @@ namespace gram::genotype::infer {
             };
         }
 
+        bool operator<(Allele const& other) const{
+            return sequence < other.sequence;
+        }
+
         bool operator==(Allele const& other) const{
-            return sequence == other.sequence &&
-                   pbCov == other.pbCov &&
-                   haplogroup == other.haplogroup;
+            return sequence == other.sequence;
         }
     };
 

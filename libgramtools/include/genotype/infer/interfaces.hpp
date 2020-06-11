@@ -82,9 +82,10 @@ namespace gram::genotype::infer {
 
         void set_alleles(allele_vector const& alleles){ gtype_info.alleles = alleles; };
         void set_genotype(GtypedIndices const& gtype){ gtype_info.genotype = gtype; }
-        void const set_pos(std::size_t pos) { this->pos = pos; }
+        void const set_pos(std::size_t input_pos) { pos = input_pos; }
         void set_site_end_node(covG_ptr const &end_node) { site_end_node = end_node; }
         void set_next_best_alleles(allele_vector const& alleles) {next_best_alleles = alleles;}
+        void set_filter(std::string const& name){gtype_info.filters.emplace_back(name);}
 
         virtual site_entries get_model_specific_entries() = 0;
         virtual void null_model_specific_entries() = 0;

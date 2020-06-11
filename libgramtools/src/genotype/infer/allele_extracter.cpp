@@ -54,7 +54,6 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
     bool first_advance{true};
 
     Allele ref_allele{"", {}, 0};
-    Allele to_paste_allele;
 
     while(cur_Node != site_end){
         if (cur_Node->is_bubble_start()) {
@@ -67,17 +66,16 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
             if (haplogroup == 0) { // REF extraction
                 auto ref_containing_alleles = referent_site->get_alleles();
                 assert(ref_containing_alleles.size() > 0);
-                to_paste_allele = ref_containing_alleles.at(0);
+                ref_allele = ref_allele + ref_containing_alleles.at(0);
             }
         }
         else if (! first_advance && cur_Node->is_bubble_end()) ;
 
         else {
             allele_paste(haplogroup_alleles, cur_Node);
-            if (haplogroup == 0) to_paste_allele = Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
+            if (haplogroup == 0) ref_allele = ref_allele + Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
         }
 
-        if (haplogroup == 0) ref_allele = ref_allele + to_paste_allele;
 
         assert(cur_Node->get_num_edges() == 1); // The only nodes with >1 neighbour are bubble starts and we skipped past those.
         cur_Node = *(cur_Node->get_edges().begin()); // Advance to the next node
@@ -85,9 +83,15 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup, covG_p
     }
 
     if (haplogroup == 0) {
-        _ref_allele_got_made_naturally = ref_allele == haplogroup_alleles.at(0);
-        if (! _ref_allele_got_made_naturally )
+        // Ensure first allele in return list is ref allele
+        _ref_allele_got_made_naturally = false;
+        auto found_ref = std::find(haplogroup_alleles.begin(), haplogroup_alleles.end(), ref_allele);
+        if (found_ref == haplogroup_alleles.end()){
             haplogroup_alleles = prepend(haplogroup_alleles, ref_allele);
+        }
+        else if (found_ref != haplogroup_alleles.begin())
+            std::swap(*found_ref, haplogroup_alleles.at(0));
+        else _ref_allele_got_made_naturally = true;
     }
 
     return haplogroup_alleles;

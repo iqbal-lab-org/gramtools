@@ -115,9 +115,14 @@ void populate_vcf_site(bcf_hdr_t *header, bcf1_t *record, gt_site_ptr site, Segm
     }
 
     // Set FT
-    str_vec filters;
-    if (gtype_info.filters.empty()) filters = str_vec{"PASS"};
-    else filters = gtype_info.filters;
+    str_vec filters = gtype_info.filters;
+    if (gtype_info.filters.empty()) filters.insert(filters.end(),"PASS");
+    else {
+        auto const max_size = gtype_info.filters.size();
+        for (std::size_t i{0}; i < max_size; i++){
+            if (i < max_size - 1) filters.at(i).push_back(',');
+        }
+    }
     bcf_update_format_string(header, record, "FT", reinterpret_cast<char const **>(filters.data()), 1);
 
     std::string als;

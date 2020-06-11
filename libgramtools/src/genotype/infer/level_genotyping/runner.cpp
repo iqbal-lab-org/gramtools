@@ -201,7 +201,7 @@ public:
         CovCount const incorrect_cov = b(random_number_generator);
         
         allele_vector alleles{
-            Allele{"A", {correct_cov}, 0},
+            Allele{"C", {correct_cov}, 0},
             Allele{"A", {incorrect_cov}, 1},
         };
         GroupedAlleleCounts gped_counts{

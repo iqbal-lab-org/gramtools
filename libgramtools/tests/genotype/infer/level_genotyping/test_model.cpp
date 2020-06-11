@@ -260,7 +260,7 @@ TEST_F(TestLevelGenotyperModel_NullGTs , GivenSameCoverageOnAllAlleles_ReturnsNu
 
 TEST(TestLevelGenotyperModel_Coverage, GivenTwoAlleles_CorrectCoverages){
     allele_vector alleles{
-        Allele{"", {}, 0},
+        Allele{"A", {0}, 0},
         Allele{"", {}, 1},
     };
     GroupedAlleleCounts gp_counts{

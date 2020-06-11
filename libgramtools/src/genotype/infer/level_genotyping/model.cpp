@@ -4,6 +4,16 @@
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
 
+std::optional<Allele> check_for_duplicates(allele_vector const& input_alleles){
+   std::set<Allele> nodups;
+   for (auto const& allele : input_alleles){
+       if (nodups.find(allele) == nodups.end())
+           nodups.insert(allele);
+       else
+           return allele;
+   }
+   return std::nullopt;
+}
 
 LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_data)
 {
@@ -11,23 +21,31 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data) : data(input_dat
     ref_allele = data.input_alleles.at(0);
     genotyped_site = std::make_shared<LevelGenotypedSite>();
 
-    allele_vector used_alleles;
-    if (data.ignore_ref_allele)
-        used_alleles = allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
-    else used_alleles = data.input_alleles;
+    auto haplogroup_multiplicities = get_haplogroup_multiplicities(data.input_alleles);
+    // Used in invalidation process, required set early
+    genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size());
 
-    auto haplogroup_multiplicities = get_haplogroup_multiplicities(used_alleles);
-    genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size()); // Used in invalidation process
-
+    auto const duplicate_allele = check_for_duplicates(data.input_alleles);
     total_coverage = count_total_coverage(data.gp_counts);
-    if (total_coverage == 0 || data.l_stats->data_params.mean_cov == 0){
+    if (total_coverage == 0 || data.l_stats->data_params.mean_cov == 0 || duplicate_allele){
         // Null gt site still gets ref allele, for reporting and for allele extraction to work
         genotyped_site->set_alleles(allele_vector{ref_allele});
         genotyped_site->make_null();
+        if (duplicate_allele){
+            // Return a duplicate to force null gt calling and ambiguity tagging to parent sites
+            genotyped_site->set_next_best_alleles(
+                    allele_vector{duplicate_allele.value(), duplicate_allele.value()});
+            genotyped_site->set_filter("AMBIG");
+        }
         return;
     }
 
     set_haploid_coverages(data.gp_counts, haplogroup_multiplicities.size());
+
+    allele_vector used_alleles;
+    if (data.ignore_ref_allele)
+        used_alleles = allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
+    else used_alleles = data.input_alleles;
     assign_coverage_to_empty_alleles(used_alleles);
 
     if (data.ploidy == Ploidy::Haploid) compute_haploid_log_likelihoods(used_alleles);
@@ -332,16 +350,14 @@ void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles, bool 
     auto next_best_gt = it->second;
 
     if (gt_confidence == 0.){
-        // The site itself gets no genotype call
         genotyped_site->set_alleles(allele_vector{ref_allele});
-        // But it gets forwarded the alleles, to propagate the uncertainty to any parent site
-        set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, true);
-
         genotyped_site->make_null();
+        // The site gets forwarded the alleles, to propagate the uncertainty to any parent site
+        set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, true);
         return;
     }
 
-    set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, 0);
+    set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, false);
 
     // Correct the genotype indices if needed
     if (ignore_ref_allele) for (auto& gt : chosen_gt) gt++;
