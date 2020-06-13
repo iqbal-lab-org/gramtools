@@ -2,175 +2,172 @@
 #include <thread>
 #include <unordered_map>
 
-#include "build/kmer_index/kmers.hpp"
 #include "build/kmer_index/build.hpp"
+#include "build/kmer_index/kmers.hpp"
 #include "build/kmer_index/load.hpp"
 
-
 using namespace gram;
-
 
 Sequence gram::deserialize_next_kmer(const uint64_t &kmer_start_index,
                                      const sdsl::int_vector<3> &all_kmers,
                                      const uint32_t &kmers_size) {
-    // TODO: implement as an iterator
-    assert(kmer_start_index <= all_kmers.size() - kmers_size);
-    Sequence kmer;
-    kmer.reserve(kmers_size);
-    for (uint64_t i = kmer_start_index; i < kmer_start_index + kmers_size; ++i)
-        kmer.emplace_back(all_kmers[i]);
-    return kmer;
+  // TODO: implement as an iterator
+  assert(kmer_start_index <= all_kmers.size() - kmers_size);
+  Sequence kmer;
+  kmer.reserve(kmers_size);
+  for (uint64_t i = kmer_start_index; i < kmer_start_index + kmers_size; ++i)
+    kmer.emplace_back(all_kmers[i]);
+  return kmer;
 }
 
+IndexedKmerStats gram::deserialize_next_stats(
+    const uint64_t &stats_index, const sdsl::int_vector<> &kmers_stats) {
+  // TODO: implement as an iterator
+  assert(stats_index < kmers_stats.size());
+  IndexedKmerStats stats = {};
 
-IndexedKmerStats gram::deserialize_next_stats(const uint64_t &stats_index,
-                                              const sdsl::int_vector<> &kmers_stats) {
-    // TODO: implement as an iterator
-    assert(stats_index < kmers_stats.size());
-    IndexedKmerStats stats = {};
+  stats.count_search_states =
+      kmers_stats[stats_index];  // The first element is the number of
+                                 // SearchStates for the indexed kmer.
+  if (stats.count_search_states == 0) return stats;
 
-    stats.count_search_states = kmers_stats[stats_index]; //The first element is the number of SearchStates for the indexed kmer.
-    if (stats.count_search_states == 0)
-        return stats;
-
-    // The next elements are the path lengths of each Search State for the indexed kmer.
-    for (uint64_t i = stats_index + 1; i <= stats_index + stats.count_search_states; ++i)
-        stats.path_lengths.push_back(kmers_stats[i]);
-    return stats;
+  // The next elements are the path lengths of each Search State for the indexed
+  // kmer.
+  for (uint64_t i = stats_index + 1;
+       i <= stats_index + stats.count_search_states; ++i)
+    stats.path_lengths.push_back(kmers_stats[i]);
+  return stats;
 }
-
 
 /**
  * Creates empty `gram::SearchState`s.
- * These will get populated with `gram::SA_interval`s and `gram::variant_site_path`s.
+ * These will get populated with `gram::SA_interval`s and
+ * `gram::variant_site_path`s.
  */
 void pad_search_states(SearchStates &search_states,
                        const IndexedKmerStats &stats) {
-    // The function may not do anything if called on already existing `SearchStates`.
-    // This occurs when expected_count evaluates to 0.
-    auto expected_count = stats.count_search_states - search_states.size();
-    for (uint64_t i = search_states.size(); i < expected_count; ++i)
-        search_states.emplace_back(SearchState{});
+  // The function may not do anything if called on already existing
+  // `SearchStates`. This occurs when expected_count evaluates to 0.
+  auto expected_count = stats.count_search_states - search_states.size();
+  for (uint64_t i = search_states.size(); i < expected_count; ++i)
+    search_states.emplace_back(SearchState{});
 }
 
-
 /**
- * Populates each `gram::SearchState` of an indexed kmer with its start and end SA indices.
+ * Populates each `gram::SearchState` of an indexed kmer with its start and end
+ * SA indices.
  * @param sa_intervals all the `gram::SA_Interval`s deserialised.
  */
 void handle_sa_interval(SearchStates &search_states,
                         uint64_t &sa_interval_index,
                         const sdsl::int_vector<> &sa_intervals) {
-    for (auto &search_state: search_states) {
-        search_state.sa_interval.first = sa_intervals[sa_interval_index];
-        search_state.sa_interval.second = sa_intervals[sa_interval_index + 1];
-        sa_interval_index += 2;
-    }
+  for (auto &search_state : search_states) {
+    search_state.sa_interval.first = sa_intervals[sa_interval_index];
+    search_state.sa_interval.second = sa_intervals[sa_interval_index + 1];
+    sa_interval_index += 2;
+  }
 }
-
 
 void gram::parse_sa_intervals(KmerIndex &kmer_index,
                               const sdsl::int_vector<3> &all_kmers,
                               const sdsl::int_vector<> &kmers_stats,
                               CommonParameters const &parameters) {
-    uint64_t sa_interval_index = 0;
-    sdsl::int_vector<> sa_intervals;
-    load_from_file(sa_intervals, parameters.sa_intervals_fpath);
+  uint64_t sa_interval_index = 0;
+  sdsl::int_vector<> sa_intervals;
+  load_from_file(sa_intervals, parameters.sa_intervals_fpath);
 
-    uint64_t stats_index = 0;
-    uint64_t kmer_start_index = 0;
+  uint64_t stats_index = 0;
+  uint64_t kmer_start_index = 0;
 
-    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
-        auto kmer = deserialize_next_kmer(kmer_start_index, all_kmers, parameters.kmers_size);
-        kmer_start_index += parameters.kmers_size;
+  while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+    auto kmer = deserialize_next_kmer(kmer_start_index, all_kmers,
+                                      parameters.kmers_size);
+    kmer_start_index += parameters.kmers_size;
 
-        auto stats = deserialize_next_stats(stats_index, kmers_stats);
-        stats_index += stats.count_search_states + 1;
+    auto stats = deserialize_next_stats(stats_index, kmers_stats);
+    stats_index += stats.count_search_states + 1;
 
-        // Creates an empty `SearchStates` for the next indexed kmer, adds it to the `KmerIndex`, returns it. (unordered_map STL behaviour).
-        auto &search_states = kmer_index[kmer];
-        pad_search_states(search_states, stats);
+    // Creates an empty `SearchStates` for the next indexed kmer, adds it to the
+    // `KmerIndex`, returns it. (unordered_map STL behaviour).
+    auto &search_states = kmer_index[kmer];
+    pad_search_states(search_states, stats);
 
-        handle_sa_interval(search_states,
-                           sa_interval_index,
-                           sa_intervals);
-    }
+    handle_sa_interval(search_states, sa_interval_index, sa_intervals);
+  }
 }
-
 
 /**
- * Populate each `gram::SearchState` of an indexed kmer with its `gram::variant_site_path`.
+ * Populate each `gram::SearchState` of an indexed kmer with its
+ * `gram::variant_site_path`.
  * @param paths the serialised `gram::variant_site_path`s.
  */
-void handle_path_element(SearchStates &search_states,
-                         uint64_t &paths_index,
+void handle_path_element(SearchStates &search_states, uint64_t &paths_index,
                          const sdsl::int_vector<> &paths,
                          const IndexedKmerStats &stats) {
-    // Sdsl stores unsigned integer vectors, so make sure we get the original IDs back.
-    AlleleId decrement{0};
-    if (ALLELE_UNKNOWN < 0) decrement = std::abs(ALLELE_UNKNOWN);
+  // Sdsl stores unsigned integer vectors, so make sure we get the original IDs
+  // back.
+  AlleleId decrement{0};
+  if (ALLELE_UNKNOWN < 0) decrement = std::abs(ALLELE_UNKNOWN);
 
-    uint64_t i = 0;
-    for (auto &search_state: search_states) {
-        // The path_length of each `SearchState` has been extracted from the serialised kmer stats.
-        // Note that it can be 0, in which case the variant_site_path remains empty.
-        const auto &path_length = stats.path_lengths[i++];
+  uint64_t i = 0;
+  for (auto &search_state : search_states) {
+    // The path_length of each `SearchState` has been extracted from the
+    // serialised kmer stats. Note that it can be 0, in which case the
+    // variant_site_path remains empty.
+    const auto &path_length = stats.path_lengths[i++];
 
-        for (uint64_t j = 0; j < path_length; ++j) {
-            Marker marker = paths[paths_index];
-            AlleleId allele_id = paths[paths_index + 1] - decrement;
-            paths_index += 2;
+    for (uint64_t j = 0; j < path_length; ++j) {
+      Marker marker = paths[paths_index];
+      AlleleId allele_id = paths[paths_index + 1] - decrement;
+      paths_index += 2;
 
-            VariantLocus site = {marker, allele_id};
-            if (allele_id != ALLELE_UNKNOWN) search_state.traversed_path.emplace_back(site);
-            else search_state.traversing_path.emplace_back(site);
-        }
+      VariantLocus site = {marker, allele_id};
+      if (allele_id != ALLELE_UNKNOWN)
+        search_state.traversed_path.emplace_back(site);
+      else
+        search_state.traversing_path.emplace_back(site);
     }
+  }
 }
-
 
 void gram::parse_paths(KmerIndex &kmer_index,
                        const sdsl::int_vector<3> &all_kmers,
                        const sdsl::int_vector<> &kmers_stats,
                        CommonParameters const &parameters) {
-    uint64_t paths_index = 0;
-    sdsl::int_vector<> paths;
-    load_from_file(paths, parameters.paths_fpath);
+  uint64_t paths_index = 0;
+  sdsl::int_vector<> paths;
+  load_from_file(paths, parameters.paths_fpath);
 
-    uint64_t stats_index = 0;
-    uint64_t kmer_start_index = 0;
+  uint64_t stats_index = 0;
+  uint64_t kmer_start_index = 0;
 
-    while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
-        auto kmer = deserialize_next_kmer(kmer_start_index,
-                                          all_kmers,
-                                          parameters.kmers_size);
-        kmer_start_index += parameters.kmers_size;
+  while (kmer_start_index <= all_kmers.size() - parameters.kmers_size) {
+    auto kmer = deserialize_next_kmer(kmer_start_index, all_kmers,
+                                      parameters.kmers_size);
+    kmer_start_index += parameters.kmers_size;
 
-        auto stats = deserialize_next_stats(stats_index, kmers_stats);
-        stats_index += stats.count_search_states + 1;
+    auto stats = deserialize_next_stats(stats_index, kmers_stats);
+    stats_index += stats.count_search_states + 1;
 
-        // This brings back existing `SearchStates`, created in function parse_sa_intervals.
-        auto &search_states = kmer_index[kmer];
-        pad_search_states(search_states, stats);
+    // This brings back existing `SearchStates`, created in function
+    // parse_sa_intervals.
+    auto &search_states = kmer_index[kmer];
+    pad_search_states(search_states, stats);
 
-        handle_path_element(search_states,
-                            paths_index,
-                            paths,
-                            stats);
-    }
+    handle_path_element(search_states, paths_index, paths, stats);
+  }
 }
 
-
 KmerIndex gram::kmer_index::load(CommonParameters const &parameters) {
-    KmerIndex kmer_index;
+  KmerIndex kmer_index;
 
-    sdsl::int_vector<3> all_kmers;
-    load_from_file(all_kmers, parameters.kmers_fpath);
+  sdsl::int_vector<3> all_kmers;
+  load_from_file(all_kmers, parameters.kmers_fpath);
 
-    sdsl::int_vector<> kmers_stats;
-    load_from_file(kmers_stats, parameters.kmers_stats_fpath);
+  sdsl::int_vector<> kmers_stats;
+  load_from_file(kmers_stats, parameters.kmers_stats_fpath);
 
-    parse_sa_intervals(kmer_index, all_kmers, kmers_stats, parameters);
-    parse_paths(kmer_index, all_kmers, kmers_stats, parameters);
-    return kmer_index;
+  parse_sa_intervals(kmer_index, all_kmers, kmers_stats, parameters);
+  parse_paths(kmer_index, all_kmers, kmers_stats, parameters);
+  return kmer_index;
 }

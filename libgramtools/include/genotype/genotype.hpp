@@ -1,5 +1,5 @@
 #include "parameters.hpp"
 
 namespace gram::commands::genotype {
-    void run(GenotypeParams const &parameters);
+void run(GenotypeParams const &parameters);
 }

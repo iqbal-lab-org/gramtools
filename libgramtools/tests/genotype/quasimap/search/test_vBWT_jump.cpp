@@ -8,9 +8,11 @@
  *  of a site in the linear PRG; because we are mapping backwards.
  *
  * Test suites:
- *  - MarkerSearch: checking finding and positioning variant markers in the PRG string
+ *  - MarkerSearch: checking finding and positioning variant markers in the PRG
+ * string
  *  - MarkerSAIntervals: Recovering SA Interval of variant markers.
- *  - VariantLocus_Path: checking search recovers right variant site/allele combinations.
+ *  - VariantLocus_Path: checking search recovers right variant site/allele
+ * combinations.
  *
  *  - SearchStateJump: vBWT jumping producing correct new `SearchState`s
  *  - SearchStateJump_Nested: same as above, on nested PRG strings
@@ -19,11 +21,10 @@
 
 #include "gtest/gtest.h"
 
-#include "submod_resources.hpp"
-#include "prg/prg_info.hpp"
 #include "build/kmer_index/build.hpp"
 #include "genotype/quasimap/search/vBWT_jump.hpp"
-
+#include "prg/prg_info.hpp"
+#include "submod_resources.hpp"
 
 using namespace gram;
 
@@ -51,142 +52,119 @@ i	BWT	SA	text_suffix
 18	C	7	6 G 6 A 6 A G T C C T
 */
 
-TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates){
-    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    // first char: a
-    SearchState initial_search_state = {
-            SA_Interval {1, 2}
-    };
+TEST(MarkerSearch, GivenCharA_FindLeftMarkers_AndSeedSearchStates) {
+  auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
+  // first char: a
+  SearchState initial_search_state = {SA_Interval{1, 2}};
 
-    auto result = left_markers_search(initial_search_state,
-                                      prg_info);
-    MarkersSearchResults expected = {
-            {6, ALLELE_UNKNOWN},
-            {5, FIRST_ALLELE + 2},
-    };
-    EXPECT_EQ(result, expected);
+  auto result = left_markers_search(initial_search_state, prg_info);
+  MarkersSearchResults expected = {
+      {6, ALLELE_UNKNOWN},
+      {5, FIRST_ALLELE + 2},
+  };
+  EXPECT_EQ(result, expected);
 
-    // Expect three: one for exiting the site; two for entering.
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    EXPECT_EQ(markers_search_states.size(), 2);
+  // Expect three: one for exiting the site; two for entering.
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
+  EXPECT_EQ(markers_search_states.size(), 2);
 }
 
-// The convention is as follows: if the position marks a site exit, the marker will be a site marker,
-// and if it marks a site entry, the marker will be an allele marker.
-TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit){
-    auto prg_raw = encode_prg("gcgct5C6g6a6Agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
+// The convention is as follows: if the position marks a site exit, the marker
+// will be a site marker, and if it marks a site entry, the marker will be an
+// allele marker.
+TEST(MarkerSearch, TestSiteMarker_Entry_or_Exit) {
+  auto prg_raw = encode_prg("gcgct5C6g6a6Agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
 
-    // TEST 1: char a at site entry point
-    SearchState search_state = {
-            SA_Interval {1, 1}
-    };
+  // TEST 1: char a at site entry point
+  SearchState search_state = {SA_Interval{1, 1}};
 
-    auto result = left_markers_search(search_state,
-                                      prg_info);
+  auto result = left_markers_search(search_state, prg_info);
 
-    auto variant_marker = result[0].first;
-    EXPECT_TRUE(is_allele_marker(variant_marker));
+  auto variant_marker = result[0].first;
+  EXPECT_TRUE(is_allele_marker(variant_marker));
 
-    // TEST 2: char c at site exit point
-    search_state = {
-            SA_Interval{7, 7}
-    };
-    result = left_markers_search(search_state, prg_info);
-    variant_marker = result[0].first;
-    EXPECT_TRUE(is_site_marker(variant_marker));
+  // TEST 2: char c at site exit point
+  search_state = {SA_Interval{7, 7}};
+  result = left_markers_search(search_state, prg_info);
+  variant_marker = result[0].first;
+  EXPECT_TRUE(is_site_marker(variant_marker));
 }
-
 
 TEST(MarkerSearch, GivenCharG_ReturnOneCorrectSearchResults) {
-    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    // first char: g
-    SearchState initial_search_state = {
-            SA_Interval {8, 11}
-    };
+  auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
+  // first char: g
+  SearchState initial_search_state = {SA_Interval{8, 11}};
 
-    auto result = left_markers_search(initial_search_state,
-                                      prg_info);
-    MarkersSearchResults expected = {
-            {5, FIRST_ALLELE + 1},
-    };
-    EXPECT_EQ(result, expected);
+  auto result = left_markers_search(initial_search_state, prg_info);
+  MarkersSearchResults expected = {
+      {5, FIRST_ALLELE + 1},
+  };
+  EXPECT_EQ(result, expected);
 }
-
 
 TEST(SearchStateJump, SingleCharAllele_CorrectSkipToSiteStartBoundaryMarker) {
-    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    // first char: g
-    SearchState initial_search_state = {
-            SA_Interval {8, 11}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    const auto &first_markers_search_state = markers_search_states.front();
+  auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
+  // first char: g
+  SearchState initial_search_state = {SA_Interval{8, 11}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
+  const auto &first_markers_search_state = markers_search_states.front();
 
-    const auto &result = first_markers_search_state.sa_interval;
-    SA_Interval expected = {15, 15};
-    EXPECT_EQ(result, expected);
+  const auto &result = first_markers_search_state.sa_interval;
+  SA_Interval expected = {15, 15};
+  EXPECT_EQ(result, expected);
 }
 
-
-TEST(MarkerSearch, GivenCharG_NoMarkersToLeft){
-    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    // first char: g
-    SearchState initial_search_state = {
-            SA_Interval {8, 11}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    const auto &result = markers_search_states.size();
-    auto expected = 1;
-    EXPECT_EQ(result, expected);
+TEST(MarkerSearch, GivenCharG_NoMarkersToLeft) {
+  auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
+  // first char: g
+  SearchState initial_search_state = {SA_Interval{8, 11}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
+  const auto &result = markers_search_states.size();
+  auto expected = 1;
+  EXPECT_EQ(result, expected);
 }
-
 
 TEST(MarkerSearch, GivenCharC_JumptoSiteStart) {
-    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    // first char: c
-    SearchState initial_search_state = {
-            SA_Interval {3, 7}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    const auto &first_markers_search_state = markers_search_states.front();
+  auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
+  // first char: c
+  SearchState initial_search_state = {SA_Interval{3, 7}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
+  const auto &first_markers_search_state = markers_search_states.front();
 
-    EXPECT_EQ(markers_search_states.size(), 1);
-    auto &result = first_markers_search_state.sa_interval;
-    SA_Interval expected = {15, 15};
-    EXPECT_EQ(result, expected);
+  EXPECT_EQ(markers_search_states.size(), 1);
+  auto &result = first_markers_search_state.sa_interval;
+  SA_Interval expected = {15, 15};
+  EXPECT_EQ(result, expected);
 }
-
 
 TEST(MarkerSAIntervals, AlleleMarkerAnd3Alleles_correctSAInterval) {
-    auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
-    Marker allele_marker = 6;
+  auto prg_raw = encode_prg("gcgct5c6g6a6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
+  Marker allele_marker = 6;
 
-    auto result = get_allele_marker_sa_interval(allele_marker, prg_info);
-    SA_Interval expected = {16, 18};
-    EXPECT_EQ(result, expected);
+  auto result = get_allele_marker_sa_interval(allele_marker, prg_info);
+  SA_Interval expected = {16, 18};
+  EXPECT_EQ(result, expected);
 }
 
+TEST(MarkerSAIntervals, AlleleMarkerAnd2Alleles_correctSAInterval) {
+  auto prg_raw = encode_prg("aca5g6t6catt");
+  auto prg_info = generate_prg_info(prg_raw);
 
-TEST(MarkerSAIntervals,  AlleleMarkerAnd2Alleles_correctSAInterval) {
-    auto prg_raw = encode_prg("aca5g6t6catt");
-    auto prg_info = generate_prg_info(prg_raw);
-
-    auto result = get_allele_marker_sa_interval(6, prg_info);
-    SA_Interval expected = {11, 12};
-    EXPECT_EQ(result, expected);
+  auto result = get_allele_marker_sa_interval(6, prg_info);
+  SA_Interval expected = {11, 12};
+  EXPECT_EQ(result, expected);
 }
-
 
 /*
 PRG: 7G8C8G9T10A10
@@ -204,15 +182,15 @@ i	BWT	SA	text_suffix
 10	A	10	A 1
 11	T	8	1 0 A 1
 */
-TEST(MarkerSAIntervals, GivenPrgWithNonContinuousAlphabet_CorrectAlleleMarkerEndBoundary) {
-    auto prg_raw = encode_prg("7g8c8g9t10a10");
-    auto prg_info = generate_prg_info(prg_raw);
+TEST(MarkerSAIntervals,
+     GivenPrgWithNonContinuousAlphabet_CorrectAlleleMarkerEndBoundary) {
+  auto prg_raw = encode_prg("7g8c8g9t10a10");
+  auto prg_info = generate_prg_info(prg_raw);
 
-    auto result = get_allele_marker_sa_interval(8, prg_info);
-    SA_Interval expected = {7, 8};
-    EXPECT_EQ(result, expected);
+  auto result = get_allele_marker_sa_interval(8, prg_info);
+  SA_Interval expected = {7, 8};
+  EXPECT_EQ(result, expected);
 }
-
 
 /*
 PRG: GCGCT5C6G6T6AGTCCT
@@ -240,70 +218,55 @@ i	BWT	SA	text_suffix
  */
 
 TEST(SearchStateJump, AtSiteEntry_CorrectSearchStateJump) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
+  auto prg_raw = encode_prg("gcgct5c6g6t6Agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
 
-    // first char: a
-    SearchState initial_search_state = {
-            SA_Interval {1, 1}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
+  // first char: a
+  SearchState initial_search_state = {SA_Interval{1, 1}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
 
-    EXPECT_EQ(markers_search_states.size(), 1);
+  EXPECT_EQ(markers_search_states.size(), 1);
 
-    SearchStates expected = {
-            SearchState{
-                SA_Interval {16, 18},
-                VariantSitePath {},
-                VariantSitePath { VariantLocus{ 5, ALLELE_UNKNOWN }},
-            }
-    };
+  SearchStates expected = {SearchState{
+      SA_Interval{16, 18},
+      VariantSitePath{},
+      VariantSitePath{VariantLocus{5, ALLELE_UNKNOWN}},
+  }};
 
-    EXPECT_EQ(markers_search_states, expected);
+  EXPECT_EQ(markers_search_states, expected);
 }
-
-
 
 TEST(SearchStateJump, Allele2SiteExit_CorrectSearchStateJump) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
+  auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
 
-    // first char: g
-    SearchState initial_search_state = {
-            SA_Interval {7, 10}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    SearchStates expected = {
-            SearchState{
-                    SA_Interval{15, 15},
-                    VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
-                    VariantSitePath{},
-            }
-    };
-    EXPECT_EQ(markers_search_states, expected);
+  // first char: g
+  SearchState initial_search_state = {SA_Interval{7, 10}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
+  SearchStates expected = {SearchState{
+      SA_Interval{15, 15},
+      VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
+      VariantSitePath{},
+  }};
+  EXPECT_EQ(markers_search_states, expected);
 }
 
-
 TEST(SearchStateJump, Allele1SiteExit_CorrectSearchStateJump) {
-    auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
-    auto prg_info = generate_prg_info(prg_raw);
+  auto prg_raw = encode_prg("gcgct5c6g6t6agtcct");
+  auto prg_info = generate_prg_info(prg_raw);
 
-    // first char: c
-    SearchState initial_search_state = {
-            SA_Interval {2, 6}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
-    SearchStates expected = {
-            SearchState{
-                    SA_Interval{15, 15},
-                    VariantSitePath{VariantLocus{5, FIRST_ALLELE}},
-                    VariantSitePath{},
-            }
-    };
-    EXPECT_EQ(markers_search_states, expected);
+  // first char: c
+  SearchState initial_search_state = {SA_Interval{2, 6}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
+  SearchStates expected = {SearchState{
+      SA_Interval{15, 15},
+      VariantSitePath{VariantLocus{5, FIRST_ALLELE}},
+      VariantSitePath{},
+  }};
+  EXPECT_EQ(markers_search_states, expected);
 }
 
 /**********************/
@@ -326,59 +289,47 @@ i	BWT	SA	text_suffix
 11	G	8	8 6 T 0
 */
 
-TEST(SearchStateJump_Nested, DoubleExit_CorrectSearchStateJump){
-    auto prg = prg_string_to_ints("[AC,[C,G]]T");
-    auto prg_info = generate_prg_info(prg);
+TEST(SearchStateJump_Nested, DoubleExit_CorrectSearchStateJump) {
+  auto prg = prg_string_to_ints("[AC,[C,G]]T");
+  auto prg_info = generate_prg_info(prg);
 
-    // first char: c at index 5 in PRG
-    SearchState initial_search_state = {
-            SA_Interval {3, 3}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
+  // first char: c at index 5 in PRG
+  SearchState initial_search_state = {SA_Interval{3, 3}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
 
-    SearchStates expected = {
-            SearchState{
-                SA_Interval{6, 6},
-                VariantSitePath {
-                    VariantLocus {7, FIRST_ALLELE},
-                    VariantLocus {5, FIRST_ALLELE + 1}
-                },
-                VariantSitePath{},
-            }
-    };
-    EXPECT_EQ(markers_search_states, expected);
+  SearchStates expected = {SearchState{
+      SA_Interval{6, 6},
+      VariantSitePath{VariantLocus{7, FIRST_ALLELE},
+                      VariantLocus{5, FIRST_ALLELE + 1}},
+      VariantSitePath{},
+  }};
+  EXPECT_EQ(markers_search_states, expected);
 }
 
 TEST(SearchStateJump_Nested, DoubleEntry_CorrectSearchStateJump) {
-    auto prg = prg_string_to_ints("[AC,[C,G]]T");
-    auto prg_info = generate_prg_info(prg);
+  auto prg = prg_string_to_ints("[AC,[C,G]]T");
+  auto prg_info = generate_prg_info(prg);
 
-    // first char: t
-    SearchState initial_search_state = {
-            SA_Interval{5, 5}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
+  // first char: t
+  SearchState initial_search_state = {SA_Interval{5, 5}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
 
-    SearchStates expected = {
-            SearchState{
-                SA_Interval{7, 8},
-                VariantSitePath{},
-                VariantSitePath {
-                    VariantLocus{5, ALLELE_UNKNOWN}
-                },
-            },
-            SearchState{
-                SA_Interval{10, 11},
-                VariantSitePath{},
-                VariantSitePath{
-                    VariantLocus{5, ALLELE_UNKNOWN},
-                    VariantLocus{7, ALLELE_UNKNOWN},
-                },
-            }
-    };
-    EXPECT_EQ(markers_search_states, expected);
+  SearchStates expected = {SearchState{
+                               SA_Interval{7, 8},
+                               VariantSitePath{},
+                               VariantSitePath{VariantLocus{5, ALLELE_UNKNOWN}},
+                           },
+                           SearchState{
+                               SA_Interval{10, 11},
+                               VariantSitePath{},
+                               VariantSitePath{
+                                   VariantLocus{5, ALLELE_UNKNOWN},
+                                   VariantLocus{7, ALLELE_UNKNOWN},
+                               },
+                           }};
+  EXPECT_EQ(markers_search_states, expected);
 }
 
 /*
@@ -397,28 +348,20 @@ i	BWT	SA	text_suffix
 10	C	7	8 G 8 0
  */
 TEST(SearchStateJump_Nested, ExitToEntry_CorrectSearchStateJump) {
-    auto prg = prg_string_to_ints("[C,G][C,G]");
-    auto prg_info = generate_prg_info(prg);
+  auto prg = prg_string_to_ints("[C,G][C,G]");
+  auto prg_info = generate_prg_info(prg);
 
-    // first char: c at index 6 in PRG
-    SearchState initial_search_state = {
-            SA_Interval{2, 2}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
+  // first char: c at index 6 in PRG
+  SearchState initial_search_state = {SA_Interval{2, 2}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
 
-    SearchStates expected = {
-            SearchState{
-                SA_Interval{6, 7},
-                VariantSitePath{
-                    VariantLocus{7, FIRST_ALLELE}
-                },
-                VariantSitePath{
-                    VariantLocus{5, ALLELE_UNKNOWN}
-                },
-            }
-    };
-    EXPECT_EQ(markers_search_states, expected);
+  SearchStates expected = {SearchState{
+      SA_Interval{6, 7},
+      VariantSitePath{VariantLocus{7, FIRST_ALLELE}},
+      VariantSitePath{VariantLocus{5, ALLELE_UNKNOWN}},
+  }};
+  EXPECT_EQ(markers_search_states, expected);
 }
 
 /*
@@ -436,34 +379,27 @@ i	BWT	SA	text_suffix
 */
 
 TEST(SearchStateJump_Nested, DirectDeletion_CorrectSearchStateJump) {
-    auto prg = prg_string_to_ints("A[C,,G]T");
-    auto prg_info = generate_prg_info(prg);
+  auto prg = prg_string_to_ints("A[C,,G]T");
+  auto prg_info = generate_prg_info(prg);
 
-    // first char: T
-    // We expect to skip past the direct deletion
-    SearchState initial_search_state = {
-            SA_Interval{4, 4}
-    };
-    const auto &markers_search_states = search_state_vBWT_jumps(initial_search_state,
-                                                                prg_info);
+  // first char: T
+  // We expect to skip past the direct deletion
+  SearchState initial_search_state = {SA_Interval{4, 4}};
+  const auto &markers_search_states =
+      search_state_vBWT_jumps(initial_search_state, prg_info);
 
-    SearchStates expected = {
-            SearchState{
-               SA_Interval{6, 8},
-               VariantSitePath{},
-               VariantSitePath{
-                   VariantLocus{5, ALLELE_UNKNOWN}
-               },
-            },
+  SearchStates expected = {
+      SearchState{
+          SA_Interval{6, 8},
+          VariantSitePath{},
+          VariantSitePath{VariantLocus{5, ALLELE_UNKNOWN}},
+      },
 
-            SearchState{
-                SA_Interval{5, 5},
-                VariantSitePath{
-                    VariantLocus{5, FIRST_ALLELE + 1}
-                },
-                VariantSitePath{},
-            }
-    };
+      SearchState{
+          SA_Interval{5, 5},
+          VariantSitePath{VariantLocus{5, FIRST_ALLELE + 1}},
+          VariantSitePath{},
+      }};
 
-    EXPECT_EQ(markers_search_states, expected);
+  EXPECT_EQ(markers_search_states, expected);
 }

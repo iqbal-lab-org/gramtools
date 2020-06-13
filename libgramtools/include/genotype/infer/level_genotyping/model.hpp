@@ -2,151 +2,179 @@
 #define LVLGT_MODEL
 
 #include "genotype/parameters.hpp"
-#include "site.hpp"
 #include "probabilities.hpp"
+#include "site.hpp"
 
 using namespace gram;
 
 namespace gram::genotype::infer {
-    using numCredibleCounts = std::size_t;
-    using multiplicities = std::vector<bool>;
-    using likelihood_map = std::multimap<double, GtypedIndices, std::greater<double>>;
-    using memoised_coverages = std::map<AlleleIds, allele_coverages>;
+using numCredibleCounts = std::size_t;
+using multiplicities = std::vector<bool>;
+using likelihood_map =
+    std::multimap<double, GtypedIndices, std::greater<double>>;
+using memoised_coverages = std::map<AlleleIds, allele_coverages>;
 
-    using namespace probabilities;
+using namespace probabilities;
 
-    struct ModelData{
-        allele_vector const input_alleles;
-        GroupedAlleleCounts const gp_counts;
-        Ploidy ploidy;
-        likelihood_related_stats const *l_stats;
-        bool ignore_ref_allele = false;
+struct ModelData {
+  allele_vector const input_alleles;
+  GroupedAlleleCounts const gp_counts;
+  Ploidy ploidy;
+  likelihood_related_stats const *l_stats;
+  bool ignore_ref_allele = false;
 
-        ModelData() : gp_counts(){}
+  ModelData() : gp_counts() {}
 
-        ModelData(allele_vector const input_alleles, GroupedAlleleCounts const gp_counts,
-                Ploidy ploidy, likelihood_related_stats const *l_stats,
-        bool ignore_ref_allele = false) : input_alleles(input_alleles), gp_counts(gp_counts),
-        ploidy(ploidy), l_stats(l_stats), ignore_ref_allele(ignore_ref_allele){};
-    };
+  ModelData(allele_vector const input_alleles,
+            GroupedAlleleCounts const gp_counts, Ploidy ploidy,
+            likelihood_related_stats const *l_stats,
+            bool ignore_ref_allele = false)
+      : input_alleles(input_alleles),
+        gp_counts(gp_counts),
+        ploidy(ploidy),
+        l_stats(l_stats),
+        ignore_ref_allele(ignore_ref_allele){};
+};
 
-    /**
-    Genotyping model using:
-      * coverage equivalence-classes
-      * alternative alleles all at same nesting level
-      * genotype confidence using likelihood ratios
-      * invalidation of nested bubbles
-    */
-    class LevelGenotyperModel : GenotypingModel {
-        ModelData data;
+/**
+Genotyping model using:
+  * coverage equivalence-classes
+  * alternative alleles all at same nesting level
+  * genotype confidence using likelihood ratios
+  * invalidation of nested bubbles
+*/
+class LevelGenotyperModel : GenotypingModel {
+  ModelData data;
 
-        // Computed at construction time
-        PerAlleleCoverage haploid_allele_coverages; /**< Coverage counts compatible with single alleles */
-        PerAlleleCoverage singleton_allele_coverages; /**< Coverage counts unique to single alleles */
-        memoised_coverages computed_coverages;
-        std::size_t total_coverage;
+  // Computed at construction time
+  PerAlleleCoverage haploid_allele_coverages;   /**< Coverage counts compatible
+                                                   with single alleles */
+  PerAlleleCoverage singleton_allele_coverages; /**< Coverage counts unique to
+                                                   single alleles */
+  memoised_coverages computed_coverages;
+  std::size_t total_coverage;
 
-        // Computed at run time
-        likelihood_map likelihoods; // Store highest likelihoods first
-        std::shared_ptr <LevelGenotypedSite> genotyped_site; // What the class will build
-        Allele ref_allele;
+  // Computed at run time
+  likelihood_map likelihoods;  // Store highest likelihoods first
+  std::shared_ptr<LevelGenotypedSite>
+      genotyped_site;  // What the class will build
+  Allele ref_allele;
 
-    public:
-        LevelGenotyperModel() = default;
-        LevelGenotyperModel(ModelData& input_data);
+ public:
+  LevelGenotyperModel() = default;
+  LevelGenotyperModel(ModelData &input_data);
 
+  /*_______Preparations______*/
+  std::size_t count_total_coverage(GroupedAlleleCounts const &gp_counts);
 
-        /*_______Preparations______*/
-        std::size_t count_total_coverage(GroupedAlleleCounts const &gp_counts);
+  std::vector<bool> get_haplogroup_multiplicities(
+      allele_vector const &input_alleles);
 
-        std::vector<bool> get_haplogroup_multiplicities(allele_vector const &input_alleles);
+  void set_haploid_coverages(GroupedAlleleCounts const &input_gp_counts,
+                             AlleleId num_haplogroups);
+  /**
+   * Alleles with no sequence correspond to direct deletions.
+   * In this case they get assigned coverage by this function,
+   * using the grouped allele coverages, as if they had a single base.
+   */
+  void assign_coverage_to_empty_alleles(allele_vector &input_alleles);
 
-        void set_haploid_coverages(GroupedAlleleCounts const &input_gp_counts, AlleleId num_haplogroups);
-        /**
-         * Alleles with no sequence correspond to direct deletions.
-         * In this case they get assigned coverage by this function,
-         * using the grouped allele coverages, as if they had a single base.
-         */
-        void assign_coverage_to_empty_alleles(allele_vector &input_alleles);
+  /*_______Likelihoods______*/
+  /**
+   * Counts the number of positions in an allele with coverage above threshold
+   * `credible_cov_t`. This threshold is the coverage at which true coverage is
+   * more likely than erroneous (sequencing error-based) coverage.
+   */
+  numCredibleCounts count_credible_positions(CovCount const &credible_cov_t,
+                                             Allele const &allele);
 
+  /**
+   * Haploid genotype likelihood
+   */
+  void compute_haploid_log_likelihoods(allele_vector const &input_alleles);
 
-        /*_______Likelihoods______*/
-        /**
-         * Counts the number of positions in an allele with coverage above threshold `credible_cov_t`.
-         * This threshold is the coverage at which true coverage is more likely than erroneous (sequencing error-based)
-         * coverage.
-         */
-        numCredibleCounts count_credible_positions(CovCount const &credible_cov_t, Allele const &allele);
+  /**
+   * Diploid homozygous
+   */
+  void compute_homozygous_log_likelihoods(
+      allele_vector const &input_alleles,
+      multiplicities const &haplogroup_multiplicities);
 
-        /**
-         * Haploid genotype likelihood
-         */
-        void compute_haploid_log_likelihoods(allele_vector const &input_alleles);
+  /**
+   * Diploid. Because of the large possible number of diploid combinations,
+   * (eg for 10 alleles, 45), we only consider for combination those alleles
+   * that have at least one unit of coverage unique to them.
+   */
+  void compute_heterozygous_log_likelihoods(
+      allele_vector const &input_alleles,
+      multiplicities const &haplogroup_multiplicities);
 
-        /**
-         * Diploid homozygous
-         */
-        void compute_homozygous_log_likelihoods(allele_vector const &input_alleles,
-                                                multiplicities const &haplogroup_multiplicities);
+  /** For producing the diploid combinations. */
+  std::vector<GtypedIndices> get_permutations(const GtypedIndices &indices,
+                                              std::size_t const subset_size);
 
-        /**
-         * Diploid. Because of the large possible number of diploid combinations,
-         * (eg for 10 alleles, 45), we only consider for combination those alleles
-         * that have at least one unit of coverage unique to them.
-         */
-        void compute_heterozygous_log_likelihoods(allele_vector const &input_alleles,
-                                                  multiplicities const &haplogroup_multiplicities);
+  /*_______Coverages______*/
+  /**
+   * Note: Due to nesting, the alleles can be from the same haplogroup; in which
+   * case, they have the same haploid coverage, and they get assigned half of it
+   * each.
+   */
+  std::pair<double, double> compute_diploid_coverage(
+      GroupedAlleleCounts const &gp_counts, AlleleIds ids,
+      multiplicities const &haplogroup_multiplicities);
 
-        /** For producing the diploid combinations. */
-        std::vector <GtypedIndices> get_permutations(const GtypedIndices &indices, std::size_t const subset_size);
+  std::pair<double, double> diploid_cov_same_haplogroup(
+      AlleleIds const &ids, multiplicities const &hap_mults);
+  std::pair<double, double> diploid_cov_different_haplogroup(
+      GroupedAlleleCounts const &gp_counts, AlleleIds const &ids,
+      multiplicities const &hap_mults);
 
-        /*_______Coverages______*/
-        /**
-         * Note: Due to nesting, the alleles can be from the same haplogroup; in which case, they have the same
-         * haploid coverage, and they get assigned half of it each.
-         */
-        std::pair<double, double> compute_diploid_coverage(GroupedAlleleCounts const &gp_counts, AlleleIds ids,
-                                                           multiplicities const &haplogroup_multiplicities);
+  /*_______Make result______*/
+  /**
+   * @param ignore_ref_allele true signals the ref allele is not a candidate for
+   * genotyping
+   */
+  void CallGenotype(allele_vector const &input_alleles, bool ignore_ref_allele,
+                    multiplicities hap_mults);
 
-        std::pair<double, double> diploid_cov_same_haplogroup(AlleleIds const &ids, multiplicities const &hap_mults);
-        std::pair<double, double>
-        diploid_cov_different_haplogroup(GroupedAlleleCounts const &gp_counts, AlleleIds const &ids,
-                                         multiplicities const &hap_mults);
+  /**
+   * In nested genotyping configurations, can get bad calls looking very
+   * confident if small errors are made at nested bubbles. This function picks
+   * up the next best allele for consideration to reduce this bias.
+   */
+  void set_next_best_alleles(allele_vector const &input_alleles,
+                             GtypedIndices const &chosen_gt,
+                             GtypedIndices const &next_best_gt,
+                             bool const use_chosen_gt = false);
 
+  AlleleIds get_haplogroups(allele_vector const &alleles,
+                            GtypedIndices const &gtype) const;
 
-        /*_______Make result______*/
-        /**
-         * @param ignore_ref_allele true signals the ref allele is not a candidate for genotyping
-         */
-        void CallGenotype(allele_vector const& input_alleles, bool ignore_ref_allele, multiplicities hap_mults);
+  /**
+   * Express genotypes as relative to chosen alleles.
+   * For eg, {0, 2, 4} in the original set of possible alleles goes to {0, 1, 2}
+   * in the 3 called alleles.
+   */
+  GtypedIndices rescale_genotypes(GtypedIndices const &genotypes);
 
-        /**
-         * In nested genotyping configurations, can get bad calls looking very confident if small errors are made
-         * at nested bubbles.
-         * This function picks up the next best allele for consideration to reduce this bias.
-         */
-        void set_next_best_alleles(allele_vector const &input_alleles, GtypedIndices const &chosen_gt,
-                                   GtypedIndices const &next_best_gt, bool const use_chosen_gt = false);
+  // Getters
+  PerAlleleCoverage const &get_haploid_covs() const {
+    return haploid_allele_coverages;
+  }
+  PerAlleleCoverage const &get_singleton_covs() const {
+    return singleton_allele_coverages;
+  }
+  likelihood_map const &get_likelihoods() const { return likelihoods; }
 
-        AlleleIds get_haplogroups(allele_vector const &alleles, GtypedIndices const &gtype) const;
+  gt_site_ptr get_site() override {
+    return std::static_pointer_cast<gt_site>(genotyped_site);
+  }
+  gtype_information get_site_gtype_info() {
+    return genotyped_site->get_all_gtype_info();
+  }
+  // For use by GCP library
+  double get_genotype_confidence() { return genotyped_site->get_gt_conf(); }
+};
+}  // namespace gram::genotype::infer
 
-        /**
-         * Express genotypes as relative to chosen alleles.
-         * For eg, {0, 2, 4} in the original set of possible alleles goes to {0, 1, 2} in the 3 called alleles.
-         */
-        GtypedIndices rescale_genotypes(GtypedIndices const &genotypes);
-
-
-        // Getters
-        PerAlleleCoverage const &get_haploid_covs() const { return haploid_allele_coverages; }
-        PerAlleleCoverage const &get_singleton_covs() const { return singleton_allele_coverages; }
-        likelihood_map const &get_likelihoods() const { return likelihoods; }
-
-        gt_site_ptr get_site() override { return std::static_pointer_cast<gt_site>(genotyped_site); }
-        gtype_information get_site_gtype_info() {return genotyped_site->get_all_gtype_info();}
-        // For use by GCP library
-        double get_genotype_confidence() { return genotyped_site->get_gt_conf(); }
-    };
-}
-
-#endif //LVLGT_MODEL
+#endif  // LVLGT_MODEL

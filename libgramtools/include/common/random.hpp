@@ -5,27 +5,27 @@
 
 namespace gram {
 
-    /**
-     * Abstract base class used for mocking in unit tests
-     */
-    class RandomGenerator {
-    public:
-        virtual ~RandomGenerator() {};
+/**
+ * Abstract base class used for mocking in unit tests
+ */
+class RandomGenerator {
+ public:
+  virtual ~RandomGenerator(){};
 
-        virtual uint32_t generate(uint32_t min, uint32_t max) const = 0;
-    };
+  virtual uint32_t generate(uint32_t min, uint32_t max) const = 0;
+};
 
-    class RandomInclusiveInt : public RandomGenerator {
-    public:
-        RandomInclusiveInt() = default;
+class RandomInclusiveInt : public RandomGenerator {
+ public:
+  RandomInclusiveInt() = default;
 
-        RandomInclusiveInt(uint32_t const &random_seed);
+  RandomInclusiveInt(uint32_t const &random_seed);
 
-        uint32_t generate(uint32_t min, uint32_t max) const override;
+  uint32_t generate(uint32_t min, uint32_t max) const override;
 
-    private:
-        uint32_t random_seed;
-    };
-}
+ private:
+  uint32_t random_seed;
+};
+}  // namespace gram
 
-#endif //GRAMTOOLS_RANDOM_HPP
+#endif  // GRAMTOOLS_RANDOM_HPP

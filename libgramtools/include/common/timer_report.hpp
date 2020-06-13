@@ -1,29 +1,28 @@
 #include <boost/timer/timer.hpp>
 
-
 #ifndef GRAMTOOLS_TIMER_REPORT_HPP
 #define GRAMTOOLS_TIMER_REPORT_HPP
 
 namespace gram {
-    class TimerReport {
-    public:
-        void start(std::string note);
+class TimerReport {
+ public:
+  void start(std::string note);
 
-        void stop();
+  void stop();
 
-        void report() const;
+  void report() const;
 
-        template<typename TypeCol1, typename TypeCol2>
-        void cout_row(TypeCol1 col1, TypeCol2 col2) const;
+  template <typename TypeCol1, typename TypeCol2>
+  void cout_row(TypeCol1 col1, TypeCol2 col2) const;
 
-    private:
-        using Note = std::string;
-        using Entry = std::pair<Note, double>;
+ private:
+  using Note = std::string;
+  using Entry = std::pair<Note, double>;
 
-        Note note;
-        std::vector<Entry> logger;
-        boost::timer::cpu_timer timer;
-    };
-}
+  Note note;
+  std::vector<Entry> logger;
+  boost::timer::cpu_timer timer;
+};
+}  // namespace gram
 
-#endif //GRAMTOOLS_TIMER_REPORT_HPP
+#endif  // GRAMTOOLS_TIMER_REPORT_HPP

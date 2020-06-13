@@ -10,14 +10,13 @@
 #include "prg/coverage_graph.hpp"
 
 namespace gram {
-    class PrgRefChecker {
-    public:
-        PrgRefChecker(std::istream &fasta_ref_handle, coverage_Graph const &cov_graph,
-                      bool const gzipped = false);
+class PrgRefChecker {
+ public:
+  PrgRefChecker(std::istream &fasta_ref_handle, coverage_Graph const &cov_graph,
+                bool const gzipped = false);
 
-        static std::string get_first_prg_path(coverage_Graph const &cov_graph);
-    };
-}
+  static std::string get_first_prg_path(coverage_Graph const &cov_graph);
+};
+}  // namespace gram
 
-
-#endif //GRAMTOOLS_CHECK_REF_HPP
+#endif  // GRAMTOOLS_CHECK_REF_HPP

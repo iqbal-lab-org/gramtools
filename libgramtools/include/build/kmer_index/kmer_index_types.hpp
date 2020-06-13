@@ -1,9 +1,9 @@
 /** @file
- * Defines the kmer index and the caching structure for remembering the relevant previous mappings.
+ * Defines the kmer index and the caching structure for remembering the relevant
+ * previous mappings.
  */
-#include "genotype/quasimap/search/types.hpp"
 #include "common/utils.hpp"
-
+#include "genotype/quasimap/search/types.hpp"
 
 #ifndef GRAMTOOLS_KMER_INDEX_TYPES_HPP
 #define GRAMTOOLS_KMER_INDEX_TYPES_HPP
@@ -12,13 +12,19 @@
 // 1  2   1  4
 
 namespace gram {
-    struct CacheElement {
-        SearchStates search_states = {};
-        int_Base base = 0; /**< The next base added relative to the previous `CacheElement`.*/
-    };
-    using KmerIndexCache = std::list<CacheElement>; /**< Stored previously computed `SearchStates` for re-use when indexing different kmers. */
+struct CacheElement {
+  SearchStates search_states = {};
+  int_Base base =
+      0; /**< The next base added relative to the previous `CacheElement`.*/
+};
+using KmerIndexCache =
+    std::list<CacheElement>; /**< Stored previously computed `SearchStates` for
+                                re-use when indexing different kmers. */
 
-    using KmerIndex = SequenceHashMap<Sequence, SearchStates>; /**< Unordered map linking a kmer to all mapped locations in the prg.*/
-}
+using KmerIndex =
+    SequenceHashMap<Sequence,
+                    SearchStates>; /**< Unordered map linking a kmer to all
+                                      mapped locations in the prg.*/
+}  // namespace gram
 
-#endif //GRAMTOOLS_KMER_INDEX_TYPES_HPP
+#endif  // GRAMTOOLS_KMER_INDEX_TYPES_HPP

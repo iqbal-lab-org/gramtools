@@ -4,3 +4,14 @@ repos:
     hooks:
       - id: black
         language_version: python3.6
+
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        description: Format C/C++ code using clang-format.
+        language: system
+        files: libgramtools.*\.(c|cc|cxx|cpp|h|hpp|hxx)$
+        exclude: libgramtools/lib 
+        entry: clang-format -i
+        args: ["-style=Google"]
