@@ -60,7 +60,7 @@ void add_model_specific_entries(JSON& json_site, site_entries const& entries) {
 
 json_site_ptr make_json_site(gt_site_ptr const& gt_site) {
   json_site_ptr result = std::make_shared<Json_Site>();
-  auto json_site = result->get_site();
+  auto& json_site = result->get_site();
 
   auto gtype_info = gt_site->get_all_gtype_info();
   for (int i{0}; i < gtype_info.alleles.size(); ++i)
@@ -77,7 +77,6 @@ json_site_ptr make_json_site(gt_site_ptr const& gt_site) {
   json_site.at("FT").push_back(JSON(gtype_info.filters));
 
   add_model_specific_entries(json_site, gt_site->get_model_specific_entries());
-  result->set_site(json_site);
 
   return result;
 }

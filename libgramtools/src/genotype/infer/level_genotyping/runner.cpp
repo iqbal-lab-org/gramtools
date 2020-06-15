@@ -66,7 +66,10 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
     auto downcasted =
         std::dynamic_pointer_cast<LevelGenotypedSite>(genotyped_site);
     run_invalidation_process(downcasted, site_ID);
-    if (genotyped_site->has_filter("AMBIG")) propagate_filter("AMBIG", site_ID);
+    if (genotyped_site->has_filter("AMBIG"))
+      downpropagate_filter("AMBIG", site_ID);
+    else
+      uppropagate_filter("AMBIG", site_ID);
   }
   if (get_gcp) {
     auto confidences = get_gtconf_distrib(genotyped_records, l_stats, ploidy);
@@ -88,8 +91,23 @@ header_vec LevelGenotyper::get_model_specific_headers() {
   return result;
 }
 
-void LevelGenotyper::propagate_filter(std::string const& name,
-                                      Marker const& parent_site_ID) {
+void LevelGenotyper::uppropagate_filter(std::string const& name,
+                                        Marker const& parent_site_ID) {
+  if (child_m.find(parent_site_ID) == child_m.end()) return;
+  auto const focal_site_index = siteID_to_index(parent_site_ID);
+  for (auto const& pair : child_m.at(parent_site_ID)) {
+    for (auto const& child_marker : pair.second) {
+      auto referent_site = genotyped_records.at(siteID_to_index(child_marker));
+      if (referent_site->has_filter(name)) {
+        genotyped_records.at(focal_site_index)->set_filter(name);
+        return;
+      }
+    }
+  }
+}
+
+void LevelGenotyper::downpropagate_filter(std::string const& name,
+                                          Marker const& parent_site_ID) {
   std::vector<Marker> to_process{parent_site_ID};
   Marker cur_ID;
   while (!to_process.empty()) {

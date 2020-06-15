@@ -236,9 +236,16 @@ TEST_F(LevelGenotyperPropagation,
   EXPECT_TRUE(site1->is_null());
 }
 
-TEST_F(LevelGenotyperPropagation, CorrectFilterPropagation) {
+TEST_F(LevelGenotyperPropagation, CorrectFilterDownPropagation) {
   LevelGenotyper g{child_m, sites};
-  g.propagate_filter("AMBIG", 5);
+  g.downpropagate_filter("AMBIG", 5);
   EXPECT_TRUE(sites.at(1)->has_filter("AMBIG"));
   EXPECT_TRUE(sites.at(2)->has_filter("AMBIG"));
+}
+
+TEST_F(LevelGenotyperPropagation, CorrectFilterUpPropagation) {
+  LevelGenotyper g{child_m, sites};
+  sites.at(1)->set_filter("AMBIG");
+  g.uppropagate_filter("AMBIG", 5);
+  EXPECT_TRUE(sites.at(0)->has_filter("AMBIG"));
 }

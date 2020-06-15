@@ -41,7 +41,10 @@ class LevelGenotyper : public Genotyper {
 
   header_vec get_model_specific_headers() override;
 
-  void propagate_filter(std::string const& name, Marker const& parent_site_ID);
+  void uppropagate_filter(std::string const& name,
+                          Marker const& parent_site_ID);
+  void downpropagate_filter(std::string const& name,
+                            Marker const& parent_site_ID);
 
   /**
    * Invalidation of non-chosen haplogroups in nested prgs

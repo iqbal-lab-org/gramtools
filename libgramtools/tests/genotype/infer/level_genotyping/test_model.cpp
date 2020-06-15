@@ -211,7 +211,7 @@ class TestLevelGenotyperModel_NullGTs : public ::testing::Test {
 };
 
 TEST_F(TestLevelGenotyperModel_NullGTs,
-       GivenDuplicatedAllele_NullGTandFilterSet) {
+       GivenDuplicatedAllele_GTNullAndFilterSet) {
   alleles.emplace_back("A", PerBaseCoverage{1}, 1);
   ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
   LevelGenotyperModel gtyper(data);

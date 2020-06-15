@@ -27,20 +27,14 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
   genotyped_site->set_num_haplogroups(haplogroup_multiplicities.size());
 
   auto const duplicate_allele = check_for_duplicates(data.input_alleles);
+  if (duplicate_allele) genotyped_site->set_filter("AMBIG");
+
   total_coverage = count_total_coverage(data.gp_counts);
-  if (total_coverage == 0 || data.l_stats->data_params.mean_cov == 0 ||
-      duplicate_allele) {
+  if (total_coverage == 0 || data.l_stats->data_params.mean_cov == 0) {
     // Null gt site still gets ref allele, for reporting and for allele
     // extraction to work
     genotyped_site->set_alleles(allele_vector{ref_allele});
     genotyped_site->make_null();
-    if (duplicate_allele) {
-      // Return a duplicate to force null gt calling and ambiguity tagging to
-      // parent sites
-      genotyped_site->set_next_best_alleles(
-          allele_vector{duplicate_allele.value(), duplicate_allele.value()});
-      genotyped_site->set_filter("AMBIG");
-    }
     return;
   }
 
