@@ -2,8 +2,13 @@
 #define LVLGT_SITE
 
 #include <variant>
+
 #include "genotype/infer/interfaces.hpp"
-#include "genotype/infer/output_specs/json_site_spec.hpp"
+
+namespace gram::genotype::output_spec {
+struct vcf_meta_info_line;
+using header_vec = std::vector<vcf_meta_info_line>;
+}  // namespace gram::genotype::output_spec
 
 namespace gram::genotype::infer {
 
@@ -37,6 +42,7 @@ class LevelGenotypedSite : public GenotypedSite {
     return result;
   }
 
+  static header_vec site_model_specific_entries();
   site_entries get_model_specific_entries() override;
   void null_model_specific_entries() override;
 };

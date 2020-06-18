@@ -1,5 +1,5 @@
 #include "genotype/infer/level_genotyping/site.hpp"
-#include "genotype/infer/output_specs/coverage_common.hpp"
+#include "genotype/infer/output_specs/fields.hpp"
 
 using namespace gram::genotype::infer;
 
@@ -20,12 +20,27 @@ gram::AlleleIds const LevelGenotypedSite::get_nonGenotyped_haplogroups() const {
   return result;
 }
 
+header_vec LevelGenotypedSite::site_model_specific_entries() {
+  return header_vec{
+      vcf_meta_info_line{
+          "FORMAT", "GT_CONF",
+          "Genotype confidence as "
+          "likelihood ratio of called and next most likely genotype.",
+          "1", "Float"},
+      vcf_meta_info_line{"FORMAT", "GT_CONF_PERCENTILE",
+                         "Percent of calls expected to have lower GT_CONF", "1",
+                         "Float"}};
+}
+
 site_entries LevelGenotypedSite::get_model_specific_entries() {
-  site_entry<double> gt_conf_entry{"FORMAT", "GT_CONF", {gt_conf}, true};
-  site_entry<double> gt_conf_percentile_entry{
-      "FORMAT", "GT_CONF_PERCENTILE", {gt_conf_percentile}, true};
-  site_entries result{{gt_conf_entry, gt_conf_percentile_entry}};
-  return result;
+  auto specs = site_model_specific_entries();
+  site_entry<double> gc_entry(specs.at(0));
+  gc_entry.vals.emplace_back(gt_conf);
+
+  site_entry<double> gcp_entry(specs.at(1));
+  gcp_entry.vals.emplace_back(gt_conf_percentile);
+
+  return site_entries{{gc_entry, gcp_entry}};
 }
 
 void LevelGenotypedSite::null_model_specific_entries() {

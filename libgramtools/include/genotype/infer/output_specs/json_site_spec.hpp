@@ -2,7 +2,7 @@
 #define SITE_JSON_SPEC
 
 #include "common/data_types.hpp"
-#include "coverage_common.hpp"
+#include "fields.hpp"
 
 namespace gram::json {
 struct site_rescaler {
@@ -27,21 +27,17 @@ class Json_Site {
 
   Json_Site(JSON const input_json) : json_site(input_json) {}
 
-  // Functions implementing site combining
+  // ____Functions implementing site combining____
   void build_allele_combi_map(JSON const &json_site, allele_combi_map &m);
-
-  void append_entries_from(JSON const &json_site);
-
+  void append_entries_from(JSON const &input_site);
   allele_vec get_all_alleles(allele_combi_map &m);
-
   void rescale_entries(allele_combi_map const &m);
-
   void combine_with(Json_Site &other);
 
   JSON const &get_site() const { return json_site; }
   JSON &get_site() { return json_site; }
 
-  void set_site(JSON const &json_site) { this->json_site = json_site; }
+  void set_site(JSON const input_site) { json_site = input_site; }
   void set_pos(std::size_t pos) { json_site.at("POS") = pos; }
   void set_segment(std::string ID) { this->json_site.at("SEG") = ID; }
 };

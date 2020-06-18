@@ -1,5 +1,5 @@
 #include "genotype/infer/output_specs/json_site_spec.hpp"
-#include "genotype/infer/output_specs/coverage_common.hpp"
+#include "genotype/infer/output_specs/fields.hpp"
 #include "genotype/infer/types.hpp"
 
 using namespace gram::json;
@@ -86,16 +86,27 @@ void Json_Site::rescale_entries(allele_combi_map const& m) {
   }
 }
 
-void Json_Site::append_entries_from(JSON const& json_site) {
-  std::vector<std::string> entries{"GT", "HAPG", "COV", "DP", "FT"};
-  for (auto const& entry : entries) {
-    for (auto const& element : json_site.at(entry))
+void Json_Site::append_entries_from(JSON const& input_site) {
+  for (auto const& entry : trivially_merged_entries) {
+    for (auto const& element : input_site.at(entry))
       this->json_site.at(entry).push_back(element);
   }
 }
 
 void Json_Site::combine_with(Json_Site& other) {
   auto& other_json = other.get_site();
+
+  for (auto const& entry : singleton_entries) {
+    auto const this_entry = std::string(json_site.at(entry));
+    auto const other_entry = std::string(other_json.at(entry));
+    if (this_entry != other_entry) {
+      std::string msg("Sites do not have same " + entry + ": " + this_entry +
+                      " vs " + other_entry);
+      throw JSONCombineException(msg);
+    }
+  }
+
+  // Combine alleles
   std::string this_ref = json_site.at("ALS").at(0);
   if (this_ref != other_json.at("ALS").at(0)) {
     std::string msg("Sites do not have same 'reference' allele: ");
@@ -103,19 +114,6 @@ void Json_Site::combine_with(Json_Site& other) {
           std::string(other_json.at("ALS").at(0));
     throw JSONCombineException(msg);
   }
-
-  if (json_site.at("POS") != other_json.at("POS")) {
-    std::string msg("Sites do not have same POS: ");
-    throw JSONCombineException(msg);
-  }
-
-  if (json_site.at("SEG") != other_json.at("SEG")) {
-    std::string msg("Sites do not have same SEG: ");
-    msg = msg + std::string(json_site.at("SEG")) + " vs " +
-          std::string(other_json.at("SEG"));
-    throw JSONCombineException(msg);
-  }
-
   allele_combi_map m{{this_ref, site_rescaler{0, 0}}};  // Always place the REF
   build_allele_combi_map(json_site, m);
   build_allele_combi_map(other_json, m);
@@ -123,5 +121,7 @@ void Json_Site::combine_with(Json_Site& other) {
   rescale_entries(m);
   json_site.at("ALS") = get_all_alleles(m);
   other.rescale_entries(m);
+
+  // Combine 'trivial' entries
   append_entries_from(other.get_site());
 }

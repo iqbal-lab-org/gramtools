@@ -38,7 +38,7 @@ void populate_vcf_hdr(bcf_hdr_t* hdr, gtyper_ptr gtyper,
     bcf_hdr_append(hdr, header.to_string().c_str());
   }
 
-  header_vec format_headers = common_headers();  // Common headers
+  header_vec format_headers = common_headers;
   for (auto& header : format_headers)
     bcf_hdr_append(hdr, header.to_string().c_str());
 }

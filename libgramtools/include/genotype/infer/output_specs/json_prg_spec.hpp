@@ -3,7 +3,7 @@
 
 #include <utility>
 
-#include "coverage_common.hpp"
+#include "fields.hpp"
 
 namespace gram::json {
 

@@ -78,16 +78,12 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
 }
 
 header_vec LevelGenotyper::get_model_specific_headers() {
+  auto site_model_entries = LevelGenotypedSite::site_model_specific_entries();
   header_vec result{
       vcf_meta_info_line{"Model", "LevelGenotyping"},
-      vcf_meta_info_line{
-          "FORMAT", "GT_CONF",
-          "Genotype confidence as "
-          "likelihood ratio of called and next most likely genotype.",
-          "1", "Float"},
-      vcf_meta_info_line{"FORMAT", "GT_CONF_PERCENTILE",
-                         "Percent of calls expected to have lower GT_CONF", "1",
-                         "Float"}};
+  };
+  result.insert(result.end(), site_model_entries.begin(),
+                site_model_entries.end());
   return result;
 }
 
