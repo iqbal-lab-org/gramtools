@@ -1,13 +1,12 @@
 import os
-import shutil
 import subprocess
 import setuptools
 import unittest
 import sys
 from pathlib import Path
+from enum import Enum, auto
 
 from setuptools.command.install import install
-from setuptools.command.develop import develop
 from setuptools.command.test import test
 
 from gramtools.version import package_version
@@ -24,28 +23,29 @@ os.environ["HTSLIB_LIBRARY_DIR"] = str(cmake_dir / "libgramtools" / "lib")
 os.environ["HTSLIB_INCLUDE_DIR"] = str(cmake_dir / "libgramtools" / "include")
 
 
-def _build_backend(root_dir, mode="install"):
-    assert mode in {"install", "test"}
-    build_type = "REL_WITH_ASSERTS"  # Has -O flag
+class InstallMode(Enum):
+    FULL = auto()
+    GRAM = auto()
 
+
+def _build_backend(mode: InstallMode):
     print("Compiling gramtools backend")
 
     if not os.path.exists(cmake_dir):
         os.mkdir(cmake_dir)
     else:
-        if mode == "install":  # Erasing pre-existing compiled source tree
-            shutil.rmtree(cmake_dir, ignore_errors=False)
-            os.mkdir(cmake_dir)
+        print(
+            f"Warning: {cmake_dir} already exists; if you want a fresh install, remove it.",
+            file=sys.stderr,
+        )
 
+    build_type = "REL_WITH_ASSERTS"  # Compiles with -O flag but keeps asserts
     subprocess.call(
         f"CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE={build_type} ..",
         cwd=cmake_dir,
         shell=True,
     )
-
-    target = "all"
-    if mode == "install":
-        target = "gram"
+    target = "gram" if mode is InstallMode.GRAM else "all"
 
     return_code = subprocess.call(["make", "-j", "4", target], cwd=cmake_dir)
     if return_code != 0:
@@ -105,23 +105,8 @@ class _InstallCommand(install):
     """
 
     def run(self):
-        _build_backend(_root_dir)
+        _build_backend(InstallMode.GRAM)
         install.run(self)
-
-
-class _DevelopCommand(develop):
-    """
-    Allows for running gramtools as if it were installed (including entry_point), but from source directly.
-    Backend is not built on purpose- assuming this will be done using back-end related IDE by developer.
-    Tests not ran either- these should be ran manually (eg python3 -m unittest from source root for front-end).
-
-    Command to build develop: (do this inside development dir)
-        pip3 install -vvv --editable /path/to/gramtools  # wrapper round setuptools develop.
-
-    """
-
-    def run(self):
-        develop.run(self)
 
 
 class _TestCommand(test):
@@ -131,8 +116,7 @@ class _TestCommand(test):
     """
 
     def run(self):
-        # test.run(self) # Setuptools' own front end test logic
-        _build_backend(_root_dir, mode="test")
+        _build_backend(InstallMode.FULL)
         _test_frontend(
             _root_dir
         )  # Front end has integration test relying on backed, so need to build first
@@ -162,9 +146,5 @@ setuptools.setup(
         "cluster_vcf_records >= 0.9.2",
     ],
     test_suite="gramtools.tests",
-    cmdclass={
-        "install": _InstallCommand,
-        "develop": _DevelopCommand,
-        "test": _TestCommand,
-    },
+    cmdclass={"install": _InstallCommand, "test": _TestCommand},
 )
