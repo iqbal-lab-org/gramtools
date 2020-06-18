@@ -90,8 +90,9 @@ void Json_Prg::combine_with(Json_Prg& other, bool force) {
 
   add_samples(other, force);
 
+  auto const gtyping_model = json_prg.at("Model");
   for (std::size_t j{0}; j < sites.size(); j++) {
-    sites.at(j)->combine_with(*other.sites.at(j));
+    sites.at(j)->combine_with(*other.sites.at(j), gtyping_model);
     json_prg.at("Sites").at(j) = sites.at(j)->get_site();
   }
 }

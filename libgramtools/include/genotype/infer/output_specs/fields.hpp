@@ -73,7 +73,7 @@ struct site_entry {
       : meta_type(spec.meta_type), ID(spec.ID) {}
   std::string meta_type, ID;
   std::vector<T> vals;
-  bool single_val;
+  bool single_val = true;
 };
 
 /*

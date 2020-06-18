@@ -29,10 +29,12 @@ class Json_Site {
 
   // ____Functions implementing site combining____
   void build_allele_combi_map(JSON const &json_site, allele_combi_map &m);
-  void append_entries_from(JSON const &input_site);
   allele_vec get_all_alleles(allele_combi_map &m);
   void rescale_entries(allele_combi_map const &m);
-  void combine_with(Json_Site &other);
+  void append_trivial_entries_from(JSON const &input_site);
+  void add_model_specific_entries_from(JSON const &input_site,
+                                       std::string const gtyping_model);
+  void combine_with(Json_Site &other, std::string const &gtyping_model = "");
 
   JSON const &get_site() const { return json_site; }
   JSON &get_site() { return json_site; }

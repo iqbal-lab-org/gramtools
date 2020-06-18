@@ -1,4 +1,5 @@
 #include "genotype/infer/output_specs/json_site_spec.hpp"
+#include "genotype/infer/level_genotyping/site.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 #include "genotype/infer/types.hpp"
 
@@ -86,22 +87,33 @@ void Json_Site::rescale_entries(allele_combi_map const& m) {
   }
 }
 
-void Json_Site::append_entries_from(JSON const& input_site) {
+void Json_Site::append_trivial_entries_from(JSON const& input_site) {
   for (auto const& entry : trivially_merged_entries) {
     for (auto const& element : input_site.at(entry))
       this->json_site.at(entry).push_back(element);
   }
 }
 
-void Json_Site::combine_with(Json_Site& other) {
+void Json_Site::add_model_specific_entries_from(
+    JSON const& input_site, std::string const gtyping_model) {
+  if (gtyping_model == "LevelGenotyping") {
+    header_vec model_entries =
+        LevelGenotypedSite::site_model_specific_entries();
+    for (auto const& header : model_entries) {
+      for (auto const& element : input_site.at(header.ID))
+        this->json_site.at(header.ID).push_back(element);
+    }
+  } else
+    return;
+}
+
+void Json_Site::combine_with(Json_Site& other,
+                             std::string const& gtyping_model) {
   auto& other_json = other.get_site();
 
   for (auto const& entry : singleton_entries) {
-    auto const this_entry = std::string(json_site.at(entry));
-    auto const other_entry = std::string(other_json.at(entry));
-    if (this_entry != other_entry) {
-      std::string msg("Sites do not have same " + entry + ": " + this_entry +
-                      " vs " + other_entry);
+    if (json_site.at(entry) != other_json.at(entry)) {
+      std::string msg("Sites do not have same " + entry + ": ");
       throw JSONCombineException(msg);
     }
   }
@@ -122,6 +134,7 @@ void Json_Site::combine_with(Json_Site& other) {
   json_site.at("ALS") = get_all_alleles(m);
   other.rescale_entries(m);
 
-  // Combine 'trivial' entries
-  append_entries_from(other.get_site());
+  append_trivial_entries_from(other.get_site());
+
+  add_model_specific_entries_from(other.get_site(), gtyping_model);
 }
