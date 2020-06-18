@@ -3,6 +3,19 @@
 
 using namespace gram::json;
 
+Json_Prg::Json_Prg(JSON input_json) : json_prg(std::move(input_json)) {
+  for (JSON const& site_json : json_prg.at("Sites")) {
+    sites.emplace_back(std::make_shared<Json_Site>(site_json));
+  }
+}
+
+void Json_Prg::set_prg(JSON const& input_json) {
+  json_prg = input_json;
+  for (JSON const& site_json : json_prg.at("Sites")) {
+    sites.emplace_back(std::make_shared<Json_Site>(site_json));
+  }
+}
+
 void Json_Prg::set_sample_info(std::string const& name,
                                std::string const& desc) {
   if (json_prg.at("Samples").size() > 1)
@@ -12,7 +25,7 @@ void Json_Prg::set_sample_info(std::string const& name,
   json_prg.at("Samples").push_back(JSON{{"Name", name}, {"Desc", desc}});
 }
 
-void Json_Prg::add_site(json_site_ptr json_site) {
+void Json_Prg::add_site(json_site_ptr const& json_site) {
   sites.push_back(json_site);
   json_prg.at("Sites").push_back(json_site->get_site());
 }

@@ -10,6 +10,7 @@ gramtools/lib
 libgramtools/tests/test_main
 libgramtools/submods/encode_prg
 libgramtools/submods/print_fm_index
+libgramtools/submods/combine_jvcfs
 doc/html
 *~
 *.swp

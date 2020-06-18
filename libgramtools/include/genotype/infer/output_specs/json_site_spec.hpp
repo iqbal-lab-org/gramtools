@@ -25,7 +25,7 @@ class Json_Site {
     json_site.emplace("SEG", "");
   }
 
-  Json_Site(Json_Site const &other) : json_site(other.json_site) {}
+  Json_Site(JSON const input_json) : json_site(input_json) {}
 
   // Functions implementing site combining
   void build_allele_combi_map(JSON const &json_site, allele_combi_map &m);

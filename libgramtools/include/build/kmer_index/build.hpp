@@ -10,7 +10,6 @@
  * searched for in a given PRG.
  */
 #include "build/parameters.hpp"
-#include "common/parameters.hpp"
 #include "genotype/quasimap/search/types.hpp"
 #include "kmer_index_types.hpp"
 #include "kmers.hpp"

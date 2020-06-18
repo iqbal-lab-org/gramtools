@@ -30,3 +30,13 @@ add_custom_command(TARGET print_fm_index POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_BINARY_DIR}/print_fm_index
         ${SUBMOD_DIR})
+
+# combine jvcfs
+add_executable(combine_jvcfs combine_jvcfs.cpp)
+target_link_libraries(combine_jvcfs gramtools)
+target_include_directories(combine_jvcfs PUBLIC ${INCLUDE})
+
+add_custom_command(TARGET combine_jvcfs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_BINARY_DIR}/combine_jvcfs
+        ${SUBMOD_DIR})
