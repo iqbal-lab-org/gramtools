@@ -29,7 +29,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/libgramtools/include/gtest)
 
 set(INCLUDE
         ../include
-        ../submods)
+        ../submods
+        test_resources
+        )
 
 file(GLOB_RECURSE SOURCES *.cpp)
 
@@ -56,6 +58,6 @@ set_target_properties(test_main
 add_custom_command(TARGET test_main POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_BINARY_DIR}/test_main
-        ${PROJECT_SOURCE_DIR}/libgramtools/tests/test_main)
+        ${PROJECT_SOURCE_DIR}/libgramtools/tests/test_main.bin)
 
 add_test(NAME test_main COMMAND test_main)

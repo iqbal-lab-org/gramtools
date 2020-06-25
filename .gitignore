@@ -1,18 +1,27 @@
+# docs/libs, builds, binaries
 bin
+*.bin
 cmake[-_]build[-_]*
-.idea
+gramtools/lib
+doc/html
+
 .cache
+
+# python
 __pycache__
 gramtools/version/commit_version.py
 *.egg-info
 *.pyc
-gramtools/lib
-libgramtools/tests/test_main
-libgramtools/submods/encode_prg
-libgramtools/submods/print_fm_index
-libgramtools/submods/combine_jvcfs
-doc/html
+
+# IDEs
 *~
 *.swp
 *.ar
+.idea
+
+# distribution
 dist/
+
+# scratch, environments
+tmp_work
+venv
