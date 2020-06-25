@@ -4,9 +4,10 @@
 #include "genotype/infer/personalised_reference.hpp"
 #include "prg/coverage_graph.hpp"
 
-#include "../../test_resources/test_resources.hpp"
 #include "mocks.hpp"
+#include "submod_resources.hpp"
 
+using namespace gram::submods;
 using namespace gram::genotype;
 
 class Alleles_To_Paste : public ::testing::Test {

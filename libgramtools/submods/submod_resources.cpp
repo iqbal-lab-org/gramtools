@@ -1,7 +1,7 @@
 #include "submod_resources.hpp"
 #include "build/kmer_index/masks.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 std::string gram::submods::decode(const uint64_t base) {
   switch (base) {
@@ -18,7 +18,7 @@ std::string gram::submods::decode(const uint64_t base) {
   }
 }
 
-PRG_Info gram::submods::generate_prg_info(const marker_vec &prg_raw) {
+PRG_Info gram::submods::generate_prg_info(const marker_vec& prg_raw) {
   BuildParams parameters = {};
   parameters.encoded_prg_fpath = "encoded_prg_file_name";
   parameters.fm_index_fpath = "fm_index";
@@ -59,4 +59,15 @@ PRG_Info gram::submods::generate_prg_info(const marker_vec &prg_raw) {
 
   prg_info.num_variant_sites = prg_info.coverage_graph.bubble_map.size();
   return prg_info;
+}
+
+covG_ptrPair gram::submods::get_bubble_nodes(covG_ptr_map bubble_map,
+                                             Marker site_ID) {
+  ensure_is_site_marker(site_ID);
+  for (auto const& bubble : bubble_map) {
+    if (bubble.first->get_site_ID() == site_ID) return bubble;
+  }
+  std::string msg = "Error: Site ID " + std::to_string(site_ID) +
+                    " was not found in the map of PRG bubbles.";
+  throw std::invalid_argument(msg);
 }

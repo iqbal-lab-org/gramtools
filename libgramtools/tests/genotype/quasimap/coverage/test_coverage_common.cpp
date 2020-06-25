@@ -2,10 +2,10 @@
 
 #include "genotype/quasimap/coverage/coverage_common.hpp"
 
-#include "../../../test_resources/mocks.hpp"
+#include "mocks.hpp"
 #include "submod_resources.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 std::set<SitePath> get_site_path_only(uniqueSitePaths const& map) {
   std::set<SitePath> site_path;

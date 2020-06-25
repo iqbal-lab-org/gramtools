@@ -26,7 +26,7 @@
 #include "prg/prg_info.hpp"
 #include "submod_resources.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 /*
 PRG: GCGCT5C6G6A6AGTCCT

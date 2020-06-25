@@ -5,6 +5,8 @@
 
 #include "submod_resources.hpp"
 
+using namespace gram::submods;
+
 TEST(GroupedAlleleCount, GivenTwoVariantSites_CorrectEmptySitesVectorSize) {
   auto prg_raw = encode_prg("gct5c6g6t6ac7cc8a8");
   auto prg_info = generate_prg_info(prg_raw);

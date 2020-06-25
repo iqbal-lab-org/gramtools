@@ -4,7 +4,7 @@
 #include "submod_resources.hpp"
 #include "test_resources.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 SitePbCoverage collect_coverage(coverage_Graph const& cov_graph,
                                 prg_positions positions) {
@@ -18,15 +18,6 @@ SitePbCoverage collect_coverage(coverage_Graph const& cov_graph,
     index++;
   }
   return result;
-}
-
-covG_ptrPair get_bubble_nodes(covG_ptr_map bubble_map, Marker site_ID) {
-  ensure_is_site_marker(site_ID);
-  for (auto const& bubble : bubble_map) {
-    if (bubble.first->get_site_ID() == site_ID) return bubble;
-  }
-  throw std::invalid_argument(
-      "The provided site ID was not found in the map of PRG bubbles.");
 }
 
 void prg_setup::internal_setup(marker_vec encoded_prg, Sequences kmers) {

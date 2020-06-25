@@ -7,12 +7,16 @@
  *  - VarPrg: backward searching on non-nested Prg with variant sites.
  *  - HandleAlleleEncapsulatedState: handle read fully mapping inside a site
  */
+#include "gtest/gtest.h"
+
 #include "build/kmer_index/build.hpp"
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
-#include "gtest/gtest.h"
 #include "prg/prg_info.hpp"
+
 #include "submod_resources.hpp"
+
+using namespace gram::submods;
 
 /*
 PRG: ACA5G6T6GCTC

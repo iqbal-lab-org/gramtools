@@ -5,7 +5,6 @@
  *      - The kmer/read ends outside a variant site. Then the `traversed_path`
  * contains latest entered site
  */
-#include <cctype>
 
 #include "gtest/gtest.h"
 
@@ -15,6 +14,7 @@
 #include "submod_resources.hpp"
 
 using namespace gram;
+using namespace gram::submods;
 
 TEST(GenerateKmerIndex, GivenDnaString_DnaBasesEncodedCorrectly) {
   const auto dna_str = "AAACCCGGGTTTACGT";

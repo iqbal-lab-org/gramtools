@@ -3,7 +3,7 @@
 #include "build/kmer_index/kmers.hpp"
 #include "submod_resources.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 TEST(GetBoundaryMarkerIndexes, TwoVariantSites_CorrectSiteStartEndIndexes) {
   auto prg_raw = encode_prg("aca5g6c6tt7a8c8gg");

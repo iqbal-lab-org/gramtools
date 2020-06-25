@@ -18,8 +18,10 @@
 #include "genotype/quasimap/quasimap.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
 
-#include "../../test_resources/test_resources.hpp"
 #include "submod_resources.hpp"
+#include "test_resources.hpp"
+
+using namespace gram::submods;
 
 TEST(ReverseComplementRead, GivenRead_ReverseComplementReadReturned) {
   gram::Sequence read = {1, 2, 1, 3, 4};

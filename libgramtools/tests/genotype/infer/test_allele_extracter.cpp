@@ -7,9 +7,10 @@
 #include "prg/coverage_graph.hpp"
 #include "prg/types.hpp"
 
-#include "../../test_resources/test_resources.hpp"
+#include "submod_resources.hpp"
 
 using namespace ::testing;
+using namespace gram::submods;
 
 class AlleleCombineTest : public ::testing::Test {
  protected:

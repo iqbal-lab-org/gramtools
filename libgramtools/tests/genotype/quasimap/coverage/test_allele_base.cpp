@@ -2,10 +2,11 @@
 
 #include "gtest/gtest.h"
 
-#include "../../../test_resources/test_resources.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "submod_resources.hpp"
+#include "test_resources.hpp"
 
+using namespace gram::submods;
 using namespace gram::coverage::per_base;
 
 TEST(AlleleBaseCoverageDump, GivenPopulatedAlleleBaseCoverage_CorrectJsonDump) {

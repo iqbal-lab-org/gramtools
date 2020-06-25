@@ -2,6 +2,8 @@
 #include "gtest/gtest.h"
 #include "submod_resources.hpp"
 
+using namespace gram::submods;
+
 /*
 PRG: AC5T6CAGTAGTC6TA
 i	BWT	SA	text_suffix

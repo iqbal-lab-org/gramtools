@@ -3,6 +3,8 @@
 #include "genotype/quasimap/coverage/allele_sum.hpp"
 #include "submod_resources.hpp"
 
+using namespace gram::submods;
+
 TEST(AlleleSumCoverage, GivenOneVariantSite_CorrectAlleleSumCoverageStructure) {
   auto prg_raw = encode_prg("gcgct5gg6agtg6ctgt");
   auto prg_info = generate_prg_info(prg_raw);

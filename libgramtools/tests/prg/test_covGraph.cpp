@@ -2,10 +2,10 @@
 
 #include "gtest/gtest.h"
 
-#include "../test_resources/test_resources.hpp"
 #include "prg/coverage_graph.hpp"
+#include "submod_resources.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 auto first{FIRST_ALLELE};
 auto unkn{ALLELE_UNKNOWN};

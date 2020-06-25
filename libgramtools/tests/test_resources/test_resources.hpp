@@ -20,12 +20,6 @@ gram::SitePbCoverage collect_coverage(coverage_Graph const& cov_graph,
                                       prg_positions positions);
 
 /**
- * Given a map of all bubbles and a `siteID` of interest, returns the pair of
- * `covG_ptr` corresponding to the start and end nodes of the site.
- */
-covG_ptrPair get_bubble_nodes(covG_ptr_map bubble_map, Marker site_ID);
-
-/**
  * Builds a coverage graph, fm-index and kmer index from a PRG string.
  * Particularly useful in `genotype` steps: quasimap and infer.
  */

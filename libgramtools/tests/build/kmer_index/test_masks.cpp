@@ -3,6 +3,8 @@
 #include "build/kmer_index/masks.hpp"
 #include "submod_resources.hpp"
 
+using namespace gram::submods;
+
 TEST(GenerateSitesMask, TwoVariantSites_CorrectSitesMask) {
   const auto prg_raw = encode_prg("a5g6t6cc7g8tt8aa8");
   auto prg_info = generate_prg_info(prg_raw);

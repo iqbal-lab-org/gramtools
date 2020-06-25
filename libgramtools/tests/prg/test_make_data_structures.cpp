@@ -3,7 +3,7 @@
 #include "prg/make_data_structures.hpp"
 #include "submod_resources.hpp"
 
-using namespace gram;
+using namespace gram::submods;
 
 TEST(GetNumVarSites, NoSites) {
   auto prg_raw = encode_prg("c");
