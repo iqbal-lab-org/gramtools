@@ -17,8 +17,7 @@ allele_vector const GenotypedSite::get_unique_genotyped_alleles(
     // NOTE/CRUCIAL: this sorts the genotypes (eg 1,0 goes to 0, 1), which is
     // REQUIRED for REF allele production
     distinct_genotypes.insert(genotype.begin(), genotype.end());
-  } else
-    distinct_genotypes.insert(0);  // If null genotype, take the reference only
+  }
 
   allele_vector result(distinct_genotypes.size());
 

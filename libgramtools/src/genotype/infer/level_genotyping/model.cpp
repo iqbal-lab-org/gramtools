@@ -349,28 +349,42 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(
   }
 }
 
-void LevelGenotyperModel::set_next_best_alleles(
+void LevelGenotyperModel::add_next_best_alleles(
     allele_vector const& input_alleles, GtypedIndices const& chosen_gt,
-    GtypedIndices const& next_best_gt, bool const use_chosen_gt) {
-  auto& chosen_allele = input_alleles.at(chosen_gt.at(0));
-  auto& next_best_allele = input_alleles.at(next_best_gt.at(0));
+    GtypedIndices const& next_best_gt) {
+  auto& chosen_allele_for_cov = input_alleles.at(chosen_gt.at(0));
+  auto& next_best_allele_for_cov = input_alleles.at(next_best_gt.at(0));
+
   bool low_total_cov = total_coverage < data.l_stats->data_params.mean_cov / 4;
   bool low_relative_cov =
-      haploid_allele_coverages.at(chosen_allele.haplogroup) <
-      haploid_allele_coverages.at(next_best_allele.haplogroup) * 2;
+      haploid_allele_coverages.at(chosen_allele_for_cov.haplogroup) <
+      haploid_allele_coverages.at(next_best_allele_for_cov.haplogroup) * 2;
 
   if (low_total_cov || low_relative_cov) {
-    std::set<GtypedIndex> unique{next_best_gt.begin(), next_best_gt.end()};
-    if (use_chosen_gt) unique.insert(chosen_gt.begin(), chosen_gt.end());
+    std::set<GtypedIndex> next_best{next_best_gt.begin(), next_best_gt.end()};
+    for (auto const& gt : chosen_gt) {
+      // Can need erasures in diploid genotyping
+      if (next_best.find(gt) != next_best.end()) next_best.erase(gt);
+    }
     allele_vector result;
-    for (auto const& gt : unique) result.push_back(input_alleles.at(gt));
-    genotyped_site->set_next_best_alleles(result);
+    for (auto const& gt : next_best) result.push_back(input_alleles.at(gt));
+    genotyped_site->set_extra_alleles(result);
   }
 }
 
-void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
-                                       bool ignore_ref_allele,
-                                       multiplicities hap_mults) {
+void LevelGenotyperModel::add_all_best_alleles(
+    allele_vector const& input_alleles, GtypedIndices const& chosen_gt,
+    GtypedIndices const& next_best_gt) {
+  std::set<GtypedIndex> all_best{next_best_gt.begin(), next_best_gt.end()};
+  all_best.insert(chosen_gt.begin(), chosen_gt.end());
+  allele_vector result;
+  for (auto const& gt : all_best) result.push_back(input_alleles.at(gt));
+  genotyped_site->set_extra_alleles(result);
+}
+
+void LevelGenotyperModel::CallGenotype(
+    allele_vector const& input_alleles,
+    bool ref_allele_not_considered_for_gtyping, multiplicities hap_mults) {
   auto it = likelihoods.begin();
   auto chosen_gt = it->second;
   auto best_likelihood = it->first;
@@ -378,20 +392,19 @@ void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
   auto gt_confidence = best_likelihood - it->first;
   auto next_best_gt = it->second;
 
+  // Express the genotypes with the ref re-added at index 0
+  if (ref_allele_not_considered_for_gtyping) {
+    for (auto& gt : chosen_gt) gt++;
+    for (auto& gt : next_best_gt) gt++;
+  }
+
   if (gt_confidence == 0.) {
     genotyped_site->set_alleles(allele_vector{ref_allele});
     genotyped_site->make_null();
-    // The site gets forwarded the alleles, to propagate the uncertainty to any
-    // parent site
-    set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, true);
+    add_all_best_alleles(input_alleles, chosen_gt, next_best_gt);
     return;
-  }
-
-  set_next_best_alleles(input_alleles, chosen_gt, next_best_gt, false);
-
-  // Correct the genotype indices if needed
-  if (ignore_ref_allele)
-    for (auto& gt : chosen_gt) gt++;
+  } else
+    add_next_best_alleles(input_alleles, chosen_gt, next_best_gt);
 
   auto chosen_alleles =
       genotyped_site->get_unique_genotyped_alleles(input_alleles, chosen_gt);

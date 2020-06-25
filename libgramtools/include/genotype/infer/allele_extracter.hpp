@@ -30,6 +30,9 @@ class AlleleExtracter {
 
   allele_vector const get_alleles() const { return alleles; }
 
+  void place_ref_as_first_allele(allele_vector& alleles,
+                                 Allele const& ref_allele);
+
   /**
    * Linear traversal of an allelic haplogroup, extracting all relevant
    * combinations of alleles. In the absence of incident nested sites, always

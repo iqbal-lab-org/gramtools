@@ -27,12 +27,13 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing,
 
   allele_vector relevant_alleles =
       referent_site->get_unique_genotyped_alleles();
-  if (referent_site->get_next_best_alleles()) {
-    allele_vector const& to_add =
-        referent_site->get_next_best_alleles().value();
+  if (referent_site->extra_alleles()) {
+    allele_vector const& to_add = referent_site->extra_alleles().value();
     relevant_alleles.insert(relevant_alleles.end(), to_add.begin(),
                             to_add.end());
   }
+  if (relevant_alleles.empty())
+    relevant_alleles.push_back(referent_site->get_alleles().at(0));
   allele_vector combinations(existing.size() * relevant_alleles.size());
 
   std::size_t insertion_index{0};
@@ -52,6 +53,18 @@ void AlleleExtracter::allele_paste(allele_vector& existing,
   for (auto& allele : existing) allele = allele + to_paste_allele;
 }
 
+void AlleleExtracter::place_ref_as_first_allele(allele_vector& alleles,
+                                                Allele const& ref_allele) {
+  this->_ref_allele_got_made_naturally = false;
+  auto found_ref = std::find(alleles.begin(), alleles.end(), ref_allele);
+  if (found_ref == alleles.end()) {
+    alleles = prepend(alleles, ref_allele);
+  } else if (found_ref != alleles.begin())
+    std::swap(*found_ref, alleles.at(0));
+  else
+    this->_ref_allele_got_made_naturally = true;
+}
+
 allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
                                                covG_ptr haplogroup_start,
                                                covG_ptr site_end) {
@@ -59,7 +72,6 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
       {"", {}, haplogroup}};  // Make one empty allele as starting point, allows
                               // for direct deletion
   covG_ptr cur_Node{haplogroup_start};
-  bool first_advance{true};
 
   Allele ref_allele{"", {}, 0};
 
@@ -77,35 +89,22 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
         assert(ref_containing_alleles.size() > 0);
         ref_allele = ref_allele + ref_containing_alleles.at(0);
       }
-    } else if (!first_advance && cur_Node->is_bubble_end())
-      ;
-
-    else {
+    } else {
       allele_paste(haplogroup_alleles, cur_Node);
       if (haplogroup == 0)
         ref_allele = ref_allele +
                      Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
     }
 
-    assert(cur_Node->get_num_edges() ==
-           1);  // The only nodes with >1 neighbour are bubble starts and we
-                // skipped past those.
+    // The only nodes with >1 neighbour are bubble starts and we
+    // skipped past those.
+    assert(cur_Node->get_num_edges() == 1);
+
     cur_Node = *(cur_Node->get_edges().begin());  // Advance to the next node
-    if (first_advance) first_advance = false;
   }
 
-  if (haplogroup == 0) {
-    // Ensure first allele in return list is ref allele
-    _ref_allele_got_made_naturally = false;
-    auto found_ref = std::find(haplogroup_alleles.begin(),
-                               haplogroup_alleles.end(), ref_allele);
-    if (found_ref == haplogroup_alleles.end()) {
-      haplogroup_alleles = prepend(haplogroup_alleles, ref_allele);
-    } else if (found_ref != haplogroup_alleles.begin())
-      std::swap(*found_ref, haplogroup_alleles.at(0));
-    else
-      _ref_allele_got_made_naturally = true;
-  }
+  if (haplogroup == 0)
+    place_ref_as_first_allele(haplogroup_alleles, ref_allele);
 
   return haplogroup_alleles;
 }

@@ -276,18 +276,15 @@ TEST(TestLevelGenotyperModel_Coverage, GivenTwoAlleles_CorrectCoverages) {
             hap_exp);  // All coverage is also placed on allele 1
 }
 
-class TestLevelGenotyperModel_TwoAllelesWithCoverage : public ::testing::Test {
+class TestLevelGenotyperModel_GTCalls : public ::testing::Test {
  protected:
   allele_vector alleles{
-      Allele{"ATCACC", {0, 0, 1, 1, 2, 2}, 0},
-      Allele{"ATGACC", {0, 0, 0, 0, 1, 1}, 0},
+      Allele{"ATC", {0, 0, 1}, 0},
       Allele{"GGGCC", {10, 12, 12, 14, 14}, 1},
   };
 
   GroupedAlleleCounts gp_counts{
       {{0}, 1},
-      {{0, 1},
-       1},  // The allele sequences support one read being able to map like this
       {{1}, 13},
   };
 
@@ -296,8 +293,7 @@ class TestLevelGenotyperModel_TwoAllelesWithCoverage : public ::testing::Test {
       LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
 };
 
-TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage,
-       GivenCoverage_ReturnsCorrectDiploidCall) {
+TEST_F(TestLevelGenotyperModel_GTCalls, CorrectDiploidCall) {
   ModelData data(alleles, gp_counts, Ploidy::Diploid, &l_stats, false);
   auto genotyped = LevelGenotyperModel(data);
   auto gtype = genotyped.get_site()->get_genotype();
@@ -306,66 +302,56 @@ TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage,
   EXPECT_EQ(gtype, expected_gtype);
 }
 
-TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage,
-       GivenCoverage_ReturnsCorrectHaploidCall) {
+TEST_F(TestLevelGenotyperModel_GTCalls, CorrectHaploidCall) {
   ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
   auto genotyped = LevelGenotyperModel(data);
   auto gt_info = genotyped.get_site_gtype_info();
+  EXPECT_EQ(gt_info.genotype, GtypedIndices{1});
 
   allele_vector expected_alleles{
       alleles.at(0),  // REF is not called, but still makes it in here
-      alleles.at(2),
+      alleles.at(1),
   };
   EXPECT_EQ(gt_info.alleles, expected_alleles);
-
-  GtypedIndices expected_gtype{1};
-  EXPECT_EQ(gt_info.genotype, expected_gtype);
-
-  allele_coverages expected_covs{0.5, 14};
-  for (int i{0}; i < expected_alleles.size(); i++)
-    EXPECT_DOUBLE_EQ(gt_info.allele_covs.at(i), expected_covs.at(i));
 }
 
-TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage,
-       GivenNegBinomialPmfGetsUsed_CorrectHaploidCall) {
+TEST_F(TestLevelGenotyperModel_GTCalls,
+       GivenLargeCovVariance_StillCorrectHaploidCall) {
   // Neg binomial gets used when variance cov depth exceed mean cov depth
   l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, mean_cov_depth + 1,
                                          mean_pb_error);
 
   ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
   auto genotyped = LevelGenotyperModel(data);
-  auto gt_info = genotyped.get_site_gtype_info();
   auto genotyped_nbinom = LevelGenotyperModel(data);
-  gt_info = genotyped_nbinom.get_site_gtype_info();
+  auto gt_info = genotyped_nbinom.get_site_gtype_info();
   EXPECT_EQ(gt_info.genotype, GtypedIndices{1});
 }
 
-TEST_F(TestLevelGenotyperModel_TwoAllelesWithCoverage,
-       GivenPoorCoverages_NextBestAlleleGetsSet) {
+TEST_F(TestLevelGenotyperModel_GTCalls,
+       GivenSmallCoveragesDifferences_NextBestAllelesSet) {
   ModelData normal_coverage(alleles, gp_counts, Ploidy::Haploid, &l_stats,
                             false);
   LevelGenotyperModel expect_no_next_best_allele(normal_coverage);
-  EXPECT_FALSE(expect_no_next_best_allele.get_site()->get_next_best_alleles());
+  EXPECT_FALSE(expect_no_next_best_allele.get_site()->extra_alleles());
 
   gp_counts = GroupedAlleleCounts{
       {{0}, 1},
-      {{0, 1}, 1},
       {{1}, 1},
   };
   ModelData low_total_coverage(alleles, gp_counts, Ploidy::Haploid, &l_stats,
                                false);
   LevelGenotyperModel expect_next_best_allele(low_total_coverage);
-  EXPECT_TRUE(expect_next_best_allele.get_site()->get_next_best_alleles());
+  EXPECT_TRUE(expect_next_best_allele.get_site()->extra_alleles());
 
   gp_counts = GroupedAlleleCounts{
       {{0}, 14},
-      {{0, 1}, 1},
       {{1}, 15},
   };
   ModelData low_cov_difference(alleles, gp_counts, Ploidy::Haploid, &l_stats,
                                false);
   LevelGenotyperModel expect_next_best_allele2(low_cov_difference);
-  EXPECT_TRUE(expect_next_best_allele2.get_site()->get_next_best_alleles());
+  EXPECT_TRUE(expect_next_best_allele2.get_site()->extra_alleles());
 }
 
 TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype) {

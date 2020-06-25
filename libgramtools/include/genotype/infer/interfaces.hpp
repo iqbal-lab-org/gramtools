@@ -56,7 +56,7 @@ class GenotypedSite {
   std::size_t num_haplogroups =
       0; /**< The number of outgoing edges from the bubble start */
   /**< Allows for considering more options when ambiguous gt call */
-  std::optional<allele_vector> next_best_alleles = std::nullopt;
+  std::optional<allele_vector> extra_alleles_to_consider = std::nullopt;
 
  public:
   GenotypedSite() = default;
@@ -68,8 +68,8 @@ class GenotypedSite {
   allele_vector const get_alleles() const { return gtype_info.alleles; }
   std::size_t const get_pos() const { return pos; }
   covG_ptr const get_site_end_node() const { return site_end_node; }
-  std::optional<allele_vector> const& get_next_best_alleles() {
-    return next_best_alleles;
+  std::optional<allele_vector> const& extra_alleles() {
+    return extra_alleles_to_consider;
   }
 
   /** Whether the site is null genotyped */
@@ -92,8 +92,8 @@ class GenotypedSite {
   void set_genotype(GtypedIndices const& gtype) { gtype_info.genotype = gtype; }
   void const set_pos(std::size_t input_pos) { pos = input_pos; }
   void set_site_end_node(covG_ptr const& end_node) { site_end_node = end_node; }
-  void set_next_best_alleles(allele_vector const& alleles) {
-    next_best_alleles = alleles;
+  void set_extra_alleles(allele_vector const& alleles) {
+    extra_alleles_to_consider = alleles;
   }
   void set_filter(std::string const& name) {
     gtype_info.filters.emplace_back(name);

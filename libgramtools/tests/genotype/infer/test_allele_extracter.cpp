@@ -172,7 +172,7 @@ TEST_F(AlleleExtracter_NestedPRG,
        NestedBubbleHasNextBestAllele_NextBestAlleleGetsProduced) {
   second_site_ptr->set_genotype(GtypedIndices{1});
   second_site_ptr->set_alleles(allele_vector{{"C", {0}, 0}, {"G", {0}, 2}});
-  second_site_ptr->set_next_best_alleles(allele_vector{Allele{"A", {0}, 1}});
+  second_site_ptr->set_extra_alleles(allele_vector{Allele{"A", {0}, 1}});
 
   AlleleExtracter extracter{outer_bubble_nodes.first, outer_bubble_nodes.second,
                             genotyped_sites};

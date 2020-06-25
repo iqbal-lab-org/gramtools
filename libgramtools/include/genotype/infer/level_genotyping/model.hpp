@@ -131,21 +131,32 @@ class LevelGenotyperModel : GenotypingModel {
 
   /*_______Make result______*/
   /**
-   * @param ignore_ref_allele true signals the ref allele is not a candidate for
-   * genotyping
+   * @param ref_allele_not_considered_for_gtyping true signals the ref allele is
+   * not a candidate for genotyping
    */
-  void CallGenotype(allele_vector const &input_alleles, bool ignore_ref_allele,
+  void CallGenotype(allele_vector const &input_alleles,
+                    bool ref_allele_not_considered_for_gtyping,
                     multiplicities hap_mults);
 
   /**
-   * In nested genotyping configurations, can get bad calls looking very
-   * confident if small errors are made at nested bubbles. This function picks
-   * up the next best allele for consideration to reduce this bias.
+   * If coverage differences between chosen allele(s) and next best allele(s)
+   * is small, adds the next best alleles for consideration by parent sites,
+   * if any.
+   * This propagates uncertainty upwards, reducing overconfidence.
    */
-  void set_next_best_alleles(allele_vector const &input_alleles,
+  void add_next_best_alleles(allele_vector const &input_alleles,
                              GtypedIndices const &chosen_gt,
-                             GtypedIndices const &next_best_gt,
-                             bool const use_chosen_gt = false);
+                             GtypedIndices const &next_best_gt);
+
+  /**
+   * If there is no coverage difference between chosen allele(s) and next best
+   * allele(s), adds all these alleles for consideration by parent sites,
+   * if any.
+   * This propagates uncertainty upwards, reducing overconfidence.
+   */
+  void add_all_best_alleles(allele_vector const &input_alleles,
+                            GtypedIndices const &chosen_gt,
+                            GtypedIndices const &next_best_gt);
 
   AlleleIds get_haplogroups(allele_vector const &alleles,
                             GtypedIndices const &gtype) const;
