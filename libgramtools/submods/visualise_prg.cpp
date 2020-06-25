@@ -1,6 +1,8 @@
 /**
  * Produce graphviz dot file suitable for visualising the prg structure
  * and sequences.
+ * Site entries/exits are labeled with the index they appear in in the PRG (and
+ * the jvcf), and edges are labeled with the haplogroup of the allele series.
  */
 #include <iostream>
 #include <map>
@@ -82,7 +84,7 @@ int main(int argc, const char* argv[]) {
     nodes.append(source);
     nodes.append(" [label=");
     if (cur_node->is_bubble_start() || cur_node->is_bubble_end())
-      nodes.append("\"\"");
+      nodes.append(std::to_string(siteID_to_index(cur_node->get_site_ID())));
     else {
       auto node_seq = cur_node->get_sequence();
       if (cur_node->is_in_bubble()) {
@@ -98,6 +100,7 @@ int main(int argc, const char* argv[]) {
 
     if (cur_node == stop_node) continue;
 
+    std::size_t hapg{0};
     for (auto const& next_node : cur_node->get_edges()) {
       if (node_ids.find(next_node) == node_ids.end()) {
         node_ids.insert({next_node, new_idx++});
@@ -109,7 +112,13 @@ int main(int argc, const char* argv[]) {
       edges.append(source);
       edges.append("->");
       edges.append(target);
+      if (cur_node->is_bubble_start()) {
+        edges.append(" [label=");
+        edges.append(std::to_string(hapg));
+        edges.append("]");
+      }
       edges.append(";\n");
+      hapg++;
     }
   }
 
