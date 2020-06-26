@@ -57,7 +57,7 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
   }
 
   CallGenotype(data.input_alleles, data.ignore_ref_allele,
-               haplogroup_multiplicities);
+               haplogroup_multiplicities, data.ploidy);
 }
 
 void LevelGenotyperModel::set_haploid_coverages(
@@ -384,7 +384,8 @@ void LevelGenotyperModel::add_all_best_alleles(
 
 void LevelGenotyperModel::CallGenotype(
     allele_vector const& input_alleles,
-    bool ref_allele_not_considered_for_gtyping, multiplicities hap_mults) {
+    bool ref_allele_not_considered_for_gtyping, multiplicities hap_mults,
+    Ploidy const ploidy) {
   auto it = likelihoods.begin();
   auto chosen_gt = it->second;
   auto best_likelihood = it->first;
@@ -411,10 +412,10 @@ void LevelGenotyperModel::CallGenotype(
   // Get haplotypes and coverages
   auto chosen_haplotypes = get_haplogroups(input_alleles, chosen_gt);
   allele_coverages allele_covs;
-  if (data.ploidy == Ploidy::Haploid)
+  if (ploidy == Ploidy::Haploid)
     allele_covs = allele_coverages{
         (double)haploid_allele_coverages.at(chosen_haplotypes.at(0))};
-  else if (data.ploidy == Ploidy::Diploid)
+  else if (ploidy == Ploidy::Diploid)
     allele_covs = computed_coverages.at(chosen_haplotypes);
 
   // Because we only output the called alleles (+ REF), re-express genotype
@@ -435,4 +436,18 @@ void LevelGenotyperModel::CallGenotype(
       chosen_alleles, rescaled_gt, allele_covs, total_coverage,
       genotyped_site->get_genotyped_haplogroups(chosen_alleles, rescaled_gt)});
   genotyped_site->set_gt_conf(gt_confidence);
+}
+
+LevelGenotyperModel::LevelGenotyperModel(
+    likelihood_related_stats const& input_l_stats,
+    PerAlleleCoverage const& input_covs,
+    likelihood_map const& input_likelihoods)
+    : likelihoods(input_likelihoods) {
+  data.l_stats = &input_l_stats;
+  genotyped_site = std::make_shared<LevelGenotypedSite>();
+
+  haploid_allele_coverages = input_covs;
+  singleton_allele_coverages = input_covs;
+  total_coverage = 0;
+  for (auto const& entry : input_covs) total_coverage += entry;
 }

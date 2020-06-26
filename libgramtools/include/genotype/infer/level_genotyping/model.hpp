@@ -44,6 +44,7 @@ Genotyping model using:
   * invalidation of nested bubbles
 */
 class LevelGenotyperModel : GenotypingModel {
+  using site_ptr = std::shared_ptr<LevelGenotypedSite>;
   ModelData data;
 
   // Computed at construction time
@@ -55,14 +56,18 @@ class LevelGenotyperModel : GenotypingModel {
   std::size_t total_coverage;
 
   // Computed at run time
-  likelihood_map likelihoods;  // Store highest likelihoods first
-  std::shared_ptr<LevelGenotypedSite>
-      genotyped_site;  // What the class will build
+  likelihood_map likelihoods;  // Stores highest likelihoods first
+  site_ptr genotyped_site;     // What the class will build
   Allele ref_allele;
 
  public:
   LevelGenotyperModel() = default;
   LevelGenotyperModel(ModelData &input_data);
+
+  // Constructor for testing
+  LevelGenotyperModel(likelihood_related_stats const &input_l_stats,
+                      PerAlleleCoverage const &input_covs,
+                      likelihood_map const &input_likelihoods);
 
   /*_______Preparations______*/
   std::size_t count_total_coverage(GroupedAlleleCounts const &gp_counts);
@@ -136,7 +141,7 @@ class LevelGenotyperModel : GenotypingModel {
    */
   void CallGenotype(allele_vector const &input_alleles,
                     bool ref_allele_not_considered_for_gtyping,
-                    multiplicities hap_mults);
+                    multiplicities hap_mults, Ploidy const ploidy);
 
   /**
    * If coverage differences between chosen allele(s) and next best allele(s)
