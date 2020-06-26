@@ -32,6 +32,6 @@ install:
 script:
   - ./travis_build.sh
   - pwd
-  - ./libgramtools/tests/test_main
+  - ./libgramtools/tests/test_main.bin
 notifications:
   email: false
