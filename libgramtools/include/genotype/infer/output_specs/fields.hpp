@@ -89,7 +89,7 @@ static header_vec const common_headers{
     vcf_meta_info_line{"FORMAT", "DP", "Total read depth on variant site", "1",
                        "Integer"},
     vcf_meta_info_line{"FORMAT", "COV", "Read coverage on each allele", "R",
-                       "Integer"},
+                       "Float"},
     vcf_meta_info_line{"FORMAT", "FT", "Filters failed in a sample", "1",
                        "String"},
     vcf_meta_info_line{"FILTER", "AMBIG",
