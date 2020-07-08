@@ -21,7 +21,8 @@ void write_deduped_p_refs(Fastas const& p_refs, std::string const& fpath) {
 }
 }  // namespace gram::genotype
 
-void gram::commands::genotype::run(GenotypeParams const& parameters) {
+void gram::commands::genotype::run(GenotypeParams const& parameters,
+                                   bool const& debug) {
   auto timer = TimerReport();
   /**
    * Quasimap
@@ -66,9 +67,17 @@ void gram::commands::genotype::run(GenotypeParams const& parameters) {
    */
   std::cout << "Running genotyping" << std::endl;
   timer.start("Genotyping");
+
+  // Set up debug info file if needed
+  std::string debug_file;
+  if (debug) debug_file = parameters.debug_fpath;
+
   LevelGenotyper genotyper{prg_info.coverage_graph,
                            quasimap_stats.coverage.grouped_allele_counts,
-                           readstats, parameters.ploidy, true};
+                           readstats,
+                           parameters.ploidy,
+                           true,
+                           debug_file};
   timer.stop();
 
   std::ifstream coords_file(parameters.prg_coords_fpath);

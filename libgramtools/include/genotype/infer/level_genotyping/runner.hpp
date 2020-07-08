@@ -37,7 +37,7 @@ class LevelGenotyper : public Genotyper {
   LevelGenotyper(coverage_Graph const& cov_graph,
                  SitesGroupedAlleleCounts const& gped_covs,
                  ReadStats const& read_stats, Ploidy ploidy,
-                 bool get_gcp = false);
+                 bool get_gcp = false, std::string debug_fpath = "");
 
   header_vec get_model_specific_headers() override;
 

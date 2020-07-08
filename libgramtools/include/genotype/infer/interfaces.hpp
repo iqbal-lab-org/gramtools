@@ -57,6 +57,7 @@ class GenotypedSite {
       0; /**< The number of outgoing edges from the bubble start */
   /**< Allows for considering more options when ambiguous gt call */
   std::optional<allele_vector> extra_alleles_to_consider = std::nullopt;
+  std::string debug_info;  // For reporting in debug mode
 
  public:
   GenotypedSite() = default;
@@ -68,9 +69,10 @@ class GenotypedSite {
   allele_vector const get_alleles() const { return gtype_info.alleles; }
   std::size_t const get_pos() const { return pos; }
   covG_ptr const get_site_end_node() const { return site_end_node; }
-  std::optional<allele_vector> const& extra_alleles() {
+  std::optional<allele_vector> const& extra_alleles() const {
     return extra_alleles_to_consider;
   }
+  std::string const& get_debug_info() const { return debug_info; }
 
   /** Whether the site is null genotyped */
   bool is_null() const {
@@ -98,6 +100,7 @@ class GenotypedSite {
   void set_filter(std::string const& name) {
     gtype_info.filters.emplace_back(name);
   }
+  void set_debug_info(std::string const& input) { debug_info = input; }
 
   virtual site_entries get_model_specific_entries() = 0;
   virtual void null_model_specific_entries() = 0;

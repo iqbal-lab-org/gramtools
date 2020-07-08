@@ -26,6 +26,8 @@ class GenotypeParams : public CommonParameters {
   std::string genotyped_vcf_fpath;
   std::string personalised_ref_fpath;
 
+  std::string debug_fpath;
+
   uint32_t seed;
 };
 

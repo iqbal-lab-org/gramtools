@@ -26,7 +26,7 @@ void add_percentiles(gt_sites const& input_sites,
 LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
                                SitesGroupedAlleleCounts const& gped_covs,
                                ReadStats const& read_stats, Ploidy const ploidy,
-                               bool get_gcp)
+                               bool get_gcp, std::string debug_fpath)
     : ploidy(ploidy) {
   this->cov_graph = &cov_graph;
   this->gped_covs = &gped_covs;
@@ -41,6 +41,13 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
   auto mean_pb_error = read_stats.get_mean_pb_error();
   l_stats = make_l_stats(mean_cov, var_cov, mean_pb_error);
 
+  std::ofstream debug_file;
+  bool debug{false};
+  if (not debug_fpath.empty()) {
+    debug_file.open(debug_fpath, std::ios_base::app);
+    debug = true;
+  }
+
   // Genotype each bubble in the PRG, in most nested to less nested order.
   for (auto const& bubble_pair : cov_graph.bubble_map) {
     auto site_ID = bubble_pair.first->get_site_ID();
@@ -52,10 +59,20 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
     auto& gped_covs_for_site = gped_covs.at(site_index);
 
     ModelData data(extracted_alleles, gped_covs_for_site, ploidy, &l_stats,
-                   !extracter.ref_allele_got_made_naturally());
+                   !extracter.ref_allele_got_made_naturally(), debug);
     auto genotyped = LevelGenotyperModel(data);
     auto genotyped_site = genotyped.get_site();
     genotyped_site->set_pos(bubble_pair.first->get_pos());
+
+    if (debug_file.is_open()) {
+      debug_file << "site index: \t" << site_index;
+      if (genotyped_site->is_null())
+        debug_file << "\tnull gt \n";
+      else {
+        debug_file << genotyped_site->get_debug_info();
+        debug_file << "\n";
+      }
+    }
 
     // Line below is so that when allele extraction occurs and jumps through a
     // previously genotyped site, it knows where in the graph to resume from.

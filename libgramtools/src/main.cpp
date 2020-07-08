@@ -31,6 +31,7 @@ top_level_params parse_command_line_parameters(int argc,
 
 int main(int argc, const char *const *argv) {
   auto command_params = parse_command_line_parameters(argc, argv);
+  auto debug = command_params.vm["debug"].as<bool>();
 
   if (command_params.command == Command::build) {
     BuildParams build_params = commands::build::parse_parameters(
@@ -39,7 +40,7 @@ int main(int argc, const char *const *argv) {
   } else if (command_params.command == Command::genotype) {
     GenotypeParams geno_params = commands::genotype::parse_parameters(
         command_params.vm, command_params.parsed);
-    commands::genotype::run(geno_params);
+    commands::genotype::run(geno_params, debug);
   }
 
   else if (command_params.command == Command::simulate) {
@@ -58,7 +59,7 @@ top_level_params gram::parse_command_line_parameters(int argc,
                        "command to execute: {build, genotype, simulate}")(
       "subargs", po::value<std::vector<std::string> >(),
       "arguments to command")("help", "Produce this help message")(
-      "debug", "Turn on debug output");
+      "debug", po::bool_switch()->default_value(false), "Turn on debug output");
 
   // We register all positional arguments after the command as 'subargs'
   // which get forwarded to the command specific parser.

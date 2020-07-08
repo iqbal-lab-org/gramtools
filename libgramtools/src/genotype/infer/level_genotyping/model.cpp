@@ -436,6 +436,21 @@ void LevelGenotyperModel::CallGenotype(
       chosen_alleles, rescaled_gt, allele_covs, total_coverage,
       genotyped_site->get_genotyped_haplogroups(chosen_alleles, rescaled_gt)});
   genotyped_site->set_gt_conf(gt_confidence);
+
+  if (data.debug) {
+    std::string debug_info{"\tnext_best_seq: "};
+    for (auto const& gt : next_best_gt) {
+      debug_info.append(input_alleles.at(gt).sequence);
+      debug_info.append(",");
+    }
+    debug_info.append("\tnext_best_cov: ");
+    auto next_best_haplotypes = get_haplogroups(input_alleles, next_best_gt);
+    for (auto const& hapg : next_best_haplotypes) {
+      debug_info.append(std::to_string(haploid_allele_coverages.at(hapg)));
+      debug_info.append(",");
+    }
+    genotyped_site->set_debug_info(debug_info);
+  }
 }
 
 LevelGenotyperModel::LevelGenotyperModel(
