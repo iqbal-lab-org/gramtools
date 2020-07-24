@@ -6,8 +6,16 @@ import json
 import logging
 import collections
 
+from pysam import VariantFile
+
 from gramtools.commands import common, report
 from gramtools.commands.paths import GenotypePaths
+from gramtools.commands.genotype.seq_region_map import (
+    ChromSizes,
+    SeqRegionsMap,
+    SeqRegionMapper,
+    SearchableSeqRegionsMap,
+)
 
 log = logging.getLogger("gramtools")
 
@@ -28,6 +36,8 @@ def run(args):
     geno_report["ploidy"] = args.ploidy
 
     _check_read_stats(geno_report, "check_read_stats", geno_paths)
+
+    _make_rebasing_map(geno_paths)
 
     log.debug("Computing sha256 hash of project paths")
     command_hash_paths = common.hash_command_paths(geno_paths)
@@ -115,3 +125,20 @@ def _check_read_stats(geno_report, action, geno_paths: GenotypePaths):
                 num_sites_noCov, num_sites_total
             )
         )
+
+
+def _make_rebasing_map(geno_paths: GenotypePaths):
+    """
+    Produces a mapping object supporting coordinate translation between
+    the original reference (that the genotyped vcf uses as REF) and the gramtools-induced personalised reference.
+
+    This can be used to translate points in either reference coordinate space to the other.
+    Used in `discover` for rebasing newly found variants against the original reference.
+    """
+    chrom_sizes: ChromSizes = common.load_fasta(geno_paths.pers_ref, sizes_only=True)
+
+    base_records = VariantFile(geno_paths.geno_vcf).fetch()
+    region_map: SeqRegionsMap = SeqRegionMapper(base_records, chrom_sizes).get_map()
+    SearchableSeqRegionsMap(region_map).dump_to(
+        geno_paths.rebasing_map, dump_sequences=False
+    )

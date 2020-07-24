@@ -4,12 +4,12 @@ from pathlib import Path
 from shutil import rmtree
 
 from gramtools.tests.mocks import _MockVcfRecord
-from gramtools.commands.discover.seq_region_map import (
+from gramtools.commands.genotype.seq_region_map import (
     SeqRegion,
+    SeqRegionMapper,
     SearchableSeqRegionsMap,
     BisectTarget,
 )
-from gramtools.commands.discover.discover import SeqRegionMapper
 
 
 class TestRegionMapping(TestCase):

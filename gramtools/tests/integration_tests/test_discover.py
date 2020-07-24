@@ -21,7 +21,6 @@ class DiscoverRunner:
             geno_vcf=base_dir / "geno.vcf.gz",
             discov_vcf_cortex=self.disco_dir / "cortex.vcf",
             final_vcf=self.disco_dir / "rebased.vcf",
-            rebasing_map=self.disco_dir / "rebasing_map.json",
         )
         mock_enforce_ploidy = mock.patch(
             "gramtools.commands.discover.discover.enforce_genotyping_was_haploid"

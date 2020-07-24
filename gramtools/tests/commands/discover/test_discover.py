@@ -2,7 +2,10 @@ from unittest import TestCase, main as unittest_main
 
 from gramtools.tests.mocks import _MockVcfRecord
 from gramtools.commands.discover import discover
-from gramtools.commands.discover.seq_region_map import SearchableSeqRegionsMap
+from gramtools.commands.genotype.seq_region_map import (
+    SeqRegionMapper,
+    SearchableSeqRegionsMap,
+)
 
 
 class TestRebaseVcfRecord(TestCase):
@@ -11,7 +14,7 @@ class TestRebaseVcfRecord(TestCase):
         # derived sequence:   T G   CGG
         chrom_sizes = {"JAC": 5}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
-        region_map = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        region_map = SeqRegionMapper(base_records, chrom_sizes).get_map()
         region_searcher = SearchableSeqRegionsMap(region_map)
 
         discov_record = _MockVcfRecord(pos=3, ref="C", alts=["G"])
@@ -34,7 +37,7 @@ class TestRebaseVcfRecord(TestCase):
 
         chrom_sizes = {"chr1": 7, "chr2": 5}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"], chrom="chr1")]
-        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = SeqRegionMapper(base_records, chrom_sizes).get_map()
         region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=1, ref="TT", alts=["GA"], chrom="chr2")
@@ -48,7 +51,7 @@ class TestRebaseVcfRecord(TestCase):
         # derived sequence:   T G   CGG
         chrom_sizes = {"JAC": 7}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
-        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = SeqRegionMapper(base_records, chrom_sizes).get_map()
         region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=1, ref="TG", alts=["TAA"])
@@ -74,7 +77,7 @@ class TestRebaseVcfRecord(TestCase):
         # secondary: T G   CGG
         chrom_sizes = {"JAC": 7}
         base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
-        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = SeqRegionMapper(base_records, chrom_sizes).get_map()
         region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=1, ref="TGCG", alts=["GGCT"])
@@ -103,7 +106,7 @@ class TestRebaseVcfRecord(TestCase):
             _MockVcfRecord(pos=2, ref="TAT", alts=["G"]),
             _MockVcfRecord(pos=8, ref="T", alts=["TCTGC"]),
         ]
-        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = SeqRegionMapper(base_records, chrom_sizes).get_map()
         region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=9, ref="G", alts=["A"])
@@ -138,7 +141,7 @@ class TestRebaseVcfRecord(TestCase):
             _MockVcfRecord(pos=1, ref="CAA", alts=["C"]),
             _MockVcfRecord(pos=5, ref="GCTA", alts=["GAT"]),
         ]
-        mapped_regions = discover.SeqRegionMapper(base_records, chrom_sizes).get_map()
+        mapped_regions = SeqRegionMapper(base_records, chrom_sizes).get_map()
         region_searcher = SearchableSeqRegionsMap(mapped_regions)
 
         discov_record = _MockVcfRecord(pos=4, ref="ATC", alts=["A"])

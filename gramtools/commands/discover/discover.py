@@ -13,7 +13,7 @@ import cortex.calls as cortex
 
 from gramtools.commands.paths import DiscoverPaths
 from gramtools.commands.common import load_fasta
-from .seq_region_map import (
+from gramtools.commands.genotype.seq_region_map import (
     Chrom,
     ChromSizes,
     SeqRegionsMap,
@@ -43,11 +43,9 @@ def run(args):
         cortex_args["mem_height"] = getattr(args, "mem_height")
     cortex.run(**cortex_args)
 
-    chrom_sizes: ChromSizes = load_fasta(disco_paths.pers_ref, sizes_only=True)
-
     #  Convert coordinates in personalised reference space to coordinates in (original) prg space.
     log.debug("Rebasing vcf")
-    rebased_vcf_records = _rebase_vcf(disco_paths, chrom_sizes)
+    rebased_vcf_records = _rebase_vcf(disco_paths)
     num_records = len(rebased_vcf_records)
 
     _dump_rebased_vcf(rebased_vcf_records, disco_paths)
@@ -56,7 +54,7 @@ def run(args):
     log.info("End process: discover.")
 
 
-def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
+def _rebase_vcf(disco_paths: DiscoverPaths, check_records=True):
     """Rebase a vcf so that it uses same reference as base_vcf.
     (* for not an input/output, just for illustration)
     Input:
@@ -77,9 +75,10 @@ def _rebase_vcf(disco_paths: DiscoverPaths, chrom_sizes, check_records=True):
     base_records = VariantFile(disco_paths.geno_vcf).fetch()
     derived_records = VariantFile(disco_paths.discov_vcf_cortex).fetch()
 
+    # Not loading genotype-produced rebasing map here, because it lacks the sequences
+    chrom_sizes: ChromSizes = load_fasta(disco_paths.pers_ref, sizes_only=True)
     region_map: SeqRegionsMap = SeqRegionMapper(base_records, chrom_sizes).get_map()
     region_searcher = SearchableSeqRegionsMap(region_map)
-    region_searcher.dump_to(disco_paths.rebasing_map, dump_sequences=False)
 
     new_vcf_records = []
     for vcf_record in derived_records:

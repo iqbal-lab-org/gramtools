@@ -197,7 +197,7 @@ class SearchableSeqRegionsMap:
         self._map = map
 
     def bisect(self, chrom: Chrom, pos: int, mode: BisectTarget):
-        if mode not in BisectTarget:
+        if not isinstance(mode, BisectTarget):
             raise ValueError(f"mode argument should be of type {BisectTarget}")
         regions: SeqRegions = self._map[chrom]
         if mode is BisectTarget.BASE_REF:
