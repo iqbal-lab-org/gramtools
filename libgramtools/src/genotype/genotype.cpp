@@ -1,13 +1,13 @@
 #include "genotype/genotype.hpp"
+
+#include "build/kmer_index/load.hpp"
+#include "common/timer_report.hpp"
 #include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/output_specs/make_json.hpp"
 #include "genotype/infer/output_specs/make_vcf.hpp"
 #include "genotype/infer/output_specs/segment_tracker.hpp"
 #include "genotype/infer/personalised_reference.hpp"
 #include "genotype/quasimap/quasimap.hpp"
-
-#include "build/kmer_index/load.hpp"
-#include "common/timer_report.hpp"
 
 using namespace gram;
 using namespace gram::genotype;
@@ -65,25 +65,31 @@ void gram::commands::genotype::run(GenotypeParams const& parameters,
   /**
    * Infer
    */
-  std::cout << "Running genotyping" << std::endl;
+  std::cout << "====================" << std::endl
+            << "Running genotyping" << std::endl;
   timer.start("Genotyping");
 
   // Set up debug info file if needed
   std::string debug_file;
-  if (debug) debug_file = parameters.debug_fpath;
+  if (debug) {
+    debug_file = parameters.debug_fpath;
+    std::cout << "Logging debug genotyping stats to " << debug_file
+              << std::endl;
+  }
 
+  std::cout << "Running genotyping model" << std::endl;
   LevelGenotyper genotyper{prg_info.coverage_graph,
                            quasimap_stats.coverage.grouped_allele_counts,
                            readstats,
                            parameters.ploidy,
                            true,
                            debug_file};
-  timer.stop();
 
   std::ifstream coords_file(parameters.prg_coords_fpath);
   SegmentTracker tracker(coords_file);
   coords_file.close();
 
+  std::cout << "Producing json vcf" << std::endl;
   std::ofstream geno_json_fhandle(parameters.genotyped_json_fpath);
   auto gtyper = std::make_shared<LevelGenotyper>(genotyper);
   auto sample_json = make_json_prg(gtyper, tracker);
@@ -92,6 +98,7 @@ void gram::commands::genotype::run(GenotypeParams const& parameters,
   geno_json_fhandle << sample_json->get_prg() << std::endl;
   geno_json_fhandle.close();
 
+  std::cout << "Producing personalised reference" << std::endl;
   auto sites = genotyper.get_genotyped_records();
   tracker.reset();
   auto p_refs =
@@ -102,8 +109,10 @@ void gram::commands::genotype::run(GenotypeParams const& parameters,
 
   write_deduped_p_refs(p_refs, parameters.personalised_ref_fpath);
 
+  std::cout << "Producing vcf" << std::endl;
   tracker.reset();
   write_vcf(parameters, gtyper, tracker);
 
+  timer.stop();
   timer.report();
 }

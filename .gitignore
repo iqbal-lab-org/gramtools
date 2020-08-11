@@ -2,6 +2,7 @@
 bin
 *.bin
 cmake[-_]build[-_]*
+build/
 gramtools/lib
 doc/html
 

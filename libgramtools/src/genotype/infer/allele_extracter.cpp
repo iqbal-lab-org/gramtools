@@ -1,6 +1,9 @@
 #include "genotype/infer/allele_extracter.hpp"
+
 #include "genotype/infer/interfaces.hpp"
 #include "prg/coverage_graph.hpp"
+
+#define MAX_COMBINATIONS 10000
 
 using namespace gram::genotype::infer;
 
@@ -34,6 +37,13 @@ allele_vector AlleleExtracter::allele_combine(allele_vector const& existing,
   }
   if (relevant_alleles.empty())
     relevant_alleles.push_back(referent_site->get_alleles().at(0));
+
+  // Avoid combinatorial blowups, by removing first the extra_alleles
+  // (case: too many nested low conf calls), then the genotyped alleles
+  // (case: too many nested heterozygous calls in diploid calling)
+  while (existing.size() * relevant_alleles.size() > MAX_COMBINATIONS)
+    relevant_alleles.resize(relevant_alleles.size() - 1);
+
   allele_vector combinations(existing.size() * relevant_alleles.size());
 
   std::size_t insertion_index{0};

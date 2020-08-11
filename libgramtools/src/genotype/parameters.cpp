@@ -1,7 +1,8 @@
 #include "genotype/parameters.hpp"
-#include <iostream>
 
 #include <omp.h>
+
+#include <iostream>
 
 using namespace gram;
 using namespace gram::commands::genotype;
@@ -92,7 +93,8 @@ GenotypeParams commands::genotype::parse_parameters(
   std::string cov_dirpath = mkdir(run_dirpath, "coverage");
   std::string geno_dirpath = mkdir(run_dirpath, "genotype");
   parameters.read_stats_fpath = full_path(run_dirpath, "read_stats.json");
-  parameters.debug_fpath = full_path(run_dirpath, "debug_info.txt");
+  parameters.debug_fpath =
+      full_path(run_dirpath, "site_gtyping_debug_info.txt");
 
   parameters.allele_sum_coverage_fpath =
       full_path(cov_dirpath, "allele_sum_coverage");
