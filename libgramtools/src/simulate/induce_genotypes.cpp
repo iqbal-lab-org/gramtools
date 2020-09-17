@@ -1,6 +1,6 @@
-#include "genotype/infer/allele_extracter.hpp"
-
 #include "simulate/induce_genotypes.hpp"
+
+#include "genotype/infer/allele_extracter.hpp"
 
 using namespace gram::simulate;
 
@@ -65,7 +65,16 @@ nt_ptr gram::simulate::thread_sequence(covG_ptr root,
       msg = "Found more than one path through the prg for sequence: " + seq_id;
       if (no_ambiguous) throw TooManyEndpoints(msg);
       std::cerr << msg << std::endl;
-      return endpoints.front();
+      // Return path which consumed the most input sequence
+      int max_offset = 0, max_loc = 0, next_offset;
+      for (int i = 0; i < endpoints.size(); i++) {
+        next_offset = endpoints[i]->get_offset();
+        if (next_offset > max_offset) {
+          max_offset = next_offset;
+          max_loc = i;
+        }
+      }
+      return endpoints[max_loc];
   }
 }
 

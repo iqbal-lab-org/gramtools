@@ -43,7 +43,11 @@ def setup_parser(common_parser, subparsers):
         "-i",
         "--induce_genotypes",
         help="Input multifasta to produce genotypes of.\n"
-        "Fails if any of the sequences is not present or is multicopy in the prg.",
+        "Fails if any input sequence is not found in the graph.\n "
+        "If multiple paths correspond to one sequence (ie graph is ambiguous), "
+        "uses one path.\n"
+        "Paths can not fully consume the sequence; if there are several, the longest-consuming"
+        " path is used.",
         type=str,
         required=False,
         default="",

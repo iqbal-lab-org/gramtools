@@ -1,10 +1,8 @@
 #include "gtest/gtest.h"
-
 #include "prg/coverage_graph.hpp"
 #include "prg/linearised_prg.hpp"
 #include "simulate/induce_genotypes.hpp"
 #include "simulate/simulate.hpp"
-
 #include "test_resources/mocks.hpp"
 
 using namespace gram::simulate;
@@ -51,11 +49,11 @@ TEST_F(MakeRandomGenotypedSite, GivenIgnoreREFAllele_CorrectSite) {
   EXPECT_EQ(site->get_alleles(), expected_als);
 }
 
-class TestInduceGenotypes_ThreadSequence : public ::testing::Test {
+class TestInduceGenotypes_ThreadSimpleSeq : public ::testing::Test {
  protected:
   coverage_Graph g;
   covG_ptr graph_end;
-  TestInduceGenotypes_ThreadSequence() {
+  TestInduceGenotypes_ThreadSimpleSeq() {
     auto encoded_prg = prg_string_to_ints("AA[A,C,G]TG[AC,[G,T]CA]CCC");
     PRG_String p{encoded_prg};
     g = coverage_Graph{p};
@@ -66,19 +64,19 @@ class TestInduceGenotypes_ThreadSequence : public ::testing::Test {
   }
 };
 
-TEST_F(TestInduceGenotypes_ThreadSequence,
+TEST_F(TestInduceGenotypes_ThreadSimpleSeq,
        GivenSequenceNotInGraph_ThrowsError) {
   std::string absent_sequence{"AACTGACTTT"};
   EXPECT_THROW(thread_sequence(g.root, absent_sequence, ""), NoEndpoints);
 }
 
-TEST_F(TestInduceGenotypes_ThreadSequence,
+TEST_F(TestInduceGenotypes_ThreadSimpleSeq,
        GivenSequenceInGraphButIncomplete_ThrowsError) {
   std::string sequence{"AACTGACC"};
   EXPECT_THROW(thread_sequence(g.root, sequence, ""), NoEndpoints);
 }
 
-TEST_F(TestInduceGenotypes_ThreadSequence,
+TEST_F(TestInduceGenotypes_ThreadSimpleSeq,
        GivenSequenceInGraphAndComplete_GetSingleEndpoint) {
   std::string goodseq1{"AACTGACCCC"};
   auto result = thread_sequence(g.root, goodseq1, "");
@@ -91,20 +89,33 @@ TEST_F(TestInduceGenotypes_ThreadSequence,
   EXPECT_EQ(result->get_offset(), 11);
 }
 
-TEST(InduceGenotypesAmbiguous, GivenMultiplePossiblePathsInPrg_ThrowsError) {
-  /*
-   * This highlights that the prg construction process needs to be sequence
-   * coherent: Same sequences should not be produceable inside a site, or across
-   * full PRG.
-   */
-  auto ambiguous_prg = prg_string_to_ints("AA[A,AA]A[AA,A]T");
-  // An equivalent, unambiguous prg is "AA[AA,AAA,AAAA]AT"
-  auto g = coverage_Graph{PRG_String{ambiguous_prg}};
-  EXPECT_THROW(thread_sequence(g.root, "AAAAAAT", ""), TooManyEndpoints);
+TEST(InduceGenotypes_ThreadAmbigSeq, GivenAmbiguityInPrg_ThrowsError) {
+  // Below PRGs have sequence ambiguity
+  auto ambiguous_prg = prg_string_to_ints("AA[A,AA]A[AA,A]");
+  coverage_Graph g = coverage_Graph{PRG_String{ambiguous_prg}};
+  EXPECT_THROW(thread_sequence(g.root, "AAAAAA", ""), TooManyEndpoints);
 
+  // The function can tolerate ambiguity
   ambiguous_prg = prg_string_to_ints("AT[CA,C[C,A]]GG");
   g = coverage_Graph{PRG_String{ambiguous_prg}};
-  EXPECT_THROW(thread_sequence(g.root, "ATCAGG", ""), TooManyEndpoints);
+  EXPECT_NO_THROW(thread_sequence(g.root, "ATCAGG", "", false));
+}
+
+TEST(InduceGenotypes_NonConsumingInputSequence, LongestPathReturned) {
+  // The threading process allows input sequences that consume the full graph
+  // but not the full input sequence.
+  // If there are several paths, return the most consuming one.
+  auto linear_prg = prg_string_to_ints("AA[A,AA]");
+  auto g = coverage_Graph{PRG_String{linear_prg}};
+  EXPECT_THROW(thread_sequence(g.root, "AAAAAAAA", ""), TooManyEndpoints);
+
+  auto result = thread_sequence(g.root, "AAAAAAAA", "", false);
+  EXPECT_EQ(result->get_offset(), 4);
+
+  linear_prg = prg_string_to_ints("AA[AA,A]");
+  g = coverage_Graph{PRG_String{linear_prg}};
+  result = thread_sequence(g.root, "AAAAAAAA", "", false);
+  EXPECT_EQ(result->get_offset(), 4);
 }
 
 TEST(InduceGenotypes_MakeNullSites, SitesAreNullGTAndHaveRefSeqOnly) {
