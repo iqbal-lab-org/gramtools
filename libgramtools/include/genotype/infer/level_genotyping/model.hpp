@@ -8,11 +8,16 @@
 using namespace gram;
 
 namespace gram::genotype::infer {
+class UnsupportedPloidy : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
 using numCredibleCounts = std::size_t;
 using multiplicities = std::vector<bool>;
 using likelihood_map =
     std::multimap<double, GtypedIndices, std::greater<double>>;
 using memoised_coverages = std::map<AlleleIds, allele_coverages>;
+using CovPair = std::pair<double, double>;
 
 using namespace probabilities;
 
@@ -83,7 +88,8 @@ class LevelGenotyperModel : GenotypingModel {
    */
   void assign_coverage_to_empty_alleles(allele_vector &input_alleles);
 
-  double get_penalised_coverage(Allele const &allele);
+  double get_penalised_coverage(Allele const &allele,
+                                double const &cov_on_allele);
 
   /*_______Likelihoods______*/
   /**
@@ -93,6 +99,14 @@ class LevelGenotyperModel : GenotypingModel {
    */
   numCredibleCounts count_credible_positions(CovCount const &credible_cov_t,
                                              Allele const &allele);
+
+  /**
+   * Computes log-likelihood of allelic coverage and stores it.
+   * Handles haploid and diploid flexibly.
+   */
+  void add_likelihood(CovPair const &compatible_coverages,
+                      double const &incompatible_coverage,
+                      GtypedIndices const &allele_indices);
 
   /**
    * Haploid genotype likelihood
@@ -126,11 +140,11 @@ class LevelGenotyperModel : GenotypingModel {
    * each.
    */
   std::pair<double, double> compute_diploid_coverage(
-      GroupedAlleleCounts const &gp_counts, AlleleIds ids,
+      GroupedAlleleCounts const &gp_counts, AlleleIds haplogroups,
       multiplicities const &haplogroup_multiplicities);
 
   std::pair<double, double> diploid_cov_same_haplogroup(
-      AlleleIds const &ids, multiplicities const &hap_mults);
+      AlleleIds const &haplogroups);
   std::pair<double, double> diploid_cov_different_haplogroup(
       GroupedAlleleCounts const &gp_counts, AlleleIds const &ids,
       multiplicities const &hap_mults);

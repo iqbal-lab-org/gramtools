@@ -74,35 +74,29 @@ void LevelGenotyperModel::set_haploid_coverages(
 void LevelGenotyperModel::assign_coverage_to_empty_alleles(
     allele_vector& input_alleles) {
   for (auto& allele : input_alleles) {
-    if (allele.sequence.size() == 0) {
+    if (allele.sequence.empty()) {
       auto assigned_cov = haploid_allele_coverages.at(allele.haplogroup);
       allele.pbCov = PerBaseCoverage{assigned_cov};
     }
   }
 }
 
-double LevelGenotyperModel::get_penalised_coverage(Allele const& allele) {
+double LevelGenotyperModel::get_penalised_coverage(
+    Allele const& allele, double const& cov_on_allele) {
   double num_non_error_positions =
       count_credible_positions(data.l_stats->credible_cov_t, allele);
   double frac_non_error_positions =
       num_non_error_positions / allele.pbCov.size();
-  double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
-  cov_on_allele *= frac_non_error_positions;
-  return cov_on_allele;
+  return cov_on_allele * frac_non_error_positions;
 }
 
-std::pair<double, double> LevelGenotyperModel::diploid_cov_same_haplogroup(
-    AlleleIds const& ids, multiplicities const& hap_mults) {
-  auto allele_id = ids.at(0);
-  double allele_cov = (double)(haploid_allele_coverages.at(allele_id));
-  if (hap_mults.at(allele_id)) {
-    allele_cov /= 2;
-    computed_coverages.insert({ids, allele_coverages{allele_cov, allele_cov}});
-  }
-  // Case: single homozygous coverage is evaluated
-  else
-    computed_coverages.insert(
-        {ids, allele_coverages{allele_cov}});  // Place homozygous cov once only
+CovPair LevelGenotyperModel::diploid_cov_same_haplogroup(
+    AlleleIds const& haplogroups) {
+  auto hapg = haplogroups.at(0);
+  auto allele_cov = (double)(haploid_allele_coverages.at(hapg));
+  allele_cov /= 2;
+  computed_coverages.insert(
+      {haplogroups, allele_coverages{allele_cov, allele_cov}});
   return std::make_pair(allele_cov, allele_cov);
 }
 
@@ -110,8 +104,8 @@ std::pair<double, double> LevelGenotyperModel::diploid_cov_different_haplogroup(
     GroupedAlleleCounts const& gp_counts, AlleleIds const& ids,
     multiplicities const& hap_mults) {
   AlleleId allele_1_id = ids.at(0), allele_2_id = ids.at(1);
-  double allele_1_cov = (double)(haploid_allele_coverages.at(allele_1_id));
-  double allele_2_cov = (double)(haploid_allele_coverages.at(allele_2_id));
+  auto allele_1_cov = (double)(haploid_allele_coverages.at(allele_1_id));
+  auto allele_2_cov = (double)(haploid_allele_coverages.at(allele_2_id));
   bool has_first_allele, has_second_allele;
   CovCount shared_coverage{0};
 
@@ -148,22 +142,22 @@ std::pair<double, double> LevelGenotyperModel::diploid_cov_different_haplogroup(
 }
 
 std::pair<double, double> LevelGenotyperModel::compute_diploid_coverage(
-    GroupedAlleleCounts const& gp_counts, AlleleIds ids,
+    GroupedAlleleCounts const& gp_counts, AlleleIds haplogroups,
     multiplicities const& haplogroup_multiplicities) {
-  assert(ids.size() == 2);
-  // Below line so that what we search and insert in computed_coverages is
+  assert(haplogroups.size() == 2);
+  // Below line so that `computed_coverages` map lookup/insertion is
   // insensitive to order.
-  std::sort(ids.begin(), ids.end());
+  std::sort(haplogroups.begin(), haplogroups.end());
 
-  if (computed_coverages.find(ids) != computed_coverages.end()) {
-    auto known_covs = computed_coverages.at(ids);
+  if (computed_coverages.find(haplogroups) != computed_coverages.end()) {
+    auto known_covs = computed_coverages.at(haplogroups);
     return std::make_pair(known_covs.at(0), known_covs.at(1));
   }
 
-  if (ids.at(0) == ids.at(1))
-    return diploid_cov_same_haplogroup(ids, haplogroup_multiplicities);
+  if (haplogroups.at(0) == haplogroups.at(1))
+    return diploid_cov_same_haplogroup(haplogroups);
   else
-    return diploid_cov_different_haplogroup(gp_counts, ids,
+    return diploid_cov_different_haplogroup(gp_counts, haplogroups,
                                             haplogroup_multiplicities);
 }
 
@@ -250,19 +244,35 @@ std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(
   return result;
 }
 
+void LevelGenotyperModel::add_likelihood(CovPair const& compatible_coverages,
+                                         double const& incompatible_coverage,
+                                         GtypedIndices const& allele_indices) {
+  double log_likelihood;
+  if (data.ploidy == Ploidy::Haploid) {
+    log_likelihood = data.l_stats->pmf_full_depth->operator()(
+                         params{compatible_coverages.first}) +
+                     incompatible_coverage * data.l_stats->log_mean_pb_error;
+  } else if (data.ploidy == Ploidy::Diploid) {
+    log_likelihood = data.l_stats->pmf_half_depth->operator()(
+                         params{compatible_coverages.first}) +
+                     data.l_stats->pmf_half_depth->operator()(
+                         params{compatible_coverages.second}) +
+                     incompatible_coverage * data.l_stats->log_mean_pb_error;
+  } else
+    throw UnsupportedPloidy("");
+  likelihoods.insert({log_likelihood, allele_indices});
+}
+
 void LevelGenotyperModel::compute_haploid_log_likelihoods(
     allele_vector const& input_alleles) {
   GtypedIndex allele_index{0};
 
   for (auto const& allele : input_alleles) {
-    auto cov_on_allele = get_penalised_coverage(allele);
+    auto haploid_cov = haploid_allele_coverages.at(allele.haplogroup);
+    auto cov_on_allele = get_penalised_coverage(allele, haploid_cov);
     auto cov_not_on_allele = total_coverage - cov_on_allele;
-
-    double log_likelihood =
-        data.l_stats->pmf_full_depth->operator()(params{cov_on_allele}) +
-        data.l_stats->log_mean_pb_error * cov_not_on_allele;
-
-    likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
+    add_likelihood(CovPair{cov_on_allele, 0}, cov_not_on_allele,
+                   GtypedIndices{allele_index});
     ++allele_index;
   }
 }
@@ -276,23 +286,12 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(
     auto coverages = compute_diploid_coverage(
         data.gp_counts, AlleleIds{allele.haplogroup, allele.haplogroup},
         haplogroup_multiplicities);
-    double cov_on_allele = coverages.first;
-    auto cov_not_on_allele = total_coverage - cov_on_allele;
+    auto cov_allele_1 = get_penalised_coverage(allele, coverages.first);
+    auto cov_allele_2 = get_penalised_coverage(allele, coverages.second);
+    auto cov_not_on_allele = total_coverage - cov_allele_1 - cov_allele_2;
 
-    cov_on_allele /= 2;  // We will call poisson log-likelihood with half-depth
-                         // on half the allele's coverage (twice).
-
-    auto num_non_error_positions =
-        count_credible_positions(data.l_stats->credible_cov_t, allele);
-    double frac_non_error_positions =
-        num_non_error_positions / allele.pbCov.size();
-
-    double log_likelihood =
-        2 * data.l_stats->pmf_half_depth->operator()(params{cov_on_allele}) +
-        data.l_stats->log_mean_pb_error * cov_not_on_allele;
-
-    likelihoods.insert(
-        {log_likelihood, GtypedIndices{allele_index, allele_index}});
+    add_likelihood(CovPair{cov_allele_1, cov_allele_2}, cov_not_on_allele,
+                   GtypedIndices{allele_index, allele_index});
     ++allele_index;
   }
 }
@@ -317,16 +316,12 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(
     AlleleIds haplogroups{allele_1.haplogroup, allele_2.haplogroup};
     auto coverages = compute_diploid_coverage(data.gp_counts, haplogroups,
                                               haplogroup_multiplicities);
-    auto allele_1_cov = coverages.first;
-    auto allele_2_cov = coverages.second;
+    auto cov_allele_1 = get_penalised_coverage(allele_1, coverages.first);
+    auto cov_allele_2 = get_penalised_coverage(allele_2, coverages.second);
+    auto cov_not_on_allele = total_coverage - cov_allele_1 - cov_allele_2;
 
-    double log_likelihood =
-        data.l_stats->pmf_half_depth->operator()(params{allele_1_cov}) +
-        data.l_stats->pmf_half_depth->operator()(params{allele_2_cov}) +
-        (total_coverage - allele_1_cov - allele_2_cov) *
-            data.l_stats->log_mean_pb_error;
-
-    likelihoods.insert({log_likelihood, combo});
+    add_likelihood(CovPair{cov_allele_1, cov_allele_2}, cov_not_on_allele,
+                   combo);
   }
 }
 
@@ -389,8 +384,12 @@ void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
   if (ploidy == Ploidy::Haploid)
     allele_covs = allele_coverages{
         (double)haploid_allele_coverages.at(chosen_haplotypes.at(0))};
-  else if (ploidy == Ploidy::Diploid)
+  else if (ploidy == Ploidy::Diploid) {
     allele_covs = computed_coverages.at(chosen_haplotypes);
+    // If homozygous call, give the single allele all the coverage
+    if (chosen_gt.at(0) == chosen_gt.at(1))
+      allele_covs = allele_coverages{allele_covs.at(0) + allele_covs.at(1)};
+  }
 
   // Because we only output the called alleles (+ REF), re-express genotype
   // indices to those.

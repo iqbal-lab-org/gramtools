@@ -7,6 +7,9 @@
 
 using namespace gram::genotype::infer;
 
+/**
+ * Coverage computations
+ */
 TEST(HaploidCoverages,
      GivenSingletonCountsOnly_CorrectHaploidAndSingletonCovs) {
   GroupedAlleleCounts gp_covs{{{0}, 5}, {{1}, 10}, {{3}, 1}};
@@ -30,6 +33,20 @@ TEST(HaploidCoverages,
 
   EXPECT_EQ(gtyper.get_haploid_covs(), expected_haploid_cov);
   EXPECT_EQ(gtyper.get_singleton_covs(), expected_singleton_cov);
+}
+
+TEST(PenalisedCoverage, GivenAlleleAndBaseCov_GapsPenalised) {
+  likelihood_related_stats l_stats{};
+  l_stats.credible_cov_t = 1;
+  LevelGenotyperModel genotyper(l_stats, {}, {});
+
+  Allele allele{"TATAA", {0, 1, 2, 2, 2}};
+  auto penalised = genotyper.get_penalised_coverage(allele, 10);
+  EXPECT_DOUBLE_EQ(penalised, 8.0);
+
+  allele.pbCov = PerBaseCoverage{0, 0, 0, 0, 0};
+  penalised = genotyper.get_penalised_coverage(allele, 10);
+  EXPECT_DOUBLE_EQ(penalised, 0.0);
 }
 
 TEST(DiploidCoverages, GivenMultiAllelicClasses_CorrectDiploidCovs) {
