@@ -14,12 +14,15 @@
 #define CONF_DISTRIB_SIZE 10000
 
 #include "genotype/parameters.hpp"
-#include "genotype/read_stats.hpp"
 #include "probabilities.hpp"
 #include "site.hpp"
 
 using namespace gram::genotype::infer;
 using namespace gram::genotype::infer::probabilities;
+
+namespace gram {
+class ReadStats;
+}  // namespace gram
 
 namespace gram::genotype::infer {
 

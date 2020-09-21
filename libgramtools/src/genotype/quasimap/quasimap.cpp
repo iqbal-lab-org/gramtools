@@ -1,11 +1,11 @@
 #include "genotype/quasimap/quasimap.hpp"
 
+#include <omp.h>
+
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "genotype/quasimap/coverage/coverage_common.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
 #include "genotype/quasimap/search/vBWT_jump.hpp"
-
-#include <omp.h>
 
 using namespace gram;
 
@@ -33,7 +33,7 @@ QuasimapReadsStats gram::quasimap_reads(const GenotypeParams &parameters,
   auto &coverage = quasimap_stats.coverage;
   // Compute read mapping statistics (used in `infer` command). Can only be done
   // after mapping!
-  readstats.compute_coverage_depth(coverage, prg_info.coverage_graph.par_map);
+  readstats.compute_coverage_depth(coverage, prg_info.coverage_graph);
 
   // Extract non-nested per base coverage
   coverage.allele_base_coverage =

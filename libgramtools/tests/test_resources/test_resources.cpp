@@ -1,8 +1,8 @@
+#include "test_resources.hpp"
+
 #include "genotype/quasimap/quasimap.hpp"
 #include "prg/prg_info.hpp"
-
 #include "submod_resources.hpp"
-#include "test_resources.hpp"
 
 using namespace gram::submods;
 
@@ -51,5 +51,5 @@ void prg_setup::quasimap_reads(GenomicRead_vector const& reads) {
     auto sequence = encode_dna_bases(read.seq);
     gram::quasimap_read(sequence, coverage, kmer_index, prg_info, parameters);
   }
-  read_stats.compute_coverage_depth(coverage, prg_info.coverage_graph.par_map);
+  read_stats.compute_coverage_depth(coverage, prg_info.coverage_graph);
 }

@@ -8,15 +8,16 @@ using namespace gram;
 
 namespace gram::genotype::infer {
 
+/**
+ * Produces the REF allele by picking the first allele
+ * (haplogroup) of each site.
+ */
 Allele extract_ref_allele(covG_ptr start_node, covG_ptr end_node);
 
 /**
  * Class in charge of producing the set of `Allele`s that get genotyped.
  * The procedure scans through each haplogroup of a site, pasting sequence &
  * coverage from previously genotyped (=nested) sites when encountered.
- *
- * It additionally always produced a REF allele by picking the first allele
- * (haplogroup) of each site.
  */
 class AlleleExtracter {
  private:

@@ -1,6 +1,9 @@
 #include "genotype/read_stats.hpp"
+
 #include <math.h>
-#include <prg/coverage_graph.hpp>
+
+#include "genotype/infer/types.hpp"
+#include "prg/coverage_graph.hpp"
 
 using namespace gram;
 
@@ -66,33 +69,80 @@ void gram::ReadStats::process_read_perbase_error_rates(
   this->mean_pb_error = mean_error;
 }
 
-void gram::ReadStats::compute_coverage_depth(Coverage const& coverage,
-                                             parental_map const& par_map) {
-  uint64_t this_site_cov;
-  double total_coverage = 0;
+ReadStats::haplogroup_cov ReadStats::get_max_cov_haplogroup(
+    GroupedAlleleCounts const& gped_cov) {
+  std::map<AlleleId, CovCount> counts;
+  for (auto const& entry : gped_cov) {
+    for (auto const& allele_id : entry.first) {
+      if (counts.find(allele_id) == counts.end())
+        counts.insert(haplogroup_cov{allele_id, 0});
+      counts.at(allele_id) += entry.second;
+    }
+  }
+
+  auto max_elem = std::max_element(
+      counts.begin(), counts.end(),
+      [](haplogroup_cov const& elem1, haplogroup_cov const& elem2) {
+        return elem1.second < elem2.second;
+      });
+  if (max_elem == counts.end())
+    return haplogroup_cov{0, 0};
+  else
+    return *max_elem;
+}
+
+ReadStats::allele_and_cov ReadStats::extract_max_coverage_allele(
+    SitesGroupedAlleleCounts const& gped_covs, covG_ptr start_node,
+    covG_ptr end_node) {
+  Allele result;
+  covG_ptr cur_Node = start_node;
+  auto site_index = siteID_to_index(cur_Node->get_site_ID());
+  auto max_elem = get_max_cov_haplogroup(gped_covs.at(site_index));
+  auto const allele_cov = max_elem.second;
+
+  while (cur_Node != end_node) {
+    if (cur_Node->is_bubble_start()) {
+      cur_Node = cur_Node->get_edges().at(max_elem.first);
+      site_index = siteID_to_index(cur_Node->get_site_ID());
+      max_elem = get_max_cov_haplogroup(gped_covs.at(site_index));
+      continue;
+    }
+    if (cur_Node->has_sequence()) {
+      result =
+          result + Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
+    }
+    cur_Node = cur_Node->get_edges().at(0);
+  }
+  return allele_and_cov{result, allele_cov};
+}
+
+void gram::AbstractReadStats::compute_coverage_depth(
+    Coverage const& coverage, coverage_Graph const& cov_graph) {
+  ReadStats::allele_and_cov site_extraction;
+  double site_perbase_coverage = 0, total_coverage = 0;
   int64_t num_sites_noCov = 0;
-  std::size_t num_sites_processed{0};
-  std::vector<uint64_t> coverages;
+  std::vector<double> coverages;
 
   double mean_coverage, variance_coverage;
 
-  std::size_t site_index{0};
-  //`site` is an unordered_map associating alleleIDs with coverage.
-  for (const auto& site : coverage.grouped_allele_counts) {
-    auto site_ID = index_to_siteID(site_index++);
+  for (const auto& node_pair : cov_graph.bubble_map) {
+    auto site_ID = node_pair.first->get_site_ID();
 
     // If the site is nested within another, we do not process its coverage
-    if (par_map.find(site_ID) != par_map.end()) continue;
+    if (cov_graph.par_map.find(site_ID) != cov_graph.par_map.end()) continue;
+    site_extraction = extract_max_coverage_allele(
+        coverage.grouped_allele_counts, node_pair.first, node_pair.second);
 
-    this_site_cov = 0;
-    for (const auto& entry : site) {
-      this_site_cov += entry.second;
-    }
-
-    coverages.push_back(this_site_cov);
-    total_coverage += this_site_cov;
-    num_sites_processed++;
-    if (this_site_cov == 0) num_sites_noCov++;
+    auto& pb_cov = site_extraction.first.pbCov;
+    if (pb_cov.size() > 0) {
+      site_perbase_coverage =
+          std::accumulate(pb_cov.begin(), pb_cov.end(), 0.0);
+      site_perbase_coverage /= pb_cov.size();
+    } else  // Case: direct deletion allele
+      site_perbase_coverage = (double)site_extraction.second;
+    total_coverage += site_perbase_coverage;
+    coverages.push_back(site_perbase_coverage);
+    if (site_extraction.second == 0) num_sites_noCov++;
   }
 
   // Compute mean
@@ -109,7 +159,7 @@ void gram::ReadStats::compute_coverage_depth(Coverage const& coverage,
   this->mean_cov_depth = mean_coverage;
   this->variance_cov_depth = variance_coverage;
   this->num_sites_noCov = num_sites_noCov;
-  this->num_sites_total = num_sites_processed;
+  this->num_sites_total = coverages.size();
 }
 
 void gram::ReadStats::serialise(const std::string& json_output_fpath) {

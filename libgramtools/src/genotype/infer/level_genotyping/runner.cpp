@@ -7,6 +7,7 @@
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/level_genotyping/model.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
+#include "genotype/read_stats.hpp"
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
 

@@ -1,19 +1,22 @@
 #ifndef PRG_TYPES_HPP
 #define PRG_TYPES_HPP
 
-#include <map>
-
 #include <boost/shared_ptr.hpp>
+#include <map>
 
 #include "common/data_types.hpp"
 
-// Forward-declaration for making coverage_Graph available
+/* Forward declarations for making available and reducing recompilations */
 class coverage_Graph;
 
-// Forward-declarations for aliasing
 class coverage_Node;
 struct node_access;
 struct targeted_marker;
+
+namespace gram {
+struct Allele;
+}
+/* */
 
 namespace gram {
 using covG_ptr = boost::shared_ptr<coverage_Node>;

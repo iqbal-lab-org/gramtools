@@ -2,22 +2,10 @@
 #define GT_INFER_TYPES
 
 #include <memory>
+
 #include "genotype/quasimap/coverage/types.hpp"
 
-namespace gram::genotype::infer {
-class Genotyper;
-using gtyper_ptr = std::shared_ptr<Genotyper>;
-
-class GenotypedSite;
-using gt_site = GenotypedSite;
-using gt_site_ptr = std::shared_ptr<GenotypedSite>;
-using gt_sites = std::vector<gt_site_ptr>;
-
-using GtypedIndex =
-    int32_t; /**< The index of an allele in an allele vector or -1 for null*/
-using GtypedIndices = std::vector<GtypedIndex>;
-using allele_coverages = std::vector<double>;
-
+namespace gram {
 struct Allele {
   std::string sequence;
   PerBaseCoverage pbCov;
@@ -53,6 +41,21 @@ struct Allele {
 };
 
 using allele_vector = std::vector<Allele>;
+}  // namespace gram
+
+namespace gram::genotype::infer {
+class Genotyper;
+using gtyper_ptr = std::shared_ptr<Genotyper>;
+
+class GenotypedSite;
+using gt_site = GenotypedSite;
+using gt_site_ptr = std::shared_ptr<GenotypedSite>;
+using gt_sites = std::vector<gt_site_ptr>;
+
+using GtypedIndex =
+    int32_t; /**< The index of an allele in an allele vector or -1 for null*/
+using GtypedIndices = std::vector<GtypedIndex>;
+using allele_coverages = std::vector<double>;
 
 }  // namespace gram::genotype::infer
 
