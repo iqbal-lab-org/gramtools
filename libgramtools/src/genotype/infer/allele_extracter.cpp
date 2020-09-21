@@ -75,6 +75,20 @@ void AlleleExtracter::place_ref_as_first_allele(allele_vector& alleles,
     this->_ref_allele_got_made_naturally = true;
 }
 
+Allele extract_ref_allele(covG_ptr start_node, covG_ptr end_node) {
+  Allele result{"", {}, 0};
+  covG_ptr cur_Node{start_node};
+
+  while (cur_Node != end_node) {
+    if (cur_Node->has_sequence()) {
+      result =
+          result + Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
+    }
+    cur_Node = *(cur_Node->get_edges().begin());
+  }
+  return result;
+}
+
 allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
                                                covG_ptr haplogroup_start,
                                                covG_ptr site_end) {
@@ -82,8 +96,6 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
       {"", {}, haplogroup}};  // Make one empty allele as starting point, allows
                               // for direct deletion
   covG_ptr cur_Node{haplogroup_start};
-
-  Allele ref_allele{"", {}, 0};
 
   while (cur_Node != site_end) {
     if (cur_Node->is_bubble_start()) {
@@ -93,17 +105,8 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
       auto referent_site = genotyped_sites->at(site_index);
       cur_Node =
           referent_site->get_site_end_node();  // Move past site, to bubble end
-
-      if (haplogroup == 0) {  // REF extraction
-        auto ref_containing_alleles = referent_site->get_alleles();
-        assert(ref_containing_alleles.size() > 0);
-        ref_allele = ref_allele + ref_containing_alleles.at(0);
-      }
     } else {
       allele_paste(haplogroup_alleles, cur_Node);
-      if (haplogroup == 0)
-        ref_allele = ref_allele +
-                     Allele{cur_Node->get_sequence(), cur_Node->get_coverage()};
     }
 
     // The only nodes with >1 neighbour are bubble starts and we
@@ -113,8 +116,10 @@ allele_vector AlleleExtracter::extract_alleles(AlleleId const haplogroup,
     cur_Node = *(cur_Node->get_edges().begin());  // Advance to the next node
   }
 
-  if (haplogroup == 0)
+  if (haplogroup == 0) {
+    auto ref_allele = extract_ref_allele(haplogroup_start, site_end);
     place_ref_as_first_allele(haplogroup_alleles, ref_allele);
+  }
 
   return haplogroup_alleles;
 }

@@ -1,11 +1,11 @@
+#include "genotype/infer/level_genotyping/runner.hpp"
+
 #include <cmath>
 #include <random>
 
 #include "GCP/GCP.h"
-
 #include "genotype/infer/allele_extracter.hpp"
 #include "genotype/infer/level_genotyping/model.hpp"
-#include "genotype/infer/level_genotyping/runner.hpp"
 #include "genotype/infer/output_specs/fields.hpp"
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
@@ -46,6 +46,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
   if (not debug_fpath.empty()) {
     debug_file.open(debug_fpath, std::ios_base::app);
     debug = true;
+    debug_file << l_stats;
   }
 
   // Genotype each bubble in the PRG, in most nested to less nested order.
@@ -59,7 +60,7 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
     auto& gped_covs_for_site = gped_covs.at(site_index);
 
     ModelData data(extracted_alleles, gped_covs_for_site, ploidy, &l_stats,
-                   !extracter.ref_allele_got_made_naturally(), debug);
+                   debug);
     auto genotyped = LevelGenotyperModel(data);
     auto genotyped_site = genotyped.get_site();
     genotyped_site->set_pos(bubble_pair.first->get_pos());
@@ -194,14 +195,22 @@ void LevelGenotyper::invalidate_if_needed(Marker const& parent_site_ID,
   }
 }
 
+/**
+ * Flexible use of Poisson or Negative Binomial prob. mass function (pmf)
+ * Neg binom:
+      - Uses the formulation where the pmf gives the prob of x failures,
+        parameterised by the fixed number of successes k and the
+        fixed prob of success p.
+        This is the formulation in:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.nbinom.html#scipy-stats-nbinom
+      - These two parameters are inferred from cov depth mean and variance
+ */
 likelihood_related_stats LevelGenotyper::make_l_stats(
     double const mean_cov, double const var_cov, double const mean_pb_error) {
   pmf_ptr pmf, pmf_half_depth;
   DataParams data_params{mean_cov, mean_pb_error};
   double prob_no_zero{0}, prob_no_zero_half_depth{0};
   if (var_cov > mean_cov) {
-    // Case: use negative binomial.
-    // Infer its parameters from cov depth mean and variance
     double num_successes = pow(mean_cov, 2) / (var_cov - mean_cov);
     double success_prob = num_successes / (mean_cov + num_successes);
     pmf = std::make_shared<NegBinomLogPmf>(params{num_successes, success_prob});

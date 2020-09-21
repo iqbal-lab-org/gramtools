@@ -313,13 +313,11 @@ class TestLevelGenotyperModel_ExtraAlleles : public ::testing::Test {
   };
   likelihood_related_stats l_stats = LevelGenotyper::make_l_stats(40, 0, 0.01);
   multiplicities hap_muts{false, false};
-  bool ref_allele_not_considered{false};
 };
 
 TEST_F(TestLevelGenotyperModel_ExtraAlleles, GivenLargeCovs_NoExtraAlleles) {
   LevelGenotyperModel model(l_stats, {1, 39, 1}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, ref_allele_not_considered, hap_muts,
-                     Ploidy::Haploid);
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   EXPECT_FALSE(model.get_site()->extra_alleles());
 }
 
@@ -327,8 +325,7 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
        Given0GtConf_AllBestAllelesAsExtraAlleles) {
   likelihood_map same_likelihoods{{-2, {0}}, {-2, {1}}};
   LevelGenotyperModel model(l_stats, {1, 39}, same_likelihoods);
-  model.CallGenotype(alleles, ref_allele_not_considered, hap_muts,
-                     Ploidy::Haploid);
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   auto extra_alleles = model.get_site()->extra_alleles();
   EXPECT_TRUE(extra_alleles);
   EXPECT_EQ(extra_alleles.value(), alleles);
@@ -338,31 +335,16 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
        GivenLowCovSituations_HaveExtraAlleles) {
   // Low total coverage on this site compared to mean cov of 40
   LevelGenotyperModel model(l_stats, {1, 5}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, ref_allele_not_considered, hap_muts,
-                     Ploidy::Haploid);
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   auto extra_alleles = model.get_site()->extra_alleles();
   EXPECT_TRUE(extra_alleles);
   EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
 
   LevelGenotyperModel model2(l_stats, {20, 21}, different_likelihoods_haploid);
-  model2.CallGenotype(alleles, ref_allele_not_considered, hap_muts,
-                      Ploidy::Haploid);
+  model2.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   extra_alleles = model.get_site()->extra_alleles();
   EXPECT_TRUE(extra_alleles);
   EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
-}
-
-TEST_F(TestLevelGenotyperModel_ExtraAlleles,
-       GivenRefAlleleIgnored_CorrectExtraAlleles) {
-  alleles.push_back(Allele{"T", {0}, 2});
-  // The genotypes in the likelihood_map are indices excluding the REF
-  ref_allele_not_considered = true;
-  LevelGenotyperModel model(l_stats, {0, 1, 3}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, ref_allele_not_considered, hap_muts,
-                     Ploidy::Haploid);
-  auto extra_alleles = model.get_site()->extra_alleles();
-  EXPECT_TRUE(extra_alleles);
-  EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(1)});
 }
 
 TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype) {
@@ -411,7 +393,7 @@ TEST(TestLevelGenotyperModel_FourAlleles,
   double mean_cov_depth{30}, mean_pb_error{0.01};
   likelihood_related_stats l_stats =
       LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
-  ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
+  ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats);
   auto haploid_genotyped = LevelGenotyperModel(data);
   EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 4);
 
@@ -420,37 +402,6 @@ TEST(TestLevelGenotyperModel_FourAlleles,
   // Expected number of genotypes: 4 diploid homozygous + (4 choose 2) diploid
   // heterozygous
   EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 10);
-}
-
-TEST(TestLevelGenotyperModel_IgnoredREF,
-     GivenSeveralAllelesAndIgnoredREF_CorrectNumberOfLikelihoods) {
-  // Note this is only relevant to genotyping a site which contains a nested
-  // site Here we imagine we called one allele in each of haplogroups 0 and 1,
-  // and that a REF got prepended
-  allele_vector alleles{
-      Allele{"A", {0}, 0},
-      Allele{"C", {8}, 0},
-      Allele{"G", {8}, 1},
-  };
-
-  GroupedAlleleCounts gp_counts{
-      {{0}, 8},
-      {{1}, 8},
-  };
-  double mean_cov_depth{8}, mean_pb_error{0.01};
-  likelihood_related_stats l_stats =
-      LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
-
-  // The last param to LevelGenotyperModel is whether to avoid using the REF
-  ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, true);
-  auto haploid_genotyped = LevelGenotyperModel(data);
-  EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 2);
-
-  data.ploidy = Ploidy::Diploid;
-  auto diploid_genotyped = LevelGenotyperModel(data);
-  // Two homs and one het. Note this only works if you have singleton coverage
-  // on each haplogroup
-  EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 3);
 }
 
 TEST(LevelGenotyperModelDirectDeletion, GivenEmptyAllele_AssignsCoverage) {

@@ -66,6 +66,10 @@ struct likelihood_related_stats {
   pmf_ptr pmf_full_depth;
   pmf_ptr pmf_half_depth;
 };
+
+std::ostream& operator<<(std::ostream& os,
+                         const likelihood_related_stats& l_stats);
+
 }  // namespace gram::genotype::infer::probabilities
 
 #endif  // GRAMTOOLS_PROBS_HPP

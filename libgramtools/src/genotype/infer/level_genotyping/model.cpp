@@ -1,4 +1,5 @@
 #include "genotype/infer/level_genotyping/model.hpp"
+
 #include "genotype/infer/allele_extracter.hpp"
 
 using namespace gram::genotype::infer;
@@ -40,12 +41,7 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
 
   set_haploid_coverages(data.gp_counts, haplogroup_multiplicities.size());
 
-  allele_vector used_alleles;
-  if (data.ignore_ref_allele)
-    used_alleles =
-        allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
-  else
-    used_alleles = data.input_alleles;
+  allele_vector used_alleles(data.input_alleles);
   assign_coverage_to_empty_alleles(used_alleles);
 
   if (data.ploidy == Ploidy::Haploid)
@@ -56,8 +52,7 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
                                          haplogroup_multiplicities);
   }
 
-  CallGenotype(data.input_alleles, data.ignore_ref_allele,
-               haplogroup_multiplicities, data.ploidy);
+  CallGenotype(used_alleles, haplogroup_multiplicities, data.ploidy);
 }
 
 void LevelGenotyperModel::set_haploid_coverages(
@@ -79,7 +74,6 @@ void LevelGenotyperModel::set_haploid_coverages(
 void LevelGenotyperModel::assign_coverage_to_empty_alleles(
     allele_vector& input_alleles) {
   for (auto& allele : input_alleles) {
-    assert(allele.sequence.size() == allele.pbCov.size());
     if (allele.sequence.size() == 0) {
       auto assigned_cov = haploid_allele_coverages.at(allele.haplogroup);
       allele.pbCov = PerBaseCoverage{assigned_cov};
@@ -251,18 +245,17 @@ void LevelGenotyperModel::compute_haploid_log_likelihoods(
   GtypedIndex allele_index{0};
 
   for (auto const& allele : input_alleles) {
-    double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
-    auto cov_not_on_allele = total_coverage - cov_on_allele;
-
     double num_non_error_positions =
         count_credible_positions(data.l_stats->credible_cov_t, allele);
     double frac_non_error_positions =
         num_non_error_positions / allele.pbCov.size();
 
+    double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
+    auto cov_not_on_allele = total_coverage - cov_on_allele;
+
     double log_likelihood =
         (data.l_stats->pmf_full_depth->operator()(params{cov_on_allele}) +
          data.l_stats->log_mean_pb_error * cov_not_on_allele +
-         frac_non_error_positions * data.l_stats->log_no_zero +
          (1 - frac_non_error_positions) * data.l_stats->log_zero);
 
     likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
@@ -293,7 +286,6 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(
     double log_likelihood =
         (2 * data.l_stats->pmf_half_depth->operator()(params{cov_on_allele}) +
          data.l_stats->log_mean_pb_error * cov_not_on_allele +
-         frac_non_error_positions * data.l_stats->log_no_zero +
          (1 - frac_non_error_positions) * data.l_stats->log_zero);
 
     likelihoods.insert(
@@ -341,8 +333,6 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(
         data.l_stats->pmf_half_depth->operator()(params{allele_2_cov}) +
         (total_coverage - allele_1_cov - allele_2_cov) *
             data.l_stats->log_mean_pb_error +
-        (allele_1_frac_non_err_pos + allele_2_frac_non_err_pos) *
-            data.l_stats->log_no_zero_half_depth +
         (1 - allele_1_frac_non_err_pos + 1 - allele_2_frac_non_err_pos) *
             data.l_stats->log_zero_half_depth;
     likelihoods.insert({log_likelihood, combo});
@@ -382,22 +372,15 @@ void LevelGenotyperModel::add_all_best_alleles(
   genotyped_site->set_extra_alleles(result);
 }
 
-void LevelGenotyperModel::CallGenotype(
-    allele_vector const& input_alleles,
-    bool ref_allele_not_considered_for_gtyping, multiplicities hap_mults,
-    Ploidy const ploidy) {
+void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
+                                       multiplicities hap_mults,
+                                       Ploidy const ploidy) {
   auto it = likelihoods.begin();
   auto chosen_gt = it->second;
   auto best_likelihood = it->first;
   ++it;
   auto gt_confidence = best_likelihood - it->first;
   auto next_best_gt = it->second;
-
-  // Express the genotypes with the ref re-added at index 0
-  if (ref_allele_not_considered_for_gtyping) {
-    for (auto& gt : chosen_gt) gt++;
-    for (auto& gt : next_best_gt) gt++;
-  }
 
   if (gt_confidence == 0.) {
     genotyped_site->set_alleles(allele_vector{ref_allele});
