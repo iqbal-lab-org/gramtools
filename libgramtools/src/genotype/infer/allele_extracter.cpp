@@ -75,7 +75,8 @@ void AlleleExtracter::place_ref_as_first_allele(allele_vector& alleles,
     this->_ref_allele_got_made_naturally = true;
 }
 
-Allele extract_ref_allele(covG_ptr start_node, covG_ptr end_node) {
+Allele gram::genotype::infer::extract_ref_allele(covG_ptr start_node,
+                                                 covG_ptr end_node) {
   Allele result{"", {}, 0};
   covG_ptr cur_Node{start_node};
 

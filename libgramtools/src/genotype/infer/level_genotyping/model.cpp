@@ -81,6 +81,16 @@ void LevelGenotyperModel::assign_coverage_to_empty_alleles(
   }
 }
 
+double LevelGenotyperModel::get_penalised_coverage(Allele const& allele) {
+  double num_non_error_positions =
+      count_credible_positions(data.l_stats->credible_cov_t, allele);
+  double frac_non_error_positions =
+      num_non_error_positions / allele.pbCov.size();
+  double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
+  cov_on_allele *= frac_non_error_positions;
+  return cov_on_allele;
+}
+
 std::pair<double, double> LevelGenotyperModel::diploid_cov_same_haplogroup(
     AlleleIds const& ids, multiplicities const& hap_mults) {
   auto allele_id = ids.at(0);
@@ -245,18 +255,12 @@ void LevelGenotyperModel::compute_haploid_log_likelihoods(
   GtypedIndex allele_index{0};
 
   for (auto const& allele : input_alleles) {
-    double num_non_error_positions =
-        count_credible_positions(data.l_stats->credible_cov_t, allele);
-    double frac_non_error_positions =
-        num_non_error_positions / allele.pbCov.size();
-
-    double cov_on_allele = haploid_allele_coverages.at(allele.haplogroup);
+    auto cov_on_allele = get_penalised_coverage(allele);
     auto cov_not_on_allele = total_coverage - cov_on_allele;
 
     double log_likelihood =
-        (data.l_stats->pmf_full_depth->operator()(params{cov_on_allele}) +
-         data.l_stats->log_mean_pb_error * cov_not_on_allele +
-         (1 - frac_non_error_positions) * data.l_stats->log_zero);
+        data.l_stats->pmf_full_depth->operator()(params{cov_on_allele}) +
+        data.l_stats->log_mean_pb_error * cov_not_on_allele;
 
     likelihoods.insert({log_likelihood, GtypedIndices{allele_index}});
     ++allele_index;
@@ -284,9 +288,8 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(
         num_non_error_positions / allele.pbCov.size();
 
     double log_likelihood =
-        (2 * data.l_stats->pmf_half_depth->operator()(params{cov_on_allele}) +
-         data.l_stats->log_mean_pb_error * cov_not_on_allele +
-         (1 - frac_non_error_positions) * data.l_stats->log_zero);
+        2 * data.l_stats->pmf_half_depth->operator()(params{cov_on_allele}) +
+        data.l_stats->log_mean_pb_error * cov_not_on_allele;
 
     likelihoods.insert(
         {log_likelihood, GtypedIndices{allele_index, allele_index}});
@@ -317,24 +320,12 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(
     auto allele_1_cov = coverages.first;
     auto allele_2_cov = coverages.second;
 
-    auto allele_1_len = allele_1.pbCov.size();
-    auto allele_2_len = allele_2.pbCov.size();
-
-    double allele_1_frac_non_err_pos =
-        count_credible_positions(data.l_stats->credible_cov_t, allele_1) /
-        allele_1_len;
-
-    double allele_2_frac_non_err_pos =
-        count_credible_positions(data.l_stats->credible_cov_t, allele_2) /
-        allele_2_len;
-
     double log_likelihood =
         data.l_stats->pmf_half_depth->operator()(params{allele_1_cov}) +
         data.l_stats->pmf_half_depth->operator()(params{allele_2_cov}) +
         (total_coverage - allele_1_cov - allele_2_cov) *
-            data.l_stats->log_mean_pb_error +
-        (1 - allele_1_frac_non_err_pos + 1 - allele_2_frac_non_err_pos) *
-            data.l_stats->log_zero_half_depth;
+            data.l_stats->log_mean_pb_error;
+
     likelihoods.insert({log_likelihood, combo});
   }
 }

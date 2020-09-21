@@ -115,7 +115,7 @@ TEST(CountCrediblePositions,
   EXPECT_EQ(num_credible, 4);
 }
 
-TEST(CountTotalCov, GivenVariousCovStructures_CorrectTotalCoverages) {
+TEST(CountTotalCov, GivenCovStructures_CorrectTotalCoverages) {
   GroupedAlleleCounts gp_covs{};
   LevelGenotyperModel gtyper;
   EXPECT_EQ(gtyper.count_total_coverage(gp_covs), 0);
@@ -124,7 +124,7 @@ TEST(CountTotalCov, GivenVariousCovStructures_CorrectTotalCoverages) {
   EXPECT_EQ(gtyper.count_total_coverage(gp_covs2), 20);
 }
 
-TEST(CountNumHaplogroups, GivenVariousAlleleVectors_CorrectNumHaplogroups) {
+TEST(CountNumHaplogroups, GivenAlleleVectors_CorrectNumHaplogroups) {
   // Haplogroup should default to the same thing, consistently.
   allele_vector a1{
       Allele{"", {}},
@@ -347,10 +347,7 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
   EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
 }
 
-TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype) {
-  // Note : comparing with Minos v0.9.1 commit@7c68ad0 (and with the hom
-  // likelihood not halved), which has the same test as this, I get the same
-  // likelihoods for the three genotypes
+TEST(TestLevelGenotyperModel, GivenHomozygousFavouredCov_GetHomozygousCall) {
   double mean_cov_depth{20}, mean_pb_error{0.01};
 
   allele_vector alleles{
@@ -372,6 +369,24 @@ TEST(TestLevelGenotyperModel_MinosParallel, GivenCoverages_CorrectGenotype) {
   auto gtype = genotyped.get_site()->get_genotype();
   GtypedIndices expected_gtype{1, 1};
   EXPECT_EQ(gtype, expected_gtype);
+}
+
+TEST(TestLevelGenotyperModel_NestedScenario,
+     GivenAllelesInSameHaplogroup_CoverageGappedAllelePenalised) {
+  allele_vector alleles{
+      Allele{"AAAACAG", {0, 20, 20, 20, 20, 20, 0}, 0},
+      Allele{"TAAACAT", {20, 20, 20, 20, 20, 20, 20}, 0},
+  };
+  GroupedAlleleCounts gp_counts{{{0}, 20}};
+
+  // Deliberately enormous variance so it's plausible to have cov gaps
+  // Nonetheless non-gapped allele is expected called
+  likelihood_related_stats l_stats =
+      LevelGenotyper::make_l_stats(20, 200000, 0.01);
+
+  ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
+  auto genotyped = LevelGenotyperModel(data);
+  EXPECT_EQ(genotyped.get_site()->get_genotype(), GtypedIndices{1});
 }
 
 TEST(TestLevelGenotyperModel_FourAlleles,

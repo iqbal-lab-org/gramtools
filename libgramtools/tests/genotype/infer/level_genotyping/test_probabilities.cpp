@@ -57,7 +57,7 @@ TEST(LikelihoodStats, DynamicDataParams) {
   EXPECT_EQ(int(num_successes * (1 - prob_success) / pow(prob_success, 2)), 20);
 }
 
-TEST(LogPmfs, GivenConstructedObject_Poisson0IsAlreadyMemoised) {
+TEST(LogPmfs, GivenConstructedObject_PmfAt0IsAlreadyMemoised) {
   pmf_ptr pmf;
   pmf = std::make_shared<PoissonLogPmf>(params{2});
   auto probs = pmf->get_probs();

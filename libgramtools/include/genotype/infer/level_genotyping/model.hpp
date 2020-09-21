@@ -83,6 +83,8 @@ class LevelGenotyperModel : GenotypingModel {
    */
   void assign_coverage_to_empty_alleles(allele_vector &input_alleles);
 
+  double get_penalised_coverage(Allele const &allele);
+
   /*_______Likelihoods______*/
   /**
    * Counts the number of positions in an allele with coverage above threshold

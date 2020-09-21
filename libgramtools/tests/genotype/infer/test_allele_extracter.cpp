@@ -1,16 +1,24 @@
 #include <memory>
 
+#include "genotype/infer/allele_extracter.hpp"
 #include "gtest/gtest.h"
 #include "mocks.hpp"
-
-#include "genotype/infer/allele_extracter.hpp"
 #include "prg/coverage_graph.hpp"
 #include "prg/types.hpp"
-
 #include "submod_resources.hpp"
 
 using namespace ::testing;
 using namespace gram::submods;
+
+TEST(ExtractRefAllele, GivenSiteNodesInGraph_CorrectRefAllele) {
+  marker_vec v = prg_string_to_ints("AT[[C,A,G]T[G[,C]C,T],TTA]T");
+  PRG_String prg_string{v};
+  coverage_Graph cov_graph{prg_string};
+  auto nodes = get_bubble_nodes(cov_graph.bubble_map, 5);
+  auto ref_allele = extract_ref_allele(nodes.first, nodes.second);
+  EXPECT_EQ(ref_allele.haplogroup, 0);
+  EXPECT_EQ(ref_allele.sequence, "CTGC");
+}
 
 class AlleleCombineTest : public ::testing::Test {
  protected:
