@@ -12,10 +12,8 @@ class UnsupportedPloidy : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
-using numCredibleCounts = std::size_t;
 using multiplicities = std::vector<bool>;
-using likelihood_map =
-    std::multimap<double, GtypedIndices, std::greater<double>>;
+using likelihood_map = std::multimap<double, GtypedIndices, std::greater<>>;
 using memoised_coverages = std::map<AlleleIds, allele_coverages>;
 using CovPair = std::pair<double, double>;
 
@@ -30,8 +28,8 @@ struct ModelData {
 
   ModelData() : gp_counts() {}
 
-  ModelData(allele_vector const input_alleles,
-            GroupedAlleleCounts const gp_counts, Ploidy ploidy,
+  ModelData(allele_vector const &input_alleles,
+            GroupedAlleleCounts const &gp_counts, Ploidy ploidy,
             likelihood_related_stats const *l_stats, bool debug = false)
       : input_alleles(input_alleles),
         gp_counts(gp_counts),
@@ -66,7 +64,7 @@ class LevelGenotyperModel : GenotypingModel {
 
  public:
   LevelGenotyperModel() = default;
-  LevelGenotyperModel(ModelData &input_data);
+  explicit LevelGenotyperModel(ModelData &input_data);
 
   // Constructor for testing
   LevelGenotyperModel(likelihood_related_stats const &input_l_stats,
@@ -88,17 +86,13 @@ class LevelGenotyperModel : GenotypingModel {
    */
   void assign_coverage_to_empty_alleles(allele_vector &input_alleles);
 
-  double get_penalised_coverage(Allele const &allele,
-                                double const &cov_on_allele);
-
   /*_______Likelihoods______*/
   /**
-   * Counts the number of positions in an allele with coverage above threshold
+   * Counts the number of positions in an allele with coverage below threshold
    * `credible_cov_t`. This threshold is the coverage at which true coverage is
    * more likely than erroneous (sequencing error-based) coverage.
    */
-  numCredibleCounts count_credible_positions(CovCount const &credible_cov_t,
-                                             Allele const &allele);
+  std::size_t count_noncredible_positions(Allele const &allele);
 
   /**
    * Computes log-likelihood of allelic coverage and stores it.
@@ -130,8 +124,8 @@ class LevelGenotyperModel : GenotypingModel {
       multiplicities const &haplogroup_multiplicities);
 
   /** For producing the diploid combinations. */
-  std::vector<GtypedIndices> get_permutations(const GtypedIndices &indices,
-                                              std::size_t const subset_size);
+  std::vector<GtypedIndices> get_permutations(GtypedIndices const &indices,
+                                              std::size_t subset_size);
 
   /*_______Coverages______*/
   /**
@@ -155,7 +149,7 @@ class LevelGenotyperModel : GenotypingModel {
    * not a candidate for genotyping
    */
   void CallGenotype(allele_vector const &input_alleles,
-                    multiplicities hap_mults, Ploidy const ploidy);
+                    multiplicities hap_mults, Ploidy ploidy);
 
   /**
    * If coverage differences between chosen allele(s) and next best allele(s)

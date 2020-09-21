@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "genotype/quasimap/coverage/types.hpp"
+#include "common/data_types.hpp"
 
 namespace gram {
 struct Allele {
@@ -37,6 +37,12 @@ struct Allele {
 
   bool operator==(Allele const& other) const {
     return sequence == other.sequence;
+  }
+
+  double get_average_cov() const {
+    double result = std::accumulate(pbCov.begin(), pbCov.end(), 0.0);
+    result /= pbCov.size();
+    return result;
   }
 };
 

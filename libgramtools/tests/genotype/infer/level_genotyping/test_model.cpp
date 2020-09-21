@@ -35,20 +35,6 @@ TEST(HaploidCoverages,
   EXPECT_EQ(gtyper.get_singleton_covs(), expected_singleton_cov);
 }
 
-TEST(PenalisedCoverage, GivenAlleleAndBaseCov_GapsPenalised) {
-  likelihood_related_stats l_stats{};
-  l_stats.credible_cov_t = 1;
-  LevelGenotyperModel genotyper(l_stats, {}, {});
-
-  Allele allele{"TATAA", {0, 1, 2, 2, 2}};
-  auto penalised = genotyper.get_penalised_coverage(allele, 10);
-  EXPECT_DOUBLE_EQ(penalised, 8.0);
-
-  allele.pbCov = PerBaseCoverage{0, 0, 0, 0, 0};
-  penalised = genotyper.get_penalised_coverage(allele, 10);
-  EXPECT_DOUBLE_EQ(penalised, 0.0);
-}
-
 TEST(DiploidCoverages, GivenMultiAllelicClasses_CorrectDiploidCovs) {
   AlleleIds ids{0, 1};  // We want coverages of alleles 0 and 1
 
@@ -127,9 +113,11 @@ TEST(CountCrediblePositions,
      GivenAlleleWithCredibleAndNonCrediblePositions_ReturnCrediblePositions) {
   Allele test_allele{"ATCGCCG", {0, 0, 2, 3, 3, 5, 4}, 0};
 
-  LevelGenotyperModel gtyper;
-  auto num_credible = gtyper.count_credible_positions(3, test_allele);
-  EXPECT_EQ(num_credible, 4);
+  likelihood_related_stats l_stats;
+  l_stats.credible_cov_t = 3;
+  LevelGenotyperModel gtyper{l_stats, {}, {}};
+  auto num_credible = gtyper.count_noncredible_positions(test_allele);
+  EXPECT_EQ(num_credible, 3);
 }
 
 TEST(CountTotalCov, GivenCovStructures_CorrectTotalCoverages) {
@@ -397,7 +385,7 @@ TEST(TestLevelGenotyperModel_NestedScenario,
   GroupedAlleleCounts gp_counts{{{0}, 20}};
 
   // Deliberately enormous variance so it's plausible to have cov gaps
-  // Nonetheless non-gapped allele is expected called
+  // Nonetheless non-gapped allele is expected called due to gap penalty
   likelihood_related_stats l_stats =
       LevelGenotyper::make_l_stats(20, 200000, 0.01);
 

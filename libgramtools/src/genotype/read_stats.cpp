@@ -133,12 +133,9 @@ void gram::AbstractReadStats::compute_coverage_depth(
     site_extraction = extract_max_coverage_allele(
         coverage.grouped_allele_counts, node_pair.first, node_pair.second);
 
-    auto& pb_cov = site_extraction.first.pbCov;
-    if (pb_cov.size() > 0) {
-      site_perbase_coverage =
-          std::accumulate(pb_cov.begin(), pb_cov.end(), 0.0);
-      site_perbase_coverage /= pb_cov.size();
-    } else  // Case: direct deletion allele
+    if (site_extraction.first.pbCov.size() > 0)
+      site_perbase_coverage = site_extraction.first.get_average_cov();
+    else  // Case: direct deletion allele
       site_perbase_coverage = (double)site_extraction.second;
     total_coverage += site_perbase_coverage;
     coverages.push_back(site_perbase_coverage);
