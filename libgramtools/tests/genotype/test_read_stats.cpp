@@ -110,7 +110,7 @@ TEST_F(TestReadMappingStats, ExtractMaxCovAlleleSite0) {
   auto site_pair = get_bubble_nodes(cov_graph.bubble_map, 5);
   auto extracted = stats.extract_max_coverage_allele(
       cov.grouped_allele_counts, site_pair.first, site_pair.second);
-  EXPECT_EQ(extracted.first.sequence, "GTTT");
+  EXPECT_EQ(extracted.first.sequence, "GTAT");
   EXPECT_EQ(extracted.second, 60);
 }
 

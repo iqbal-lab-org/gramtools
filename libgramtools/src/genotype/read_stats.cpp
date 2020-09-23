@@ -102,9 +102,9 @@ ReadStats::allele_and_cov ReadStats::extract_max_coverage_allele(
 
   while (cur_Node != end_node) {
     if (cur_Node->is_bubble_start()) {
-      cur_Node = cur_Node->get_edges().at(max_elem.first);
       site_index = siteID_to_index(cur_Node->get_site_ID());
       max_elem = get_max_cov_haplogroup(gped_covs.at(site_index));
+      cur_Node = cur_Node->get_edges().at(max_elem.first);
       continue;
     }
     if (cur_Node->has_sequence()) {
