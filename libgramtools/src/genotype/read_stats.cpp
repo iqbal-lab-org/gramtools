@@ -123,7 +123,7 @@ void gram::AbstractReadStats::compute_coverage_depth(
   int64_t num_sites_noCov = 0;
   std::vector<double> coverages;
 
-  double mean_coverage, variance_coverage;
+  double mean_coverage = 0., variance_coverage = 0.;
 
   for (const auto& node_pair : cov_graph.bubble_map) {
     auto site_ID = node_pair.first->get_site_ID();

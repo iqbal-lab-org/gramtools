@@ -5,13 +5,11 @@
  * those are required to work.
  */
 
-#include "gtest/gtest.h"
-
-#include "genotype/infer/level_genotyping/runner.hpp"
-#include "genotype/infer/output_specs/make_json.hpp"
-
 #include "../../../test_resources/test_resources.hpp"
 #include "../mocks.hpp"
+#include "genotype/infer/level_genotyping/runner.hpp"
+#include "genotype/infer/output_specs/make_json.hpp"
+#include "gtest/gtest.h"
 
 TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes) {
   std::string prg{"AATAA5C6G6AA7C8G8AA"};
@@ -99,11 +97,11 @@ class LG_SnpsNestedInTwoHaplotypes : public ::testing::Test {
     Sequences all_kmers_vector{all_kmers.begin(), all_kmers.end()};
     setup.setup_bracketed_prg(_prg, all_kmers_vector);
 
-    // This read goes through 5:1 and 7:2
+    // This read goes through 5:0 and 7:1
     for (int num_mapped{0}; num_mapped < 7; num_mapped++)
       reads.push_back(GenomicRead("Read1", "ATCGGCTCGTCAT", "............."));
 
-    // This read goes through 5:2 and 9:2
+    // This read goes through 5:1 and 9:1
     reads.push_back(GenomicRead("Read2", "ATCGGCGGG", "........."));
   }
 

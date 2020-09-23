@@ -322,7 +322,7 @@ class TestLevelGenotyperModel_ExtraAlleles : public ::testing::Test {
 
 TEST_F(TestLevelGenotyperModel_ExtraAlleles, GivenLargeCovs_NoExtraAlleles) {
   LevelGenotyperModel model(l_stats, {1, 39, 1}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  model.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
   EXPECT_FALSE(model.get_site()->extra_alleles());
 }
 
@@ -330,7 +330,7 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
        Given0GtConf_AllBestAllelesAsExtraAlleles) {
   likelihood_map same_likelihoods{{-2, {0}}, {-2, {1}}};
   LevelGenotyperModel model(l_stats, {1, 39}, same_likelihoods);
-  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  model.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
   auto extra_alleles = model.get_site()->extra_alleles();
   EXPECT_TRUE(extra_alleles);
   EXPECT_EQ(extra_alleles.value(), alleles);
@@ -340,16 +340,67 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
        GivenLowCovSituations_HaveExtraAlleles) {
   // Low total coverage on this site compared to mean cov of 40
   LevelGenotyperModel model(l_stats, {1, 5}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  model.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
   auto extra_alleles = model.get_site()->extra_alleles();
   EXPECT_TRUE(extra_alleles);
   EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
 
   LevelGenotyperModel model2(l_stats, {20, 21}, different_likelihoods_haploid);
-  model2.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  model2.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
   extra_alleles = model.get_site()->extra_alleles();
   EXPECT_TRUE(extra_alleles);
   EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
+}
+
+class TestLevelGenotyperModel_IgnoredREF : public ::testing::Test {
+ public:
+  void SetUp() {
+    double mean_cov_depth{10}, mean_pb_error{0.01};
+    l_stats = LevelGenotyper::make_l_stats(mean_cov_depth, 0, mean_pb_error);
+  }
+
+  allele_vector alleles{
+      Allele{"A", {10}, 0},
+      Allele{"C", {9}, 1},
+      Allele{"G", {10}, 2},
+  };
+
+  GroupedAlleleCounts gp_counts{
+      {{0}, 20},  // If ref considered, has more coverage
+      {{1}, 9},
+      {{2}, 10},
+  };
+  likelihood_related_stats l_stats;
+};
+
+TEST_F(TestLevelGenotyperModel_IgnoredREF, CorrectNumberOfLikelihoods) {
+  ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, true);
+  auto haploid_genotyped = LevelGenotyperModel(data);
+  EXPECT_EQ(haploid_genotyped.get_likelihoods().size(), 2);
+
+  data.ploidy = Ploidy::Diploid;
+  auto diploid_genotyped = LevelGenotyperModel(data);
+  // Two homs and one het
+  EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 3);
+}
+
+TEST_F(TestLevelGenotyperModel_IgnoredREF,
+       RescaledGenotypeIndices_AndREFInOutput) {
+  ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, true);
+  auto haploid_genotyped = LevelGenotyperModel(data);
+  auto gtype_info = haploid_genotyped.get_site_gtype_info();
+  allele_vector expected_alleles{alleles.at(0), alleles.at(2)};
+  EXPECT_EQ(gtype_info.alleles, expected_alleles);
+  GtypedIndices expected_gtypes{1};
+  EXPECT_EQ(gtype_info.genotype, expected_gtypes);
+
+  data.ploidy = Ploidy::Diploid;
+  auto diploid_genotyped = LevelGenotyperModel(data);
+  gtype_info = diploid_genotyped.get_site_gtype_info();
+  // Expect heterozygous as homozygous calls have incompatible cov. counts
+  EXPECT_EQ(gtype_info.alleles, alleles);
+  expected_gtypes = GtypedIndices{1, 2};
+  EXPECT_EQ(gtype_info.genotype, expected_gtypes);
 }
 
 TEST(TestLevelGenotyperModel, GivenHomozygousFavouredCov_GetHomozygousCall) {

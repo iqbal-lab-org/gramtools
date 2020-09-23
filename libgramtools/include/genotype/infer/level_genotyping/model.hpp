@@ -24,17 +24,20 @@ struct ModelData {
   GroupedAlleleCounts const gp_counts;
   Ploidy ploidy;
   likelihood_related_stats const *l_stats;
+  bool ignore_ref_allele = false;
   bool debug = false;
 
   ModelData() : gp_counts() {}
 
   ModelData(allele_vector const &input_alleles,
             GroupedAlleleCounts const &gp_counts, Ploidy ploidy,
-            likelihood_related_stats const *l_stats, bool debug = false)
+            likelihood_related_stats const *l_stats,
+            bool ignore_ref_allele = false, bool debug = false)
       : input_alleles(input_alleles),
         gp_counts(gp_counts),
         ploidy(ploidy),
         l_stats(l_stats),
+        ignore_ref_allele(ignore_ref_allele),
         debug(debug){};
 };
 
@@ -145,11 +148,11 @@ class LevelGenotyperModel : GenotypingModel {
 
   /*_______Make result______*/
   /**
-   * @param ref_allele_not_considered_for_gtyping true signals the ref allele is
+   * @param ignore_ref_allele true signals the ref allele is
    * not a candidate for genotyping
    */
-  void CallGenotype(allele_vector const &input_alleles,
-                    multiplicities hap_mults, Ploidy ploidy);
+  void CallGenotype(allele_vector const &input_alleles, bool ignore_ref_allele,
+                    multiplicities hap_mults, Ploidy const ploidy);
 
   /**
    * If coverage differences between chosen allele(s) and next best allele(s)
