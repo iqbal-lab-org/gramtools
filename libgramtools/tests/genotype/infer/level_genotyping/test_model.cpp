@@ -111,13 +111,13 @@ TEST_F(DiploidCoveragesOneDominatingClass,
 
 TEST(CountCrediblePositions,
      GivenAlleleWithCredibleAndNonCrediblePositions_ReturnCrediblePositions) {
-  Allele test_allele{"ATCGCCG", {0, 0, 2, 3, 3, 5, 4}, 0};
+  Allele test_allele{"ATCGCCG", {0, 0, 2, 3, 3, 5, 4, 4}, 0};
 
   likelihood_related_stats l_stats;
   l_stats.credible_cov_t = 3;
   LevelGenotyperModel gtyper{l_stats, {}, {}};
-  auto num_credible = gtyper.count_noncredible_positions(test_allele);
-  EXPECT_EQ(num_credible, 3);
+  auto num_credible = gtyper.fraction_noncredible_positions(test_allele);
+  EXPECT_DOUBLE_EQ(num_credible, 0.375);
 }
 
 TEST(CountTotalCov, GivenCovStructures_CorrectTotalCoverages) {
@@ -438,7 +438,7 @@ TEST(TestLevelGenotyperModel_NestedScenario,
   // Deliberately enormous variance so it's plausible to have cov gaps
   // Nonetheless non-gapped allele is expected called due to gap penalty
   likelihood_related_stats l_stats =
-      LevelGenotyper::make_l_stats(20, 200000, 0.01);
+      LevelGenotyper::make_l_stats(20, 200, 0.01);
 
   ModelData data(alleles, gp_counts, Ploidy::Haploid, &l_stats, false);
   auto genotyped = LevelGenotyperModel(data);

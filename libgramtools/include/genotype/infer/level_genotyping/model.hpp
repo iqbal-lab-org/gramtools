@@ -95,13 +95,13 @@ class LevelGenotyperModel : GenotypingModel {
    * `credible_cov_t`. This threshold is the coverage at which true coverage is
    * more likely than erroneous (sequencing error-based) coverage.
    */
-  std::size_t count_noncredible_positions(Allele const &allele);
+  double fraction_noncredible_positions(Allele const &allele);
 
   /**
    * Computes log-likelihood of allelic coverage and stores it.
    * Handles haploid and diploid flexibly.
    */
-  void add_likelihood(CovPair const &compatible_coverages,
+  void add_likelihood(allele_vector const &alleles,
                       double const &incompatible_coverage,
                       GtypedIndices const &allele_indices);
 

@@ -157,13 +157,14 @@ std::pair<double, double> LevelGenotyperModel::compute_diploid_coverage(
                                             haplogroup_multiplicities);
 }
 
-std::size_t LevelGenotyperModel::count_noncredible_positions(
+double LevelGenotyperModel::fraction_noncredible_positions(
     Allele const& allele) {
   auto& credible_cov_threshold = data.l_stats->credible_cov_t;
-  std::size_t result{0};
+  double num_noncredible_pos{0.};
   for (auto const& pb_cov : allele.pbCov) {
-    if (pb_cov < credible_cov_threshold) ++result;
+    if (pb_cov < credible_cov_threshold) ++num_noncredible_pos;
   }
+  double result = num_noncredible_pos / allele.pbCov.size();
   return result;
 }
 
@@ -241,22 +242,35 @@ std::vector<GtypedIndices> LevelGenotyperModel::get_permutations(
   return result;
 }
 
-void LevelGenotyperModel::add_likelihood(CovPair const& compatible_coverages,
+void LevelGenotyperModel::add_likelihood(allele_vector const& alleles,
                                          double const& incompatible_coverage,
                                          GtypedIndices const& allele_indices) {
-  double log_likelihood;
-  if (data.ploidy == Ploidy::Haploid) {
-    log_likelihood = data.l_stats->pmf_full_depth->operator()(
-                         params{compatible_coverages.first}) +
-                     incompatible_coverage * data.l_stats->log_mean_pb_error;
-  } else if (data.ploidy == Ploidy::Diploid) {
-    log_likelihood = data.l_stats->pmf_full_depth->operator()(
-                         params{compatible_coverages.first}) +
-                     data.l_stats->pmf_full_depth->operator()(
-                         params{compatible_coverages.second}) +
-                     incompatible_coverage * data.l_stats->log_mean_pb_error;
-  } else
-    throw UnsupportedPloidy("");
+  double log_likelihood =
+      incompatible_coverage * data.l_stats->log_mean_pb_error;
+  uint8_t stop_index;
+  switch (data.ploidy) {
+    case Ploidy::Haploid:
+      stop_index = 1;
+      break;
+    case Ploidy::Diploid:
+      stop_index = 2;
+      break;
+    default:
+      throw UnsupportedPloidy("");
+  }
+
+  assert(alleles.size() == stop_index);
+  assert(allele_indices.size() == stop_index);
+  double compatible_coverage, gap_penalty;
+  for (uint8_t i = 0; i < stop_index; i++) {
+    auto const& allele = alleles.at(i);
+    compatible_coverage = allele.get_average_cov();
+    gap_penalty = fraction_noncredible_positions(allele);
+    log_likelihood +=
+        data.l_stats->pmf_full_depth->operator()(params{compatible_coverage});
+    log_likelihood += gap_penalty * data.l_stats->log_zero;
+  }
+
   likelihoods.insert({log_likelihood, allele_indices});
 }
 
@@ -265,11 +279,9 @@ void LevelGenotyperModel::compute_haploid_log_likelihoods(
   GtypedIndex allele_index{0};
 
   for (auto const& allele : input_alleles) {
-    auto compatible_coverage = allele.get_average_cov();
     auto haploid_cov = haploid_allele_coverages.at(allele.haplogroup);
-    auto incompatible_coverage =
-        total_coverage - haploid_cov + count_noncredible_positions(allele);
-    add_likelihood(CovPair{compatible_coverage, 0}, incompatible_coverage,
+    auto incompatible_coverage = total_coverage - haploid_cov;
+    add_likelihood(allele_vector{allele}, incompatible_coverage,
                    GtypedIndices{allele_index});
     ++allele_index;
   }
@@ -284,13 +296,10 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(
     auto coverages = compute_diploid_coverage(
         data.gp_counts, AlleleIds{allele.haplogroup, allele.haplogroup},
         haplogroup_multiplicities);
-    auto compatible_coverage = allele.get_average_cov();
-    auto incompatible_coverage = total_coverage - coverages.first -
-                                 coverages.second +
-                                 count_noncredible_positions(allele);
+    auto incompatible_coverage =
+        total_coverage - coverages.first - coverages.second;
 
-    add_likelihood(CovPair{compatible_coverage, compatible_coverage},
-                   incompatible_coverage,
+    add_likelihood(allele_vector{allele, allele}, incompatible_coverage,
                    GtypedIndices{allele_index, allele_index});
     ++allele_index;
   }
@@ -316,15 +325,11 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(
     AlleleIds haplogroups{allele_1.haplogroup, allele_2.haplogroup};
     auto coverages = compute_diploid_coverage(data.gp_counts, haplogroups,
                                               haplogroup_multiplicities);
-    auto compatible_allele_1 = allele_1.get_average_cov();
-    auto compatible_allele_2 = allele_2.get_average_cov();
-    auto incompatible_coverage = total_coverage - coverages.first -
-                                 coverages.second +
-                                 count_noncredible_positions(allele_1) +
-                                 count_noncredible_positions(allele_2);
+    auto incompatible_coverage =
+        total_coverage - coverages.first - coverages.second;
 
-    add_likelihood(CovPair{compatible_allele_1, compatible_allele_2},
-                   incompatible_coverage, combo);
+    add_likelihood(allele_vector{allele_1, allele_2}, incompatible_coverage,
+                   combo);
   }
 }
 
