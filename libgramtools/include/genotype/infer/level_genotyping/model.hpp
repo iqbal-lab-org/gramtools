@@ -12,6 +12,10 @@ class UnsupportedPloidy : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+class IncorrectGenotyping : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
 using multiplicities = std::vector<bool>;
 using likelihood_map = std::multimap<double, GtypedIndices, std::greater<>>;
 using memoised_coverages = std::map<AlleleIds, allele_coverages>;
@@ -60,13 +64,14 @@ class LevelGenotyperModel : GenotypingModel {
   // Computed at run time
   likelihood_map likelihoods;  // Stores highest likelihoods first
   site_ptr genotyped_site;     // What the class will build
-  Allele ref_allele;
 
  public:
   LevelGenotyperModel() = default;
   explicit LevelGenotyperModel(ModelData &input_data);
 
-  bool ignore_ref_allele() const { return !ref_allele.nesting_consistent; }
+  bool ignore_ref_allele() const {
+    return !data.input_alleles.at(0).nesting_consistent;
+  }
 
   // Constructor for testing
   LevelGenotyperModel(likelihood_related_stats const &input_l_stats,
@@ -168,6 +173,14 @@ class LevelGenotyperModel : GenotypingModel {
   void add_all_best_alleles(allele_vector const &input_alleles,
                             GtypedIndices const &chosen_gt,
                             GtypedIndices const &next_best_gt);
+
+  /**
+   * Picks best likelihood conditional on the genotype not being
+   * nesting inconsistent, to ensure model cannot choose a parent site allele
+   * inconsistent with child site calls.
+   */
+  static likelihood_map::const_iterator ChooseMaxLikelihood(
+      likelihood_map const &likelihoods, allele_vector const &alleles);
 
   AlleleIds get_haplogroups(allele_vector const &alleles,
                             GtypedIndices const &gtype) const;

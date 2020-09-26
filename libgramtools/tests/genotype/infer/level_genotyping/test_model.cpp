@@ -354,6 +354,7 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
   likelihood_map same_likelihoods{{-2, {0}}, {-2, {1}}};
   LevelGenotyperModel model(l_stats, {1, 39}, same_likelihoods);
   model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+
   auto extra_alleles = model.get_site()->extra_alleles().value();
   EXPECT_EQ(extra_alleles, alleles);
   for (auto const& allele : extra_alleles)
@@ -367,16 +368,14 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
   model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   auto extra_alleles = model.get_site()->extra_alleles().value();
   EXPECT_EQ(extra_alleles, allele_vector{alleles.at(0)});
-  for (auto const& allele : extra_alleles)
-    EXPECT_FALSE(allele.nesting_consistent);
+  EXPECT_FALSE(extra_alleles.at(0).nesting_consistent);
 
   // Low relative coverage difference on this site between alleles
   LevelGenotyperModel model2(l_stats, {20, 21}, different_likelihoods_haploid);
   model2.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   extra_alleles = model.get_site()->extra_alleles().value();
   EXPECT_EQ(extra_alleles, allele_vector{alleles.at(0)});
-  for (auto const& allele : extra_alleles)
-    EXPECT_FALSE(allele.nesting_consistent);
+  EXPECT_FALSE(extra_alleles.at(0).nesting_consistent);
 }
 
 class TestLevelGenotyperModel_IgnoredREF : public ::testing::Test {
@@ -500,4 +499,84 @@ TEST(TestLevelGenotyperModel_FourAlleles,
   // Expected number of genotypes: 4 diploid homozygous + (4 choose 2) diploid
   // heterozygous
   EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 10);
+}
+
+class TestMaxLikelihoodCall : public ::testing::Test {
+ public:
+  likelihood_map likelihoods{
+      {-1, {0}},
+      {-2, {1}},
+      {-3, {2}},
+      {-4, {3}},
+  };
+  allele_vector alleles{
+      Allele{"A", {}},
+      Allele{"B", {}},
+      Allele{"C", {}},
+      Allele{"D", {}},
+  };
+};
+
+TEST_F(TestMaxLikelihoodCall, LikelihoodsOrderedDescending) {
+  auto it = likelihoods.begin();
+  double max_likelihood = it->first;
+  while (++it != likelihoods.end()) {
+    EXPECT_TRUE(max_likelihood > it->first);
+    max_likelihood = it->first;
+  }
+}
+
+TEST_F(TestMaxLikelihoodCall, GivenOneLikelihood_Throws) {
+  likelihood_map input{*likelihoods.begin()};
+  EXPECT_THROW(LevelGenotyperModel::ChooseMaxLikelihood(input, allele_vector{}),
+               IncorrectGenotyping);
+}
+
+TEST_F(TestMaxLikelihoodCall,
+       GivenSeveralLikelihoods_ReturnsHighestLikelihood) {
+  EXPECT_EQ(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
+            likelihoods.begin());
+}
+
+TEST_F(TestMaxLikelihoodCall, GivenInconsistentBestLikelihood_ItGetsSkipped) {
+  alleles.at(0).nesting_consistent = false;
+  auto expected = likelihoods.begin();
+  ++expected;
+  EXPECT_EQ(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
+            expected);
+}
+
+TEST_F(TestMaxLikelihoodCall,
+       GivenInconsistentSecondBestLikelihood_NoSkipping) {
+  alleles.at(1).nesting_consistent = false;
+  EXPECT_EQ(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
+            likelihoods.begin());
+}
+
+TEST_F(TestMaxLikelihoodCall, GivenFewerThanTwoConsistentAlleles_Throws) {
+  alleles.at(0).nesting_consistent = false;
+  alleles.at(1).nesting_consistent = false;
+  alleles.at(2).nesting_consistent = false;
+  EXPECT_THROW(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
+               IncorrectGenotyping);
+}
+
+TEST_F(TestMaxLikelihoodCall, GivenNestingInconsistentBestAllele_NotCalled) {
+  auto l_stats = LevelGenotyper::make_l_stats(20, 5, 0.01);
+  multiplicities hap_muts{false};
+
+  // Allele with most coverage is inconsistent
+  // (this should not happen, but there are edge cases where it does: eg,
+  // high-conf child SNP has per-base coverage closer to mean site coverage,
+  // so it has higher likelihood)
+  EXPECT_EQ(likelihoods.begin()->second, GtypedIndices{0});
+  PerAlleleCoverage allele_covs{20, 15, 12, 8};
+  alleles.at(0).nesting_consistent = false;
+
+  LevelGenotyperModel model(l_stats, allele_covs, likelihoods);
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  auto result = model.get_site_gtype_info();
+  auto expected_alleles = allele_vector{alleles.at(0), alleles.at(1)};
+  EXPECT_EQ(result.alleles, expected_alleles);
+  EXPECT_EQ(result.genotype, GtypedIndices{1});
 }

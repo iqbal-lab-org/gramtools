@@ -19,7 +19,7 @@ std::optional<Allele> check_for_duplicates(allele_vector const& input_alleles) {
 LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
     : data(input_data) {
   assert(data.input_alleles.size() > 1);
-  ref_allele = data.input_alleles.at(0);
+  auto const& ref_allele = data.input_alleles.at(0);
   genotyped_site = std::make_shared<LevelGenotypedSite>();
 
   auto haplogroup_multiplicities =
@@ -42,10 +42,6 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
   set_haploid_coverages(data.gp_counts, haplogroup_multiplicities.size());
 
   allele_vector used_alleles(data.input_alleles);
-  if (ignore_ref_allele())
-    used_alleles =
-        allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
-
   assign_coverage_to_empty_alleles(used_alleles);
 
   if (data.ploidy == Ploidy::Haploid)
@@ -275,23 +271,26 @@ void LevelGenotyperModel::add_likelihood(allele_vector const& alleles,
 
 void LevelGenotyperModel::compute_haploid_log_likelihoods(
     allele_vector const& input_alleles) {
-  GtypedIndex allele_index{0};
+  GtypedIndex allele_index{-1};
 
   for (auto const& allele : input_alleles) {
+    ++allele_index;
+    if (allele_index == 0 && ignore_ref_allele()) continue;
     auto haploid_cov = haploid_allele_coverages.at(allele.haplogroup);
     auto incompatible_coverage = total_coverage - haploid_cov;
     add_likelihood(allele_vector{allele}, incompatible_coverage,
                    GtypedIndices{allele_index});
-    ++allele_index;
   }
 }
 
 void LevelGenotyperModel::compute_homozygous_log_likelihoods(
     allele_vector const& input_alleles,
     multiplicities const& haplogroup_multiplicities) {
-  GtypedIndex allele_index{0};
+  GtypedIndex allele_index{-1};
 
   for (auto const& allele : input_alleles) {
+    ++allele_index;
+    if (allele_index == 0 && ignore_ref_allele()) continue;
     auto coverages = compute_diploid_coverage(
         data.gp_counts, AlleleIds{allele.haplogroup, allele.haplogroup},
         haplogroup_multiplicities);
@@ -300,7 +299,6 @@ void LevelGenotyperModel::compute_homozygous_log_likelihoods(
 
     add_likelihood(allele_vector{allele, allele}, incompatible_coverage,
                    GtypedIndices{allele_index, allele_index});
-    ++allele_index;
   }
 }
 
@@ -308,10 +306,12 @@ void LevelGenotyperModel::compute_heterozygous_log_likelihoods(
     allele_vector const& input_alleles,
     multiplicities const& haplogroup_multiplicities) {
   GtypedIndices selected_indices;
-  GtypedIndex index{0};
+  GtypedIndex allele_index{-1};
   for (auto const& allele : input_alleles) {
+    ++allele_index;
+    if (allele_index == 0 && ignore_ref_allele()) continue;
     if (singleton_allele_coverages.at(allele.haplogroup) != 0)
-      selected_indices.push_back(index++);
+      selected_indices.push_back(allele_index);
   }
 
   if (selected_indices.size() < 2) return;
@@ -369,20 +369,45 @@ void LevelGenotyperModel::add_all_best_alleles(
   genotyped_site->set_extra_alleles(result);
 }
 
+likelihood_map::const_iterator LevelGenotyperModel::ChooseMaxLikelihood(
+    likelihood_map const& likelihoods, allele_vector const& alleles) {
+  if (likelihoods.size() < 2)
+    throw IncorrectGenotyping(
+        "Less than 2 alleles have a likelihood.\n"
+        "Allele extraction bug?");
+  auto it = likelihoods.begin();
+  while (it != likelihoods.end()) {
+    bool inconsistent = false;
+    auto chosen_gt = it->second;
+    for (auto const& gt : chosen_gt) {
+      if (!alleles.at(gt).nesting_consistent) {
+        inconsistent = true;
+        break;
+      }
+    }
+    if (inconsistent)
+      ++it;
+    else
+      break;
+  }
+  if (std::distance(it, likelihoods.end()) < 2)
+    throw IncorrectGenotyping(
+        "Fewer than 2 alleles are consistent with child"
+        "sites.\nAllele extraction bug?");
+
+  return it;
+}
+
 void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
                                        multiplicities hap_mults,
                                        Ploidy const ploidy) {
-  auto it = likelihoods.begin();
-  auto chosen_gt = it->second;
+  auto const& ref_allele = input_alleles.at(0);
+  auto it = ChooseMaxLikelihood(likelihoods, input_alleles);
   auto best_likelihood = it->first;
+  auto chosen_gt = it->second;
   ++it;
   auto gt_confidence = best_likelihood - it->first;
   auto next_best_gt = it->second;
-  // Express the genotypes with the ref re-added at index 0
-  if (ignore_ref_allele()) {
-    for (auto& gt : chosen_gt) gt++;
-    for (auto& gt : next_best_gt) gt++;
-  }
 
   if (gt_confidence == 0.) {
     genotyped_site->set_alleles(allele_vector{ref_allele});
