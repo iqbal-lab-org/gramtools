@@ -60,9 +60,8 @@ LevelGenotyper::LevelGenotyper(coverage_Graph const& cov_graph,
     auto extracted_alleles = extracter.get_alleles();
     auto& gped_covs_for_site = gped_covs.at(site_index);
 
-    bool ignore_ref_allele = !extracter.ref_allele_got_made_naturally();
     ModelData data(extracted_alleles, gped_covs_for_site, ploidy, &l_stats,
-                   ignore_ref_allele, debug);
+                   debug);
     auto genotyped = LevelGenotyperModel(data);
     auto genotyped_site = genotyped.get_site();
     genotyped_site->set_pos(bubble_pair.first->get_pos());

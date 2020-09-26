@@ -1,3 +1,5 @@
+#include "simulate/simulate.hpp"
+
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include "common/file_read.hpp"
@@ -7,9 +9,7 @@
 #include "genotype/infer/personalised_reference.hpp"
 #include "prg/coverage_graph.hpp"
 #include "prg/make_data_structures.hpp"
-
 #include "simulate/induce_genotypes.hpp"
-#include "simulate/simulate.hpp"
 
 using namespace gram::genotype;
 using namespace gram::simulate;
@@ -33,8 +33,7 @@ SimulationGenotyper::SimulationGenotyper(coverage_Graph const& cov_graph) {
                                      genotyped_records);
     RandomInclusiveInt rand(0);
     auto genotyped_site =
-        make_randomly_genotyped_site(&rand, extracter.get_alleles(),
-                                     extracter.ref_allele_got_made_naturally());
+        make_randomly_genotyped_site(&rand, extracter.get_alleles());
     genotyped_site->set_pos(bubble_pair.first->get_pos());
     genotyped_site->set_site_end_node(bubble_pair.second);
 
@@ -45,10 +44,10 @@ SimulationGenotyper::SimulationGenotyper(coverage_Graph const& cov_graph) {
 }
 
 lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator const* const rand,
-                                            allele_vector const& alleles,
-                                            bool const use_ref_allele) {
+                                            allele_vector const& alleles) {
   allele_vector picked_alleles{alleles.begin(),
                                alleles.begin() + 1};  // Always pick REF
+  bool use_ref_allele = alleles.at(0).nesting_consistent;
   uint32_t picked_index;
   if (use_ref_allele)
     picked_index = rand->generate(0, alleles.size() - 1);

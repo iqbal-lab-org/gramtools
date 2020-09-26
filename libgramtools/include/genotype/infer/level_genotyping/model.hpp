@@ -24,20 +24,17 @@ struct ModelData {
   GroupedAlleleCounts const gp_counts;
   Ploidy ploidy;
   likelihood_related_stats const *l_stats;
-  bool ignore_ref_allele = false;
   bool debug = false;
 
   ModelData() : gp_counts() {}
 
   ModelData(allele_vector const &input_alleles,
             GroupedAlleleCounts const &gp_counts, Ploidy ploidy,
-            likelihood_related_stats const *l_stats,
-            bool ignore_ref_allele = false, bool debug = false)
+            likelihood_related_stats const *l_stats, bool debug = false)
       : input_alleles(input_alleles),
         gp_counts(gp_counts),
         ploidy(ploidy),
         l_stats(l_stats),
-        ignore_ref_allele(ignore_ref_allele),
         debug(debug){};
 };
 
@@ -68,6 +65,8 @@ class LevelGenotyperModel : GenotypingModel {
  public:
   LevelGenotyperModel() = default;
   explicit LevelGenotyperModel(ModelData &input_data);
+
+  bool ignore_ref_allele() const { return !ref_allele.nesting_consistent; }
 
   // Constructor for testing
   LevelGenotyperModel(likelihood_related_stats const &input_l_stats,
@@ -147,11 +146,7 @@ class LevelGenotyperModel : GenotypingModel {
       multiplicities const &hap_mults);
 
   /*_______Make result______*/
-  /**
-   * @param ignore_ref_allele true signals the ref allele is
-   * not a candidate for genotyping
-   */
-  void CallGenotype(allele_vector const &input_alleles, bool ignore_ref_allele,
+  void CallGenotype(allele_vector const &input_alleles,
                     multiplicities hap_mults, Ploidy const ploidy);
 
   /**

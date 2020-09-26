@@ -11,32 +11,49 @@ struct Allele {
   PerBaseCoverage pbCov;
   AlleleId
       haplogroup; /**< Which ID in its site this allele is associated with */
+  bool nesting_consistent = true; /**< Whether the allele is consistent with
+                                       calls in child sites */
 
   Allele() : sequence(""), haplogroup(0) {}
   Allele(std::string seq, PerBaseCoverage pb)
       : sequence(seq), pbCov(pb), haplogroup(0) {}
   Allele(std::string seq, PerBaseCoverage pb, AlleleId haplo)
       : sequence(seq), pbCov(pb), haplogroup(haplo) {}
+  Allele(std::string seq, PerBaseCoverage pb, AlleleId haplo, bool consistent)
+      : sequence(seq),
+        pbCov(pb),
+        haplogroup(haplo),
+        nesting_consistent(consistent) {}
 
   /**
    * Allele combination overload
    * The left-hand side (= this object) argument's haplogroup is used,
    * regardless of `other`'s haplogroup.
+   * The right-hand site `nesting_consistent` if false always overrides,because
+   * any inconsistent portion makes whole allele uncallable by parent site.
    */
   Allele operator+(Allele const& other) const {
     PerBaseCoverage new_pbCov;
     new_pbCov.reserve(pbCov.size() + other.pbCov.size());
     new_pbCov.insert(new_pbCov.end(), pbCov.begin(), pbCov.end());
     new_pbCov.insert(new_pbCov.end(), other.pbCov.begin(), other.pbCov.end());
-    return Allele{sequence + other.sequence, new_pbCov, haplogroup};
+    bool new_consistent = nesting_consistent & other.nesting_consistent;
+    return Allele{sequence + other.sequence, new_pbCov, haplogroup,
+                  new_consistent};
   }
 
   bool operator<(Allele const& other) const {
     return sequence < other.sequence;
   }
 
+  /**
+   * Note: nesting consistency boolean attribute should NOT be used
+   * in comparison; notably because when looking for the ref in vector of
+   * alleles, either state should give a match.
+   */
   bool operator==(Allele const& other) const {
-    return sequence == other.sequence;
+    return sequence == other.sequence && pbCov == other.pbCov &&
+           haplogroup == other.haplogroup;
   }
 
   double get_average_cov() const {

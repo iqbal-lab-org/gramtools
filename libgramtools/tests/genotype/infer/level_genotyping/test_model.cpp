@@ -10,6 +10,7 @@ using namespace gram::genotype::infer;
 /**
  * Coverage computations
  */
+
 TEST(HaploidCoverages,
      GivenSingletonCountsOnly_CorrectHaploidAndSingletonCovs) {
   GroupedAlleleCounts gp_covs{{{0}, 5}, {{1}, 10}, {{3}, 1}};
@@ -71,6 +72,27 @@ TEST(DiploidCoverages, GivenOnlyMultiAllelicClasses_CorrectDiploidCovs) {
   EXPECT_FLOAT_EQ(diploid_covs.second, 1.5);
 }
 
+TEST(LevelGenotyperModelDirectDeletion, GivenEmptyAllele_AssignsCoverage) {
+  allele_vector alleles{
+      Allele{"C", {8}, 0},
+      Allele{"G", {8}, 0},
+      Allele{"", {}, 1},
+  };
+
+  GroupedAlleleCounts gp_counts{
+      {{0}, 8},
+      {{1}, 8},
+      {{0, 1}, 1},
+  };
+  auto expected = alleles;
+  expected.at(2).pbCov = PerBaseCoverage{9};
+
+  LevelGenotyperModel m;
+  m.set_haploid_coverages(gp_counts, 2);
+  m.assign_coverage_to_empty_alleles(alleles);
+  EXPECT_EQ(alleles, expected);
+}
+
 class DiploidCoveragesOneDominatingClass : public ::testing::Test {
  protected:
   void SetUp() { gtyper.set_haploid_coverages(gp_covs, 2); }
@@ -110,7 +132,7 @@ TEST_F(DiploidCoveragesOneDominatingClass,
 }
 
 TEST(CountCrediblePositions,
-     GivenAlleleWithCredibleAndNonCrediblePositions_ReturnCrediblePositions) {
+     GivenAlleleWithCredibleAndNonCrediblePositions_ReturnCredibleFraction) {
   Allele test_allele{"ATCGCCG", {0, 0, 2, 3, 3, 5, 4, 4}, 0};
 
   likelihood_related_stats l_stats;
@@ -192,6 +214,7 @@ TEST(RescaleGenotypes, GivenVariousGenotypes_CorrectRescaling) {
 /**
  * Full run of the genotyping model
  */
+
 TEST(TestLevelGenotyperModel_Failure, GivenOneAlleleOnly_Breaks) {
   // No likelihood ratio if only one allele. Note this should not present itself
   // if allele extraction works correctly, as any bubble has at least 2 alleles.
@@ -322,7 +345,7 @@ class TestLevelGenotyperModel_ExtraAlleles : public ::testing::Test {
 
 TEST_F(TestLevelGenotyperModel_ExtraAlleles, GivenLargeCovs_NoExtraAlleles) {
   LevelGenotyperModel model(l_stats, {1, 39, 1}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   EXPECT_FALSE(model.get_site()->extra_alleles());
 }
 
@@ -330,26 +353,30 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
        Given0GtConf_AllBestAllelesAsExtraAlleles) {
   likelihood_map same_likelihoods{{-2, {0}}, {-2, {1}}};
   LevelGenotyperModel model(l_stats, {1, 39}, same_likelihoods);
-  model.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
-  auto extra_alleles = model.get_site()->extra_alleles();
-  EXPECT_TRUE(extra_alleles);
-  EXPECT_EQ(extra_alleles.value(), alleles);
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  auto extra_alleles = model.get_site()->extra_alleles().value();
+  EXPECT_EQ(extra_alleles, alleles);
+  for (auto const& allele : extra_alleles)
+    EXPECT_TRUE(allele.nesting_consistent);
 }
 
 TEST_F(TestLevelGenotyperModel_ExtraAlleles,
        GivenLowCovSituations_HaveExtraAlleles) {
   // Low total coverage on this site compared to mean cov of 40
   LevelGenotyperModel model(l_stats, {1, 5}, different_likelihoods_haploid);
-  model.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
-  auto extra_alleles = model.get_site()->extra_alleles();
-  EXPECT_TRUE(extra_alleles);
-  EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
+  model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  auto extra_alleles = model.get_site()->extra_alleles().value();
+  EXPECT_EQ(extra_alleles, allele_vector{alleles.at(0)});
+  for (auto const& allele : extra_alleles)
+    EXPECT_FALSE(allele.nesting_consistent);
 
+  // Low relative coverage difference on this site between alleles
   LevelGenotyperModel model2(l_stats, {20, 21}, different_likelihoods_haploid);
-  model2.CallGenotype(alleles, false, hap_muts, Ploidy::Haploid);
-  extra_alleles = model.get_site()->extra_alleles();
-  EXPECT_TRUE(extra_alleles);
-  EXPECT_EQ(extra_alleles.value(), allele_vector{alleles.at(0)});
+  model2.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
+  extra_alleles = model.get_site()->extra_alleles().value();
+  EXPECT_EQ(extra_alleles, allele_vector{alleles.at(0)});
+  for (auto const& allele : extra_alleles)
+    EXPECT_FALSE(allele.nesting_consistent);
 }
 
 class TestLevelGenotyperModel_IgnoredREF : public ::testing::Test {
@@ -360,7 +387,7 @@ class TestLevelGenotyperModel_IgnoredREF : public ::testing::Test {
   }
 
   allele_vector alleles{
-      Allele{"A", {10}, 0},
+      Allele{"A", {10}, 0, false},
       Allele{"C", {9}, 1},
       Allele{"G", {10}, 2},
   };
@@ -473,25 +500,4 @@ TEST(TestLevelGenotyperModel_FourAlleles,
   // Expected number of genotypes: 4 diploid homozygous + (4 choose 2) diploid
   // heterozygous
   EXPECT_EQ(diploid_genotyped.get_likelihoods().size(), 10);
-}
-
-TEST(LevelGenotyperModelDirectDeletion, GivenEmptyAllele_AssignsCoverage) {
-  allele_vector alleles{
-      Allele{"C", {8}, 0},
-      Allele{"G", {8}, 0},
-      Allele{"", {}, 1},
-  };
-
-  GroupedAlleleCounts gp_counts{
-      {{0}, 8},
-      {{1}, 8},
-      {{0, 1}, 1},
-  };
-  auto expected = alleles;
-  expected.at(2).pbCov = PerBaseCoverage{9};
-
-  LevelGenotyperModel m;
-  m.set_haploid_coverages(gp_counts, 2);
-  m.assign_coverage_to_empty_alleles(alleles);
-  EXPECT_EQ(alleles, expected);
 }

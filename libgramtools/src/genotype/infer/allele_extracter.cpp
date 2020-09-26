@@ -64,12 +64,11 @@ void AlleleExtracter::allele_paste(allele_vector& existing,
 }
 
 void AlleleExtracter::place_ref_as_first_allele(allele_vector& alleles,
-                                                Allele const& ref_allele) {
-  this->_ref_allele_got_made_naturally = true;
+                                                Allele ref_allele) {
   auto found_ref = std::find(alleles.begin(), alleles.end(), ref_allele);
   if (found_ref == alleles.end()) {
+    ref_allele.nesting_consistent = false;
     alleles = prepend(alleles, ref_allele);
-    this->_ref_allele_got_made_naturally = false;
   } else if (found_ref != alleles.begin())
     std::swap(*found_ref, alleles.at(0));
 }

@@ -35,15 +35,40 @@ class AlleleCombineTest : public ::testing::Test {
 };
 
 TEST_F(AlleleCombineTest,
-       oneAlleleHaploidGenotype_oneCorrectCombinationAllele) {
+       SiteHasOneCalledAllele_CorrectCombinationWithLeftHaplogroupKept) {
+  // The called allele has hapg of 2, but we expect combined allele to keep its
+  // haplogroup
+  site.set_alleles(allele_vector{Allele{"CCC", {1, 1, 1}, 2}});
   site.set_genotype(GtypedIndices{0});
-  site.set_alleles(allele_vector{Allele{"CCC", {1, 1, 1}}});
 
-  allele_vector one_allele(existing_alleles.begin(),
-                           existing_alleles.begin() + 1);
+  allele_vector one_allele{existing_alleles.at(0)};
   auto result = test_extracter.allele_combine(one_allele, 0);
   allele_vector expected{{"ATTGCCC", {0, 1, 2, 3, 1, 1, 1}, 0}};
   EXPECT_EQ(result, expected);
+}
+
+TEST_F(AlleleCombineTest,
+       SiteHasExtraAllele_ExtraAlleleIncludedAndNestingInconsistencyIncluded) {
+  // Extraction includes extra alleles and nesting inconsistent gets copied to
+  // combined allele
+  site.set_alleles(allele_vector{
+      Allele{"CCC", {1, 1, 1}},
+      Allele{"GGG", {2, 2, 2}},
+  });
+  site.set_extra_alleles(allele_vector{Allele{"AAA", {2, 1, 0}, 2, false}});
+  site.set_genotype(GtypedIndices{1});
+
+  allele_vector one_allele{existing_alleles.at(0)};
+  EXPECT_TRUE(one_allele.at(0).nesting_consistent);
+
+  auto result = test_extracter.allele_combine(one_allele, 0);
+  allele_vector expected{
+      {"ATTGGGG", {0, 1, 2, 3, 2, 2, 2}, 0},
+      {"ATTGAAA", {0, 1, 2, 3, 2, 1, 0}, 0},
+  };
+  EXPECT_EQ(result, expected);
+  EXPECT_TRUE(result.at(0).nesting_consistent);
+  EXPECT_FALSE(result.at(1).nesting_consistent);
 }
 
 TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele) {
@@ -57,6 +82,7 @@ TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele) {
   allele_vector expected{{"ATTGTTT", {0, 1, 2, 3, 1, 1, 1}, 0}};
 
   EXPECT_EQ(result, expected);
+  EXPECT_TRUE(result.at(0).nesting_consistent);
 };
 
 TEST_F(AlleleCombineTest,
@@ -80,7 +106,8 @@ TEST_F(AlleleCombineTest,
   };
 
   EXPECT_EQ(result, expected);
-};
+  for (auto const& allele : result) EXPECT_TRUE(allele.nesting_consistent);
+}
 
 TEST(AllelePasteTest,
      TwoAllelesOneCoverageNode_CorrectlyAppendedSequenceandCoverage) {
@@ -124,8 +151,9 @@ TEST_F(AlleleExtracter_NestedPRG, NestedBubble_CorrectAlleles) {
                             nested_bubble_nodes.second, genotyped_sites};
 
   allele_vector expected{{"C", {0}, 0}, {"A", {0}, 1}, {"G", {0}, 2}};
-  EXPECT_TRUE(extracter.ref_allele_got_made_naturally());
-  EXPECT_EQ(extracter.get_alleles(), expected);
+  auto result = extracter.get_alleles();
+  EXPECT_TRUE(result.at(0).nesting_consistent);
+  EXPECT_EQ(result, expected);
 }
 
 TEST_F(AlleleExtracter_NestedPRG,
@@ -155,8 +183,9 @@ TEST_F(AlleleExtracter_NestedPRG,
                          {"GCCGT", {0, 0, 0, 0, 0}, 0},
                          {"TTA", {0, 0, 0}, 1}};
 
-  EXPECT_TRUE(extracter.ref_allele_got_made_naturally());
-  EXPECT_EQ(extracter.get_alleles(), expected);
+  auto result = extracter.get_alleles();
+  EXPECT_TRUE(result.at(0).nesting_consistent);
+  EXPECT_EQ(result, expected);
 }
 
 TEST_F(AlleleExtracter_NestedPRG,
@@ -172,8 +201,9 @@ TEST_F(AlleleExtracter_NestedPRG,
                          {"GCCGT", {0, 0, 0, 0, 0}, 0},
                          {"TTA", {0, 0, 0}, 1}};
 
-  EXPECT_FALSE(extracter.ref_allele_got_made_naturally());
-  EXPECT_EQ(extracter.get_alleles(), expected);
+  auto result = extracter.get_alleles();
+  EXPECT_FALSE(result.at(0).nesting_consistent);
+  EXPECT_EQ(result, expected);
 }
 
 TEST_F(AlleleExtracter_NestedPRG,

@@ -23,7 +23,7 @@ class AlleleExtracter {
  private:
   allele_vector alleles;
   gt_sites const* genotyped_sites;
-  bool _ref_allele_got_made_naturally;  // Used for testing purposes only
+
  public:
   AlleleExtracter() : genotyped_sites(nullptr){};
 
@@ -33,8 +33,7 @@ class AlleleExtracter {
 
   allele_vector const get_alleles() const { return alleles; }
 
-  void place_ref_as_first_allele(allele_vector& alleles,
-                                 Allele const& ref_allele);
+  void place_ref_as_first_allele(allele_vector& alleles, Allele ref_allele);
 
   /**
    * Linear traversal of an allelic haplogroup, extracting all relevant
@@ -61,10 +60,6 @@ class AlleleExtracter {
    * @return void because `existing` is modified in place
    */
   void allele_paste(allele_vector& existing, covG_ptr sequence_node);
-
-  bool ref_allele_got_made_naturally() const {
-    return _ref_allele_got_made_naturally;
-  }
 };
 }  // namespace gram::genotype::infer
 

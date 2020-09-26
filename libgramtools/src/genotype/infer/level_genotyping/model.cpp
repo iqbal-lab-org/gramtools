@@ -42,7 +42,7 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
   set_haploid_coverages(data.gp_counts, haplogroup_multiplicities.size());
 
   allele_vector used_alleles(data.input_alleles);
-  if (data.ignore_ref_allele)
+  if (ignore_ref_allele())
     used_alleles =
         allele_vector{data.input_alleles.begin() + 1, data.input_alleles.end()};
 
@@ -56,8 +56,7 @@ LevelGenotyperModel::LevelGenotyperModel(ModelData& input_data)
                                          haplogroup_multiplicities);
   }
 
-  CallGenotype(data.input_alleles, data.ignore_ref_allele,
-               haplogroup_multiplicities, data.ploidy);
+  CallGenotype(data.input_alleles, haplogroup_multiplicities, data.ploidy);
 }
 
 void LevelGenotyperModel::set_haploid_coverages(
@@ -351,7 +350,11 @@ void LevelGenotyperModel::add_next_best_alleles(
       if (next_best.find(gt) != next_best.end()) next_best.erase(gt);
     }
     allele_vector result;
-    for (auto const& gt : next_best) result.push_back(input_alleles.at(gt));
+    for (auto const& gt : next_best) {
+      auto added_allele = input_alleles.at(gt);
+      added_allele.nesting_consistent = false;
+      result.push_back(added_allele);
+    }
     genotyped_site->set_extra_alleles(result);
   }
 }
@@ -367,7 +370,6 @@ void LevelGenotyperModel::add_all_best_alleles(
 }
 
 void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
-                                       bool ignore_ref_allele,
                                        multiplicities hap_mults,
                                        Ploidy const ploidy) {
   auto it = likelihoods.begin();
@@ -377,7 +379,7 @@ void LevelGenotyperModel::CallGenotype(allele_vector const& input_alleles,
   auto gt_confidence = best_likelihood - it->first;
   auto next_best_gt = it->second;
   // Express the genotypes with the ref re-added at index 0
-  if (ignore_ref_allele) {
+  if (ignore_ref_allele()) {
     for (auto& gt : chosen_gt) gt++;
     for (auto& gt : next_best_gt) gt++;
   }

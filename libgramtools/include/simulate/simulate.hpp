@@ -34,8 +34,7 @@ class SimulationGenotyper : public LevelGenotyper {
  should be false.
  */
 lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand,
-                                            allele_vector const &alleles,
-                                            bool const use_ref_allele = true);
+                                            allele_vector const &alleles);
 }  // namespace gram::simulate
 
 namespace gram::commands::simulate {
