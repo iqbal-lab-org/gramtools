@@ -28,9 +28,13 @@ class RandomInclusiveInt : public RandomGenerator {
  public:
   RandomInclusiveInt() = default;
 
-  RandomInclusiveInt(Seed const &random_seed);
+  RandomInclusiveInt(Seed const& random_seed);
 
   uint32_t generate(uint32_t min, uint32_t max) override;
+  Seed const& get_seed() const { return seed; }
+
+ private:
+  Seed seed = std::nullopt;
 };
 }  // namespace gram
 

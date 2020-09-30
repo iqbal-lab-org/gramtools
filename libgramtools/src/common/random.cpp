@@ -9,6 +9,7 @@ RandomInclusiveInt::RandomInclusiveInt(Seed const &random_seed) {
     std::random_device seed_generator;
     master_seed = seed_generator();
   }
+  this->seed = master_seed;
   this->random_number_generator.seed(master_seed);
 }
 

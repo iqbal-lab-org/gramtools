@@ -262,10 +262,12 @@ TEST(RandomGenerator, GivenFixedSeed_ReturnsKnownAnswers) {
   SeedSize result = r();
   SeedSize expected = 1872583848;
   EXPECT_EQ(result, expected);
+  EXPECT_EQ(r.get_seed().value(), random_seed);
 
   result = r();
   expected = 794921487;
   EXPECT_EQ(result, expected);
+  EXPECT_EQ(r.get_seed().value(), random_seed);
 }
 
 TEST(RandomInclusiveInt, GivenSize2IntervalAndSeed_ReturnsKnownAnswers) {

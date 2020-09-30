@@ -21,11 +21,17 @@ QuasimapReadsStats gram::quasimap_reads(const GenotypeParams &parameters,
   quasimap_stats.coverage = coverage::generate::empty_structure(prg_info);
   std::cout << "Done generating allele quasimap data structure" << std::endl;
 
-  std::cout << "Processing reads:" << std::endl;
-
   // Produces seeds to initialise other random number generators used
   // in multi-mapping read selection
   auto master_seed_generator = RandomInclusiveInt(parameters.seed);
+
+  std::cout << "Master random seed for read selection: "
+            << std::to_string(master_seed_generator.get_seed().value())
+            << std::endl;
+  std::cout << "Maximum thread count: " << parameters.maximum_threads
+            << std::endl;
+
+  std::cout << "Processing reads:" << std::endl;
 
   // Execute quasimap for each read file provided
   for (const auto &reads_fpath : parameters.reads_fpaths) {

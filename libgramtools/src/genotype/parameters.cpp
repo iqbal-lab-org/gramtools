@@ -64,9 +64,10 @@ GenotypeParams commands::genotype::parse_parameters(
       "kmer_size", po::value<uint32_t>(&parameters.kmers_size)->required(),
       "kmer size that got used in build step")(
       "genotype_dir", po::value<std::string>(&run_dirpath)->required(),
-      "output directory")("max_threads", po::value<Seed::value_type>(&seed),
+      "output directory")("max_threads",
+                          po::value<uint32_t>()->default_value(1),
                           "maximum number of threads used")(
-      "seed", po::value<uint32_t>()->default_value(0),
+      "seed", po::value<SeedSize>(&seed),
       "seed for pseudo-random selection of multi-mapping reads. "
       "a random seed is generated if this option is not used.");
 
@@ -108,12 +109,9 @@ GenotypeParams commands::genotype::parse_parameters(
   parameters.personalised_ref_fpath =
       full_path(geno_dirpath, "personalised_reference.fasta");
 
-  parameters.seed = seed;
-
   parameters.maximum_threads = vm["max_threads"].as<uint32_t>();
-  std::cout << "maximum thread count: " << parameters.maximum_threads
-            << std::endl;
   omp_set_num_threads(parameters.maximum_threads);
 
+  if (vm.count("seed")) parameters.seed = seed;
   return parameters;
 }
