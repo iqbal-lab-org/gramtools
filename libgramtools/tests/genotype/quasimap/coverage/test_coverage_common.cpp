@@ -1,7 +1,5 @@
-#include "gtest/gtest.h"
-
 #include "genotype/quasimap/coverage/coverage_common.hpp"
-
+#include "gtest/gtest.h"
 #include "mocks.hpp"
 #include "submod_resources.hpp"
 
@@ -13,22 +11,6 @@ std::set<SitePath> get_site_path_only(uniqueSitePaths const& map) {
     site_path.insert(e.first);
   }
   return site_path;
-}
-
-TEST(RandomInclusiveInt, RandomCall_MinBoundaryReturned) {
-  uint32_t random_seed = 48;
-  RandomInclusiveInt r{random_seed};
-  uint32_t result = r.generate(1, 10);
-  uint32_t expected = 5;
-  EXPECT_EQ(result, expected);
-}
-
-TEST(RandomInclusiveInt, RandomCall_MaxBoundaryReturned) {
-  uint32_t random_seed = 56;
-  RandomInclusiveInt r{random_seed};
-  uint32_t result = r.generate(1, 10);
-  uint32_t expected = 4;
-  EXPECT_EQ(result, expected);
 }
 
 TEST(CountNonvariantSearchStates, OnePathOneNonPath_CountOne) {
@@ -268,11 +250,56 @@ TEST_F(LocusFinder_full,
   EXPECT_EQ(l2.unique_loci, expected_unique_loci);
 }
 
+/**
+ * Test random selection of multi-mapping reads
+ */
+
+TEST(RandomGenerator, GivenFixedSeed_ReturnsKnownAnswers) {
+  // Calling the object as a functor is used for generating seeds used
+  // for each mapped read
+  uint32_t random_seed = 2;
+  RandomInclusiveInt r{random_seed};
+  SeedSize result = r();
+  SeedSize expected = 1872583848;
+  EXPECT_EQ(result, expected);
+
+  result = r();
+  expected = 794921487;
+  EXPECT_EQ(result, expected);
+}
+
+TEST(RandomInclusiveInt, GivenSize2IntervalAndSeed_ReturnsKnownAnswers) {
+  uint32_t random_seed = 2;
+  RandomInclusiveInt r{random_seed};
+  uint32_t result = r.generate(1, 10);
+  uint32_t expected = 5;
+  EXPECT_EQ(result, expected);
+
+  result = r.generate(1, 10);
+  expected = 2;
+  EXPECT_EQ(result, expected);
+}
+
+TEST(RandomInclusiveInt, GivenSize1Interval_ReturnsOnlyOption) {
+  uint32_t random_seed = 56;
+  RandomInclusiveInt r{random_seed};
+  uint32_t result = r.generate(1, 1);
+  uint32_t expected = 1;
+  EXPECT_EQ(result, expected);
+}
+
+TEST(RandomInclusiveInt, GivenSize2IntervalAndNoSeed_ReturnsInInclusiveRange) {
+  RandomInclusiveInt r{std::nullopt};
+  uint32_t result = r.generate(1, 2);
+  EXPECT_TRUE(result >= 1);
+  EXPECT_TRUE(result <= 2);
+}
+
 class MappingInstanceSelector_addSearchStates : public ::testing::Test {
  protected:
   // In this example we pretend we have mapped "TAA" to the graph.
   // Note: the allele encapsulated mapping handling has separated a single
-  // SearchState into three. The SA_Intervals are dummies.
+  // SearchState into three.
   void SetUp() {
     std::string prg_raw{"[CG[TAA,T],TAA]TA[TAA,ATA]"};
     coverage_Graph c;
@@ -326,8 +353,9 @@ class MappingInstanceSelector_select : public ::testing::Test {
    * (7), and two do not cross any variant site in the PRG, and are held
    * together (SA Interval of size 2)
    *
-   * The logic for random selection is choosing between 1 and 3, where 1 and 2
-   * correspond to the invariants.
+   * The logic for random selection is choosing between the `SearchState`s
+   * overlapping variation (they are site-equivalent so are considered
+   * together), and the one that does not.
    */
  protected:
   PRG_Info prg_info;

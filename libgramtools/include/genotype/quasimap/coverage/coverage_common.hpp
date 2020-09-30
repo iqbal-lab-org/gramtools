@@ -26,7 +26,7 @@ namespace coverage::record {
  */
 void search_states(Coverage &coverage, const SearchStates &search_states,
                    const uint64_t &read_length, const PRG_Info &prg_info,
-                   const uint32_t &random_seed = 0);
+                   SeedSize const &selection_seed = 0);
 }  // namespace coverage::record
 
 namespace coverage::generate {
@@ -138,7 +138,7 @@ struct SelectedMapping {
  * Takes a set of `SearchState`s, dispatches them into equivalence classes, and
  * randomly selects equivalent mapping instances of the read.
  *
- * The basis for selection is the set of `level0_Sites` in `usps`.
+ * The basis for selection is the set of `level1_Sites` in `usps`.
  */
 class MappingInstanceSelector {
  public:

@@ -5,14 +5,12 @@
 #ifndef GRAMTOOLS_QUASIMAP_HPP
 #define GRAMTOOLS_QUASIMAP_HPP
 
-#include "genotype/parameters.hpp"
-#include "sequence_read/seqread.hpp"
-
 #include "build/kmer_index/kmer_index_types.hpp"
+#include "genotype/parameters.hpp"
 #include "genotype/quasimap/coverage/coverage_common.hpp"
 #include "genotype/read_stats.hpp"
-
 #include "search/encapsulated_search.hpp"
+#include "sequence_read/seqread.hpp"
 
 namespace gram {
 
@@ -38,7 +36,8 @@ QuasimapReadsStats quasimap_reads(const GenotypeParams &parameters,
 void handle_read_file(QuasimapReadsStats &quasimap_stats,
                       const std::string &reads_fpath,
                       const GenotypeParams &parameters,
-                      const KmerIndex &kmer_index, const PRG_Info &prg_info);
+                      const KmerIndex &kmer_index, const PRG_Info &prg_info,
+                      RandomGenerator *const seed_generator);
 
 /**
  * Calls quasimapping routine on a given read (forward mapping), and its reverse
@@ -48,7 +47,8 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
                               const Sequence &read,
                               const GenotypeParams &parameters,
                               const KmerIndex &kmer_index,
-                              const PRG_Info &prg_info);
+                              const PRG_Info &prg_info,
+                              SeedSize const &selection_seed);
 
 /**
  * Map a read to the prg, starting from the precomputed set of search states
@@ -62,7 +62,8 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
  */
 bool quasimap_read(const Sequence &read, Coverage &coverage,
                    const KmerIndex &kmer_index, const PRG_Info &prg_info,
-                   const GenotypeParams &parameters);
+                   const GenotypeParams &parameters,
+                   SeedSize const &selection_seed = 42);
 
 Sequence get_kmer_from_read(const uint32_t &kmer_size, const Sequence &read);
 

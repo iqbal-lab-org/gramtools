@@ -48,6 +48,7 @@ GenotypeParams commands::genotype::parse_parameters(
   std::vector<std::string> reads_fpaths;
   std::string run_dirpath;
   ploidy_argument ploidy;
+  Seed::value_type seed;
 
   po::options_description genotype_description("genotype options");
   genotype_description.add_options()(
@@ -63,12 +64,11 @@ GenotypeParams commands::genotype::parse_parameters(
       "kmer_size", po::value<uint32_t>(&parameters.kmers_size)->required(),
       "kmer size that got used in build step")(
       "genotype_dir", po::value<std::string>(&run_dirpath)->required(),
-      "output directory")("max_threads",
-                          po::value<uint32_t>()->default_value(1),
+      "output directory")("max_threads", po::value<Seed::value_type>(&seed),
                           "maximum number of threads used")(
       "seed", po::value<uint32_t>()->default_value(0),
       "seed for pseudo-random selection of multi-mapping reads. "
-      "the default of 0 produces a random seed.");
+      "a random seed is generated if this option is not used.");
 
   std::vector<std::string> opts =
       po::collect_unrecognized(parsed.options, po::include_positional);
@@ -108,7 +108,7 @@ GenotypeParams commands::genotype::parse_parameters(
   parameters.personalised_ref_fpath =
       full_path(geno_dirpath, "personalised_reference.fasta");
 
-  parameters.seed = vm["seed"].as<uint32_t>();
+  parameters.seed = seed;
 
   parameters.maximum_threads = vm["max_threads"].as<uint32_t>();
   std::cout << "maximum thread count: " << parameters.maximum_threads

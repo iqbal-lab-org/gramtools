@@ -2,6 +2,7 @@
 
 #include <omp.h>
 
+#include "common/random.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "genotype/quasimap/coverage/coverage_common.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
@@ -21,13 +22,15 @@ QuasimapReadsStats gram::quasimap_reads(const GenotypeParams &parameters,
   std::cout << "Done generating allele quasimap data structure" << std::endl;
 
   std::cout << "Processing reads:" << std::endl;
-  // QuasimapReadsStats records counts of processed reads, skipped reads and
-  // mapped reads
+
+  // Produces seeds to initialise other random number generators used
+  // in multi-mapping read selection
+  auto master_seed_generator = RandomInclusiveInt(parameters.seed);
 
   // Execute quasimap for each read file provided
   for (const auto &reads_fpath : parameters.reads_fpaths) {
     handle_read_file(quasimap_stats, reads_fpath, parameters, kmer_index,
-                     prg_info);
+                     prg_info, &master_seed_generator);
   }
 
   auto &coverage = quasimap_stats.coverage;
@@ -69,12 +72,12 @@ std::vector<Sequence> get_reads_buffer(SeqRead::SeqIterator &reads_it,
  */
 void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
                          const std::vector<Sequence> &reads_buffer,
+                         Seeds const &selection_seeds,
                          const GenotypeParams &parameters,
                          const KmerIndex &kmer_index,
                          const PRG_Info &prg_info) {
   uint64_t last_count_reported = 0;
 
-//  Parallelise loop below
 #pragma omp parallel for
   for (std::size_t i = 0; i < reads_buffer.size(); ++i) {
     auto thread_id = omp_get_thread_num();
@@ -93,14 +96,15 @@ void handle_reads_buffer(QuasimapReadsStats &quasimap_stats,
     quasimap_stats.all_reads_count +=
         2;  //  Increment by 2: mapping forward and reverse of read
 
-    auto read = reads_buffer[i];
+    auto const read = reads_buffer.at(i);
     if (read.empty()) {
 #pragma omp atomic
       quasimap_stats.skipped_reads_count += 2;
       continue;
     }
+    auto const selection_seed = selection_seeds.at(i);
     quasimap_forward_reverse(quasimap_stats, read, parameters, kmer_index,
-                             prg_info);
+                             prg_info, selection_seed);
   }
 }
 
@@ -108,16 +112,22 @@ void gram::handle_read_file(QuasimapReadsStats &quasimap_stats,
                             const std::string &reads_fpath,
                             const GenotypeParams &parameters,
                             const KmerIndex &kmer_index,
-                            const PRG_Info &prg_info) {
+                            const PRG_Info &prg_info,
+                            RandomGenerator *const seed_generator) {
   //  Number of reads to load in memory; is upper limit of number of reads that
   //  can be mapped in parallel
-  uint64_t max_set_size = 5000;
+  uint64_t max_num_reads = 5000;
+  // Used for random selection of multi-mapping reads
+  Seeds selection_seeds(max_num_reads);
+
   SeqRead reads(reads_fpath.c_str());
   auto reads_it = reads.begin();
   while (reads_it != reads.end()) {
-    auto reads_buffer = get_reads_buffer(reads_it, reads, max_set_size);
-    handle_reads_buffer(quasimap_stats, reads_buffer, parameters, kmer_index,
-                        prg_info);
+    auto reads_buffer = get_reads_buffer(reads_it, reads, max_num_reads);
+    for (int i = 0; i < max_num_reads; i++)
+      selection_seeds.at(i) = (*seed_generator)();
+    handle_reads_buffer(quasimap_stats, reads_buffer, selection_seeds,
+                        parameters, kmer_index, prg_info);
   }
 }
 
@@ -125,10 +135,12 @@ void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
                                     const Sequence &read,
                                     const GenotypeParams &parameters,
                                     const KmerIndex &kmer_index,
-                                    const PRG_Info &prg_info) {
+                                    const PRG_Info &prg_info,
+                                    SeedSize const &selection_seed) {
   // Forward mapping
-  bool read_mapped_exactly = quasimap_read(read, quasimap_stats.coverage,
-                                           kmer_index, prg_info, parameters);
+  bool read_mapped_exactly =
+      quasimap_read(read, quasimap_stats.coverage, kmer_index, prg_info,
+                    parameters, selection_seed);
   if (read_mapped_exactly) {
 #pragma omp atomic
     ++quasimap_stats.mapped_reads_count;
@@ -136,8 +148,9 @@ void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
 
   auto reverse_read = reverse_complement_read(read);
   // Reverse mapping
-  read_mapped_exactly = quasimap_read(reverse_read, quasimap_stats.coverage,
-                                      kmer_index, prg_info, parameters);
+  read_mapped_exactly =
+      quasimap_read(reverse_read, quasimap_stats.coverage, kmer_index, prg_info,
+                    parameters, selection_seed);
   if (read_mapped_exactly) {
 #pragma omp atomic
     ++quasimap_stats.mapped_reads_count;
@@ -146,7 +159,8 @@ void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
 
 bool gram::quasimap_read(const Sequence &read, Coverage &coverage,
                          const KmerIndex &kmer_index, const PRG_Info &prg_info,
-                         const GenotypeParams &parameters) {
+                         const GenotypeParams &parameters,
+                         SeedSize const &selection_seed) {
   auto kmer = get_kmer_from_read(parameters.kmers_size,
                                  read);  // Gets last k bases of read
 
@@ -156,9 +170,8 @@ bool gram::quasimap_read(const Sequence &read, Coverage &coverage,
   if (not read_mapped_exactly) return read_mapped_exactly;
   auto read_length = read.size();
 
-  uint64_t random_seed = parameters.seed;
   coverage::record::search_states(coverage, search_states, read_length,
-                                  prg_info, random_seed);
+                                  prg_info, selection_seed);
   return read_mapped_exactly;
 }
 

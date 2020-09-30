@@ -84,10 +84,10 @@ def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
         str(geno_paths.geno_dir),
         "--max_threads",
         str(args.max_threads),
-        "--seed",
-        str(args.seed),
     ]
 
+    if args.seed is not None:
+        command += ["--seed", str(args.seed)]
     if args.debug:
         command += ["--debug"]
 

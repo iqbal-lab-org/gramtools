@@ -10,6 +10,9 @@
 
 namespace gram {
 enum class Ploidy { Haploid, Diploid };
+using SeedSize = uint32_t;
+using Seed = std::optional<SeedSize>;
+using Seeds = std::vector<SeedSize>;
 
 class GenotypeParams : public CommonParameters {
  public:
@@ -28,7 +31,7 @@ class GenotypeParams : public CommonParameters {
 
   std::string debug_fpath;
 
-  uint32_t seed;
+  Seed seed = std::nullopt;
 };
 
 namespace commands::genotype {

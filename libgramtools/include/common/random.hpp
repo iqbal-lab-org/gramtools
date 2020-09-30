@@ -2,6 +2,9 @@
 #define GRAMTOOLS_RANDOM_HPP
 
 #include <cstdint>
+#include <random>
+
+#include "genotype/parameters.hpp"
 
 namespace gram {
 
@@ -12,19 +15,22 @@ class RandomGenerator {
  public:
   virtual ~RandomGenerator(){};
 
-  virtual uint32_t generate(uint32_t min, uint32_t max) const = 0;
+  virtual uint32_t generate(uint32_t min, uint32_t max) = 0;
+
+  SeedSize operator()() { return random_number_generator(); }
+
+ protected:
+  std::mt19937
+      random_number_generator;  // 32-bit unsigned random number generator
 };
 
 class RandomInclusiveInt : public RandomGenerator {
  public:
   RandomInclusiveInt() = default;
 
-  RandomInclusiveInt(uint32_t const &random_seed);
+  RandomInclusiveInt(Seed const &random_seed);
 
-  uint32_t generate(uint32_t min, uint32_t max) const override;
-
- private:
-  uint32_t random_seed;
+  uint32_t generate(uint32_t min, uint32_t max) override;
 };
 }  // namespace gram
 

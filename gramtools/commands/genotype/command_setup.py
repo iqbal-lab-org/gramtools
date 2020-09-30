@@ -23,7 +23,7 @@ def setup_parser(common_parser, subparsers):
         help="One or more read files.\n"
         "Valid formats: fastq, sam/bam/cram, fasta, txt; compressed or uncompressed; fuzzy extensions (eg fq, fsq for fastq).\n"
         "Read files can be given after one or several '--reads' argument:"
-        "Eg '--reads rf_1.fq rf_2.fq.gz --reads rf_3.bam '",
+        " eg '--reads rf_1.fq rf_2.fq.gz --reads rf_3.bam '",
         nargs="+",
         action="append",
         type=str,
@@ -46,7 +46,7 @@ def setup_parser(common_parser, subparsers):
 
     parser.add_argument(
         "--max_threads",
-        help="Run with more threads than the default of one.",
+        help="Max number of threads to use. Default: 1.",
         type=int,
         default=1,
         required=False,
@@ -54,9 +54,8 @@ def setup_parser(common_parser, subparsers):
 
     parser.add_argument(
         "--seed",
-        help="Fixing the seed will produce the same read mappings across different runs."
-        "By default, seed is randomly generated so this is not the case.",
+        help="Fix the seed to produce the same read mappings across different runs."
+        " Default: None (seed gets randomly generated).",
         type=int,
-        default=0,
         required=False,
     )

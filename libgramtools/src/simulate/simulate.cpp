@@ -31,7 +31,7 @@ SimulationGenotyper::SimulationGenotyper(coverage_Graph const& cov_graph) {
 
     auto extracter = AlleleExtracter(bubble_pair.first, bubble_pair.second,
                                      genotyped_records);
-    RandomInclusiveInt rand(0);
+    RandomInclusiveInt rand(std::nullopt);
     auto genotyped_site =
         make_randomly_genotyped_site(&rand, extracter.get_alleles());
     genotyped_site->set_pos(bubble_pair.first->get_pos());
@@ -43,7 +43,7 @@ SimulationGenotyper::SimulationGenotyper(coverage_Graph const& cov_graph) {
   }
 }
 
-lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator const* const rand,
+lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator* const rand,
                                             allele_vector const& alleles) {
   allele_vector picked_alleles{alleles.begin(),
                                alleles.begin() + 1};  // Always pick REF

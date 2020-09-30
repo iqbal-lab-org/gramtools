@@ -1,9 +1,9 @@
+#include "genotype/quasimap/coverage/coverage_common.hpp"
+
+#include "common/random.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "genotype/quasimap/coverage/allele_sum.hpp"
 #include "genotype/quasimap/coverage/grouped_allele_counts.hpp"
-
-#include "common/random.hpp"
-#include "genotype/quasimap/coverage/coverage_common.hpp"
 
 using namespace gram;
 
@@ -52,7 +52,7 @@ void LocusFinder::assign_nested_locus(VariantLocus const &var_loc,
 
 void LocusFinder::assign_traversing_loci(SearchState const &search_state,
                                          info_ptr prg_info) {
-  if (search_state.traversing_path.size() == 0) return;
+  if (search_state.traversing_path.empty()) return;
   auto r = search_state.traversing_path.rbegin();
   Marker parent_seed = r->first;
   assert(r->second == ALLELE_UNKNOWN);
@@ -92,14 +92,14 @@ MappingInstanceSelector::MappingInstanceSelector(
   process_searchstates(input_search_states);
   int32_t selected_index = random_select_entry();
   if (selected_index >= 0) apply_selection(selected_index);
-};
+}
 
 int32_t MappingInstanceSelector::random_select_entry() {
   if (usps.size() == 0) return -1;
   uint32_t nonvariant_count = count_nonvar_search_states(input_search_states);
   uint32_t count_total_options = nonvariant_count + usps.size();
 
-  uint32_t selected_option = rand_generator->generate(1, count_total_options);
+  auto selected_option = rand_generator->generate(1, count_total_options);
   // If we select a non-variant path, no coverage information will get recorded.
   bool no_variants = selected_option <= nonvariant_count;
   if (no_variants) return -1;
@@ -165,9 +165,9 @@ uint32_t MappingInstanceSelector::count_nonvar_search_states(
  */
 SelectedMapping selection(const SearchStates &search_states,
                           const uint64_t &read_length, const PRG_Info &prg_info,
-                          const uint32_t &random_seed) {
-  RandomInclusiveInt rng{random_seed};
-  MappingInstanceSelector m{search_states, &prg_info, &rng};
+                          SeedSize const &selection_seed) {
+  RandomInclusiveInt selector{Seed{selection_seed}};
+  MappingInstanceSelector m{search_states, &prg_info, &selector};
 
   // This contains empty containers if we selected a mapping instance in an
   // invariant part of the PRG
@@ -180,13 +180,13 @@ void coverage::record::search_states(Coverage &coverage,
                                      const SearchStates &search_states,
                                      const uint64_t &read_length,
                                      const PRG_Info &prg_info,
-                                     const uint32_t &random_seed) {
+                                     SeedSize const &selection_seed) {
   SelectedMapping selected_search_states =
-      selection(search_states, read_length, prg_info, random_seed);
+      selection(search_states, read_length, prg_info, selection_seed);
 
   // If we selected a mapping instance that does not overlap any variant site,
   // there is no coverage to record.
-  if (selected_search_states.navigational_search_states.size() == 0) return;
+  if (selected_search_states.navigational_search_states.empty()) return;
 
   coverage::record::allele_base(
       prg_info, selected_search_states.navigational_search_states, read_length);

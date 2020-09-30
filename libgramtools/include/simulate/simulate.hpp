@@ -33,7 +33,7 @@ class SimulationGenotyper : public LevelGenotyper {
  bubbles, it is still produced by the `AlleleExtracter`. In that case this param
  should be false.
  */
-lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator const *const rand,
+lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator *const rand,
                                             allele_vector const &alleles);
 }  // namespace gram::simulate
 
