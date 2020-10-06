@@ -138,26 +138,8 @@ void simulate_paths(json_prg_ptr& simu_json, coverage_Graph const& cov_graph,
   fasta_fhandle.close();
 }
 
-gt_sites induce_genotypes_one_seq(gt_sites const& template_sites,
-                                  coverage_Graph const& input_prg,
-                                  std::string const& sequence,
-                                  std::string const& seq_id) {
-  gt_sites result;
-  result.reserve(template_sites.size());
-  for (auto const& template_site : template_sites) {
-    auto downcasted = std::dynamic_pointer_cast<SimulatedSite>(template_site);
-    result.push_back(std::make_shared<SimulatedSite>(*downcasted));
-  }
-
-  nt_ptr endpoint;
-  endpoint = thread_sequence(input_prg.root, sequence, seq_id, false);
-
-  apply_genotypes(endpoint, result);
-  return result;
-}
-
 void induce_genotypes_all_seqs(json_prg_ptr& simu_json,
-                               coverage_Graph const& input_prg,
+                               coverage_Graph const& input_cov_graph,
                                std::string const& fasta_fpath) {
   boost::iostreams::filtering_istreambuf in;
   std::ifstream fhandle(fasta_fpath, std::ios::binary);
@@ -166,7 +148,7 @@ void induce_genotypes_all_seqs(json_prg_ptr& simu_json,
   input_fasta(in, fhandle, is_gzipped(fasta_fpath));
   std::istream getter{&in};
 
-  auto template_sites = make_nulled_sites(input_prg);
+  auto template_sites = make_nulled_sites(input_cov_graph);
   bool first{true};
   std::stringstream coords_file{""};
   SegmentTracker tracker(coords_file);
@@ -175,10 +157,10 @@ void induce_genotypes_all_seqs(json_prg_ptr& simu_json,
   while (std::getline(getter, line)) {
     if (line[0] == '>') {
       if (!fasta_seq.empty()) {
-        auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg,
-                                                     fasta_seq, fasta_id);
-        auto gtyper =
-            std::make_shared<SimulationGenotyper>(input_prg, gtyped_sites);
+        auto gtyped_sites = induce_genotypes_one_seq(
+            template_sites, input_cov_graph, fasta_seq, fasta_id);
+        auto gtyper = std::make_shared<SimulationGenotyper>(input_cov_graph,
+                                                            gtyped_sites);
         add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
       }
       fasta_seq.clear();
@@ -188,10 +170,10 @@ void induce_genotypes_all_seqs(json_prg_ptr& simu_json,
       fasta_seq += line;
   }
   if (!fasta_seq.empty() && !fasta_id.empty()) {
-    auto gtyped_sites = induce_genotypes_one_seq(template_sites, input_prg,
-                                                 fasta_seq, fasta_id);
+    auto gtyped_sites = induce_genotypes_one_seq(
+        template_sites, input_cov_graph, fasta_seq, fasta_id);
     auto gtyper =
-        std::make_shared<SimulationGenotyper>(input_prg, gtyped_sites);
+        std::make_shared<SimulationGenotyper>(input_cov_graph, gtyped_sites);
     add_new_json(simu_json, gtyper, tracker, first, fasta_id, desc);
   }
 }

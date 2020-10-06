@@ -4,20 +4,6 @@
 
 using namespace gram::simulate;
 
-void NodeThread::visit(nt_ptr_v& to_visit, std::string const& sequence) const {
-  auto node_size = prg_node->get_sequence_size();
-  if (prg_node->has_sequence()) {
-    auto seq_slice = sequence.substr(offset, node_size);
-    // Only add new nodes to visit if this node's sequence matches
-    if (seq_slice != prg_node->get_sequence()) return;
-  }
-  for (auto const& n : prg_node->get_edges()) {
-    auto new_node = std::make_shared<const NodeThread>(shared_from_this(), n,
-                                                       offset + node_size);
-    to_visit.push_back(new_node);
-  }
-}
-
 gt_sites gram::simulate::make_nulled_sites(coverage_Graph const& input_prg) {
   using namespace gram::genotype::infer;
   gt_sites genotyped_records(input_prg.bubble_map.size());
@@ -39,10 +25,22 @@ gt_sites gram::simulate::make_nulled_sites(coverage_Graph const& input_prg) {
   return genotyped_records;
 }
 
-nt_ptr gram::simulate::thread_sequence(covG_ptr root,
-                                       std::string const& sequence,
-                                       std::string const& seq_id,
-                                       bool const no_ambiguous) {
+void NodeThread::visit(nt_ptr_v& to_visit, std::string const& sequence) const {
+  auto node_size = prg_node->get_sequence_size();
+  if (prg_node->has_sequence()) {
+    auto seq_slice = sequence.substr(offset, node_size);
+    // Only add new nodes to visit if this node's sequence matches
+    if (seq_slice != prg_node->get_sequence()) return;
+  }
+  for (auto const& n : prg_node->get_edges()) {
+    auto new_node = std::make_shared<const NodeThread>(shared_from_this(), n,
+                                                       offset + node_size);
+    to_visit.push_back(new_node);
+  }
+}
+
+nt_ptr_v gram::simulate::thread_sequence(covG_ptr root,
+                                         std::string const& sequence) {
   auto cur_Node = std::make_shared<const NodeThread>(nullptr, root, 0);
   nt_ptr_v to_visit{cur_Node}, endpoints;
   while (not to_visit.empty()) {
@@ -53,18 +51,25 @@ nt_ptr gram::simulate::thread_sequence(covG_ptr root,
     else
       cur_Node->visit(to_visit, sequence);
   }
+  return endpoints;
+}
 
-  std::string msg{};
+std::pair<bool, nt_ptr> gram::simulate::get_single_endpoint(
+    nt_ptr_v const& endpoints, std::string const& seq_id,
+    bool const no_ambiguous) {
+  nt_ptr selected_endpoint;
+  bool has_ambiguity = false;
+  std::string msg;
   switch (endpoints.size()) {
     case 0:
       msg = "Could not thread a path through the prg for sequence: " + seq_id;
       throw NoEndpoints(msg);
     case 1:
-      return endpoints.back();
+      selected_endpoint = endpoints.back();
+      break;
     default:
       msg = "Found more than one path through the prg for sequence: " + seq_id;
       if (no_ambiguous) throw TooManyEndpoints(msg);
-      std::cerr << msg << std::endl;
       // Return path which consumed the most input sequence
       int max_offset = 0, max_loc = 0, next_offset;
       for (int i = 0; i < endpoints.size(); i++) {
@@ -74,8 +79,10 @@ nt_ptr gram::simulate::thread_sequence(covG_ptr root,
           max_loc = i;
         }
       }
-      return endpoints[max_loc];
+      selected_endpoint = endpoints[max_loc];
+      has_ambiguity = true;
   }
+  return std::make_pair(has_ambiguity, selected_endpoint);
 }
 
 Allele extract_allele(nt_ptr const& end_point, Marker const& target_site_ID) {
@@ -98,6 +105,7 @@ Allele extract_allele(nt_ptr const& end_point, Marker const& target_site_ID) {
 }
 
 void gram::simulate::apply_genotypes(nt_ptr const& end_point,
+                                     bool const has_ambiguity,
                                      gt_sites const& sites) {
   auto cur_Node = end_point;
   auto cur_prg_node = cur_Node->get_prg_node();
@@ -119,8 +127,26 @@ void gram::simulate::apply_genotypes(nt_ptr const& end_point,
                               1,
                               AlleleIds{extracted_allele.haplogroup}});
       }
+      if (has_ambiguity) site->set_filter("AMBIG");
     }
     cur_Node = cur_Node->get_parent();
     cur_prg_node = cur_Node->get_prg_node();
   }
+}
+
+gt_sites gram::simulate::induce_genotypes_one_seq(
+    gt_sites const& template_sites, coverage_Graph const& input_prg,
+    std::string const& sequence, std::string const& seq_id) {
+  gt_sites result;
+  result.reserve(template_sites.size());
+  for (auto const& template_site : template_sites) {
+    auto downcasted = std::dynamic_pointer_cast<SimulatedSite>(template_site);
+    result.push_back(std::make_shared<SimulatedSite>(*downcasted));
+  }
+
+  auto endpoints = thread_sequence(input_prg.root, sequence);
+  auto checked_endpoint = get_single_endpoint(endpoints, seq_id, false);
+
+  apply_genotypes(checked_endpoint.second, checked_endpoint.first, result);
+  return result;
 }

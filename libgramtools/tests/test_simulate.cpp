@@ -67,55 +67,78 @@ class TestInduceGenotypes_ThreadSimpleSeq : public ::testing::Test {
 TEST_F(TestInduceGenotypes_ThreadSimpleSeq,
        GivenSequenceNotInGraph_ThrowsError) {
   std::string absent_sequence{"AACTGACTTT"};
-  EXPECT_THROW(thread_sequence(g.root, absent_sequence, ""), NoEndpoints);
+  auto const result = thread_sequence(g.root, absent_sequence);
+  EXPECT_EQ(result.size(), 0);
+  EXPECT_THROW(get_single_endpoint(result, "", false), NoEndpoints);
 }
 
 TEST_F(TestInduceGenotypes_ThreadSimpleSeq,
        GivenSequenceInGraphButIncomplete_ThrowsError) {
   std::string sequence{"AACTGACC"};
-  EXPECT_THROW(thread_sequence(g.root, sequence, ""), NoEndpoints);
+  auto const result = thread_sequence(g.root, sequence);
+  EXPECT_THROW(get_single_endpoint(result, "", false), NoEndpoints);
 }
 
 TEST_F(TestInduceGenotypes_ThreadSimpleSeq,
        GivenSequenceInGraphAndComplete_GetSingleEndpoint) {
   std::string goodseq1{"AACTGACCCC"};
-  auto result = thread_sequence(g.root, goodseq1, "");
-  EXPECT_EQ(result->get_prg_node(), graph_end);
-  EXPECT_EQ(result->get_offset(), 10);
+  auto result = thread_sequence(g.root, goodseq1);
+  EXPECT_EQ(result.size(), 1);
+  auto endpoint = result.back();
+  EXPECT_EQ(endpoint->get_prg_node(), graph_end);
+  EXPECT_EQ(endpoint->get_offset(), 10);
 
   std::string goodseq2{"AAATGGCACCC"};
-  result = thread_sequence(g.root, goodseq2, "");
-  EXPECT_EQ(result->get_prg_node(), graph_end);
-  EXPECT_EQ(result->get_offset(), 11);
+  result = thread_sequence(g.root, goodseq2);
+  EXPECT_EQ(result.size(), 1);
+  endpoint = result.back();
+  EXPECT_EQ(endpoint->get_prg_node(), graph_end);
+  EXPECT_EQ(endpoint->get_offset(), 11);
 }
 
-TEST(InduceGenotypes_ThreadAmbigSeq, GivenAmbiguityInPrg_ThrowsError) {
+TEST(InduceGenotypes_ThreadAmbigSeq, FlexibleTreatmentOfAmbiguity) {
   // Below PRGs have sequence ambiguity
   auto ambiguous_prg = prg_string_to_ints("AA[A,AA]A[AA,A]");
   coverage_Graph g = coverage_Graph{PRG_String{ambiguous_prg}};
-  EXPECT_THROW(thread_sequence(g.root, "AAAAAA", ""), TooManyEndpoints);
 
-  // The function can tolerate ambiguity
+  auto endpoints = thread_sequence(g.root, "AAAAAA");
+  EXPECT_TRUE(endpoints.size() > 1);
+  EXPECT_THROW(get_single_endpoint(endpoints, "", true), TooManyEndpoints);
+
+  // The last parameter to `get_single_endpoints` switches on/off tolerating
+  // ambiguity
   ambiguous_prg = prg_string_to_ints("AT[CA,C[C,A]]GG");
   g = coverage_Graph{PRG_String{ambiguous_prg}};
-  EXPECT_NO_THROW(thread_sequence(g.root, "ATCAGG", "", false));
+  endpoints = thread_sequence(g.root, "ATCAGG");
+  EXPECT_TRUE(endpoints.size() > 1);
+  EXPECT_NO_THROW(get_single_endpoint(endpoints, "", false));
 }
 
 TEST(InduceGenotypes_NonConsumingInputSequence, LongestPathReturned) {
   // The threading process allows input sequences that consume the full graph
   // but not the full input sequence.
   // If there are several paths, return the most consuming one.
-  auto linear_prg = prg_string_to_ints("AA[A,AA]");
-  auto g = coverage_Graph{PRG_String{linear_prg}};
-  EXPECT_THROW(thread_sequence(g.root, "AAAAAAAA", ""), TooManyEndpoints);
+  std::vector<std::string> test_prg_seqs{"AA[A,AA]", "AA[AA,A]"};
+  for (auto const& test_seq : test_prg_seqs) {
+    auto linear_prg = prg_string_to_ints("AA[A,AA]");
+    auto g = coverage_Graph{PRG_String{linear_prg}};
+    auto endpoints = thread_sequence(g.root, "AAAAAAAA");
+    EXPECT_EQ(endpoints.size(), 2);
 
-  auto result = thread_sequence(g.root, "AAAAAAAA", "", false);
-  EXPECT_EQ(result->get_offset(), 4);
+    auto result = get_single_endpoint(endpoints, "", false);
+    EXPECT_TRUE(result.first);  // `has_ambiguity` boolean
+    EXPECT_EQ(result.second->get_offset(), 4);
+  }
+}
 
-  linear_prg = prg_string_to_ints("AA[AA,A]");
-  g = coverage_Graph{PRG_String{linear_prg}};
-  result = thread_sequence(g.root, "AAAAAAAA", "", false);
-  EXPECT_EQ(result->get_offset(), 4);
+TEST(InduceGenotypes_ApplyGenotypes, GivenAmbiguousSequence_AMBIGFilterSet) {
+  auto encoded_prg = prg_string_to_ints("AA[AA,A]A[A,AA]");
+  auto g = coverage_Graph{PRG_String{encoded_prg}};
+  auto sites = make_nulled_sites(g);
+  auto endpoints = thread_sequence(g.root, "AAAAAA");
+  auto checked_endpoint = get_single_endpoint(endpoints, "", false);
+  apply_genotypes(checked_endpoint.second, checked_endpoint.first, sites);
+  for (auto const& site : sites) EXPECT_TRUE(site->has_filter("AMBIG"));
 }
 
 TEST(InduceGenotypes_MakeNullSites, SitesAreNullGTAndHaveRefSeqOnly) {
@@ -133,7 +156,7 @@ TEST(InduceGenotypes_MakeNullSites, SitesAreNullGTAndHaveRefSeqOnly) {
   EXPECT_EQ(site2->get_alleles().at(0).sequence, "A");
 }
 
-class TestInduceGenotypes_ApplyGenotypes : public ::testing::Test {
+class TestInduceGenotypes_InduceOneSeq : public ::testing::Test {
  protected:
   gt_sites sites;
   coverage_Graph g;
@@ -144,12 +167,12 @@ class TestInduceGenotypes_ApplyGenotypes : public ::testing::Test {
   }
 };
 
-TEST_F(TestInduceGenotypes_ApplyGenotypes,
+TEST_F(TestInduceGenotypes_InduceOneSeq,
        GivenRefThreadedSeq_CorrectGenotypedSites) {
-  auto endpoint = thread_sequence(g.root, "ATAATACA", "");
-  apply_genotypes(endpoint, sites);
+  auto induced_sites = induce_genotypes_one_seq(sites, g, "ATAATACA", "");
 
-  for (auto const& site : gt_sites{sites.begin(), sites.begin() + 2}) {
+  for (auto const& site :
+       gt_sites{induced_sites.begin(), induced_sites.begin() + 2}) {
     EXPECT_FALSE(site->is_null());
     auto result = site->get_all_gtype_info();
     EXPECT_EQ(result.alleles.size(), 1);
@@ -157,24 +180,24 @@ TEST_F(TestInduceGenotypes_ApplyGenotypes,
     EXPECT_EQ(result.haplogroups, AlleleIds{0});
   }
 
-  auto alleles = sites.at(0)->get_alleles();
+  auto alleles = induced_sites.at(0)->get_alleles();
   EXPECT_EQ(alleles.at(0).sequence, "");
 
-  alleles = sites.at(1)->get_alleles();
+  alleles = induced_sites.at(1)->get_alleles();
   EXPECT_EQ(alleles.at(0).sequence, "TA");
 
-  EXPECT_TRUE(sites.at(2)->is_null());
+  EXPECT_TRUE(induced_sites.at(2)->is_null());
 }
 
-TEST_F(TestInduceGenotypes_ApplyGenotypes,
+TEST_F(TestInduceGenotypes_InduceOneSeq,
        GivenNonRefThreadedSeq_CorrectGenotypedSites) {
-  auto endpoint = thread_sequence(g.root, "ATCAAGGGGACA", "");
-  apply_genotypes(endpoint, sites);
+  auto induced_sites = induce_genotypes_one_seq(sites, g, "ATCAAGGGGACA", "");
   std::vector<std::string> expected_seqs;
   AlleleIds expected_ids;
 
-  for (auto const& site : sites) {
+  for (auto const& site : induced_sites) {
     EXPECT_FALSE(site->is_null());
+    EXPECT_FALSE(site->has_filter("AMBIG"));
     auto result = site->get_all_gtype_info();
     EXPECT_EQ(result.alleles.size(), 2);
     EXPECT_EQ(result.genotype, GtypedIndices{1});
