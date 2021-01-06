@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from enum import Enum, auto
 
-from setuptools.command.install import install
+from setuptools.command.build_py import build_py
 from setuptools.command.test import test
 
 from gramtools.version import package_version
@@ -98,7 +98,7 @@ def _test_frontend(root_dir):
         exit(-1)
 
 
-class _InstallCommand(install):
+class _BuildCommand(build_py):
     """
     Command:
         pip3 install -vvv ./gramtools
@@ -106,7 +106,7 @@ class _InstallCommand(install):
 
     def run(self):
         _build_backend(InstallMode.GRAM)
-        install.run(self)
+        build_py.run(self)
 
 
 class _TestCommand(test):
@@ -131,7 +131,7 @@ class _TestCommand(test):
 setuptools.setup(
     name="gramtools",
     version=f"{package_version.__version__}",
-    description="Genome inference and variant calling with population reference graphs.",
+    description="Genome inference and genotyping with population reference graphs.",
     url="https://github.com/iqbal-lab-org/gramtools",
     long_description=readme,
     entry_points={"console_scripts": ["gramtools = gramtools.gramtools_main:run"]},
@@ -146,5 +146,5 @@ setuptools.setup(
         "cluster_vcf_records >= 0.9.2",
     ],
     test_suite="gramtools.tests",
-    cmdclass={"install": _InstallCommand, "test": _TestCommand},
+    cmdclass={"build_py": _BuildCommand, "test": _TestCommand},
 )

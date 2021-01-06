@@ -20,10 +20,8 @@ set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
 ######################
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/zlib.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/json.cmake)
-add_dependencies(htslib zlib)
 
 find_package(OpenMP REQUIRED)
 
@@ -41,10 +39,9 @@ set(EXTERN_LIBS
         boost_program_options
         boost_serialization
         boost_system
-        hts
         divsufsort
         divsufsort64
-        z)
+        )
 
 #########################
 ###  Gramtools sources ##
@@ -78,8 +75,9 @@ target_include_directories(gramtools PUBLIC
 target_link_libraries(gramtools LINK_PUBLIC
         ${EXTERN_LIBS}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
+        ${CMAKE_CURRENT_BINARY_DIR}/lib/libhts.a
         OpenMP::OpenMP_CXX
-        -lstdc++fs -lpthread -lrt -lm
+        -lstdc++fs -lpthread -lrt -lm -lz
 		)
 target_compile_features(gramtools PUBLIC cxx_std_17)
 set_target_properties(gramtools
@@ -93,7 +91,7 @@ add_dependencies(gramtools
         nlohmann_json
         py_git_version
         sdsl
-        zlib)
+        )
 add_custom_command(TARGET gramtools POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PROJECT_SOURCE_DIR}/gramtools/lib

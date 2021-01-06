@@ -11,7 +11,7 @@ Given sequence data from an individual, the graph is annotated with coverage and
 
 ## Install
 ```
-pip install wheel git+https://github.com/iqbal-lab-org/gramtools
+pip install git+https://github.com/iqbal-lab-org/gramtools
 ```
 Requirements:
 * Python >= 3.6
@@ -19,14 +19,14 @@ Requirements:
 * C++17 compatible compiler: g++ >=8 (tested), clang >=7 (untested)
 <br>
 
-If `sudo` is unavailable, we recommend using a Python virtual enviroment:
+If `sudo` is unavailable, we recommend using a Python virtual environment:
 ```
 python -m venv gram_ve && source gram_ve/bin/activate
 pip install pip==20.0.2
-pip install wheel git+https://github.com/iqbal-lab-org/gramtools
+pip install git+https://github.com/iqbal-lab-org/gramtools
 ```
 
-A singularity definition file (in containers/singularity) can also be used to build a gramtools image.
+A singularity definition file (in `containers/singularity`) can also be used to build a gramtools image.
 
 ## Use
 
