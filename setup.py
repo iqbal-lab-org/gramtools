@@ -16,7 +16,7 @@ with open("./README.md") as fhandle:
     readme = fhandle.read()
 
 _root_dir = Path(__file__).resolve().parent
-cmake_dir = _root_dir / "cmake-build-release"  # cmake target directory
+cmake_dir = _root_dir / "cmake-build"  # cmake target directory
 
 # For pysam to use existing htslib compiled by the backend
 os.environ["HTSLIB_LIBRARY_DIR"] = str(cmake_dir / "libgramtools" / "lib")
@@ -61,10 +61,8 @@ def _test_backend(root_dir):
     ##########################
     """
     )
-    test_runner = os.path.join(
-        cmake_dir, "libgramtools", "submods", "tests", "test_main"
-    )
-    test_dir = os.path.join(root_dir, "libgramtools", "submods", "tests")
+    test_runner = os.path.join(cmake_dir, "libgramtools", "tests", "test_main")
+    test_dir = os.path.join(root_dir, "libgramtools", "tests")
 
     return_code = subprocess.call([test_runner], cwd=test_dir)
     if return_code != 0:

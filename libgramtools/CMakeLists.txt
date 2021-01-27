@@ -126,8 +126,26 @@ add_custom_command(TARGET gram POST_BUILD
 #################
 ####  tests  ####
 #################
-enable_testing()
-add_subdirectory(tests)
-add_test(test_main test_main)
 
+# gcov/lcov test coverage. Activate with `cmake -DCODE_COVERAGE=ON` and run with `make test_coverage`
+# For explanation, see https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake
+option(CODE_COVERAGE "Enable coverage reporting" OFF)
+if(CODE_COVERAGE)
+    set(COVERAGE_EXCLUDES
+        "${CMAKE_CURRENT_BINARY_DIR}/include/*"
+        "${CMAKE_CURRENT_BINARY_DIR}/tests/*"
+        "${PROJECT_SOURCE_DIR}/libgramtools/tests/*"
+        )
+    include(CodeCoverage)
+    set(CMAKE_CXX_FLAGS "-O0")
+    set(CMAKE_C_FLAGS "-O0")
+    append_coverage_compiler_flags()
+    setup_target_for_coverage_lcov(
+        NAME test_coverage 
+        DEPENDENCIES test_main
+        EXECUTABLE test_main
+        )
+endif()
+
+add_subdirectory(tests)
 add_subdirectory(submods)

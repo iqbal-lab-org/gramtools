@@ -60,4 +60,6 @@ add_custom_command(TARGET test_main POST_BUILD
         ${CMAKE_CURRENT_BINARY_DIR}/test_main
         ${PROJECT_SOURCE_DIR}/libgramtools/tests/test_main.bin)
 
-add_test(NAME test_main COMMAND test_main)
+
+# Run test suite by issuing `make test`, or `ctest -VV`
+add_test(NAME run_test_main COMMAND test_main)
