@@ -44,8 +44,8 @@ singularity exec "$URI" gramtools
 
 ```sh
 VERSION="1.7.0"
-wget -O - "https://github.com/iqbal-lab-org/gramtools/archive/v${VERSION}.tar.gz" | tar xfz -
-pip install "gramtools-${VERSION}"
+wget -O - "https://github.com/iqbal-lab-org/gramtools/releases/download/v${VERSION}/gramtools-${VERSION}.tar.gz" | tar xfz -
+pip install "./gramtools-${VERSION}"
 ```
 The latest release includes a precompiled binary for Linux. This will be used if it works on your machine, else it will get compiled during the installation.
 
