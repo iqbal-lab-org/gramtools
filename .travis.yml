@@ -3,6 +3,11 @@ compiler: gcc
 dist: xenial
 sudo: require
 
+branches:
+   only:
+       - main
+       - dev
+
 # Need gcc >= 8 to support c++17 std::optional and std::filesystem
 matrix:
   include:
