@@ -1,16 +1,12 @@
 #include <iostream>
-
 #include <sdsl/bit_vectors.hpp>
-
-#include "common/timer_report.hpp"
-#include "prg/prg_info.hpp"
 
 #include "build/build.hpp"
 #include "build/parameters.hpp"
-
+#include "common/timer_report.hpp"
 #include "genotype/genotype.hpp"
 #include "genotype/parameters.hpp"
-
+#include "prg/prg_info.hpp"
 #include "simulate/parameters.hpp"
 #include "simulate/simulate.hpp"
 
@@ -82,7 +78,7 @@ top_level_params gram::parse_command_line_parameters(int argc,
   // specific parsers.
   if (vm.count("help") || !vm.count("command")) {
     std::cout << global << std::endl;
-    exit(1);
+    exit(0);
   }
 
   std::string cmd_string = vm["command"].as<std::string>();

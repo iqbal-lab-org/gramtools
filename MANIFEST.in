@@ -1,2 +1,5 @@
-include gramtools/lib/*
 include gramtools/bin/*
+include gramtools/version/Makefile
+include CMakeLists.txt
+graft libgramtools
+prune libgramtools/tests
