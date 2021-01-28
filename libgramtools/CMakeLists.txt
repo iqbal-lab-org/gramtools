@@ -127,7 +127,8 @@ add_custom_command(TARGET gram POST_BUILD
 ####  tests  ####
 #################
 
-if (EXISTS tests)
+# Allows the release to not include backend tests
+if (EXISTS "${PROJECT_SOURCE_DIR}/libgramtools/tests")
     # gcov/lcov test coverage. Activate with `cmake -DCODE_COVERAGE=ON` and run with `make test_coverage`
     # For explanation, see https://github.com/bilke/cmake-modules/blob/master/CodeCoverage.cmake
     option(CODE_COVERAGE "Enable coverage reporting" OFF)

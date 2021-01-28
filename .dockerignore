@@ -1,0 +1,29 @@
+# Containers
+.dockerignore
+
+# Git
+.git
+
+# Scratch
+tmp_work/
+
+# Python
+venv/
+*.py[cod]
+__pycache__/
+
+# Cmake/build
+cmake-*/
+build/
+gramtools/lib/
+
+# IDEs
+.cache/
+.idea/
+## Vim
+*~
+*.swp
+
+# Python build/packaging
+dist/
+*.egg-info/
