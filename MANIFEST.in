@@ -3,3 +3,4 @@ include gramtools/version/Makefile
 include CMakeLists.txt
 graft libgramtools
 prune libgramtools/tests
+global-exclude *~ *.swp

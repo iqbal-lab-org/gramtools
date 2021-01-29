@@ -162,7 +162,7 @@ setuptools.setup(
         "biopython == 1.76",
         "Cython == 0.29.16",
         "pysam == 0.15.4",
-        "py-cortex-api == 2.0",
+        "py-cortex-api == 2.1.0",
         "cluster_vcf_records >= 0.9.2",
     ],
     test_suite="gramtools.tests",
