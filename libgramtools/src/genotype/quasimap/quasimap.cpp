@@ -2,6 +2,9 @@
 
 #include <omp.h>
 
+#include <exception>
+#include <stdexcept>
+
 #include "common/random.hpp"
 #include "genotype/quasimap/coverage/allele_base.hpp"
 #include "genotype/quasimap/coverage/coverage_common.hpp"
@@ -167,26 +170,57 @@ bool gram::quasimap_read(const Sequence &read, Coverage &coverage,
                          const KmerIndex &kmer_index, const PRG_Info &prg_info,
                          const GenotypeParams &parameters,
                          SeedSize const &selection_seed) {
-  auto kmer = get_kmer_from_read(parameters.kmers_size,
-                                 read);  // Gets last k bases of read
+  /*
+   * We can discard reads containing 1 or more kmers not present in the index.
+   * This is based on the following assumptions:
+   *   - All kmers of size `kmers_size` in the PRG are in the index
+   *   - Reads must be mapped exactly
+   */
+  bool read_can_map_exactly =
+      all_read_kmers_occur_in_index(parameters.kmers_size, read, kmer_index);
+  if (not read_can_map_exactly) return false;
 
-  auto search_states = search_read_backwards(read, kmer, kmer_index, prg_info);
-  auto read_mapped_exactly = not search_states.empty();
+  auto seeding_kmer = get_last_kmer_in_read(parameters.kmers_size, read);
+  auto search_states =
+      search_read_backwards(read, seeding_kmer, kmer_index, prg_info);
   // Test read did not map
-  if (not read_mapped_exactly) return read_mapped_exactly;
-  auto read_length = read.size();
+  if (search_states.empty()) return false;
 
+  auto read_length = read.size();
   coverage::record::search_states(coverage, search_states, read_length,
                                   prg_info, selection_seed);
-  return read_mapped_exactly;
+  return true;
 }
 
-Sequence gram::get_kmer_from_read(const uint32_t &kmer_size,
-                                  const Sequence &read) {
-  Sequence kmer;
-  auto kmer_start_it = read.begin() + read.size() - kmer_size;
-  kmer.assign(kmer_start_it, read.end());
-  return kmer;
+Sequence gram::get_kmer_in_read(const uint32_t &kmer_size,
+                                const std::size_t offset,
+                                const Sequence &read) {
+  if (offset + kmer_size > read.size())
+    throw std::invalid_argument(
+        "A kmer of this size at this position exceeds the read size");
+  auto kmer_start_it = read.begin() + offset;
+  return Sequence(kmer_start_it, kmer_start_it + kmer_size);
+}
+
+Sequence gram::get_last_kmer_in_read(const uint32_t &kmer_size,
+                                     const Sequence &read) {
+  auto offset = read.size() - kmer_size;
+  return get_kmer_in_read(kmer_size, offset, read);
+}
+
+bool gram::all_read_kmers_occur_in_index(uint32_t const &kmer_size,
+                                         Sequence const &read,
+                                         KmerIndex const &kmer_index) {
+  for (std::size_t offset = 0;; ++offset) {
+    try {
+      auto const kmer = get_kmer_in_read(kmer_size, offset, read);
+      bool kmer_not_in_index = kmer_index.find(kmer) == kmer_index.end();
+      if (kmer_not_in_index) return false;
+    } catch (std::invalid_argument) {
+      break;
+    }  // Breaks the loop when kmer exceeds the read
+  }
+  return true;
 }
 
 SearchStates gram::search_read_backwards(const Sequence &read,
@@ -197,9 +231,7 @@ SearchStates gram::search_read_backwards(const Sequence &read,
   bool kmer_in_index = kmer_index.find(kmer) != kmer_index.end();
   if (not kmer_in_index) return SearchStates{};
 
-  // Test if kmer has been indexed, but has no search states in prg
   auto kmer_index_search_states = kmer_index.at(kmer);
-  if (kmer_index_search_states.empty()) return kmer_index_search_states;
 
   // Reverse iterator + skipping through indexed kmer in read
   auto read_begin = read.rbegin();

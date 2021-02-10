@@ -4,7 +4,6 @@
 #include "build/kmer_index/build.hpp"
 #include "genotype/parameters.hpp"
 #include "genotype/read_stats.hpp"
-
 #include "types.hpp"
 
 using namespace gram;
@@ -36,7 +35,9 @@ class prg_setup {
   /**
    * Sets up a 'legacy'-style PRG string, with no nesting
    */
-  void setup_numbered_prg(std::string raw_prg, Sequences kmers) {
+  void setup_numbered_prg(std::string raw_prg, uint32_t kmer_size = 2) {
+    auto kmers_set = gram::generate_all_kmers(kmer_size);
+    Sequences kmers{kmers_set.begin(), kmers_set.end()};
     auto encoded_prg = encode_prg(raw_prg);
     internal_setup(encoded_prg, kmers);
   }
@@ -44,7 +45,9 @@ class prg_setup {
   /**
    * The bracketed format allows unambiguously encoding nested PRG strings.
    */
-  void setup_bracketed_prg(std::string raw_prg, Sequences kmers) {
+  void setup_bracketed_prg(std::string raw_prg, uint32_t kmer_size = 2) {
+    auto kmers_set = gram::generate_all_kmers(kmer_size);
+    Sequences kmers{kmers_set.begin(), kmers_set.end()};
     auto encoded_prg = prg_string_to_ints(raw_prg);
     internal_setup(encoded_prg, kmers);
   }

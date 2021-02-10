@@ -65,7 +65,16 @@ bool quasimap_read(const Sequence &read, Coverage &coverage,
                    const GenotypeParams &parameters,
                    SeedSize const &selection_seed = 42);
 
-Sequence get_kmer_from_read(const uint32_t &kmer_size, const Sequence &read);
+/**
+ * Fetches a kmer of size `kmer_size`, starting from `offset` (0-based)
+ * positions to the right of the start of `read`, and reading left-to-right.
+ */
+Sequence get_kmer_in_read(const uint32_t &kmer_size, const std::size_t offset,
+                          const Sequence &read);
+Sequence get_last_kmer_in_read(const uint32_t &kmer_size, const Sequence &read);
+bool all_read_kmers_occur_in_index(uint32_t const &kmer_size,
+                                   Sequence const &read,
+                                   KmerIndex const &kmer_index);
 
 /**
  * Generates a list of `SearchState`s from a read and a kmer, which is 3'-most

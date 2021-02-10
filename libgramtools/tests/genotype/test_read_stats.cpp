@@ -146,8 +146,7 @@ TEST(ReadMappingStats,
       GenomicRead{"Read4", "GCAAA", "#####"}};
 
   prg_setup setup;
-  Sequences kmers{encode_dna_bases("AA")};
-  setup.setup_numbered_prg("G5CAAA6AA6T7G8C8GGG", kmers);
+  setup.setup_numbered_prg("G5CAAA6AA6T7G8C8GGG");
   setup.quasimap_reads(reads);
 
   auto stats = setup.read_stats;
@@ -170,8 +169,7 @@ TEST(ReadMappingStats,
   };  // Read4 compatible with both alleles of parent site
 
   prg_setup setup;
-  Sequences kmers{encode_dna_bases("CC")};
-  setup.setup_bracketed_prg("G[GG[G,A]G,C]CCC", kmers);
+  setup.setup_bracketed_prg("G[GG[G,A]G,C]CCC");
   setup.quasimap_reads(reads);
 
   auto stats = setup.read_stats;

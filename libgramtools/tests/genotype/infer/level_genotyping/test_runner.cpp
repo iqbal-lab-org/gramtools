@@ -13,9 +13,8 @@
 
 TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes) {
   std::string prg{"AATAA5C6G6AA7C8G8AA"};
-  Sequences kmers{encode_dna_bases("AA")};
   prg_setup setup;
-  setup.setup_numbered_prg(prg, kmers);
+  setup.setup_numbered_prg(prg);
 
   GenomicRead_vector reads;
   // Multiple reads going through 5:1 and 7:1
@@ -41,9 +40,8 @@ TEST(LevelGenotyping, Given2SiteNonNestedPRG_CorrectGenotypes) {
 
 TEST(LevelGenotyping, Given2SiteNestedPRG_CorrectGenotypes) {
   std::string prg{"AATAA[CCC[A,G],T]AA"};
-  Sequences kmers{encode_dna_bases("AA")};
   prg_setup setup;
-  setup.setup_bracketed_prg(prg, kmers);
+  setup.setup_bracketed_prg(prg);
 
   GenomicRead_vector reads;
   // Multiple reads going through first allele of each site
@@ -68,9 +66,8 @@ TEST(LevelGenotyping, Given2SiteNestedPRG_CorrectGenotypes) {
 
 TEST(LevelGenotyper, GivenPRGWithDirectDeletion_CorrectlyCalledEmptyAllele) {
   std::string prg{"GGGGG[CCC,]GG"};
-  Sequences kmers{encode_dna_bases("GG")};
   prg_setup setup;
-  setup.setup_bracketed_prg(prg, kmers);
+  setup.setup_bracketed_prg(prg);
 
   allele_vector gt_alleles;
   GenomicRead_vector reads;
@@ -93,9 +90,7 @@ class LG_SnpsNestedInTwoHaplotypes : public ::testing::Test {
  protected:
   void SetUp() {
     std::string _prg{"ATCGGC[TC[A,G]TC,GG[T,G]GG]AT"};
-    auto all_kmers = gram::generate_all_kmers(2);
-    Sequences all_kmers_vector{all_kmers.begin(), all_kmers.end()};
-    setup.setup_bracketed_prg(_prg, all_kmers_vector);
+    setup.setup_bracketed_prg(_prg);
 
     // This read goes through 5:0 and 7:1
     for (int num_mapped{0}; num_mapped < 7; num_mapped++)
