@@ -83,9 +83,9 @@ SearchStates search_read_backwards(const Sequence &read, const Sequence &kmer,
  * First updates SA_intervals to search next based on variant marker presence.
  * Then executes regular backward search.
  */
-SearchStates process_read_char_search_states(
-    const int_Base &pattern_char, const SearchStates &old_search_states,
-    const PRG_Info &prg_info);
+SearchStates process_read_char_search_states(const int_Base &pattern_char,
+                                             SearchStates &search_states,
+                                             const PRG_Info &prg_info);
 
 Sequence reverse_complement_read(const Sequence &read);
 }  // namespace gram

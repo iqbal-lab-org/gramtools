@@ -2,6 +2,7 @@
 #define GRAMTOOLS_vBWT_JUMP
 
 #include <vector>
+
 #include "genotype/quasimap/search/types.hpp"
 #include "prg/prg_info.hpp"
 
@@ -33,16 +34,13 @@ SA_Interval get_allele_marker_sa_interval(const Marker &allele_marker_char,
                                           const PRG_Info &prg_info);
 
 /**
- * Call `process_markers_search_state` for each `SearchState`.
  * Each SA index whose corresponding BWT entry is a marker will generate one or
- * more new `SearchStates`. Note that the original `SearchState` is otherwise
- * left untouched; SA indices with preceding markers in the prg will get
- * naturally dropped by backward base extension.
- * @see process_markers_search_state()
+ * more new `SearchStates`. Each previously existing `SearchState` is also kept,
+ * this is a requirement for mapping to work.
  * @see SearchState()
  */
-SearchStates process_markers_search_states(const SearchStates &search_states,
-                                           const PRG_Info &prg_info);
+void process_markers_search_states(SearchStates &current_search_states,
+                                   const PRG_Info &prg_info);
 
 /**
  * This function finds all variant markers (site or allele) inside the BWT

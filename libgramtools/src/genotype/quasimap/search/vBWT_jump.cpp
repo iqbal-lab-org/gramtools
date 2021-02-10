@@ -116,19 +116,19 @@ MarkersSearchResults gram::left_markers_search(const SearchState &search_state,
   return markers_search_results;
 }
 
-SearchStates gram::process_markers_search_states(
-    const SearchStates &old_search_states, const PRG_Info &prg_info) {
-  SearchStates new_search_states = old_search_states;
-  SearchStates all_markers_new_search_states;
-  for (const auto &search_state : old_search_states) {
+void gram::process_markers_search_states(SearchStates &current_search_states,
+                                         const PRG_Info &prg_info) {
+  SearchStates all_markers_search_states;
+  for (auto const &search_state : current_search_states) {
     auto markers_search_states =
         search_state_vBWT_jumps(search_state, prg_info);
-    all_markers_new_search_states.splice(all_markers_new_search_states.end(),
-                                         markers_search_states);
+    if (!markers_search_states.empty()) {
+      all_markers_search_states.splice(all_markers_search_states.end(),
+                                       markers_search_states);
+    }
   }
-  new_search_states.splice(new_search_states.end(),
-                           all_markers_new_search_states);
-  return new_search_states;
+  current_search_states.splice(current_search_states.end(),
+                               all_markers_search_states);
 }
 
 SearchStates gram::search_state_vBWT_jumps(

@@ -1,7 +1,8 @@
+#include "build/kmer_index/build.hpp"
+
 #include <algorithm>
 #include <thread>
 
-#include "build/kmer_index/build.hpp"
 #include "build/kmer_index/kmers.hpp"
 #include "build/kmer_index/load.hpp"
 #include "genotype/quasimap/search/BWT_search.hpp"
@@ -18,13 +19,9 @@ CacheElement get_next_cache_element(const int_Base &base,
                                     const bool kmer_base_is_first_processed,
                                     const CacheElement &last_cache_element,
                                     const PRG_Info &prg_info) {
-  const auto &old_search_states = last_cache_element.search_states;
-  SearchStates new_search_states;
+  SearchStates new_search_states = last_cache_element.search_states;
   if (not kmer_base_is_first_processed) {
-    new_search_states =
-        process_markers_search_states(old_search_states, prg_info);
-  } else {
-    new_search_states = old_search_states;
+    process_markers_search_states(new_search_states, prg_info);
   }
   new_search_states = search_base_backwards(base, new_search_states, prg_info);
   return CacheElement{new_search_states, base};

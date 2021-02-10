@@ -1,4 +1,5 @@
 #include "genotype/quasimap/search/BWT_search.hpp"
+
 #include <sdsl/suffix_arrays.hpp>
 
 using namespace gram;
@@ -23,21 +24,16 @@ uint64_t gram::dna_bwt_rank(const uint64_t &upper_index, const Marker &dna_base,
  * Backward search followed by check whether the extended searched pattern maps
  * somewhere in the prg.
  */
-SearchState search_fm_index_base_backwards(const int_Base &pattern_char,
-                                           const uint64_t char_first_sa_index,
-                                           const SearchState &search_state,
-                                           const PRG_Info &prg_info) {
+std::optional<SearchState> search_fm_index_base_backwards(
+    const int_Base &pattern_char, const uint64_t char_first_sa_index,
+    const SearchState &search_state, const PRG_Info &prg_info) {
   auto next_sa_interval = base_next_sa_interval(
       pattern_char, char_first_sa_index, search_state.sa_interval, prg_info);
   //  An 'invalid' SA interval (i,j) is defined by i-1=j, which occurs when the
   //  read no longer maps anywhere in the prg.
   auto valid_sa_interval =
       next_sa_interval.first - 1 != next_sa_interval.second;
-  if (not valid_sa_interval) {  // Create an empty, invalid search state.
-    SearchState new_search_state;
-    new_search_state.invalid = true;
-    return new_search_state;
-  }
+  if (not valid_sa_interval) return {};
 
   auto new_search_state = search_state;
   new_search_state.sa_interval.first = next_sa_interval.first;
@@ -79,22 +75,20 @@ SA_Interval gram::base_next_sa_interval(
 }
 
 SearchStates gram::search_base_backwards(const int_Base &pattern_char,
-                                         const SearchStates &search_states,
+                                         SearchStates const &search_states,
                                          const PRG_Info &prg_info) {
   // Compute the first occurrence of `pattern_char` in the suffix array.
   // Necessary for backward search.
   auto char_alphabet_rank = prg_info.fm_index.char2comp[pattern_char];
   auto char_first_sa_index = prg_info.fm_index.C[char_alphabet_rank];
 
-  SearchStates new_search_states = {};
-
-  for (const auto &search_state : search_states) {
-    SearchState new_search_state = search_fm_index_base_backwards(
+  SearchStates new_search_states;
+  for (auto const &search_state : search_states) {
+    auto const new_search_state = search_fm_index_base_backwards(
         pattern_char, char_first_sa_index, search_state, prg_info);
-    if (new_search_state.invalid) continue;
-    new_search_states.emplace_back(new_search_state);
+    if (new_search_state)
+      new_search_states.push_back(std::move(*new_search_state));
   }
-
   return new_search_states;
 }
 

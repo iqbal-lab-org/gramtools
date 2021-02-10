@@ -39,8 +39,6 @@ struct SearchState {
       {}; /**< Stores the loci that have been entered but not (yet, or ever)
              exited*/
 
-  bool invalid = false; /**< Represents whether no path is found in the prg. */
-
   bool operator==(const SearchState &other) const {
     return this->sa_interval == other.sa_interval and
            this->traversed_path == other.traversed_path and

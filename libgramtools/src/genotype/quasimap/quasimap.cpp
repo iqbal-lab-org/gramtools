@@ -222,16 +222,15 @@ SearchStates gram::search_read_backwards(const Sequence &read,
   return new_search_states;
 }
 
-SearchStates gram::process_read_char_search_states(
-    const int_Base &pattern_char, const SearchStates &old_search_states,
-    const PRG_Info &prg_info) {
-  //  Before extending backward search with next character, check for variant
-  //  markers in the current SA intervals This is the v part of vBWT.
-  auto post_markers_search_states =
-      process_markers_search_states(old_search_states, prg_info);
+SearchStates gram::process_read_char_search_states(const int_Base &pattern_char,
+                                                   SearchStates &search_states,
+                                                   const PRG_Info &prg_info) {
+  //  Check for variant  markers in the current SA intervals;
+  //  This is the v part of vBWT. Modifies search states in-place.
+  process_markers_search_states(search_states, prg_info);
   //  Regular backward searching
-  auto new_search_states =
-      search_base_backwards(pattern_char, post_markers_search_states, prg_info);
+  auto const new_search_states =
+      search_base_backwards(pattern_char, search_states, prg_info);
   return new_search_states;
 }
 

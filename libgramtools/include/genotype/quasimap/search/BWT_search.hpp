@@ -32,7 +32,7 @@ uint64_t dna_bwt_rank(const uint64_t &upper_index, const Marker &dna_base,
  * interval.
  */
 SearchStates search_base_backwards(const int_Base &pattern_char,
-                                   const SearchStates &search_states,
+                                   SearchStates const &search_states,
                                    const PRG_Info &prg_info);
 
 /**
