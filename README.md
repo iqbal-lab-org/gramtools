@@ -66,13 +66,12 @@ This will always compile the binary.
 #### Requirements
 
 * Python >= 3.6
-* Python >=2.7 and <3 (For `gramtools discover`; we are working to remove this)
 * pip >= 20.0.2
 
 If the binary needs to be compiled:
 * C++17 compatible compiler: g++ >=8 (tested), clang >=7 (untested)
 
-For the `gramtools discover` to function you additionally need:
+For `gramtools discover` to function, you additionally need at runtime:
 * R
 * Perl
 
