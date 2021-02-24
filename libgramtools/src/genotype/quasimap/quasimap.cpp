@@ -147,28 +147,19 @@ void gram::quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
                                     const PRG_Info &prg_info,
                                     SeedSize const &selection_seed) {
   // Forward mapping
-  bool read_mapped_exactly =
-      quasimap_read(read, quasimap_stats.coverage, kmer_index, prg_info,
-                    parameters, selection_seed);
-  if (read_mapped_exactly) {
-#pragma omp atomic
-    ++quasimap_stats.mapped_reads_count;
-  }
+  quasimap_read(read, quasimap_stats.coverage, kmer_index, prg_info, parameters,
+                quasimap_stats, selection_seed);
 
   auto reverse_read = reverse_complement_read(read);
   // Reverse mapping
-  read_mapped_exactly =
-      quasimap_read(reverse_read, quasimap_stats.coverage, kmer_index, prg_info,
-                    parameters, selection_seed);
-  if (read_mapped_exactly) {
-#pragma omp atomic
-    ++quasimap_stats.mapped_reads_count;
-  }
+  quasimap_read(reverse_read, quasimap_stats.coverage, kmer_index, prg_info,
+                parameters, quasimap_stats, selection_seed);
 }
 
-bool gram::quasimap_read(const Sequence &read, Coverage &coverage,
+void gram::quasimap_read(const Sequence &read, Coverage &coverage,
                          const KmerIndex &kmer_index, const PRG_Info &prg_info,
                          const GenotypeParams &parameters,
+                         QuasimapReadsStats &stats,
                          SeedSize const &selection_seed) {
   /*
    * We can discard reads containing 1 or more kmers not present in the index.
@@ -178,18 +169,28 @@ bool gram::quasimap_read(const Sequence &read, Coverage &coverage,
    */
   bool read_can_map_exactly =
       all_read_kmers_occur_in_index(parameters.kmers_size, read, kmer_index);
-  if (not read_can_map_exactly) return false;
+  if (not read_can_map_exactly) {
+#pragma omp atomic
+    stats.missing_kmer_reads_count += 1;
+    return;
+  }
 
   auto seeding_kmer = get_last_kmer_in_read(parameters.kmers_size, read);
   auto search_states =
       search_read_backwards(read, seeding_kmer, kmer_index, prg_info);
   // Test read did not map
-  if (search_states.empty()) return false;
+  if (search_states.empty()) {
+#pragma omp atomic
+    stats.no_extension_reads_count += 1;
+    return;
+  }
 
   auto read_length = read.size();
   coverage::record::search_states(coverage, search_states, read_length,
                                   prg_info, selection_seed);
-  return true;
+#pragma omp atomic
+  stats.exact_mapped_reads_count += 1;
+  return;
 }
 
 Sequence gram::get_kmer_in_read(const uint32_t &kmer_size,

@@ -49,7 +49,8 @@ void prg_setup::quasimap_reads(GenomicRead_vector const& reads) {
   read_stats.compute_base_error_rate(reads);
   for (auto const& read : reads) {
     auto sequence = encode_dna_bases(read.seq);
-    gram::quasimap_read(sequence, coverage, kmer_index, prg_info, parameters);
+    gram::quasimap_read(sequence, coverage, kmer_index, prg_info, parameters,
+                        quasimap_stats);
   }
   read_stats.compute_coverage_depth(coverage, prg_info.coverage_graph);
 }

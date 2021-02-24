@@ -17,7 +17,9 @@ namespace gram {
 struct QuasimapReadsStats {
   uint64_t all_reads_count = 0;
   uint64_t skipped_reads_count = 0;
-  uint64_t mapped_reads_count = 0;
+  uint64_t missing_kmer_reads_count = 0;
+  uint64_t no_extension_reads_count = 0;
+  uint64_t exact_mapped_reads_count = 0;
   Coverage coverage = {};
 };
 
@@ -60,9 +62,9 @@ void quasimap_forward_reverse(QuasimapReadsStats &quasimap_stats,
  * including `gram::FM_Index`.
  * @return
  */
-bool quasimap_read(const Sequence &read, Coverage &coverage,
+void quasimap_read(const Sequence &read, Coverage &coverage,
                    const KmerIndex &kmer_index, const PRG_Info &prg_info,
-                   const GenotypeParams &parameters,
+                   const GenotypeParams &parameters, QuasimapReadsStats &stats,
                    SeedSize const &selection_seed = 42);
 
 /**

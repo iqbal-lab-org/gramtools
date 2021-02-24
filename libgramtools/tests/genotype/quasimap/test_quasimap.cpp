@@ -71,7 +71,7 @@ TEST(Coverage, ReadCrossingSecondVariantSecondAllele_CorrectAlleleCoverage) {
   const auto read = encode_dna_bases("agccta");
 
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 0, 0}, {0, 1}};
@@ -84,7 +84,7 @@ TEST(Coverage, ReadCrossingSecondVariantFirstAllele_CorrectAlleleCoverage) {
 
   const auto read = encode_dna_bases("agtcta");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 0, 0}, {1, 0}};
@@ -98,7 +98,7 @@ TEST(Coverage, ReadCrossingMultipleVariantSites_CorrectAlleleCoverage) {
   const auto read = encode_dna_bases("ctgagtcta");
 
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 1, 0}, {1, 0}};
@@ -111,7 +111,7 @@ TEST(Coverage, ReadCrossTwoSitesAndEndsInSite_CorrectAlleleCoverage) {
 
   const auto read = encode_dna_bases("tagtcta");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 0, 1}, {1, 0}};
@@ -124,7 +124,7 @@ TEST(Coverage, ReadDoesNotMap_EmptyAlleleCoverage) {
 
   const auto read = encode_dna_bases("tgtcta");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 0, 0}, {0, 0}};
@@ -138,7 +138,7 @@ TEST(Coverage, ReadEndsInAllele_CorrectAlleleCoverage) {
   const auto read = encode_dna_bases("gctc");
 
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{1, 0, 0}, {0, 0}};
@@ -151,7 +151,7 @@ TEST(Coverage, ReadStartsInAllele_CorrectAlleleCoverage) {
 
   const auto read = encode_dna_bases("tagt");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 0, 1}, {1, 0}};
@@ -164,7 +164,7 @@ TEST(Coverage, ReadWithNoMatchingKmer_CorrectAlleleCoverage) {
 
   const auto read = encode_dna_bases("tagc");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 0, 0}, {0, 0}};
@@ -184,7 +184,7 @@ TEST(Coverage, ReadMapsToThreePositions_CorrectAlleleCoverage) {
   // Chooses mapping instance in site 5 only
   SeedSize const random_seed1 = 42;
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters, random_seed1);
+                setup.parameters, setup.quasimap_stats, random_seed1);
   auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{1, 0, 1}, {0, 0}};
   EXPECT_EQ(result, expected);
@@ -192,7 +192,7 @@ TEST(Coverage, ReadMapsToThreePositions_CorrectAlleleCoverage) {
   // Chooses mapping instance in site 5 + site 7
   SeedSize const random_seed2 = 150;
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters, random_seed2);
+                setup.parameters, setup.quasimap_stats, random_seed2);
   expected = {{1, 0, 2}, {1, 0}};
   EXPECT_EQ(result, expected);
 }
@@ -203,7 +203,7 @@ TEST(Coverage, ReadEntirelyWithinAllele_CoverageRecorded) {
 
   const auto read = encode_dna_bases("cccc");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{1, 0, 0}};
@@ -216,7 +216,7 @@ TEST(Coverage, ReadMapsWithinAllele_SumCoverageIsOne) {
 
   Sequence read = encode_dna_bases("gtagt");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 1}};
@@ -230,7 +230,7 @@ TEST(Coverage, ReadMapsTwiceWithinAllele_SumCoverageIsOne) {
 
   Sequence read = encode_dna_bases("gtagt");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 1}};
@@ -244,7 +244,7 @@ TEST(Coverage, ReadMapsWithinAlleleAndOutsideSite_CorrectSumCoverage) {
   SeedSize const random_seed = 29;
   Sequence read = encode_dna_bases("gtagt");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters, random_seed);
+                setup.parameters, setup.quasimap_stats, random_seed);
 
   auto const &sumCovResult = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage sumCovExpected = {{1, 0}};
@@ -263,7 +263,7 @@ TEST(Coverage, ReadEndWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
   Sequence read = encode_dna_bases("tacgt");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &sumCovResult = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage sumCovExpected = {{1, 1}};
@@ -283,7 +283,7 @@ TEST(Coverage, ReadStartWithinSingleSiteTwoAlleles_BothAlleleCoverage) {
 
   Sequence read = encode_dna_bases("gttaa");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{0, 1, 1}};
@@ -297,7 +297,7 @@ TEST(Coverage, EncapsulatedWithinTwoDifferentAlleles_CorrectAlleleSumCoverage) {
 
   Sequence read = encode_dna_bases("gtagt");
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &result = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage expected = {{1, 0, 1}};
@@ -319,7 +319,7 @@ TEST(Coverage, MappingMultipleIdenticalReads_CorrectAlleleCoverage) {
 
   for (const auto &read : reads) {
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                  setup.parameters);
+                  setup.parameters, setup.quasimap_stats);
   }
 
   const auto &result = setup.coverage.allele_sum_coverage;
@@ -347,7 +347,7 @@ TEST(Coverage, MappingThreeReadsIdenticalKmers_CorrectAlleleCoverage) {
 
   for (const auto &read : reads) {
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                  setup.parameters);
+                  setup.parameters, setup.quasimap_stats);
   }
 
   const auto &result = setup.coverage.allele_sum_coverage;
@@ -375,7 +375,7 @@ TEST(Coverage, MappingThreeReadsDifferentKmers_CorrectAlleleCoverage) {
 
   for (const auto &read : reads) {
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                  setup.parameters);
+                  setup.parameters, setup.quasimap_stats);
   }
 
   const auto &result = setup.coverage.allele_sum_coverage;
@@ -395,7 +395,7 @@ TEST(Coverage, MappingThreeReadsOneReadMapsTwice_CorrectAlleleCoverage) {
   SeedSize const random_seed = 200;
   for (const auto &read : reads) {
     quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                  setup.parameters, random_seed);
+                  setup.parameters, setup.quasimap_stats, random_seed);
   }
 
   const auto &result = setup.coverage.allele_sum_coverage;
@@ -466,7 +466,7 @@ TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectSearchState) {
 
 TEST_F(SearchStates_and_Coverage_EndInSite, MapOneRead_CorrectCoverage) {
   quasimap_read(read, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &AlSumResult = setup.coverage.allele_sum_coverage;
   AlleleSumCoverage AlSumExpected = {{0, 0, 1}};
@@ -696,7 +696,7 @@ TEST_F(Coverage_Nested_DoubleNesting,
        ReadEndsInsideNestedSite_CorrectCoverage) {
   // PRG: "A[[A[CCC,c],t],g]TA"; Read: "AACCCTA"
   quasimap_read(read1, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
   // The read is compatible with the first allele of all three sites in the PRG
@@ -718,7 +718,7 @@ TEST_F(Coverage_Nested_DoubleNesting,
 TEST_F(Coverage_Nested_DoubleNesting, ReadMultiMaps_CorrectCoverage) {
   // PRG: "A[[A[CCC,c],t],g]TA"; Read: "CTA"
   quasimap_read(read2, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
   // The read is compatible with the two alleles of the most nested site in the
@@ -755,7 +755,7 @@ TEST_F(Coverage_Nested_SingleNestingPlusSNP,
        FullyCrossingRead_CorrectCoverage) {
   // PRG: "A[T[TT,T]T,a[at,]a]G[C,g]" ; Read: "ATTTTGC"
   quasimap_read(read1, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
   // The read is compatible with the two alleles of the most nested site in the
@@ -785,7 +785,7 @@ TEST_F(Coverage_Nested_SingleNestingPlusSNP,
   // 'traversed' mode. All are encapsulated inside site 0 as well.
 
   quasimap_read(read2, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
   // The read is compatible with the two alleles of the most nested site in the
@@ -811,7 +811,7 @@ TEST_F(Coverage_Nested_SingleNestingPlusSNP,
        MapThroughDirectDeletion_CorrectCoverage) {
   // PRG: "A[t[tt,t]t,A[at,]A]G[c,G]" ; Read: "AAAGG"
   quasimap_read(read3, setup.coverage, setup.kmer_index, setup.prg_info,
-                setup.parameters);
+                setup.parameters, setup.quasimap_stats);
 
   const auto &GpAlCounts = setup.coverage.grouped_allele_counts;
   SitesGroupedAlleleCounts expectedGpAlCounts = {

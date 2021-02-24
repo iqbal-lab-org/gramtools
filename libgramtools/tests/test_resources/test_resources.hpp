@@ -3,6 +3,7 @@
 
 #include "build/kmer_index/build.hpp"
 #include "genotype/parameters.hpp"
+#include "genotype/quasimap/quasimap.hpp"
 #include "genotype/read_stats.hpp"
 #include "types.hpp"
 
@@ -29,6 +30,7 @@ class prg_setup {
   GenotypeParams parameters;
   KmerIndex kmer_index;
   ReadStats read_stats;
+  gram::QuasimapReadsStats quasimap_stats;
 
   explicit prg_setup(){};
 

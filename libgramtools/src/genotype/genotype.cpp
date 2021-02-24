@@ -56,10 +56,14 @@ void gram::commands::genotype::run(GenotypeParams const& parameters,
       << std::endl;
   std::cout << "Count all reads: " << quasimap_stats.all_reads_count
             << std::endl;
-  std::cout << "Count skipped reads: " << quasimap_stats.skipped_reads_count
-            << std::endl;
-  std::cout << "Count mapped reads: " << quasimap_stats.mapped_reads_count
-            << std::endl;
+  std::cout << "Count skipped reads with no sequence: "
+            << quasimap_stats.skipped_reads_count << std::endl;
+  std::cout << "Count reads with >0 kmers not in kmer index: "
+            << quasimap_stats.missing_kmer_reads_count << std::endl;
+  std::cout << "Count reads with no exact mapping: "
+            << quasimap_stats.no_extension_reads_count << std::endl;
+  std::cout << "Count exact mapped reads: "
+            << quasimap_stats.exact_mapped_reads_count << std::endl;
   timer.stop();
 
   /**
