@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import glob
 import subprocess
 import setuptools
@@ -61,17 +62,24 @@ def _build_backend(mode: CompileMode, recompile: bool = False):
         )
 
     build_type = "REL_WITH_ASSERTS"  # Compiles with -O flag but keeps asserts
-    subprocess.run(
-        f"CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE={build_type} ..",
-        cwd=cmake_dir,
-        shell=True,
-    )
     target = "gram" if mode is CompileMode.GRAM else "all"
-
-    return_code = subprocess.run(["make", "-j", "4", target], cwd=cmake_dir).returncode
-    if return_code != 0:
-        print("ERROR: gramtools backend compilation returned: ", return_code)
-        exit(-1)
+    shellargs = {
+        "cwd": cmake_dir,
+        "shell": True,
+        "check": True,
+        "text": True,
+        "capture_output": True,
+    }
+    for command in [
+        f"conan install .. -s compiler.libcxx=libstdc++11 --build=missing",
+        f"CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE={build_type} ..",
+        f"make -j 4 {target}",
+    ]:
+        try:
+            result = subprocess.run(command, **shellargs)
+        except subprocess.CalledProcessError as error:
+            print(f"ERROR: in gramtools backend compilation: {error.stderr}")
+            exit(1)
 
 
 def _test_backend(root_dir):
@@ -82,13 +90,14 @@ def _test_backend(root_dir):
     ##########################
     """
     )
-    test_runner = os.path.join(cmake_dir, "libgramtools", "tests", "test_main")
-    test_dir = os.path.join(root_dir, "libgramtools", "tests")
+    test_dir = Path(root_dir) / "libgramtools" / "tests"
 
-    return_code = subprocess.run([test_runner], cwd=test_dir).returncode
+    return_code = subprocess.run(
+        [str(test_dir / "test_main.bin")], cwd=test_dir
+    ).returncode
     if return_code != 0:
         print("ERROR: gramtools backend test runner returned: ", return_code)
-        exit(-1)
+        exit(1)
 
 
 ## Run the front end unit tests: operations making prg, `infer`, integration tests.
@@ -114,13 +123,13 @@ def _test_frontend(root_dir):
 
     if not tests_results.wasSuccessful():
         print("ERROR: gramtools frontend test runner produced >0 failures")
-        exit(-1)
+        exit(1)
 
 
 class _BuildCommand(build_py):
     """
     Command:
-        pip3 install -vvv ./gramtools
+        pip3 install -vvv .
     """
 
     def run(self):
@@ -164,6 +173,7 @@ setuptools.setup(
         "pysam == 0.15.4",
         "py-cortex-api == 2.2.0",
         "cluster_vcf_records >= 0.9.2",
+        "conan == 1.36.0",
     ],
     test_suite="gramtools.tests",
     cmdclass={"build_py": _BuildCommand, "test": _TestCommand},
