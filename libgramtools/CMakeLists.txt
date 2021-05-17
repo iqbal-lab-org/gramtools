@@ -18,27 +18,22 @@ set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
 ######################
 ###  External libs ###
 ######################
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/boost.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
-include(${PROJECT_SOURCE_DIR}/libgramtools/lib/json.cmake)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
 
 find_package(OpenMP REQUIRED)
 
 ### Include headers ####
-set(EXTERNAL_INCLUDE_DIR
-        ${CMAKE_CURRENT_BINARY_DIR}/include)
+set(EXTERNAL_INCLUDE_DIR 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+    ) 
 
 #### Link libraries ####
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
 set(EXTERN_LIBS
-        boost_timer
-        boost_chrono
-        boost_iostreams
-        boost_program_options
-        boost_serialization
-        boost_system
         divsufsort
         divsufsort64
         )
@@ -76,6 +71,8 @@ target_link_libraries(gramtools LINK_PUBLIC
         ${EXTERN_LIBS}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libhts.a
+        CONAN_PKG::boost
+        CONAN_PKG::nlohmann_json
         OpenMP::OpenMP_CXX
         -lstdc++fs -lpthread -lrt -lm -lz
 		)
@@ -86,9 +83,7 @@ set_target_properties(gramtools
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 target_compile_options(gramtools PUBLIC -ftrapv -Wuninitialized)
 add_dependencies(gramtools
-        boost
         htslib
-        nlohmann_json
         py_git_version
         sdsl
         )
@@ -110,7 +105,7 @@ target_include_directories(gram PUBLIC
         ${INCLUDE}
         ${EXTERNAL_INCLUDE_DIR}
         )
-target_link_libraries(gram LINK_PUBLIC gramtools )
+target_link_libraries(gram LINK_PUBLIC gramtools)
 set_target_properties(gram
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
