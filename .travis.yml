@@ -1,40 +1,20 @@
 language: cpp
 compiler: gcc
-dist: xenial
-sudo: require
+dist: focal
 
 branches:
    only:
        - main
        - dev
 
-# Need gcc >= 8 to support c++17
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-8
-      env:
-        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
-
-
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
-  - chmod +x travis_build.sh
-  - eval "${MATRIX_EVAL}"
+  - chmod +x travis_build.sh ./containers/docker/install.sh
 
 
-install:
-  - sudo apt-get install cmake
-  - sudo apt-get install zlib1g-dev
 script:
+  - sudo ./containers/docker/install.sh
   - ./travis_build.sh
-  - pwd
-  - ./libgramtools/tests/test_main.bin
 notifications:
   email: false

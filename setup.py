@@ -67,8 +67,9 @@ def _build_backend(mode: CompileMode, recompile: bool = False):
         "cwd": cmake_dir,
         "shell": True,
         "check": True,
-        "text": True,
-        "capture_output": True,
+        "universal_newlines": True,
+        "stdout": sys.stdout,
+        "stderr": subprocess.PIPE,
     }
     for command in [
         f"conan install .. -s compiler.libcxx=libstdc++11 --build=missing",

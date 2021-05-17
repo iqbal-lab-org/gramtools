@@ -17,6 +17,7 @@ apt-get install -y \
 	pkg-config \
 	python3 \
 	python3-pip \
+	python3-setuptools \
 	python \
 	python-dev \
 	r-base \

@@ -21,13 +21,10 @@ error_handler() {
 trap 'error_handler' ERR
 
 # Set up a repeating loop to send some output to Travis.
-
 bash -c "while true; do echo \$(date) - building ...; sleep $PING_SLEEP; done" &
 PING_LOOP_PID=$!
 
-mkdir cmake_build && cd cmake_build
-cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS .. >> $BUILD_OUTPUT 2>&1
-make -j 4 >> $BUILD_OUTPUT 2>&1
+python3 setup.py test >> $BUILD_OUTPUT 2>&1
 
 # The build finished without returning an error so dump a tail of the output
 dump_output
