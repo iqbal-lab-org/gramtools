@@ -3,9 +3,7 @@ set -e
 
 # Notes
 # * Dependencies:
-#       * cortex: used in variant discovery. depends on:
-#               * stampy: requires python2, python-dev
-#               * r-base
+#       * cortex: used in variant discovery. depends on r-base
 
 apt-get update
 apt-get install -y \

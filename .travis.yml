@@ -8,7 +8,7 @@ branches:
        - main
        - dev
 
-# Need gcc >= 8 to support c++17 std::optional and std::filesystem
+# Need gcc >= 8 to support c++17
 matrix:
   include:
     - os: linux
@@ -31,8 +31,6 @@ before_install:
 
 install:
   - sudo apt-get install cmake
-  #- sudo apt-get install -qq g++-6
-  #- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
   - sudo apt-get install zlib1g-dev
 script:
   - ./travis_build.sh

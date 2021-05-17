@@ -1,4 +1,3 @@
-# WARNING: This is currently outdated- please use singularity definition file instead.
 FROM ubuntu:20.04
 
 # INSTALL

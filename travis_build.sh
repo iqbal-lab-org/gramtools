@@ -25,8 +25,7 @@ trap 'error_handler' ERR
 bash -c "while true; do echo \$(date) - building ...; sleep $PING_SLEEP; done" &
 PING_LOOP_PID=$!
 
-mkdir cmake-build-debug
-cd cmake-build-debug
+mkdir cmake_build && cd cmake_build
 cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS .. >> $BUILD_OUTPUT 2>&1
 make -j 4 >> $BUILD_OUTPUT 2>&1
 
