@@ -24,6 +24,7 @@ trap 'error_handler' ERR
 bash -c "while true; do echo \$(date) - building ...; sleep $PING_SLEEP; done" &
 PING_LOOP_PID=$!
 
+pip3 install -e . >> $BUILD_OUTPUT 2>&1
 python3 setup.py test >> $BUILD_OUTPUT 2>&1
 
 # The build finished without returning an error so dump a tail of the output

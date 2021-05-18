@@ -10,11 +10,11 @@ branches:
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
-  - chmod +x travis_build.sh ./containers/docker/install.sh
+  - chmod +x ci/travis_build.sh ./ci/install_deps.sh
 
 
 script:
-  - sudo ./containers/docker/install.sh
-  - ./travis_build.sh
+  - sudo ./ci/install_deps.sh
+  - ./ci/travis_build.sh
 notifications:
   email: false
