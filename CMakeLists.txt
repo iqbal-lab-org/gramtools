@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.1)
+cmake_minimum_required(VERSION 3.1.2)
 project(gramtools CXX)
 
 # Configure CCache if available - speeds up compilation of same objects with same parameters

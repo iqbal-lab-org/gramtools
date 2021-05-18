@@ -69,6 +69,8 @@ This will always compile the binary.
 * pip >= 20.0.2
 
 If the binary needs to be compiled:
+
+* CMake >= 3.1.2
 * C++17 compatible compiler: g++ >=8 (tested), clang >=7 (untested)
 
 For `gramtools discover` to function, you additionally need at runtime:
