@@ -4,13 +4,13 @@
 # gramtools
 **TL;DR** genotype genetic variants using genome graphs.
 
-Gramtools builds a genome graph (also known as population reference graph (PRG)) from a set of variants, either in the form of a reference sequence + VCF, or from a multiple-sequence alignment. 
-Given sequence data from an individual, the graph is annotated with coverage and genotyped, producing a VCF (and a [jVCF](https://github.com/iqbal-lab-org/jVCF-spec)) of all the variation in the graph.
+Gramtools builds a genome graph (also known as population reference graph (PRG)) from a set of variants (reference sequence + VCF or multiple-sequence alignment). 
+Given sequence data from an individual, the graph is annotated with coverage and genotyped, producing a VCF, and a [jVCF](https://github.com/iqbal-lab-org/jVCF-spec), of all the variation in the graph.
  
  A personalised reference genome for the sample is also inferred and new variation can be discovered 
  against it. You can then build a new graph from the initial and the new variants, and genotype this augmented graph.
  
- See [usage](#usage) for details, and checkout the [limitations](#limitations-and-recommendations) section for important
+ Check out [usage](#usage) for details, and [limitations](#limitations-and-recommendations) for 
  limitations and recommendations.
 
 ## Contents
@@ -23,6 +23,7 @@ Given sequence data from an individual, the graph is annotated with coverage and
 - [Docs](#documentation)
 - [Contribute](#contributing)
 - [Licence](#licence)
+- [Cite](#cite)
 
 ## Install/Run
 
@@ -152,9 +153,23 @@ The documentation gets generated in doc/html/index.html and provides a useful re
 
 Please refer to the [developers wiki page](https://github.com/iqbal-lab-org/gramtools/wiki/Developers%3A-tips).
 
+
 ## License
 
 MIT
+
+## Cite
+
+If you use gramtools in your work, cite as:
+> Letcher, B., Hunt, M. & Iqbal, Z. Gramtools enables multiscale variation analysis with genome graphs. *Genome Biology* 22, 259 (2021). https://doi.org/10.1186/s13059-021-02474-0
+
+
+To cite the vBWT data structure: 
+> Maciuca, S., del Ojo Elias, C., McVean, G., Iqbal, Z. A Natural Encoding of Genetic Variation in a Burrows-Wheeler Transform to Enable Mapping and Genome Inference. WABI2016: Algorithms in Bioinformatics. Lecture Notes in Computer Science, vol 9838. Springer, Cham. https://doi.org/10.1007/978-3-319-43681-4_18
+
+To cite make_prg graph construction:
+> Colquhoun, R.M., Hall, M.B., Lima, L. et al. Pandora: nucleotide-resolution bacterial pan-genomics with reference graphs. *Genome Biology* 22, 267 (2021). https://doi.org/10.1186/s13059-021-02473-1
+
 
 
 [make_prg]: https://github.com/iqbal-lab-org/make_prg
