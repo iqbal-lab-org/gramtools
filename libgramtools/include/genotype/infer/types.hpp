@@ -11,7 +11,7 @@ struct Allele {
   PerBaseCoverage pbCov;
   AlleleId
       haplogroup; /**< Which ID in its site this allele is associated with */
-  bool nesting_consistent = true; /**< Whether the allele is consistent with
+  bool callable = true; /**< Whether the allele is consistent with
                                        calls in child sites */
 
   Allele() : sequence(""), haplogroup(0) {}
@@ -20,24 +20,21 @@ struct Allele {
   Allele(std::string seq, PerBaseCoverage pb, AlleleId haplo)
       : sequence(seq), pbCov(pb), haplogroup(haplo) {}
   Allele(std::string seq, PerBaseCoverage pb, AlleleId haplo, bool consistent)
-      : sequence(seq),
-        pbCov(pb),
-        haplogroup(haplo),
-        nesting_consistent(consistent) {}
+      : sequence(seq), pbCov(pb), haplogroup(haplo), callable(consistent) {}
 
   /**
    * Allele combination overload
    * The left-hand side (= this object) argument's haplogroup is used,
    * regardless of `other`'s haplogroup.
-   * The right-hand site `nesting_consistent` if false always overrides,because
-   * any inconsistent portion makes whole allele uncallable by parent site.
+   * The right-hand site `callable` if false always overrides,because
+   * any non-callable portion makes whole allele uncallable.
    */
   Allele operator+(Allele const& other) const {
     PerBaseCoverage new_pbCov;
     new_pbCov.reserve(pbCov.size() + other.pbCov.size());
     new_pbCov.insert(new_pbCov.end(), pbCov.begin(), pbCov.end());
     new_pbCov.insert(new_pbCov.end(), other.pbCov.begin(), other.pbCov.end());
-    bool new_consistent = nesting_consistent & other.nesting_consistent;
+    bool new_consistent = callable & other.callable;
     return Allele{sequence + other.sequence, new_pbCov, haplogroup,
                   new_consistent};
   }
@@ -47,8 +44,8 @@ struct Allele {
   }
 
   /**
-   * Note: nesting consistency boolean attribute should NOT be used
-   * in comparison; notably because when looking for the ref in vector of
+   * Note: callable boolean attribute should NOT be used
+   * in comparison, e.g., when looking for the ref in vector of
    * alleles, either state should give a match.
    */
   bool operator==(Allele const& other) const {

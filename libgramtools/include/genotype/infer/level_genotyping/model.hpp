@@ -69,9 +69,7 @@ class LevelGenotyperModel : GenotypingModel {
   LevelGenotyperModel() = default;
   explicit LevelGenotyperModel(ModelData &input_data);
 
-  bool ignore_ref_allele() const {
-    return !data.input_alleles.at(0).nesting_consistent;
-  }
+  bool ignore_ref_allele() const { return !data.input_alleles.at(0).callable; }
 
   // Constructor for testing
   LevelGenotyperModel(likelihood_related_stats const &input_l_stats,

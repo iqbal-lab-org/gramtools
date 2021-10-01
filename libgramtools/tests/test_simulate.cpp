@@ -43,7 +43,7 @@ TEST_F(MakeRandomGenotypedSite, GivenPickSecondAllele_CorrectSite) {
 
 TEST_F(MakeRandomGenotypedSite, GivenIgnoreREFAllele_CorrectSite) {
   EXPECT_CALL(rand, generate(1, 2)).WillOnce(Return(1));
-  alleles.at(0).nesting_consistent = false;
+  alleles.at(0).callable = false;
   auto site = make_randomly_genotyped_site(&rand, alleles);
   allele_vector expected_als{alleles.at(0), alleles.at(1)};
   EXPECT_EQ(site->get_alleles(), expected_als);

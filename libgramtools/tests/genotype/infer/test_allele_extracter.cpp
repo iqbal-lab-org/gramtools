@@ -59,7 +59,7 @@ TEST_F(AlleleCombineTest,
   site.set_genotype(GtypedIndices{1});
 
   allele_vector one_allele{existing_alleles.at(0)};
-  EXPECT_TRUE(one_allele.at(0).nesting_consistent);
+  EXPECT_TRUE(one_allele.at(0).callable);
 
   auto result = test_extracter.allele_combine(one_allele, 0);
   allele_vector expected{
@@ -67,8 +67,8 @@ TEST_F(AlleleCombineTest,
       {"ATTGAAA", {0, 1, 2, 3, 2, 1, 0}, 0},
   };
   EXPECT_EQ(result, expected);
-  EXPECT_TRUE(result.at(0).nesting_consistent);
-  EXPECT_FALSE(result.at(1).nesting_consistent);
+  EXPECT_TRUE(result.at(0).callable);
+  EXPECT_FALSE(result.at(1).callable);
 }
 
 TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele) {
@@ -82,7 +82,7 @@ TEST_F(AlleleCombineTest, TwoAllelesNullGenotype_oneCorrectCombinationAllele) {
   allele_vector expected{{"ATTGTTT", {0, 1, 2, 3, 1, 1, 1}, 0}};
 
   EXPECT_EQ(result, expected);
-  EXPECT_TRUE(result.at(0).nesting_consistent);
+  EXPECT_TRUE(result.at(0).callable);
 };
 
 TEST_F(AlleleCombineTest,
@@ -106,7 +106,7 @@ TEST_F(AlleleCombineTest,
   };
 
   EXPECT_EQ(result, expected);
-  for (auto const& allele : result) EXPECT_TRUE(allele.nesting_consistent);
+  for (auto const& allele : result) EXPECT_TRUE(allele.callable);
 }
 
 TEST(AllelePasteTest,
@@ -152,7 +152,7 @@ TEST_F(AlleleExtracter_NestedPRG, NestedBubble_CorrectAlleles) {
 
   allele_vector expected{{"C", {0}, 0}, {"A", {0}, 1}, {"G", {0}, 2}};
   auto result = extracter.get_alleles();
-  EXPECT_TRUE(result.at(0).nesting_consistent);
+  EXPECT_TRUE(result.at(0).callable);
   EXPECT_EQ(result, expected);
 }
 
@@ -184,7 +184,7 @@ TEST_F(AlleleExtracter_NestedPRG,
                          {"TTA", {0, 0, 0}, 1}};
 
   auto result = extracter.get_alleles();
-  EXPECT_TRUE(result.at(0).nesting_consistent);
+  EXPECT_TRUE(result.at(0).callable);
   EXPECT_EQ(result, expected);
 }
 
@@ -202,7 +202,7 @@ TEST_F(AlleleExtracter_NestedPRG,
                          {"TTA", {0, 0, 0}, 1}};
 
   auto result = extracter.get_alleles();
-  EXPECT_FALSE(result.at(0).nesting_consistent);
+  EXPECT_FALSE(result.at(0).callable);
   EXPECT_EQ(result, expected);
 }
 

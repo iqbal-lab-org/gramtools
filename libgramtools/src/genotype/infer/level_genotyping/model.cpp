@@ -352,7 +352,7 @@ void LevelGenotyperModel::add_next_best_alleles(
     allele_vector result;
     for (auto const& gt : next_best) {
       auto added_allele = input_alleles.at(gt);
-      added_allele.nesting_consistent = false;
+      added_allele.callable = false;
       result.push_back(added_allele);
     }
     genotyped_site->set_extra_alleles(result);
@@ -377,23 +377,21 @@ likelihood_map::const_iterator LevelGenotyperModel::ChooseMaxLikelihood(
         "Allele extraction bug?");
   auto it = likelihoods.begin();
   while (it != likelihoods.end()) {
-    bool inconsistent = false;
+    bool callable = true;
     auto chosen_gt = it->second;
     for (auto const& gt : chosen_gt) {
-      if (!alleles.at(gt).nesting_consistent) {
-        inconsistent = true;
+      if (!alleles.at(gt).callable) {
+        callable = false;
         break;
       }
     }
-    if (inconsistent)
-      ++it;
-    else
-      break;
+    if (callable) break;
+    ++it;
   }
   if (std::distance(it, likelihoods.end()) < 2)
     throw IncorrectGenotyping(
-        "Fewer than 2 alleles are consistent with child"
-        "sites.\nAllele extraction bug?");
+        "Fewer than 2 alleles are callable."
+        "\nAllele extraction bug?");
 
   return it;
 }

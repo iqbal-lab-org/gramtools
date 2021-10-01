@@ -47,7 +47,7 @@ lvlgt_site_ptr make_randomly_genotyped_site(RandomGenerator* const rand,
                                             allele_vector const& alleles) {
   allele_vector picked_alleles{alleles.begin(),
                                alleles.begin() + 1};  // Always pick REF
-  bool use_ref_allele = alleles.at(0).nesting_consistent;
+  bool use_ref_allele = alleles.at(0).callable;
   uint32_t picked_index;
   if (use_ref_allele)
     picked_index = rand->generate(0, alleles.size() - 1);

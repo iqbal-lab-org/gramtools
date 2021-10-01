@@ -357,8 +357,7 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
 
   auto extra_alleles = model.get_site()->extra_alleles().value();
   EXPECT_EQ(extra_alleles, alleles);
-  for (auto const& allele : extra_alleles)
-    EXPECT_TRUE(allele.nesting_consistent);
+  for (auto const& allele : extra_alleles) EXPECT_TRUE(allele.callable);
 }
 
 TEST_F(TestLevelGenotyperModel_ExtraAlleles,
@@ -368,14 +367,14 @@ TEST_F(TestLevelGenotyperModel_ExtraAlleles,
   model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   auto extra_alleles = model.get_site()->extra_alleles().value();
   EXPECT_EQ(extra_alleles, allele_vector{alleles.at(0)});
-  EXPECT_FALSE(extra_alleles.at(0).nesting_consistent);
+  EXPECT_FALSE(extra_alleles.at(0).callable);
 
   // Low relative coverage difference on this site between alleles
   LevelGenotyperModel model2(l_stats, {20, 21}, different_likelihoods_haploid);
   model2.CallGenotype(alleles, hap_muts, Ploidy::Haploid);
   extra_alleles = model.get_site()->extra_alleles().value();
   EXPECT_EQ(extra_alleles, allele_vector{alleles.at(0)});
-  EXPECT_FALSE(extra_alleles.at(0).nesting_consistent);
+  EXPECT_FALSE(extra_alleles.at(0).callable);
 }
 
 class TestLevelGenotyperModel_IgnoredREF : public ::testing::Test {
@@ -539,7 +538,7 @@ TEST_F(TestMaxLikelihoodCall,
 }
 
 TEST_F(TestMaxLikelihoodCall, GivenInconsistentBestLikelihood_ItGetsSkipped) {
-  alleles.at(0).nesting_consistent = false;
+  alleles.at(0).callable = false;
   auto expected = likelihoods.begin();
   ++expected;
   EXPECT_EQ(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
@@ -548,15 +547,15 @@ TEST_F(TestMaxLikelihoodCall, GivenInconsistentBestLikelihood_ItGetsSkipped) {
 
 TEST_F(TestMaxLikelihoodCall,
        GivenInconsistentSecondBestLikelihood_NoSkipping) {
-  alleles.at(1).nesting_consistent = false;
+  alleles.at(1).callable = false;
   EXPECT_EQ(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
             likelihoods.begin());
 }
 
 TEST_F(TestMaxLikelihoodCall, GivenFewerThanTwoConsistentAlleles_Throws) {
-  alleles.at(0).nesting_consistent = false;
-  alleles.at(1).nesting_consistent = false;
-  alleles.at(2).nesting_consistent = false;
+  alleles.at(0).callable = false;
+  alleles.at(1).callable = false;
+  alleles.at(2).callable = false;
   EXPECT_THROW(LevelGenotyperModel::ChooseMaxLikelihood(likelihoods, alleles),
                IncorrectGenotyping);
 }
@@ -571,7 +570,7 @@ TEST_F(TestMaxLikelihoodCall, GivenNestingInconsistentBestAllele_NotCalled) {
   // so it has higher likelihood)
   EXPECT_EQ(likelihoods.begin()->second, GtypedIndices{0});
   PerAlleleCoverage allele_covs{20, 15, 12, 8};
-  alleles.at(0).nesting_consistent = false;
+  alleles.at(0).callable = false;
 
   LevelGenotyperModel model(l_stats, allele_covs, likelihoods);
   model.CallGenotype(alleles, hap_muts, Ploidy::Haploid);

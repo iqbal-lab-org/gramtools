@@ -67,7 +67,7 @@ void AlleleExtracter::place_ref_as_first_allele(allele_vector& alleles,
                                                 Allele ref_allele) {
   auto found_ref = std::find(alleles.begin(), alleles.end(), ref_allele);
   if (found_ref == alleles.end()) {
-    ref_allele.nesting_consistent = false;
+    ref_allele.callable = false;
     alleles = prepend(alleles, ref_allele);
   } else if (found_ref != alleles.begin())
     std::swap(*found_ref, alleles.at(0));
