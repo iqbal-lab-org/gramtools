@@ -249,8 +249,13 @@ likelihood_related_stats LevelGenotyper::make_l_stats(
 CovCount LevelGenotyper::find_minimum_non_error_cov(double mean_pb_error,
                                                     pmf_ptr pmf) {
   double min_count{1};
-  while ((*pmf)(params{min_count}) <= min_count * log(mean_pb_error))
+  /** Below avoids infinite loop if the prob of min_count coverage is 0
+   * (and its log is thus -inf),
+   */
+  if (isinf((*pmf)(params{min_count}))) return min_count;
+  while ((*pmf)(params{min_count}) <= min_count * log(mean_pb_error)) {
     ++min_count;
+  }
   return min_count;
 }
 

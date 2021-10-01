@@ -111,3 +111,11 @@ TEST(MinCovMoreLikelyThanError,
     ++index;
   }
 }
+
+TEST(MinCovMoreLikelyThanError, GivenZeroMeanDepth_ReturnsSomeValue) {
+  LevelGenotyper g;
+  // i.e. does not run into an infinite loop
+  auto pmf = std::make_shared<PoissonLogPmf>(params{0});
+  auto min_cov_t = g.find_minimum_non_error_cov(0.01, pmf);
+  EXPECT_TRUE(min_cov_t >= 0);
+}
