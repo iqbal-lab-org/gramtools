@@ -12,8 +12,6 @@ namespace gram {
 class BuildParams : public CommonParameters {
  public:
   std::string sdsl_memory_log_fpath;
-  uint32_t max_read_size;
-  bool all_kmers_flag;
   std::string fasta_ref;
 };
 

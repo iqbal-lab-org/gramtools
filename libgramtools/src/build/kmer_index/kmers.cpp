@@ -20,8 +20,8 @@ std::vector<Sequence> gram::reverse(
  * The rightmost incrementable (value < 4) position is the one incremented,
  * maximising prefix conservation.
  */
-void next_kmer(Sequence &current_kmer, const uint64_t &kmer_size) {
-  int64_t max_update_index = kmer_size - 1;
+void next_kmer(Sequence &current_kmer, const uint64_t &kmers_size) {
+  int64_t max_update_index = kmers_size - 1;
 
   // TODO: memory leakage here. Replace with: while (max_update_index >= 0 and
   // current_kmer[max_update_index] == 4)
@@ -34,7 +34,7 @@ void next_kmer(Sequence &current_kmer, const uint64_t &kmer_size) {
   // Increment the focal position
   current_kmer[max_update_index] = current_kmer[max_update_index] + (uint8_t)1;
   // Reset to 1 all positions to the right of the incremented position
-  for (uint64_t i = (uint64_t)max_update_index + 1; i < kmer_size; i++)
+  for (uint64_t i = (uint64_t)max_update_index + 1; i < kmers_size; i++)
     current_kmer[i] = 1;
 }
 
@@ -73,20 +73,20 @@ std::vector<Sequence> gram::get_prefix_diffs(
 }
 
 ordered_vector_set<Sequence> gram::generate_all_kmers(
-    const uint64_t &kmer_size) {
+    const uint64_t &kmers_size) {
   ordered_vector_set<Sequence> all_kmers = {};
-  Sequence current_kmer(kmer_size, 1);  // Start with the pattern '1 1 1 1'
+  Sequence current_kmer(kmers_size, 1);  // Start with the pattern '1 1 1 1'
 
   while (true) {
     all_kmers.insert(current_kmer);
-    next_kmer(current_kmer, kmer_size);
+    next_kmer(current_kmer, kmers_size);
     if (current_kmer.empty()) break;
   }
   return all_kmers;
 }
 
-std::vector<Sequence> gram::get_all_kmers(const uint64_t &kmer_size) {
-  auto ordered_reverse_kmers = generate_all_kmers(kmer_size);
+std::vector<Sequence> gram::get_all_kmers(const uint64_t &kmers_size) {
+  auto ordered_reverse_kmers = generate_all_kmers(kmers_size);
   // Call to reverse: changes for eg '1234' to '4321'. c[j]=c[kmers_size-i-1], i
   // the original position, j the new. Then the kmers are stored as seen in the
   // prg, but in ordered fashion such that they have maximally identical
@@ -96,9 +96,9 @@ std::vector<Sequence> gram::get_all_kmers(const uint64_t &kmer_size) {
 }
 
 std::vector<Sequence> gram::get_all_kmer_and_compute_prefix_diffs(
-    BuildParams const &parameters, const PRG_Info &prg_info) {
+    uint64_t const &kmers_size) {
   std::cout << "Getting all kmers" << std::endl;
-  auto kmers = get_all_kmers(parameters.kmers_size);
+  auto kmers = get_all_kmers(kmers_size);
   std::cout << "Getting kmer prefix diffs" << std::endl;
   auto prefix_diffs = get_prefix_diffs(kmers);
   return prefix_diffs;

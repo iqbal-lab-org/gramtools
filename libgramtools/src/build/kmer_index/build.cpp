@@ -140,7 +140,7 @@ KmerIndex gram::kmer_index::build(BuildParams const &parameters,
   // Extract all relevant kmers and generate the minimal differences between
   // them.
   Sequences kmer_prefix_diffs =
-      get_all_kmer_and_compute_prefix_diffs(parameters, prg_info);
+      get_all_kmer_and_compute_prefix_diffs(parameters.kmers_size);
   std::cout << "Indexing kmers" << std::endl;
   KmerIndex kmer_index =
       index_kmers(kmer_prefix_diffs, parameters.kmers_size, prg_info);

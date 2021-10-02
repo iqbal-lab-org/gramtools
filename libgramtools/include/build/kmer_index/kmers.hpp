@@ -83,13 +83,13 @@ std::vector<Sequence> get_prefix_diffs(const std::vector<Sequence> &kmers);
  * ('1111'<'1121' < '1211' etc..).
  * @see next_kmer()
  */
-ordered_vector_set<Sequence> generate_all_kmers(const uint64_t &kmer_size);
+ordered_vector_set<Sequence> generate_all_kmers(const uint64_t &kmers_size);
 
 /**
  * Glue function
  * @see gram::get_all_kmer_and_compute_prefix_diffs()
  */
-std::vector<Sequence> get_all_kmers(const uint64_t &kmer_size);
+std::vector<Sequence> get_all_kmers(const uint64_t &kmers_size);
 
 /**
  * Produces a list of all kmers to index and computes their prefix differences,
@@ -97,7 +97,7 @@ std::vector<Sequence> get_all_kmers(const uint64_t &kmer_size);
  * @see gram::kmer_index::build()
  */
 std::vector<Sequence> get_all_kmer_and_compute_prefix_diffs(
-    BuildParams const &parameters, const PRG_Info &prg_info);
+    uint64_t const &kmers_size);
 
 }  // namespace gram
 
