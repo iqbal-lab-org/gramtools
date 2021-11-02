@@ -174,7 +174,7 @@ setuptools.setup(
         "pysam == 0.15.4",
         "py-cortex-api == 2.2.0",
         "cluster_vcf_records >= 0.9.2",
-        "conan == 1.36.0",
+        "conan == 1.42.0",
     ],
     test_suite="gramtools.tests",
     cmdclass={"build_py": _BuildCommand, "test": _TestCommand},
