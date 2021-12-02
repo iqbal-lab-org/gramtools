@@ -37,7 +37,7 @@ def run(args):
     cortex_args = {
         "reference_fasta": disco_paths.pers_ref,
         "reads_files": disco_paths.reads_files,
-        "output_vcf_file_path": disco_paths.discov_vcf_cortex,
+        "output_vcf_file_path": disco_paths.discov_vcf,
     }
     if hasattr(args, "mem_height"):  # Allows for low memory integration tests
         cortex_args["mem_height"] = getattr(args, "mem_height")
@@ -73,10 +73,10 @@ def _rebase_vcf(disco_paths: DiscoverPaths, check_records=True):
 
     _add_contig_lines(disco_paths)
     base_records = VariantFile(disco_paths.geno_vcf).fetch()
-    derived_records = VariantFile(disco_paths.discov_vcf_cortex).fetch()
+    derived_records = VariantFile(disco_paths.discov_vcf).fetch()
 
     # Not loading genotype-produced rebasing map here, because it lacks the sequences
-    chrom_sizes: ChromSizes = load_fasta(disco_paths.pers_ref, sizes_only=True)
+    chrom_sizes: ChromSizes = _load_contig_sizes_from_vcf(disco_paths.geno_vcf)
     region_map: SeqRegionsMap = SeqRegionMapper(base_records, chrom_sizes).get_map()
     region_searcher = SearchableSeqRegionsMap(region_map)
 
@@ -105,7 +105,7 @@ def _rebase_vcf(disco_paths: DiscoverPaths, check_records=True):
 
 
 def _dump_rebased_vcf(records: List[VariantRecord], disco_paths: DiscoverPaths):
-    template_vcf = VariantFile(disco_paths.discov_vcf_cortex)
+    template_vcf = VariantFile(disco_paths.discov_vcf)
     output_vcf = VariantFile(disco_paths.final_vcf, "w", header=template_vcf.header)
     for record in records:
         output_vcf.write(record)
@@ -198,19 +198,31 @@ def _rebase_vcf_record(
     return vcf_record
 
 
+def _load_contig_sizes_from_vcf(vcf_fname) -> ChromSizes:
+    result = dict()
+    contigs = VariantFile(vcf_fname).header.contigs
+    for contig_ID, contig_properties in contigs.items():
+        result[contig_ID] = contig_properties.length
+    if len(result) == 0:
+        raise ValueError(
+            f"{vcf_fname} does not have 'contig' lines giving contig sizes"
+        )
+    return result
+
+
 def _add_contig_lines(disco_paths: DiscoverPaths):
     """
     If you don't add contig headers in new variant file before loading the records it contains,
     end up with downstream contig name bugs when writing rebased records.
     [TODO] I could not figure how to modify vcf file's headers only using pysam interface.
     """
-    derived_vcf_contigs = VariantFile(disco_paths.discov_vcf_cortex).header.contigs
+    derived_vcf_contigs = VariantFile(disco_paths.discov_vcf).header.contigs
 
     if list(derived_vcf_contigs) == list():  # Need to add contig headers
         base_vcf_contigs = VariantFile(disco_paths.geno_vcf).header.contigs
-        with open(disco_paths.discov_vcf_cortex) as f_in:
+        with open(disco_paths.discov_vcf) as f_in:
             all_lines = f_in.readlines()
-        with open(disco_paths.discov_vcf_cortex, "w") as f_out:
+        with open(disco_paths.discov_vcf, "w") as f_out:
             insert = True
             for line in all_lines:
                 f_out.write(line)

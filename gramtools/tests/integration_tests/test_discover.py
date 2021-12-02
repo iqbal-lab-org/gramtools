@@ -19,7 +19,7 @@ class DiscoverRunner:
             reads_files=list(base_dir.glob("*.fq.gz")),
             pers_ref=base_dir / "pers_ref.fa",
             geno_vcf=base_dir / "geno.vcf.gz",
-            discov_vcf_cortex=self.disco_dir / "cortex.vcf",
+            discov_vcf=self.disco_dir / "cortex.vcf",
             final_vcf=self.disco_dir / "rebased.vcf",
         )
         mock_enforce_ploidy = mock.patch(
@@ -56,7 +56,7 @@ class TestDiscoveredVariants(TestCase):
         runner = DiscoverRunner(it_tests.data_dir / "IT4")
         self.assertEqual(2, len(runner.disco_paths.reads_files))
 
-        cortex_records = list(VariantFile(runner.disco_paths.discov_vcf_cortex).fetch())
+        cortex_records = list(VariantFile(runner.disco_paths.discov_vcf).fetch())
         self.assertEqual(1, len(cortex_records))
         rec = cortex_records[0]
         self.assertEqual("chr1", rec.chrom)

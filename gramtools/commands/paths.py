@@ -197,7 +197,7 @@ class DiscoverPaths(ProjectPaths):
                 read_file.resolve()
             )  # to absolute path + resolves symlinks
 
-        self.discov_vcf_cortex = self.disco_dir / "cortex.vcf"
+        self.discov_vcf = self.disco_dir / "cortex.vcf"
         self.final_vcf = self.disco_dir / "final.vcf"
 
     def setup(self):
