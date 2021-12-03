@@ -122,79 +122,69 @@ def _modify_vcf_record(vcf_record, **new_attributes):
 def _rebase_vcf_record(
     vcf_record: VariantRecord, chrom: Chrom, region_searcher: SearchableSeqRegionsMap
 ):
-    """Change `vcf_record` to be expressed relative to a different reference."""
+    """
+    Changes `vcf_record` to be expressed relative to a different reference.
 
-    # Get index of personalised ref region containing the start of the `vcf_record`.
-    region_index = region_searcher.bisect(chrom, vcf_record.pos, BisectTarget.PERS_REF)
+    The algorithm is not trivial to understand- refer to the tests to understand
+    expected inputs/outputs and to figures/text in the gramtools PhD thesis for details.
 
-    consumed_reference = 0  # Position in the inferred ref. sequence
-    reference_length = len(vcf_record.ref)
-    ref_seq_left = True
+    Brief explanation:
+       Notation:
+          - base reference = reference on which to rebase
+          - personalised reference = reference on which `vcf_record` variation lies
+       Goal: get base reference sequence and position and new alt sequence for `vcf_record`
+       Functioning:
+          - We use a map (`region_searcher`) storing coordinates/sequences in both reference spaces
+          - We initially bisect into the map at first position <= `vcf_record`'pos in
+            personalised reference space. The algorithm then goes through the map until
+            it reaches the end of `vcf_record`'s pos, constructing new sequence along
+            the way.
+          - If we start or end in a variant site in base reference space, we use all of
+            the ref/alt sequences in the new ref/alt sequences, because we need to carry
+            over variation that exists in the personalised reference
+          - If we start or end in an invariant site, we only use sequence from/up to the
+            `vcf_record`'s ref sequence to paste in to the new base reference sequence.
+    """
+    cur_region_index = region_searcher.bisect(
+        chrom, vcf_record.pos, BisectTarget.PERS_REF
+    )
+    cur_region = region_searcher.get_region(chrom, cur_region_index)
 
-    # Build the rebased_ref as we traverse the regions,
-    # using the vcf_record alt and pre-pend and/or post-pend to it if necessary.
-    rebased_ref, rebased_alt = "", str(vcf_record.alts[0])
+    new_ref_seq = ""
+    new_alt_seq = str(vcf_record.alts[0])
+    cur_pers_ref_pos = vcf_record.pos
 
-    # Let's rebase the position straight away
-    first_region = region_searcher.get_region(chrom, region_index)
+    pers_ref_end_pos = cur_pers_ref_pos + len(vcf_record.ref) - 1
+    new_pos = cur_region.base_ref_start
 
-    # Case: hitting variant region. We rebase at the beginning of the variant region.
-    if first_region.is_variant_region:
-        rebased_pos = first_region.base_ref_start
-
-        # We also straight away pre-pend any preceding variation relative to the base ref
-        if vcf_record.pos > first_region.pers_ref_start:
-            record_inset = vcf_record.pos - first_region.pers_ref_start
-            rebased_alt = first_region.vcf_record_alt[:record_inset] + rebased_alt
-
-    # Case: hitting non-variant region. We rebase at where the vcf_record starts, in base ref coordinates.
-    else:
-        rebased_pos = first_region.base_ref_start + (
-            vcf_record.pos - first_region.pers_ref_start
-        )
-
-    while ref_seq_left:
-        region = region_searcher.get_region(chrom, region_index)
-        # Check how much of the vcf_record ref (inferred reference) can be consumed by the current region.
-        # If the current region can consume at least what is left of the vcf_record ref, loop ends.
-        # NOTE that region.length is 'overloaded': if a non-var region, it is the fixed interval between var regions.
-        # If a var region, it is the inferred_vcf record's alt length (ref and alt lengths can differ).
-        consumable = region.length - (
-            vcf_record.pos + consumed_reference - region.pers_ref_start
-        )
-
-        if consumable >= (reference_length - consumed_reference):
-            ref_seq_left = False
-            to_consume = reference_length - consumed_reference
+    num_bases_past_first_region = cur_pers_ref_pos - cur_region.pers_ref_start
+    if num_bases_past_first_region > 0:
+        if cur_region.is_variant_region:
+            new_alt_seq = (
+                cur_region.vcf_record_alt[:num_bases_past_first_region] + new_alt_seq
+            )
         else:
-            to_consume = consumable
+            new_pos += num_bases_past_first_region
 
-        if region.is_variant_region:
-            rebased_ref += region.vcf_record_ref
-
+    while cur_pers_ref_pos <= pers_ref_end_pos:
+        cur_region = region_searcher.get_region(chrom, cur_region_index)
+        cur_region_end = cur_region.pers_ref_start + cur_region.length - 1
+        num_bases_past_last_region = max(cur_region_end - pers_ref_end_pos, 0)
+        if cur_region.is_variant_region:
+            new_ref_seq += cur_region.vcf_record_ref
         else:
-            # We can use the vcf_record's ref, as that is also the base ref sequence- because we are in a non-variant site.
-            rebased_ref += vcf_record.ref[
-                consumed_reference : consumed_reference + to_consume
-            ]
-
-        consumed_reference += to_consume
-        region_index += 1
-
-    assert consumed_reference == len(vcf_record.ref)
-
-    # Deal with the last region: post-pend any sequence in alt record if we finish in a variant site.
-    if region.is_variant_region:
-        cur_pos = vcf_record.pos + consumed_reference
-        # The inset will be < 0 if there is a part of the (inferred vcf record's) alt which has not been
-        inset = cur_pos - (region.pers_ref_start + region.length)
-        if inset < 0:
-            rebased_alt += region.vcf_record_alt[inset:]
+            start_offset = cur_pers_ref_pos - vcf_record.pos
+            end_offset = cur_region_end - vcf_record.pos - num_bases_past_last_region
+            new_ref_seq += vcf_record.ref[start_offset : end_offset + 1]
+        if num_bases_past_last_region > 0 and cur_region.is_variant_region:
+            offset = cur_region.length - num_bases_past_last_region
+            new_alt_seq = new_alt_seq + cur_region.vcf_record_alt[offset:]
+        cur_pers_ref_pos = cur_region_end + 1
+        cur_region_index += 1
 
     vcf_record = _modify_vcf_record(
-        vcf_record, pos=rebased_pos, ref=rebased_ref, alts=[rebased_alt]
+        vcf_record, pos=new_pos, ref=new_ref_seq, alts=[new_alt_seq]
     )
-
     return vcf_record
 
 

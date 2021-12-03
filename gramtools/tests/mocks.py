@@ -1,5 +1,5 @@
 class _MockVcfRecord:
-    def __init__(self, pos, ref, alts, samples=[], chrom="JAC", filter={}):
+    def __init__(self, pos, ref, alts, samples=[], chrom="JAC", filters=dict()):
         self.pos = pos
         self.ref = ref
         self.alts = alts
@@ -12,10 +12,10 @@ class _MockVcfRecord:
         else:
             self.samples = samples
 
-        if len(filter) == 0:
-            self.filter = {"PASS": ""}
+        if len(filters) == 0:
+            self.filters = {"PASS": ""}
         else:
-            self.filter = filter
+            self.filters = filters
 
     def __repr__(self):
         return str(self.__dict__)

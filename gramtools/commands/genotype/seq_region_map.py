@@ -1,4 +1,4 @@
-from typing import List, Dict, Iterable, Union, Callable
+from typing import List, Dict, Iterable, Union, Callable, Optional
 from enum import Enum, auto
 import json
 from pathlib import Path
@@ -19,8 +19,8 @@ class SeqRegion:
         base_ref_start: int,
         pers_ref_start: int,
         length: int,
-        vcf_record_ref: Union[str, None] = None,
-        vcf_record_alt: Union[str, None] = None,
+        vcf_record_ref: Optional[str] = None,
+        vcf_record_alt: Optional[str] = None,
     ):
         # Start coordinates
         self.base_ref_start = base_ref_start
