@@ -1,5 +1,5 @@
 class _MockVcfRecord:
-    def __init__(self, pos, ref, alts, samples=[], chrom="JAC", filters=dict()):
+    def __init__(self, pos, ref, alts, samples=[], chrom="", filters=dict()):
         self.pos = pos
         self.ref = ref
         self.alts = alts

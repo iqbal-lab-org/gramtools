@@ -20,7 +20,7 @@ class TestRegionMapping(TestCase):
     def test_SingleBaseAlt_CorrectRegion(self):
         # base sequence:      T TAT CGG
         # derived sequence:   T G   CGG
-        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["G"], chrom="JAC")]
 
         chrom_sizes = {"JAC": 7}
 
@@ -43,7 +43,9 @@ class TestRegionMapping(TestCase):
         # base sequence:      T TAT CGG
         # derived sequence:   ^^^^^^^^^
         base_records = [
-            _MockVcfRecord(pos=2, ref="TAT", alts=["G"], samples=[{"GT": [0]}])
+            _MockVcfRecord(
+                pos=2, ref="TAT", alts=["G"], samples=[{"GT": [0]}], chrom="JAC"
+            )
         ]
         chrom_sizes = {"JAC": 7}
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
@@ -53,7 +55,7 @@ class TestRegionMapping(TestCase):
     def test_AltLongerThanRef_CorrectRegion(self):
         # base sequence:      T TAT    CGG
         # derived sequence:   T GCCAC  CGG
-        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"])]
+        base_records = [_MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"], chrom="JAC")]
         chrom_sizes = {"JAC": 7}
 
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
@@ -75,8 +77,8 @@ class TestRegionMapping(TestCase):
         # base sequence:      T TAT    C G   G
         # derived sequence:   T GCCAC  C TTT G
         base_records = [
-            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"]),
-            _MockVcfRecord(pos=6, ref="G", alts=["TTT"]),
+            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"], chrom="JAC"),
+            _MockVcfRecord(pos=6, ref="G", alts=["TTT"], chrom="JAC"),
         ]
 
         chrom_sizes = {"JAC": 7}
@@ -108,9 +110,9 @@ class TestRegionMapping(TestCase):
         # base sequence:      T TAT    C   G  G
         # derived sequence:   T GCCAC  TCT AA G
         base_records = [
-            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"]),
-            _MockVcfRecord(pos=5, ref="C", alts=["TCT"]),
-            _MockVcfRecord(pos=6, ref="G", alts=["AA"]),
+            _MockVcfRecord(pos=2, ref="TAT", alts=["GCCAC"], chrom="JAC"),
+            _MockVcfRecord(pos=5, ref="C", alts=["TCT"], chrom="JAC"),
+            _MockVcfRecord(pos=6, ref="G", alts=["AA"], chrom="JAC"),
         ]
         chrom_sizes = {"JAC": 7}
         result = SeqRegionMapper(base_records, chrom_sizes).get_map()
