@@ -3,8 +3,11 @@
 import logging
 import argparse
 import collections
+from subprocess import run as sp_run
+from pathlib import Path
+import sys
 
-from gramtools import version
+from gramtools import version, gramtools_exec_fpath
 from gramtools.commands.build import command_setup as build_setup, build
 from gramtools.commands.genotype import command_setup as genotype_setup, genotype
 from gramtools.commands.discover import command_setup as discovery_setup, discover
@@ -67,10 +70,31 @@ def _setup_parser():
     simulate.setup_parser(common_parser, subparsers)
 
 
+def check_gram_binary():
+    if not Path(gramtools_exec_fpath).exists():
+        print(
+            f"gramtools backend expected at: {gramtools_exec_fpath} but not found.",
+            file=sys.stderr,
+        )
+        exit(1)
+    process = sp_run(
+        [gramtools_exec_fpath], capture_output=True, universal_newlines=True
+    )
+    if process.returncode != 0:
+        print(
+            f"The gramtools backend at {gramtools_exec_fpath} does not seem to work.\n\n"
+            f"Stdout: \n{process.stdout.strip()}\n\n",
+            f"Stderr: \n{process.stderr.strip()}\n",
+            file=sys.stderr,
+        )
+        exit(1)
+
+
 def run():
     _setup_parser()
     args = root_parser.parse_args()
 
+    check_gram_binary()
     _setup_logging(args)
     if args.version:
         report_json, _ = version.report()

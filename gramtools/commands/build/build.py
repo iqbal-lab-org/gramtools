@@ -10,6 +10,7 @@ import gzip
 
 import cluster_vcf_records
 
+from gramtools import gramtools_exec_fpath
 from gramtools.commands import common, report
 from gramtools.commands.paths import BuildPaths
 from . import vcf_to_prg_string
@@ -140,7 +141,7 @@ def _execute_gramtools_cpp_build(build_report, action, build_paths, args):
 
     log.info("Running backend build")
     command = [
-        common.gramtools_exec_fpath,
+        gramtools_exec_fpath,
         "build",
         "--gram_dir",
         str(args.gram_dir),

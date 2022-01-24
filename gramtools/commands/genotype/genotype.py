@@ -8,6 +8,7 @@ import collections
 
 from pysam import VariantFile
 
+from gramtools import gramtools_exec_fpath
 from gramtools.commands import common, report
 from gramtools.commands.paths import GenotypePaths
 from gramtools.commands.genotype.seq_region_map import (
@@ -68,7 +69,7 @@ def _load_build_report(geno_paths):
 def _execute_command_cpp_genotype(geno_report, action, geno_paths, args):
 
     command = [
-        common.gramtools_exec_fpath,
+        gramtools_exec_fpath,
         "genotype",
         "--gram_dir",
         str(geno_paths.gram_dir),

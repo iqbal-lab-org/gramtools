@@ -11,19 +11,16 @@ from collections import OrderedDict
 
 from Bio import SeqIO
 
-import gramtools
+from gramtools import gramtools_lib_fpath
 
 log = logging.getLogger("gramtools")
 
-# Find executable locations
-base_install_path = Path(gramtools.__file__).resolve().parent
-gramtools_exec_fpath = str(base_install_path / "bin" / "gram")
 
 # Add the dynamically linked libraries at runtime
 _old_ld_library_path = (
     os.environ["LD_LIBRARY_PATH"] if "LD_LIBRARY_PATH" in os.environ else ""
 )
-lib_paths = str(base_install_path / "lib") + ":" + _old_ld_library_path
+lib_paths = gramtools_lib_fpath + ":" + _old_ld_library_path
 
 
 class CommandResult(NamedTuple):

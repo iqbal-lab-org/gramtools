@@ -1,6 +1,7 @@
 import logging
 import time
 
+from gramtools import gramtools_exec_fpath
 from gramtools.commands.paths import SimulatePaths
 from gramtools.commands import common
 
@@ -73,7 +74,7 @@ def _execute_command_cpp_simulate(simu_paths, args):
     if hasattr(simu_paths, "input_multifasta"):
         input_multifasta.extend(["--i", str(simu_paths.input_multifasta)])
     command = [
-        common.gramtools_exec_fpath,
+        gramtools_exec_fpath,
         "simulate",
         "--prg",
         str(simu_paths.prg_fpath),

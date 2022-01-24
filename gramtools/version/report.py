@@ -1,6 +1,13 @@
 import json
 import collections
-from . import package_version
+import sys
+
+if sys.version_info >= (3, 8):
+    from importlib import metadata
+else:
+    import importlib_metadata as metadata
+
+__version__ = metadata.version("gramtools")
 
 
 def report():
@@ -16,7 +23,7 @@ def report():
 
     report_dict = collections.OrderedDict(
         [
-            ("version_number", package_version.__version__),
+            ("version_number", __version__),
             ("last_git_commit_hash", last_commit_hash),
             ("truncated_git_commits", commits),
         ]
