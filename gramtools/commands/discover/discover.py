@@ -7,9 +7,9 @@ Any newly discovered variants get rebased, ie expressed in the original prg
 from typing import List
 import logging
 import json
+import sys
 
 from pysam import VariantFile, VariantRecord
-import cortex.calls as cortex
 
 from gramtools.commands.paths import DiscoverPaths
 from gramtools.commands.common import load_fasta
@@ -21,11 +21,21 @@ from gramtools.commands.genotype.seq_region_map import (
     SearchableSeqRegionsMap,
     BisectTarget,
 )
+from gramtools import py_cortex_api_message
 
 log = logging.getLogger("gramtools")
 
 
 def run(args):
+    try:
+        import cortex.calls as cortex
+    except ModuleNotFoundError as err:
+        print(
+            "Cannot run discovery: missing cortex variant caller."
+            f"{py_cortex_api_message}",
+            file=sys.stderr,
+        )
+        exit(1)
     log.info("Start process: discover")
     disco_paths = DiscoverPaths(args.disco_dir, args.geno_dir, args.force)
     disco_paths.setup()

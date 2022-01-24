@@ -46,8 +46,8 @@ def _build_backend(mode: CompileMode, recompile: bool = False):
             return
         else:
             print(
-                f"gramtools backend at {used_gram_bin} errored with message:"
-                "\n{process.stderr}\n",
+                f"gramtools backend at {used_gram_bin} errored with message:\n"
+                f"{process.stderr}\n",
                 file=sys.stderr,
             )
 
@@ -172,7 +172,6 @@ setuptools.setup(
         "biopython == 1.76",
         "Cython == 0.29.16",
         "pysam == 0.15.4",
-        "py-cortex-api == 2.2.0",
         "cluster_vcf_records >= 0.9.2",
         "conan == 1.42.0",
     ],

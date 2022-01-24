@@ -1,5 +1,12 @@
+from gramtools import py_cortex_api_message
+
+
 def setup_parser(common_parser, subparsers):
-    parser = subparsers.add_parser("discover", parents=[common_parser])
+    parser = subparsers.add_parser(
+        "discover",
+        parents=[common_parser],
+        usage=f"%(prog)s [-h] [options] \n{py_cortex_api_message}",
+    )
 
     parser.add_argument(
         "-i",
