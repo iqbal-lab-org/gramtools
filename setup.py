@@ -1,6 +1,9 @@
+import unittest
+import setuptools
+
 # For pysam to use existing htslib compiled by the backend
-os.environ["HTSLIB_LIBRARY_DIR"] = str(cmake_dir / "libgramtools" / "lib")
-os.environ["HTSLIB_INCLUDE_DIR"] = str(cmake_dir / "libgramtools" / "include")
+# os.environ["HTSLIB_LIBRARY_DIR"] = str(cmake_dir / "libgramtools" / "lib")
+# os.environ["HTSLIB_INCLUDE_DIR"] = str(cmake_dir / "libgramtools" / "include")
 
 
 def _test_backend(root_dir):

@@ -44,35 +44,48 @@ singularity exec "$URI" gramtools
 
 #### Latest release
 
-```sh
-VERSION="1.7.0"
-wget -O - "https://github.com/iqbal-lab-org/gramtools/releases/download/v${VERSION}/gramtools-${VERSION}.tar.gz" | tar xfz -
-pip install "./gramtools-${VERSION}"
-```
-The latest release includes a precompiled binary for Linux. This will be used if it works on your machine, else it will get compiled during the installation.
-
 We recommend installing inside a virtual environment:
 ```sh
-python -m venv gram_ve && source gram_ve/bin/activate
-pip install pip==20.0.2
-pip install gramtools-${VERSION}
+python -m venv venv_gramtools && source venv_gramtools/bin/activate
 ```
+
+```sh
+VERSION="1.9.0"
+wget -O - "https://github.com/iqbal-lab-org/gramtools/releases/download/v${VERSION}/gramtools-${VERSION}.tar.gz" | tar xfz -
+pip install ./gramtools-"${VERSION}"
+```
+gramtools contains a compiled backend component. The latest release includes a
+precompiled backend for Linux.  Run `gramtools` to see if it is compatible with your
+machine. If gramtools tells you it is not, run the following to compile the backend on
+your machine:
+
+```
+pip install conan
+bash ./gramtools-"${VERSION}"
+```
+
+Please report any errors via the [issue tracker](https://github.com/iqbal-lab-org/gramtools/issues).
 
 #### Latest source
 
-```sh
-pip install git+https://github.com/iqbal-lab-org/gramtools
-```
 This will always compile the binary.
+
+```sh
+git clone https://github.com/iqbal-lab-org/gramtools
+pip install conan
+bash ./gramtools/build.sh
+pip install ./gramtools
+```
 
 #### Requirements
 
-`Python >= 3.6` and `pip >= 20.0.2`
+`Python >= 3.6` and `pip >= 20.0.2`.
 
-If the binary needs to be compiled, you also need `CMake >= 3.1.2` and a C++17 
+If the backend needs to be compiled, you also need `CMake >= 3.1.2` and a C++17 
 compatible compiler: `g++ >=8` (tested) or `clang >=7` (untested).
 
-For `gramtools discover` to work, you additionally need `R` and `Perl` available at runtime.
+For `gramtools discover` to work, you additionally need to install `py-cortex-api` (it
+is installable via PyPi/pip) and have `R` and `Perl` on your $PATH.
 
 ## Usage
 
