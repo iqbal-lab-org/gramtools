@@ -47,9 +47,6 @@ singularity exec "$URI" gramtools
 We recommend installing inside a virtual environment:
 ```sh
 python -m venv venv_gramtools && source venv_gramtools/bin/activate
-```
-
-```sh
 VERSION="1.9.0"
 wget -O - "https://github.com/iqbal-lab-org/gramtools/releases/download/v${VERSION}/gramtools-${VERSION}.tar.gz" | tar xfz -
 pip install ./gramtools-"${VERSION}"
@@ -61,7 +58,7 @@ your machine:
 
 ```
 pip install conan
-bash ./gramtools-"${VERSION}"
+bash ./gramtools-"${VERSION}"/build.sh
 ```
 
 Please report any errors via the [issue tracker](https://github.com/iqbal-lab-org/gramtools/issues).
