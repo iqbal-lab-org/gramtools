@@ -3,7 +3,7 @@
 import logging
 import argparse
 import collections
-from subprocess import run as sp_run
+from subprocess import run as sp_run, PIPE
 from pathlib import Path
 import sys
 
@@ -78,7 +78,7 @@ def check_gram_binary():
         )
         exit(1)
     process = sp_run(
-        [gramtools_exec_fpath], capture_output=True, universal_newlines=True
+        [gramtools_exec_fpath], stdout=PIPE, stderr=PIPE, universal_newlines=True
     )
     if process.returncode != 0:
         print(
