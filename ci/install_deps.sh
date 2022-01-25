@@ -2,8 +2,7 @@
 set -e
 
 # Notes
-# * Dependencies:
-#       * cortex: used in variant discovery. depends on r-base
+#   * cortex, used in variant discovery, is installed via py-cortex-api, and requires r-base
 
 apt-get update
 apt-get install -y \
@@ -18,9 +17,8 @@ apt-get install -y \
 	python3 \
 	python3-pip \
 	python3-setuptools \
-	python \
-	python-dev \
 	r-base \
 	wget
 
 pip3 install pip==20.0.2 # upgrade pip
+pip3 install py-cortex-api

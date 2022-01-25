@@ -2,7 +2,7 @@
 .dockerignore
 
 # Git
-.git
+#.git
 
 # Scratch
 tmp_work/

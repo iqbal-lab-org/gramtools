@@ -1,0 +1,11 @@
+FROM alpine:3.15
+
+COPY . /gramtools
+WORKDIR /gramtools
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apk update && apk add binutils cmake make libgcc musl-dev gcc g++ autoconf automake zlib-dev
+RUN apk add bash git py3-pip wget
+
+RUN pip install conan
+RUN chmod +x ./build.sh && ./build.sh
