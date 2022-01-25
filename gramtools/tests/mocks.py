@@ -13,9 +13,9 @@ class _MockVcfRecord:
             self.samples = samples
 
         if len(filters) == 0:
-            self.filters = {"PASS": ""}
+            self.filter = {"PASS": ""}
         else:
-            self.filters = filters
+            self.filter = filters
 
     def __repr__(self):
         return str(self.__dict__)

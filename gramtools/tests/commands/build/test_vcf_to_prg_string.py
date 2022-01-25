@@ -147,14 +147,14 @@ class Test_Filter_Records(TestCase):
     chroms = {"JAC": "AAC"}
 
     def test_filter_pass_record_kept(self, mock_var_file, mock_load_fasta):
-        recs = [_MockVcfRecord(2, "A", "G")]  # Default filter: PASS
+        recs = [_MockVcfRecord(2, "A", "G", chrom="JAC")]  # Default filter: PASS
         mock_var_file.return_value.fetch.return_value = iter(recs)
         mock_load_fasta.return_value = self.chroms
         converter = Vcf_to_prg("", "", "")
         self.assertEqual(converter._get_string(), "A5A6G6C")
 
     def test_filter_nonpass_record_skipped(self, mock_var_file, mock_load_fasta):
-        recs = [_MockVcfRecord(2, "A", "G", filter={"LOW_QUAL": ""})]
+        recs = [_MockVcfRecord(2, "A", "G", filters={"LOW_QUAL": ""})]
         mock_var_file.return_value.fetch.return_value = iter(recs)
         mock_load_fasta.return_value = self.chroms
         converter = Vcf_to_prg("", "", "")
