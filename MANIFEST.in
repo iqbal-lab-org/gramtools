@@ -1,6 +1,14 @@
+include CHANGELOG.md
+
+# Precompiled binary
 include gramtools/bin/*
+
+# Backend build requirements
 include gramtools/version/Makefile
 include CMakeLists.txt
+include conanfile.txt
+include build.sh
 graft libgramtools
 prune libgramtools/tests
+
 global-exclude *~ *.swp
