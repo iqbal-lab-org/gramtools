@@ -1,20 +1,47 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+TARGETS="gram|all|test_main"
+BUILD_TYPES="DEBUG|REL_WITH_ASSERTS"
+
 usage(){
     echo "Builds the gramtools backend"
-    echo "usage: $0 [build_target] [build_mode]"
-    echo "\tbuild_target: $TARGETS (default: gram)"
-    echo "\tbuild_mode: $BUILD_TYPES (default: REL_WITH_ASSERTS)"
+    echo "usage: $0 [--target ($TARGETS)] [--build_type ($BUILD_TYPES)] [--static]"
+    echo -e "\tDefaults: --target gram --build_type REL_WITH_ASSERTS"
+    echo -e "\tPass --static to make a standalone executable"
     exit 0
 }
 
-TARGETS="gram|all|test_main"
-BUILD_TYPES="DEBUG|REL_WITH_ASSERTS"
-TARGET=${1:-gram}
-BUILD_TYPE=${2:-REL_WITH_ASSERTS}
-[[ "$BUILD_TYPE" =~ $BUILD_TYPES ]] || usage
-[[ "$TARGET" =~ $TARGETS ]] || usage
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    case $key in
+        --target)
+        TARGET="$2"
+        [[ "$TARGET" =~ $TARGETS ]] || usage
+        shift
+        shift
+        ;;
+        --build_type)
+        BUILD_TYPE="$2"
+        [[ "$BUILD_TYPE" =~ $BUILD_TYPES ]] || usage
+        shift
+        shift
+        ;;
+        --static)
+        STATIC="-static"
+        shift
+        ;;
+        *)    # unknown option
+        usage
+        ;;
+    esac
+done
+
+TARGET=${TARGET:-gram}
+BUILD_TYPE=${BUILD_TYPE:-REL_WITH_ASSERTS}
+STATIC=${STATIC:- }
+[[ "$STATIC" =~ -static| ]] || usage
 
 BASE_DIR=$(realpath $(dirname $0))
 CUR_DIR=$(pwd)
@@ -33,8 +60,10 @@ echo "Building in: ${BUILD_DIR}" >&1
 echo "Writing stdout to: ${STDOUT_FILE}" >&1
 mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
 
+CMAKE_OPTS="-DCMAKE_EXE_LINKER_FLAGS=${STATIC} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
+
 conan install .. -s compiler.libcxx=libstdc++11 --build=missing > "$STDOUT_FILE"
-CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" .. >> "$STDOUT_FILE"
+CC=gcc CXX=g++ cmake "$CMAKE_OPTS" .. | tee -a "$STDOUT_FILE"
 make -j 4 "${TARGET}" | tee -a "$STDOUT_FILE"
 
 cd "$CUR_DIR"

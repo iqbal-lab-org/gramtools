@@ -7,12 +7,10 @@ add_custom_target(py_git_version
         COMMAND make -C ${PROJECT_SOURCE_DIR}/gramtools/version)
 
 
-######################
-###  Compile flags ##
-######################
+###  Build type flags ##
 # add a RELEASE_WITH_ASSERTS build type. Use via `cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS`
-# Note: this variable name NEEDS TO BE UPPERCASE (but not in cmake call)
-set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
+# Note: this variable name needs to be uppercased here
+set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "${CMAKE_CXX_FLAGS_REL_WITH_ASSERTS} -O3")
 
 
 ######################
@@ -23,7 +21,14 @@ include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
-find_package(OpenMP REQUIRED)
+# Parallelisation
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(MACOSX TRUE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OPENMP")
+else ()
+    find_package(OpenMP REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+endif()
 
 ### Include headers ####
 set(EXTERNAL_INCLUDE_DIR 
@@ -33,9 +38,10 @@ set(EXTERNAL_INCLUDE_DIR
 #### Link libraries ####
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-set(EXTERN_LIBS
-        divsufsort
-        divsufsort64
+set(SDSL_LIBS
+        -ldivsufsort
+        -ldivsufsort64
+        -lsdsl
         )
 
 #########################
@@ -54,27 +60,29 @@ file(GLOB_RECURSE HEADER_FILES
         ${INCLUDE}/*.hpp)
 
 
-
 #########################
 ####  libgramtools   ####
 #########################
+if (${CMAKE_EXE_LINKER_FLAGS} MATCHES "-static")
+    set(STATIC_FLAGS "-static-libgcc -static-libstdc++ -ldl")
+endif()
 add_library(gramtools STATIC
         ${SOURCE_FILES}
         ${HEADER_FILES} # For IDE to recognise header files as part of a target
         )
+
 target_include_directories(gramtools PUBLIC
         ${INCLUDE}
         ${EXTERNAL_INCLUDE_DIR}
         ${PROJECT_SOURCE_DIR}/libgramtools/lib
         )
 target_link_libraries(gramtools LINK_PUBLIC
-        ${EXTERN_LIBS}
-        ${CMAKE_CURRENT_BINARY_DIR}/lib/libsdsl.a
+        ${SDSL_LIBS}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libhts.a
         CONAN_PKG::boost
         CONAN_PKG::nlohmann_json
-        OpenMP::OpenMP_CXX
         -lstdc++fs -lpthread -lrt -lm -lz
+        ${STATIC_FLAGS}
 		)
 target_compile_features(gramtools PUBLIC cxx_std_17)
 set_target_properties(gramtools
@@ -134,8 +142,8 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/libgramtools/tests")
             "${PROJECT_SOURCE_DIR}/libgramtools/tests/*"
             )
         include(CodeCoverage)
-        set(CMAKE_CXX_FLAGS "-O0")
-        set(CMAKE_C_FLAGS "-O0")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
         append_coverage_compiler_flags()
         setup_target_for_coverage_lcov(
             NAME test_coverage 
