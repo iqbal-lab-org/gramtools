@@ -21,4 +21,6 @@ apt-get install -y \
 	wget
 
 pip3 install pip==20.0.2 # upgrade pip
-pip3 install py-cortex-api
+pip3 install conan
+pip3 install py-cortex-api==2.2.0
+bash build.sh
