@@ -1,14 +1,25 @@
 from pybedtools import BedTool, Interval
 from enum import Enum, auto
-from typing import List, Optional
+from typing import List, Dict, Optional
 import re
+import shutil
 from pathlib import Path
+import logging
+
+from make_prg.from_msa.prg_builder import PrgBuilder
+from make_prg.prg_encoder import PrgEncoder, ENDIANNESS, BYTES_PER_INT
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.AlignIO import MultipleSeqAlignment
+
 
 from gramtools.commands.common import load_fasta
 
 Intervals = List[Interval]
+Seq = str
+Chroms = Dict[str, Seq]
 
-msa_like = re.compile("(msa|fa|fasta)$")
+msa_like = re.compile(".*(msa|fa|fasta)$")
 
 
 class BuildType(Enum):
@@ -26,6 +37,10 @@ def check_all_fnames_exist(intervals: Intervals) -> Optional[str]:
 
 
 class IntervalCollection:
+    """
+    Manages a list of `IntervalBuilder`s
+    """
+
     def __init__(self, bed_fname: str, fasta_fname: str, out_dirname: str):
         self.builders: List[IntervalBuilder] = list()
         input_collection = BedTool(bed_fname)
@@ -42,35 +57,43 @@ class IntervalCollection:
             out_fname = f"{out_dirname}/{Path(interval.name).stem}.bin"
             self.builders.append(IntervalBuilder(interval, build_type, out_fname))
 
-        self.genome = load_fasta(fasta_fname)
-        self.chrom_sizes = {name: len(seq) for name, seq in self.genome.items()}
+        self.chrom_seqs: Chroms = load_fasta(fasta_fname)
+        self.genome_file = f"{out_dirname}/genome_file.txt"
+        with open(self.genome_file, "w") as fhandle_out:
+            for name, seq in self.chrom_seqs.items():
+                fhandle_out.write(f"{name}\t{len(seq)}\n")
 
-        # TODO: add chrom dict to complement() and sort()
-        invar_intervals = BedTool(self.intervals).complement()
+        invar_intervals = BedTool(self.intervals).complement(g=self.genome_file)
         for i, invar_interval in enumerate(invar_intervals):
             out_fname = f"{out_dirname}/invariant_{i+1}.bin"
-            self.builders.append(
-                IntervalBuilder(invar_interval, BuildType.INVARIANT, out_fname)
+            new_builder = IntervalBuilder(
+                invar_interval, BuildType.INVARIANT, out_fname
             )
-        print(self.intervals)
+            new_builder.add_seq(self.chrom_seqs)
+            self.builders.append(new_builder)
+        self.chrom_seqs = {}
 
     @property
     def intervals(self):
         return [builder.interval for builder in self.builders]
 
-    def dispatch_building(self):
-        # Call build() on each interval builder
-        # Can be multiprocessed
-        pass
+    def build(self):
+        for builder in self.builders:
+            builder.build()
 
-    def get_built_bed(self, out_fname):
-        # Check each member interval has type PRG and an existing out_fname
-        # Make set of intervals with added out_fname in col 4
-        # Return bed. That bed can be written but also then used by concat_prg
-        pass
+    def get_built_bed(self):
+        new_intervals = self.intervals
+        check_all_fnames_exist(new_intervals)
+        result = BedTool(new_intervals)
+        result = result.sort(g=self.genome_file)
+        return result
 
 
 class IntervalBuilder:
+    """
+    Responsible for building one prg
+    """
+
     def __init__(self, interval: Interval, build_type: BuildType, out_fname: str):
         self.chrom = interval.chrom
         self.start = interval.start
@@ -79,20 +102,127 @@ class IntervalBuilder:
         self.build_type = build_type
         self._in_fname = interval.name
 
+    def encode_and_write_prg(self, built_prg: PrgBuilder):
+        prg_encoder = PrgEncoder()
+        prg_ints = prg_encoder.encode(built_prg.prg)
+        with open(self.out_fname, "wb") as fhandle_out:
+            prg_encoder.write(prg_ints, fhandle_out)
+
+    def add_seq(self, chrom_seqs: Chroms):
+        self.sequence = chrom_seqs[self.chrom][self.start : self.end]
+
     def build(self):
-        # Run make_prg on MSA type
-        # Copy existing prg
-        pass
+        if self.build_type is BuildType.PRG:
+            shutil.copy(self._in_fname, self.out_fname)
+        elif self.build_type is BuildType.MSA:
+            built_prg = PrgBuilder(self._in_fname)
+            self.encode_and_write_prg(built_prg)
+        else:
+            records = [SeqRecord(Seq(self.sequence.upper()), id="invar_seq")]
+            alignment = MultipleSeqAlignment(records)
+            built_prg = PrgBuilder("_", alignment=alignment)
+            self.encode_and_write_prg(built_prg)
 
     @property
     def interval(self):
         return Interval(self.chrom, self.start, self.end, self.out_fname)
 
 
+class Record:
+    def __init__(self, translation: int, count: int):
+        self.translation = translation
+        self.count = count
+
+
+PRG_Ints = List[int]
+
+
+class PRGAggregationError(Exception):
+    pass
+
+
+class PRGDecodeError(Exception):
+    pass
+
+
+class PRGAggregator:
+    """
+    Rescales variant site markers across multiple PRGs so that they are consistent
+    E.g. two different PRGs will use '5' and '6' to delimit their first sites. 
+    Aggregator makes sure that does not happen.
+    """
+
+    def __init__(self):
+        self.translations: Dict[str, Dict[int, Record]] = dict()
+        self.next_allocated = 5
+
+    def translate(self, ID: str, marker: int) -> int:
+        if ID not in self.translations:
+            self.translations[ID] = dict()
+
+        if marker <= 4:
+            raise PRGAggregationError(f"Marker {marker} is not >4")
+
+        local_table = self.translations[ID]
+        if marker % 2 == 0:
+            site_ID = marker - 1
+            if site_ID not in local_table:
+                raise PRGAggregationError(
+                    f"Error: {marker}'s site number {marker - 1} has never been seen"
+                )
+            return local_table[site_ID].translation + 1
+
+        else:
+            if marker in local_table:
+                record = local_table[marker]
+                if record.count >= 1:
+                    raise PRGAggregationError(
+                        f"Error: {marker} site number present >1 times in local PRG {ID}"
+                    )
+                else:
+                    record.count += 1
+                    return local_table[marker].translation + 1
+            local_table[marker] = Record(self.next_allocated, 1)
+            self.next_allocated += 2
+
+            return local_table[marker].translation
+
+
+def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
+    rescaled_prg_ints: PRG_Ints = list()
+    for interval in intervals:
+        in_fname = interval.name
+        prg_name = Path(in_fname).stem
+        logging.info(f"Processing: {prg_name}")
+        with open(in_fname, "rb") as f:
+            all_bytes = f.read()
+        for pos in range(0, len(all_bytes), BYTES_PER_INT):
+            int_bytes = all_bytes[pos : pos + BYTES_PER_INT]
+
+            decoded_int = int.from_bytes(int_bytes, ENDIANNESS)
+            if decoded_int <= 0:
+                raise PRGDecodeError(f"PRG marker {decoded_int} should be > 0")
+            elif decoded_int <= 4:
+                rescaled_prg_ints.append(decoded_int)
+            else:
+                rescaled_int = agg.translate(prg_name, decoded_int)
+                rescaled_prg_ints.append(rescaled_int)
+        logging.info(f"Cumulative len prg: {len(rescaled_prg_ints)}")
+        logging.info(f"Cumulative num sites: {(agg.next_allocated - 3) // 2 - 1}\n")
+    return rescaled_prg_ints
+
+
 if __name__ == "__main__":
     import sys
 
     bed_fname = sys.argv[1]
-    fasta_fname = ""
-    out_dirname = "."
-    IntervalCollection(bed_fname, fasta_fname, out_dirname)
+    fasta_fname = sys.argv[2]
+    out_dirname = sys.argv[3]
+    ic = IntervalCollection(bed_fname, fasta_fname, out_dirname)
+    ic.build()
+    built_intervals = ic.get_built_bed()
+    built_intervals.saveas(f"{out_dirname}/built_prgs.bed")
+    agg = PRGAggregator()
+    rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
+    with open(f"{out_dirname}/prg", "wb") as fhandle_out:
+        PrgEncoder.write(rescaled_prg_ints, fhandle_out)
