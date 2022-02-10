@@ -1,4 +1,3 @@
-from pybedtools import BedTool, Interval
 from enum import Enum, auto
 from typing import List, Dict, Optional
 import re
@@ -6,11 +5,12 @@ import shutil
 from pathlib import Path
 import logging
 
-from make_prg.from_msa.prg_builder import PrgBuilder
-from make_prg.prg_encoder import PrgEncoder, ENDIANNESS, BYTES_PER_INT
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.AlignIO import MultipleSeqAlignment
+from pybedtools import BedTool, Interval
+from make_prg.from_msa.prg_builder import PrgBuilder
+from make_prg.prg_encoder import PrgEncoder, ENDIANNESS, BYTES_PER_INT
 
 from gramtools.commands.common import load_fasta, Chroms
 from gramtools.commands.build.command_setup import MSA_EXTS
@@ -182,9 +182,6 @@ class PRGAggregator:
                     raise PRGAggregationError(
                         f"Error: {marker} site number present >1 times in local PRG {ID}"
                     )
-                else:
-                    record.count += 1
-                    return local_table[marker].translation + 1
             local_table[marker] = Record(self.next_allocated, 1)
             self.next_allocated += 2
 

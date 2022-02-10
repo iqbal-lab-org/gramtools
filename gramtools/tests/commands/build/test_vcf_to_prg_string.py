@@ -14,7 +14,6 @@ import os
 import subprocess
 from unittest import TestCase, mock
 
-from gramtools.commands.build import vcf_to_prg_string
 from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg
 from gramtools.tests.mocks import _MockVcfRecord
 
@@ -183,7 +182,7 @@ class Utility_Tester(object):
         self.outfile = Path(str(self.outfile_prefix) + ".prg")
 
     def _run(self, mode="normal", check=False):
-        converter = vcf_to_prg_string.Vcf_to_prg(
+        converter = Vcf_to_prg(
             str(self.vcf_file), str(self.ref_file), self.outfile_prefix, mode=mode
         )
         converter._write_string()
