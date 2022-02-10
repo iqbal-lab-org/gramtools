@@ -1,5 +1,5 @@
 """
-Build/load a population reference genome and set it up for quasimapping.
+Build/load a population reference genome (prg) and set it up for quasimapping.
 Either a vcf/reference is passed and a prg generated from it, or an existing prg is passed.
 Once the prg is stored the back-end `build` routine is called, producing the encoded prg, its fm-index, and other supporting data structures.
 """
@@ -34,6 +34,9 @@ def run(args):
 
 
 def prepare_prg(build_report, build_paths, args):
+    chrom_seqs = common.load_fasta(args.reference)
+    common.write_coordinates_file(chrom_seqs, build_paths.coords_file)
+
     if args.prg is not None:
         skip_prg_construction(
             build_report, "copy_existing_PRG_string", build_paths, args
@@ -49,15 +52,6 @@ def skip_prg_construction(report, action, build_paths, args):
     log.debug("PRG file provided, skipping construction")
     log.debug("Copying PRG file into gram directory")
     shutil.copyfile(args.prg, build_paths.prg)
-
-    # Write coordinates file
-    with open(build_paths.coords_file, "w") as genome_file:
-        if args.reference != "None":  # empty file signals no segments
-            for rec_id, rec_size in common.load_fasta(
-                args.reference, sizes_only=True
-            ).items():
-                line = f"{rec_id}\t{rec_size}\n"
-                genome_file.write(line)
 
 
 @report.with_report

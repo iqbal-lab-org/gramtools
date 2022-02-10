@@ -12,12 +12,9 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.AlignIO import MultipleSeqAlignment
 
-
-from gramtools.commands.common import load_fasta
+from gramtools.commands.common import load_fasta, Chroms
 
 Intervals = List[Interval]
-Seq = str
-Chroms = Dict[str, Seq]
 
 msa_like = re.compile(".*(msa|fa|fasta)$")
 
@@ -41,7 +38,9 @@ class IntervalCollection:
     Manages a list of `IntervalBuilder`s
     """
 
-    def __init__(self, bed_fname: str, fasta_fname: str, out_dirname: str):
+    def __init__(
+        self, bed_fname: str, fasta_fname: str, coords_fname: str, out_dirname: str
+    ):
         self.builders: List[IntervalBuilder] = list()
         input_collection = BedTool(bed_fname)
         missing_fname = check_all_fnames_exist(input_collection)
@@ -58,12 +57,9 @@ class IntervalCollection:
             self.builders.append(IntervalBuilder(interval, build_type, out_fname))
 
         self.chrom_seqs: Chroms = load_fasta(fasta_fname)
-        self.genome_file = f"{out_dirname}/genome_file.txt"
-        with open(self.genome_file, "w") as fhandle_out:
-            for name, seq in self.chrom_seqs.items():
-                fhandle_out.write(f"{name}\t{len(seq)}\n")
+        self.coords_fname = coords_fname
 
-        invar_intervals = BedTool(self.intervals).complement(g=self.genome_file)
+        invar_intervals = BedTool(self.intervals).complement(g=self.coords_fname)
         for i, invar_interval in enumerate(invar_intervals):
             out_fname = f"{out_dirname}/invariant_{i+1}.bin"
             new_builder = IntervalBuilder(
@@ -85,7 +81,7 @@ class IntervalCollection:
         new_intervals = self.intervals
         check_all_fnames_exist(new_intervals)
         result = BedTool(new_intervals)
-        result = result.sort(g=self.genome_file)
+        result = result.sort(g=self.coords_fname)
         return result
 
 
@@ -210,6 +206,35 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
         logging.info(f"Cumulative len prg: {len(rescaled_prg_ints)}")
         logging.info(f"Cumulative num sites: {(agg.next_allocated - 3) // 2 - 1}\n")
     return rescaled_prg_ints
+
+
+@report.with_report
+def build_from_msas(report, action, build_paths, args):
+    ic = IntervalCollection(
+        args.bed_fname,
+        args.reference,
+        build_paths.coords_fname,
+        build_paths.prg_build_dir,
+    )
+    ic.build()
+    built_intervals = ic.get_built_bed()
+    built_intervals.saveas(f"{out_dirname}/built_prgs.bed")
+    agg = PRGAggregator()
+    rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
+    with open(f"{out_dirname}/prg", "wb") as fhandle_out:
+        PrgEncoder.write(rescaled_prg_ints, fhandle_out)
+    log.info(f"Running {action} on {built_vcf}")
+
+    converter = Vcf_to_prg(built_vcf, build_paths.ref, build_paths.prg, mode="normal")
+    converter._write_bytes()
+
+    num_recs_in_vcf = _count_vcf_record_lines(built_vcf)
+    assert num_recs_in_vcf == converter.num_sites, log.error(
+        f"Mismatch between number of vcf records in {built_vcf}"
+        f"({num_recs_in_vcf} and number of variant sites in"
+        f"PRG string ({converter.num_sites}.\n"
+        f"Please report this to developers."
+    )
 
 
 if __name__ == "__main__":

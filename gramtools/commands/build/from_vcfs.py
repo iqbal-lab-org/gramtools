@@ -58,7 +58,6 @@ def build_from_vcfs(report, action, build_paths, args):
 
     converter = Vcf_to_prg(built_vcf, build_paths.ref, build_paths.prg, mode="normal")
     converter._write_bytes()
-    converter._write_coordinates()
 
     num_recs_in_vcf = _count_vcf_record_lines(built_vcf)
     assert num_recs_in_vcf == converter.num_sites, log.error(

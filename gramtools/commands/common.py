@@ -5,7 +5,7 @@ import hashlib
 import logging
 import subprocess
 import gzip
-from typing import List, NamedTuple
+from typing import List, Dict, NamedTuple
 from pathlib import Path
 from collections import OrderedDict
 
@@ -92,6 +92,10 @@ def _file_hash(file_path):
     return sha.hexdigest()
 
 
+Seq = str
+Chroms = Dict[str, Seq]
+
+
 def load_fasta(reference_file: Path, sizes_only=False):
     if str(reference_file).endswith(".gz"):
         ref_fhandle = gzip.open(str(reference_file), "rt")
@@ -106,3 +110,9 @@ def load_fasta(reference_file: Path, sizes_only=False):
             ref_records[seq_record.id] = len(ref_records[seq_record.id])
     ref_fhandle.close()
     return ref_records
+
+
+def write_coordinates_file(chrom_seqs: Chroms, out_fname: str):
+    with open(f"out_fname", "w") as fhandle_out:
+        for name, seq in chrom_seqs.items():
+            fhandle_out.write(f"{name}\t{len(seq)}\n")

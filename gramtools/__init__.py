@@ -16,3 +16,7 @@ To run discovery, you need the following:
 _base_install_path = Path(__file__).resolve().parent
 gramtools_exec_fpath = str(_base_install_path / "bin" / "gram")
 gramtools_lib_fpath = str(_base_install_path / "lib")
+
+# For graph construction
+BYTES_PER_INT = 4
+ENDIANNESS = "little"

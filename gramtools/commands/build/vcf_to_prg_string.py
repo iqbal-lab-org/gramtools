@@ -14,6 +14,7 @@ from typing import Union, List, Tuple
 
 from pysam import VariantFile, VariantRecord
 
+from gramtools import ENDIANNESS, BYTES_PER_INT
 from gramtools.commands.common import load_fasta
 
 sys.tracebacklimit = 0
@@ -43,8 +44,6 @@ class Vcf_to_prg(object):
     """
 
     acceptable_modes = {"legacy", "normal"}
-    NUM_BYTES = 4  # Number of bytes for each serialised integer
-    ENDIANNESS = "little"
 
     def __init__(self, vcf_file, reference_file, prg_output_file, mode="normal"):
         self.prg_bytes: Map[str, bytearray] = defaultdict(bytearray)
@@ -68,7 +67,7 @@ class Vcf_to_prg(object):
             )
 
     def _from_bytes(self, to_convert: bytes) -> int:
-        return int.from_bytes(to_convert, self.ENDIANNESS)
+        return int.from_bytes(to_convert, ENDIANNESS)
 
     def _to_bytes(self, to_convert: Union[str, int]) -> bytes:
         int_to_convert = to_convert
@@ -79,7 +78,7 @@ class Vcf_to_prg(object):
                 raise ValueError(
                     f"Did not receive a nucleotide: {to_convert} not in {{A,C,G,T}}"
                 )
-        return int_to_convert.to_bytes(self.NUM_BYTES, self.ENDIANNESS)
+        return int_to_convert.to_bytes(BYTES_PER_INT, ENDIANNESS)
 
     def _get_ref_slice(self, chrom, start, end=0) -> bytearray:
         if end == 0:
@@ -194,9 +193,9 @@ class Vcf_to_prg(object):
         contiguous_ints = list()
         for ref_chrom in self.ref_records:
             chrom_bytes = self.prg_bytes[ref_chrom]
-            for inset in range(0, len(chrom_bytes), self.NUM_BYTES):
+            for inset in range(0, len(chrom_bytes), BYTES_PER_INT):
                 contiguous_ints.append(
-                    self._from_bytes(chrom_bytes[inset : inset + self.NUM_BYTES])
+                    self._from_bytes(chrom_bytes[inset : inset + BYTES_PER_INT])
                 )
         return contiguous_ints
 
@@ -215,12 +214,6 @@ class Vcf_to_prg(object):
         prg_string = self._get_string()
         with open(f"{self.f_out_prefix}.prg", "w") as f_out:
             f_out.write(prg_string)
-
-    def _write_coordinates(self):
-        with open(f"{self.f_out_prefix}_coords.tsv", "w") as genome_file:
-            for ref_chrom, ref_seq in self.ref_records.items():
-                line = f"{ref_chrom}\t{len(ref_seq)}\n"
-                genome_file.write(line)
 
 
 # May run standalone
@@ -252,5 +245,4 @@ if __name__ == "__main__":
     converter = Vcf_to_prg(args.vcf, args.ref, args.outfile, args.mode)
     converter._write_bytes()
     converter._write_string()
-    converter._write_coordinates()
     logger.info(f"num variant sites in prg: {converter.num_sites}")
