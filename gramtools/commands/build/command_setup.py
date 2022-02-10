@@ -39,9 +39,14 @@ def setup_parser(common_parser, subparsers):
 
     variation.add_argument(
         "--prgs_bed",
-        help="Bed file containing regions of variation, and file names in column 4."
-        f"File can be a msa (valid extensions: {MSA_EXTS}) or a prg built with make_prg"
-        "Use this for more complex graphs, e.g. jointly genotyping SNPs and large indels",
+        help=f"""
+Bed file describing regions of variation to build a prg from.
+Column 4 of the bed needs to contain a file name.
+Each file is either a multiple sequence alignment (valid extensions: {MSA_EXTS}), 
+or a prg built with make_prg (binary output, .prg).
+Use this for building more complex graphs than from VCFs (e.g.: genotyping 
+both SNPs and large indels, or variation on multiple references)
+        """,
         type=str,
     )
 
