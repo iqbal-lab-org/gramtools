@@ -2,7 +2,7 @@ from cluster_vcf_records.vcf_clusterer import VcfClusterer
 
 from gramtools.commands import report
 from gramtools.commands.paths import BuildPaths
-from vcf_to_prg_string import Vcf_to_prg
+from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg
 
 
 def _count_vcf_record_lines(vcf_file_path):

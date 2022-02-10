@@ -4,6 +4,8 @@ import logging
 
 log = logging.getLogger("gramtools")
 
+MSA_EXTS = ".*(msa|fa|fasta)$"
+
 
 def setup_parser(common_parser, subparsers):
     parser = subparsers.add_parser("build", parents=[common_parser])
@@ -36,11 +38,14 @@ def setup_parser(common_parser, subparsers):
     )
 
     variation.add_argument(
-        "--prg",
-        help="A prg can be passed in directly instead of a vcf. "
-        "Use this for prgs with nesting.",
+        "--prgs_bed",
+        help="Bed file containing regions of variation, and file names in column 4."
+        f"File can be a msa (valid extensions: {MSA_EXTS}) or a prg built with make_prg"
+        "Use this for more complex graphs, e.g. jointly genotyping SNPs and large indels",
         type=str,
     )
+
+    variation.add_argument("--prg", help="Use an already-constructed prg", type=str)
 
     parser.add_argument(
         "--kmer_size",

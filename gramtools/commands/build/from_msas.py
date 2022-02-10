@@ -13,10 +13,12 @@ from Bio.SeqRecord import SeqRecord
 from Bio.AlignIO import MultipleSeqAlignment
 
 from gramtools.commands.common import load_fasta, Chroms
+from gramtools.commands.build.command_setup import MSA_EXTS
+from gramtools.commands import report
 
 Intervals = List[Interval]
 
-msa_like = re.compile(".*(msa|fa|fasta)$")
+msa_like = re.compile(MSA_EXTS)
 
 
 class BuildType(Enum):
@@ -211,30 +213,18 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
 @report.with_report
 def build_from_msas(report, action, build_paths, args):
     ic = IntervalCollection(
-        args.bed_fname,
+        args.prgs_bed,
         args.reference,
-        build_paths.coords_fname,
-        build_paths.prg_build_dir,
+        build_paths.coords_file,
+        build_paths.built_prg_dirname,
     )
     ic.build()
     built_intervals = ic.get_built_bed()
-    built_intervals.saveas(f"{out_dirname}/built_prgs.bed")
+    built_intervals.saveas(build_paths.built_prg_bed)
     agg = PRGAggregator()
     rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
-    with open(f"{out_dirname}/prg", "wb") as fhandle_out:
+    with open(build_paths.prg, "wb") as fhandle_out:
         PrgEncoder.write(rescaled_prg_ints, fhandle_out)
-    log.info(f"Running {action} on {built_vcf}")
-
-    converter = Vcf_to_prg(built_vcf, build_paths.ref, build_paths.prg, mode="normal")
-    converter._write_bytes()
-
-    num_recs_in_vcf = _count_vcf_record_lines(built_vcf)
-    assert num_recs_in_vcf == converter.num_sites, log.error(
-        f"Mismatch between number of vcf records in {built_vcf}"
-        f"({num_recs_in_vcf} and number of variant sites in"
-        f"PRG string ({converter.num_sites}.\n"
-        f"Please report this to developers."
-    )
 
 
 if __name__ == "__main__":

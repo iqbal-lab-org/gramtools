@@ -14,7 +14,7 @@ class ProjectPaths:
     def path_fact(base_dir: Path):
         """
         Factory building functions which build paths from a base_dir.
-       """
+        """
         return lambda fname: base_dir / fname
 
     def __init__(self, output_dir, force: bool):
@@ -104,9 +104,12 @@ class BuildPaths(ProjectPaths):
         self.report = self.build_path("build_report.json")
         self.fm_index = self.build_path("fm_index")
         self.cov_graph = self.build_path("cov_graph")
+        self.built_prg_dirname = self.gram_dir / "built_prgs"
+        self.built_prg_bed = self.built_prg_dirname / "built_prgs.bed"
 
     def setup(self):
         super().initial_setup()
+        self.built_prg_dirname.mkdir(exist_ok=True)
 
     def _check_ref_and_make_ref_link(self, ref_path):
         resolved_ref_path = Path.resolve(Path(ref_path))

@@ -9,7 +9,8 @@ import collections
 
 from gramtools import gramtools_exec_fpath
 from gramtools.commands import common, report
-from gramtools.commands.paths import BuildPaths
+from gramtools.commands.build.from_vcfs import build_from_vcfs
+from gramtools.commands.build.from_msas import build_from_msas
 from . import command_setup
 
 log = logging.getLogger("gramtools")
@@ -21,7 +22,7 @@ def run(args):
     log.info("Start process: build")
     build_report = report.new_report()
 
-    prepare_prg(build_report, build_paths, args)
+    construct_prg(build_report, build_paths, args)
     execute_gramtools_cpp_build(build_report, "gramtools_build", build_paths, args)
 
     log.debug("Computing sha256 hash of project paths")
@@ -33,7 +34,7 @@ def run(args):
     log.info(f"Success! Build process report in {build_paths.report}")
 
 
-def prepare_prg(build_report, build_paths, args):
+def construct_prg(build_report, build_paths, args):
     chrom_seqs = common.load_fasta(args.reference)
     common.write_coordinates_file(chrom_seqs, build_paths.coords_file)
 
@@ -41,8 +42,10 @@ def prepare_prg(build_report, build_paths, args):
         skip_prg_construction(
             build_report, "copy_existing_PRG_string", build_paths, args
         )
+    elif args.vcf is not None:
+        build_from_vcfs(build_report, "build prg from VCF(s)", build_paths, args)
     else:
-        build_from_vcfs(build_report, "vcf_to_PRG_string_conversion", build_paths, args)
+        build_from_msas(build_report, "build prg from MSA(s)", build_paths, args)
 
 
 @report.with_report

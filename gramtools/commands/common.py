@@ -113,6 +113,6 @@ def load_fasta(reference_file: Path, sizes_only=False):
 
 
 def write_coordinates_file(chrom_seqs: Chroms, out_fname: str):
-    with open(f"out_fname", "w") as fhandle_out:
+    with open(out_fname, "w") as fhandle_out:
         for name, seq in chrom_seqs.items():
             fhandle_out.write(f"{name}\t{len(seq)}\n")
