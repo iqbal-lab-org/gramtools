@@ -61,9 +61,12 @@ both SNPs and large indels, or variation on multiple references)
         required=False,
     )
 
-    # TODO: there is no multi-threading yet
     parser.add_argument(
-        "--max_threads", help=argparse.SUPPRESS, type=int, default=1, required=False
+        "--max_threads",
+        help="maximum number of threads to use. Note: is only used for building prgs from MSAs (option --prgs_bed)",
+        type=int,
+        default=1,
+        required=False,
     )
 
     # Hidden arguments, for legacy/special uses (minos)

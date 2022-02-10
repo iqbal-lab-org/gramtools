@@ -4,10 +4,8 @@ import re
 import shutil
 from pathlib import Path
 import logging
+from multiprocessing.pool import Pool
 
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-from Bio.AlignIO import MultipleSeqAlignment
 from pybedtools import BedTool, Interval
 from make_prg.from_msa.prg_builder import PrgBuilder
 from make_prg.prg_encoder import PrgEncoder, ENDIANNESS, BYTES_PER_INT
@@ -17,6 +15,8 @@ from gramtools.commands.build.command_setup import MSA_EXTS
 from gramtools.commands import report
 
 Intervals = List[Interval]
+
+DEFAULT_NUM_PROCESSES = 1
 
 msa_like = re.compile(MSA_EXTS)
 
@@ -43,8 +43,14 @@ class IntervalCollection:
     """
 
     def __init__(
-        self, bed_fname: str, fasta_fname: str, coords_fname: str, out_dirname: str
+        self,
+        bed_fname: str,
+        fasta_fname: str,
+        coords_fname: str,
+        out_dirname: str,
+        num_processes: int = DEFAULT_NUM_PROCESSES,
     ):
+        self.num_processes = num_processes
         self.builders: List[IntervalBuilder] = list()
         input_collection = BedTool(bed_fname)
         missing_fname = check_all_fnames_exist(input_collection)
@@ -78,8 +84,12 @@ class IntervalCollection:
         return [builder.interval for builder in self.builders]
 
     def build(self):
-        for builder in self.builders:
-            builder.build()
+        if self.num_processes > 1:
+            with Pool(processes=self.num_processes) as pool:
+                pool.map(build_interval, self.builders)
+        else:
+            for builder in self.builders:
+                builder.build()
 
     def get_built_bed(self):
         new_intervals = self.intervals
@@ -102,9 +112,9 @@ class IntervalBuilder:
         self.build_type = build_type
         self._in_fname = interval.name
 
-    def encode_and_write_prg(self, built_prg: PrgBuilder):
+    def encode_and_write_prg(self, prg_string: str):
         prg_encoder = PrgEncoder()
-        prg_ints = prg_encoder.encode(built_prg.prg)
+        prg_ints = prg_encoder.encode(prg_string)
         with open(self.out_fname, "wb") as fhandle_out:
             prg_encoder.write(prg_ints, fhandle_out)
 
@@ -118,17 +128,21 @@ class IntervalBuilder:
         elif self.build_type is BuildType.MSA:
             log.debug(f"Building variant prg from MSA {self._in_fname}")
             built_prg = PrgBuilder(self._in_fname)
-            self.encode_and_write_prg(built_prg)
+            self.encode_and_write_prg(built_prg.prg)
         else:
             log.debug(f"Building invariant prg for region {self.start}-{self.end}")
-            records = [SeqRecord(Seq(self.sequence.upper()), id="invar_seq")]
-            alignment = MultipleSeqAlignment(records)
-            built_prg = PrgBuilder("_", alignment=alignment)
-            self.encode_and_write_prg(built_prg)
+            self.encode_and_write_prg(self.sequence)
 
     @property
     def interval(self):
         return Interval(self.chrom, self.start, self.end, self.out_fname)
+
+
+def build_interval(interval: IntervalBuilder):
+    """
+    Interface function for multiprocessing
+    """
+    interval.build()
 
 
 class Record:
@@ -217,12 +231,18 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
 
 
 def standalone_build_from_msas(
-    prgs_bed: str, reference: str, coords_file: str, built_prg_dirname: str
+    prgs_bed: str,
+    reference: str,
+    coords_file: str,
+    built_prg_dirname: str,
+    num_processes: int = DEFAULT_NUM_PROCESSES,
 ) -> Tuple[BedTool, List[int]]:
     """
     For use by external libraries
     """
-    ic = IntervalCollection(prgs_bed, reference, coords_file, built_prg_dirname)
+    ic = IntervalCollection(
+        prgs_bed, reference, coords_file, built_prg_dirname, num_processes
+    )
     ic.build()
     built_intervals = ic.get_built_bed()
     agg = PRGAggregator()
@@ -235,12 +255,13 @@ def build_from_msas(report, action, build_paths, args):
     """
     For use by gramtools
     """
-    log.info("Building prg from prgs in {args.prgs_bed}")
+    log.info(f"Building prg from prgs in {args.prgs_bed}")
     built_intervals, rescaled_prg_ints = standalone_build_from_msas(
         args.prgs_bed,
         args.reference,
         build_paths.coords_file,
         build_paths.built_prg_dirname,
+        args.max_threads,
     )
     built_intervals.saveas(build_paths.built_prg_bed)
     with open(build_paths.prg, "wb") as fhandle_out:
