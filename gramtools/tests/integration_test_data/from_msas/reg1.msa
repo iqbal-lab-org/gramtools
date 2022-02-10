@@ -1,0 +1,4 @@
+>ref1_seq
+TA
+>sample1_seq (deliberately same as ref1_seq so we don't depend on make_prg construction behaviour)
+TA

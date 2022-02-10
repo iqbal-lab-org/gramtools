@@ -10,7 +10,7 @@ from make_prg.prg_encoder import (
 )
 
 from gramtools import ENDIANNESS as gram_ENDIANNESS, BYTES_PER_INT as gram_BYTES_PER_INT
-from gramtools.commands.build.vcf_to_prg_string import int_to_bytes
+from gramtools.commands.common import ints_to_bytes
 from gramtools.commands.build.from_msas import (
     PRGAggregator,
     PRGAggregationError,
@@ -91,12 +91,8 @@ class TestPrgAggregatorCorrectUses(TestCase):
         self.assertEqual(expected, result)
 
 
-def encode_ints(prg_ints: List[int]) -> List[bytes]:
-    return b"".join(map(int_to_bytes, prg_ints))
-
-
 def configure_file_mock(file_mock, list_of_prg_ints):
-    all_encodings = map(encode_ints, list_of_prg_ints)
+    all_encodings = map(ints_to_bytes, list_of_prg_ints)
     file_mock.return_value = MagicMock()
     file_mock.return_value.read = MagicMock(side_effect=all_encodings)
 

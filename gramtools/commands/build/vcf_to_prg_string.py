@@ -10,38 +10,16 @@ Behaviour:
 from collections import defaultdict
 import logging
 import sys
-from typing import Union, List, Tuple
+from typing import List, Tuple
 
 from pysam import VariantFile, VariantRecord
 
 from gramtools import ENDIANNESS, BYTES_PER_INT
-from gramtools.commands.common import load_fasta
+from gramtools.commands.common import load_fasta, int_to_bytes, integer_to_nucleotide
 
 sys.tracebacklimit = 0
 logger = logging.getLogger("vcf_to_prg_string")
 logger.setLevel(logging.WARNING)
-
-nuc_translation = {"A": 1, "a": 1, "C": 2, "c": 2, "G": 3, "g": 3, "T": 4, "t": 4}
-int_translation = {1: "A", 2: "C", 3: "G", 4: "T"}
-
-
-def int_to_bytes(to_convert: Union[str, int]) -> bytes:
-    int_to_convert = to_convert
-    if isinstance(to_convert, str):
-        try:
-            int_to_convert = nuc_translation[to_convert]
-        except KeyError:
-            raise ValueError(
-                f"Did not receive a nucleotide: {to_convert} not in {{A,C,G,T}}"
-            )
-    return int_to_convert.to_bytes(BYTES_PER_INT, ENDIANNESS)
-
-
-def integer_to_nucleotide(integer):
-    try:
-        return int_translation[integer]
-    except KeyError:
-        return str(integer)
 
 
 class ReferenceError(Exception):

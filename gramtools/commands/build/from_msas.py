@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import re
 import shutil
 from pathlib import Path
@@ -151,8 +151,8 @@ class PRGDecodeError(Exception):
 class PRGAggregator:
     """
     Rescales variant site markers across multiple PRGs so that they are consistent
-    E.g. two different PRGs will use '5' and '6' to delimit their first sites. 
-    Aggregator makes sure that does not happen.
+    E.g. two different PRGs will (should) both use '5' and '6' to delimit their first sites.
+    Aggregator makes sure the merged variant sites use non-overlapping markers.
     """
 
     def __init__(self):
@@ -216,19 +216,32 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
     return rescaled_prg_ints
 
 
+def standalone_build_from_msas(
+    prgs_bed: str, reference: str, coords_file: str, built_prg_dirname: str
+) -> Tuple[BedTool, List[int]]:
+    """
+    For use by external libraries
+    """
+    ic = IntervalCollection(prgs_bed, reference, coords_file, built_prg_dirname)
+    ic.build()
+    built_intervals = ic.get_built_bed()
+    agg = PRGAggregator()
+    rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
+    return built_intervals, rescaled_prg_ints
+
+
 @report.with_report
 def build_from_msas(report, action, build_paths, args):
+    """
+    For use by gramtools
+    """
     log.info("Building prg from prgs in {args.prgs_bed}")
-    ic = IntervalCollection(
+    built_intervals, rescaled_prg_ints = standalone_build_from_msas(
         args.prgs_bed,
         args.reference,
         build_paths.coords_file,
         build_paths.built_prg_dirname,
     )
-    ic.build()
-    built_intervals = ic.get_built_bed()
     built_intervals.saveas(build_paths.built_prg_bed)
-    agg = PRGAggregator()
-    rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
     with open(build_paths.prg, "wb") as fhandle_out:
         PrgEncoder.write(rescaled_prg_ints, fhandle_out)

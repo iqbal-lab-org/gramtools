@@ -5,13 +5,13 @@ import hashlib
 import logging
 import subprocess
 import gzip
-from typing import List, Dict, NamedTuple
+from typing import List, Dict, NamedTuple, Union
 from pathlib import Path
 from collections import OrderedDict
 
 from Bio import SeqIO
 
-from gramtools import gramtools_lib_fpath
+from gramtools import gramtools_lib_fpath, ENDIANNESS, BYTES_PER_INT
 
 log = logging.getLogger("gramtools")
 
@@ -116,3 +116,31 @@ def write_coordinates_file(chrom_seqs: Chroms, out_fname: str):
     with open(out_fname, "w") as fhandle_out:
         for name, seq in chrom_seqs.items():
             fhandle_out.write(f"{name}\t{len(seq)}\n")
+
+
+# Integers/nucleotides/bytes
+nuc_translation = {"A": 1, "a": 1, "C": 2, "c": 2, "G": 3, "g": 3, "T": 4, "t": 4}
+int_translation = {1: "A", 2: "C", 3: "G", 4: "T"}
+
+
+def int_to_bytes(to_convert: Union[str, int]) -> bytes:
+    int_to_convert = to_convert
+    if isinstance(to_convert, str):
+        try:
+            int_to_convert = nuc_translation[to_convert]
+        except KeyError:
+            raise ValueError(
+                f"Did not receive a nucleotide: {to_convert} not in {{A,C,G,T}}"
+            )
+    return int_to_convert.to_bytes(BYTES_PER_INT, ENDIANNESS)
+
+
+def ints_to_bytes(prg_ints: List[int]) -> List[bytes]:
+    return b"".join(map(int_to_bytes, prg_ints))
+
+
+def integer_to_nucleotide(integer):
+    try:
+        return int_translation[integer]
+    except KeyError:
+        return str(integer)

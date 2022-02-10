@@ -5,9 +5,9 @@ import json
 from unittest import TestCase
 
 from gramtools.commands.simulate import simulate
-import gramtools.tests.integration_tests as it_tests
+import gramtools.tests as gram_testing
 
-data_dir = it_tests.data_dir
+data_dir = gram_testing.data_dir
 
 
 def filter_desc(simu_json):
@@ -27,13 +27,13 @@ class SimulateRunner:
         shutil.rmtree(self.simu_dir)
 
     def run_make_paths(self):
-        args = it_tests.gramtools_main.root_parser.parse_args(
+        args = gram_testing.gramtools_main.root_parser.parse_args(
             f"simulate --prg {self.prg_file} -n 5 --sample_id made -o {self.simu_dir}".split()
         )
         simulate.run(args)
 
     def run_induce_genotypes(self):
-        args = it_tests.gramtools_main.root_parser.parse_args(
+        args = gram_testing.gramtools_main.root_parser.parse_args(
             f"simulate --prg {self.prg_file} -o {self.simu_dir} "
             f"--sample_id induced -i {self.made_fasta}".split()
         )
