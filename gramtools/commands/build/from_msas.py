@@ -20,6 +20,8 @@ Intervals = List[Interval]
 
 msa_like = re.compile(MSA_EXTS)
 
+log = logging.getLogger("gramtools")
+
 
 class BuildType(Enum):
     PRG = auto()
@@ -111,11 +113,14 @@ class IntervalBuilder:
 
     def build(self):
         if self.build_type is BuildType.PRG:
+            log.debug(f"Copying already-build prg {self._in_fname}")
             shutil.copy(self._in_fname, self.out_fname)
         elif self.build_type is BuildType.MSA:
+            log.debug(f"Building variant prg from MSA {self._in_fname}")
             built_prg = PrgBuilder(self._in_fname)
             self.encode_and_write_prg(built_prg)
         else:
+            log.debug(f"Building invariant prg for region {self.start}-{self.end}")
             records = [SeqRecord(Seq(self.sequence.upper()), id="invar_seq")]
             alignment = MultipleSeqAlignment(records)
             built_prg = PrgBuilder("_", alignment=alignment)
@@ -191,7 +196,6 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
     for interval in intervals:
         in_fname = interval.name
         prg_name = Path(in_fname).stem
-        logging.info(f"Processing: {prg_name}")
         with open(in_fname, "rb") as f:
             all_bytes = f.read()
         for pos in range(0, len(all_bytes), BYTES_PER_INT):
@@ -205,13 +209,14 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
             else:
                 rescaled_int = agg.translate(prg_name, decoded_int)
                 rescaled_prg_ints.append(rescaled_int)
-        logging.info(f"Cumulative len prg: {len(rescaled_prg_ints)}")
-        logging.info(f"Cumulative num sites: {(agg.next_allocated - 3) // 2 - 1}\n")
+    log.info(f"Total length of built prg: {len(rescaled_prg_ints)}")
+    log.info(f"Total number of sites: {(agg.next_allocated - 3) // 2 - 1}\n")
     return rescaled_prg_ints
 
 
 @report.with_report
 def build_from_msas(report, action, build_paths, args):
+    log.info("Building prg from prgs in {args.prgs_bed}")
     ic = IntervalCollection(
         args.prgs_bed,
         args.reference,
@@ -224,20 +229,4 @@ def build_from_msas(report, action, build_paths, args):
     agg = PRGAggregator()
     rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
     with open(build_paths.prg, "wb") as fhandle_out:
-        PrgEncoder.write(rescaled_prg_ints, fhandle_out)
-
-
-if __name__ == "__main__":
-    import sys
-
-    bed_fname = sys.argv[1]
-    fasta_fname = sys.argv[2]
-    out_dirname = sys.argv[3]
-    ic = IntervalCollection(bed_fname, fasta_fname, out_dirname)
-    ic.build()
-    built_intervals = ic.get_built_bed()
-    built_intervals.saveas(f"{out_dirname}/built_prgs.bed")
-    agg = PRGAggregator()
-    rescaled_prg_ints: PRG_Ints = get_aggregated_prgs(agg, built_intervals)
-    with open(f"{out_dirname}/prg", "wb") as fhandle_out:
         PrgEncoder.write(rescaled_prg_ints, fhandle_out)

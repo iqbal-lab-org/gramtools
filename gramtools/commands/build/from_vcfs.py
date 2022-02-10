@@ -1,8 +1,12 @@
+import logging
+
 from cluster_vcf_records.vcf_clusterer import VcfClusterer
 
 from gramtools.commands import report
 from gramtools.commands.paths import BuildPaths
 from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg
+
+log = logging.getLogger("gramtools")
 
 
 def _count_vcf_record_lines(vcf_file_path):
@@ -46,12 +50,10 @@ def cluster_vcf_records(report, action, build_paths: BuildPaths):
 def build_from_vcfs(report, action, build_paths, args):
     """Calls utility that converts a vcf and fasta reference into a linear prg."""
     if args.no_vcf_clustering:
-        _skip_cluster_vcf_records(
-            build_report, "skip_vcf_record_clustering", build_paths
-        )
+        _skip_cluster_vcf_records(report, "skip_vcf_record_clustering", build_paths)
     else:
         # We also do this if only a single one is provided, to deal with overlapping records.
-        cluster_vcf_records(build_report, "vcf_record_clustering", build_paths)
+        cluster_vcf_records(report, "vcf_record_clustering", build_paths)
 
     built_vcf = build_paths.built_vcf
     log.info(f"Running {action} on {built_vcf}")
