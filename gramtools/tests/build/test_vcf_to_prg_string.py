@@ -162,8 +162,9 @@ class Test_Filter_Records(TestCase):
 """
 File-based tests
 """
-base_dir = Path(__file__).parent.parent.parent.parent
-data_dir = base_dir / "tests" / "data" / "vcf_to_prg_string"
+from gramtools.tests import data_dir
+
+data_dir = data_dir / "vcf_to_prg_string"
 
 
 class Utility_Tester(object):

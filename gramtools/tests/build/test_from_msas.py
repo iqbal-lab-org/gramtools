@@ -4,7 +4,12 @@ from typing import List
 
 from pybedtools import BedTool, Interval
 from make_prg.from_msa.prg_builder import PrgBuilder
+from make_prg.prg_encoder import (
+    ENDIANNESS as mp_ENDIANNESS,
+    BYTES_PER_INT as mp_BYTES_PER_INT,
+)
 
+from gramtools import ENDIANNESS as gram_ENDIANNESS, BYTES_PER_INT as gram_BYTES_PER_INT
 from gramtools.commands.build.vcf_to_prg_string import int_to_bytes
 from gramtools.commands.build.from_msas import (
     PRGAggregator,
@@ -12,6 +17,20 @@ from gramtools.commands.build.from_msas import (
     PRGDecodeError,
     get_aggregated_prgs,
 )
+
+
+class TestEncodeBinary(TestCase):
+    """
+    make_prg and vcf_to_prg_string both have code to convert a list of
+    integers into a binary file of x bytes per integer with specified endianness.
+    (Unfortunately this violates DRY principle)
+    Here we make sure they are the same
+    """
+
+    def test_binary_encoding_consistency(self):
+        self.assertEqual(gram_ENDIANNESS, mp_ENDIANNESS)
+        self.assertEqual(gram_BYTES_PER_INT, mp_BYTES_PER_INT)
+        self.assertEqual(gram_BYTES_PER_INT, mp_BYTES_PER_INT)
 
 
 class TestPrgAggregatorIncorrectUses(TestCase):
@@ -110,7 +129,7 @@ class TestAggregateMultiplePrgs(TestCase):
         list_of_prg_ints = [[5, 1, 1, 6, 1, 2, 6]]
         configure_file_mock(mock_open, list_of_prg_ints)
         result = get_aggregated_prgs(self.agg, [self.intervals[0]])
-        self.assertEqual(input_ints, result)
+        self.assertEqual(list_of_prg_ints[0], result)
 
     def test_multiple_prgs(self, mock_open):
         list_of_prg_ints = [[5, 6, 6], [5, 6, 6, 6, 6, 7, 8, 8]]

@@ -6,7 +6,7 @@ from pathlib import Path
 from pysam import VariantFile
 
 from gramtools.commands.discover import discover
-import gramtools.tests.integration_tests as it_tests
+import gramtools.tests as gram_testing
 
 
 class DiscoverRunner:
@@ -29,7 +29,7 @@ class DiscoverRunner:
         mock_disco_paths.start()
         mock_enforce_ploidy.start()
 
-        args = it_tests.gramtools_main.root_parser.parse_args(
+        args = gram_testing.gramtools_main.root_parser.parse_args(
             f"discover -i {base_dir} -o {self.disco_dir} --force".split()
         )
         args.mem_height = 3
@@ -53,7 +53,7 @@ class TestDiscoveredVariants(TestCase):
             ##Header End
         The reads are then split in two files to test we can use several
         """
-        runner = DiscoverRunner(it_tests.data_dir / "IT4")
+        runner = DiscoverRunner(gram_testing.data_dir / "IT4")
         self.assertEqual(2, len(runner.disco_paths.reads_files))
 
         cortex_records = list(VariantFile(runner.disco_paths.discov_vcf).fetch())

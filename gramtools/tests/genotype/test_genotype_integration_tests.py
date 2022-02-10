@@ -14,9 +14,9 @@ from pathlib import Path
 from gramtools.commands import paths
 from gramtools.commands.build import build
 from gramtools.commands.genotype import genotype, utils
-import gramtools.tests.integration_tests as it_tests
+import gramtools.tests as gram_testing
 
-data_dir = it_tests.data_dir
+data_dir = gram_testing.data_dir
 
 
 class BuildAndGenotype:
@@ -37,14 +37,14 @@ class BuildAndGenotype:
         shutil.rmtree(self.gram_dir)
 
     def run_build(self):
-        args = it_tests.gramtools_main.root_parser.parse_args(
+        args = gram_testing.gramtools_main.root_parser.parse_args(
             f"build --gram_dir {self.gram_dir} --prg {self.prg_file} "
             f" --reference {self.fasta_ref} --kmer_size 5 --force".split()
         )
         build.run(args)
 
     def run_genotype(self):
-        args = it_tests.gramtools_main.root_parser.parse_args(
+        args = gram_testing.gramtools_main.root_parser.parse_args(
             f"genotype --gram_dir {self.gram_dir} --genotype_dir "
             f"{self.geno_dir} --reads {self.reads_file} --sample_id test --force".split()
         )
