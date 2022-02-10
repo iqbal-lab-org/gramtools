@@ -14,7 +14,7 @@ import os
 import subprocess
 from unittest import TestCase, mock
 
-from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg
+from gramtools.commands.build.vcf_to_prg_string import Vcf_to_prg, int_to_bytes
 from gramtools.tests.mocks import _MockVcfRecord
 
 
@@ -31,7 +31,7 @@ class Test_MemberFunctions(TestCase):
         mock_load_fasta.return_value = {}
         converter = Vcf_to_prg("", "", "")
         with self.assertRaises(ValueError):
-            converter._to_bytes("N")
+            int_to_bytes("N")
 
 
 @mock.patch("gramtools.commands.build.vcf_to_prg_string.load_fasta")

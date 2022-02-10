@@ -178,10 +178,14 @@ class PRGAggregator:
         else:
             if marker in local_table:
                 record = local_table[marker]
-                if record.count >= 1:
+                record.count += 1
+                if record.count > 2:
                     raise PRGAggregationError(
-                        f"Error: {marker} site number present >1 times in local PRG {ID}"
+                        f"Error: {marker} site number present >2 times in local PRG {ID}"
                     )
+                else:
+                    # Legacy format support: converts ending odd marker to even marker
+                    return local_table[marker].translation + 1
             local_table[marker] = Record(self.next_allocated, 1)
             self.next_allocated += 2
 
@@ -193,8 +197,9 @@ def get_aggregated_prgs(agg: PRGAggregator, intervals: Intervals) -> PRG_Ints:
     for interval in intervals:
         in_fname = interval.name
         prg_name = Path(in_fname).stem
-        with open(in_fname, "rb") as f:
-            all_bytes = f.read()
+        fhandle_in = open(in_fname, "rb")
+        all_bytes = fhandle_in.read()
+        fhandle_in.close()
         for pos in range(0, len(all_bytes), BYTES_PER_INT):
             int_bytes = all_bytes[pos : pos + BYTES_PER_INT]
 

@@ -1,6 +1,17 @@
 from unittest import TestCase
+from unittest.mock import patch, MagicMock
+from typing import List
 
-from gramtools.commands.build.from_msas import PRGAggregator, PRGAggregationError
+from pybedtools import BedTool, Interval
+from make_prg.from_msa.prg_builder import PrgBuilder
+
+from gramtools.commands.build.vcf_to_prg_string import int_to_bytes
+from gramtools.commands.build.from_msas import (
+    PRGAggregator,
+    PRGAggregationError,
+    PRGDecodeError,
+    get_aggregated_prgs,
+)
 
 
 class TestPrgAggregatorIncorrectUses(TestCase):
@@ -10,9 +21,10 @@ class TestPrgAggregatorIncorrectUses(TestCase):
         with self.assertRaises(PRGAggregationError):
             agg.translate("ref", 4)
 
-    def test_translate_site_marker_multiple_times_fails(self):
+    def test_translate_site_marker_more_than_twice_fails(self):
         # Single odd marker is used to encode a variant site
         agg = PRGAggregator()
+        agg.translate("ref", 5)
         agg.translate("ref", 5)
         with self.assertRaises(PRGAggregationError):
             agg.translate("ref", 5)
@@ -39,6 +51,17 @@ class TestPrgAggregatorCorrectUses(TestCase):
             result.append(agg.translate("ref", marker))
         self.assertEqual(expected, result)
 
+    def test_translate_site_marker_twice(self):
+        """
+        Legacy format support: converts 5A6C5 to 5A6C6
+        """
+        result = list()
+        agg = PRGAggregator()
+        result.append(agg.translate("ref", 5))
+        result.append(agg.translate("ref", 5))
+        expected = [5, 6]
+        self.assertEqual(expected, result)
+
     def test_translate_markers_across_multiple_references(self):
         result = list()
         agg = PRGAggregator()
@@ -46,4 +69,52 @@ class TestPrgAggregatorCorrectUses(TestCase):
             for marker in markers:
                 result.append(agg.translate(ref, marker))
         expected = [5, 6, 6, 7, 8, 8]
+        self.assertEqual(expected, result)
+
+
+def encode_ints(prg_ints: List[int]) -> List[bytes]:
+    return b"".join(map(int_to_bytes, prg_ints))
+
+
+def configure_file_mock(file_mock, list_of_prg_ints):
+    all_encodings = map(encode_ints, list_of_prg_ints)
+    file_mock.return_value = MagicMock()
+    file_mock.return_value.read = MagicMock(side_effect=all_encodings)
+
+
+@patch("builtins.open")
+class TestAggregateMultiplePrgs(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.intervals = [
+            Interval("ref1", 0, 5, "file1"),
+            Interval("ref2", 10, 12, "file2"),
+        ]
+
+    def setUp(self):
+        self.agg = PRGAggregator()
+
+    def test_invalid_bytes_fails(self, mock_open):
+        list_of_prg_ints = [[6, 6]]
+        configure_file_mock(mock_open, list_of_prg_ints)
+        with self.assertRaises(PRGAggregationError):
+            result = get_aggregated_prgs(self.agg, [self.intervals[0]])
+
+    def test_invalid_bytes_fails2(self, mock_open):
+        list_of_prg_ints = [[0]]
+        configure_file_mock(mock_open, list_of_prg_ints)
+        with self.assertRaises(PRGDecodeError):
+            result = get_aggregated_prgs(self.agg, [self.intervals[0]])
+
+    def test_single_prg(self, mock_open):
+        list_of_prg_ints = [[5, 1, 1, 6, 1, 2, 6]]
+        configure_file_mock(mock_open, list_of_prg_ints)
+        result = get_aggregated_prgs(self.agg, [self.intervals[0]])
+        self.assertEqual(input_ints, result)
+
+    def test_multiple_prgs(self, mock_open):
+        list_of_prg_ints = [[5, 6, 6], [5, 6, 6, 6, 6, 7, 8, 8]]
+        configure_file_mock(mock_open, list_of_prg_ints)
+        result = get_aggregated_prgs(self.agg, self.intervals)
+        expected = [5, 6, 6, 7, 8, 8, 8, 8, 9, 10, 10]
         self.assertEqual(expected, result)

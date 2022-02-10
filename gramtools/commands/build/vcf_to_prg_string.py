@@ -25,6 +25,18 @@ nuc_translation = {"A": 1, "a": 1, "C": 2, "c": 2, "G": 3, "g": 3, "T": 4, "t": 
 int_translation = {1: "A", 2: "C", 3: "G", 4: "T"}
 
 
+def int_to_bytes(to_convert: Union[str, int]) -> bytes:
+    int_to_convert = to_convert
+    if isinstance(to_convert, str):
+        try:
+            int_to_convert = nuc_translation[to_convert]
+        except KeyError:
+            raise ValueError(
+                f"Did not receive a nucleotide: {to_convert} not in {{A,C,G,T}}"
+            )
+    return int_to_convert.to_bytes(BYTES_PER_INT, ENDIANNESS)
+
+
 def integer_to_nucleotide(integer):
     try:
         return int_translation[integer]
@@ -69,23 +81,12 @@ class Vcf_to_prg(object):
     def _from_bytes(self, to_convert: bytes) -> int:
         return int.from_bytes(to_convert, ENDIANNESS)
 
-    def _to_bytes(self, to_convert: Union[str, int]) -> bytes:
-        int_to_convert = to_convert
-        if isinstance(to_convert, str):
-            try:
-                int_to_convert = nuc_translation[to_convert]
-            except KeyError:
-                raise ValueError(
-                    f"Did not receive a nucleotide: {to_convert} not in {{A,C,G,T}}"
-                )
-        return int_to_convert.to_bytes(BYTES_PER_INT, ENDIANNESS)
-
     def _get_ref_slice(self, chrom, start, end=0) -> bytearray:
         if end == 0:
             res = self.ref_records[chrom][start - 1 :]
         else:
             res = self.ref_records[chrom][start - 1 : end - 1]
-        return bytearray(b"".join(map(self._to_bytes, res)))
+        return bytearray(b"".join(map(int_to_bytes, res)))
 
     def _check_record_ref(self, rec: VariantRecord) -> None:
         # Make sure the vcf record refers to a valid ref sequence ID
@@ -107,25 +108,25 @@ class Vcf_to_prg(object):
             * (normal) site marker at start, allele marker everywhere else.
         """
         # Add initial site marker + ref allele
-        prg_rep: bytearray = bytearray(self._to_bytes(site_marker))
-        prg_rep += b"".join(map(self._to_bytes, self.vcf_record.ref))
+        prg_rep: bytearray = bytearray(int_to_bytes(site_marker))
+        prg_rep += b"".join(map(int_to_bytes, self.vcf_record.ref))
 
         # Add allele markers + alt alleles
         allele_marker = site_marker + 1
-        prg_rep += self._to_bytes(allele_marker)
+        prg_rep += int_to_bytes(allele_marker)
         num_alts = len(self.vcf_record.alts)
         for i, alt_allele in enumerate(self.vcf_record.alts):
-            prg_rep += b"".join(map(self._to_bytes, str(alt_allele)))
+            prg_rep += b"".join(map(int_to_bytes, str(alt_allele)))
             pushed_marker = allele_marker
             if mode == "legacy" and i == num_alts - 1:
                 pushed_marker -= 1
-            prg_rep += self._to_bytes(pushed_marker)
+            prg_rep += int_to_bytes(pushed_marker)
         return prg_rep
 
     def _get_ref_records_with_no_variants(self) -> Tuple[str, bytearray]:
         diff = set(self.ref_records).difference(set(self.processed_refs))
         for id in diff:
-            seq = bytearray(b"".join(map(self._to_bytes, self.ref_records[id])))
+            seq = bytearray(b"".join(map(int_to_bytes, self.ref_records[id])))
             yield id, seq
 
     def next_rec(self):
