@@ -54,7 +54,7 @@ if [[ "$EXIT_CODE" != 0 ]]; then
 fi
 
 
-BUILD_DIR="${BASE_DIR}/build"
+BUILD_DIR="${BASE_DIR}/cmake-build"
 STDOUT_FILE="${BUILD_DIR}/build_stdout.txt"
 echo "Building in: ${BUILD_DIR}" >&1
 echo "Writing stdout to: ${STDOUT_FILE}" >&1

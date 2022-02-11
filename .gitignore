@@ -3,7 +3,6 @@ bin
 *.bin
 cmake[-_]build[-_]*
 cmake-build
-build/
 gramtools/lib
 doc/html
 
@@ -14,6 +13,9 @@ __pycache__
 gramtools/version/commit_version.py
 *.egg-info
 *.pyc
+
+# tests
+.coverage
 
 # IDEs
 *~
