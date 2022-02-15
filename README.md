@@ -4,8 +4,8 @@
 # gramtools
 **TL;DR** genotype genetic variants using genome graphs.
 
-Gramtools builds a genome graph (also known as population reference graph (PRG)) from a set of variants (reference sequence + VCF or multiple-sequence alignment). 
-Given sequence data from an individual, the graph is annotated with coverage and genotyped, producing a VCF, and a [jVCF](https://github.com/iqbal-lab-org/jVCF-spec), of all the variation in the graph.
+`gramtools` builds a genome graph from a reference genome and a set of variants (VCF files or MSAs files). 
+Given sequence data from an individual, the graph is annotated with coverage and genotyped, producing a VCF file, and a [jVCF file](https://github.com/iqbal-lab-org/jVCF-spec), of all the variation in the graph.
  
  A personalised reference genome for the sample is also inferred and new variation can be discovered 
  against it. You can then build a new graph from the initial and the new variants, and genotype this augmented graph.
@@ -87,15 +87,15 @@ is installable via PyPi/pip) and have `R` and `Perl` on your $PATH.
 ## Usage
 
 ```
-Gramtools
+$ gramtools -h
 
 Usage: 
     gramtools [-h] [--debug] [--force] subcommand
     
     Subcommands:
         gramtools build -o GRAM_DIR --ref REFERENCE
-                       (--vcf VCF [VCF ...] | --prg PRG)
-                       [--kmer_size KMER_SIZE]
+                       (--vcf VCF [VCF ...] | --prgs_bed PRGS_BED | --prg PRG)
+                       [--kmer_size KMER_SIZE] [--max_threads MAX_THREADS]
 
         gramtools genotype -i GRAM_DIR -o GENO_DIR
                           --reads READS [READS ...] --sample_id SAMPLE_ID
@@ -111,16 +111,26 @@ Usage:
 ```
 
 ### Subcommands explained
-1)  [build](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build) - 
-given a reference and a VCF or a prg file, builds an indexed graph.
+1)  [build][wiki_build] - 
+    given a reference genome and VCF files or MSA files, builds an indexed graph. 
 
-    A prg file can be produced from a multiple-sequence alignment (MSA) by our tool
-    [make_prg][make_prg].
-    For genotyping complex regions (e.g. SNPs + SVs, or variants on multiple references),
-    you must use a prg file made by make_prg.
+    For multiple-sequence alignment (MSA) files, graphs are 
+    built by our tool [`make_prg`][make_prg]. You can provide the MSA files, or prg
+    files you made using `make_prg`, using option `--prgs_bed`.
+    To genotype complex regions (e.g. SNPs + SVs, or variants on multiple references),
+    you must use this option.
+
+    * `--prgs_bed`: builds a genome graphs of a set of regions
+       with the rest of the linear reference genome in-between. The bed file 
+       specifies each region to build (columns 1-3) and the name of a MSA or prg file correspoding 
+       to the region in column 4. (see bed format [specification][bed])
+       **Important**: currently the reference genome sequence must be the first entry in each MSA
+       (also when using `make_prg` yourself)
     * `--kmer_size`: used for indexing the graph in preparation for
        `genotype`. higher `k` <=> faster `genotype`, but `build` output will consume more 
        disk space.
+    * `--max_threads`: use this to build multiple regions in parallel when using
+      `--prgs_bed`
 
 2)  [genotype](https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-genotype) - 
     map reads to a graph generated in `build` and genotype the graph. Produces genotype calls (VCF)
@@ -145,9 +155,6 @@ Illumina). We recommend trimming adapters off reads (e.g. using [trimmomatic](ht
 * gramtools currently performs exact matching of reads only, so relatively high read coverage (e.g.
   \>20X) is recommended
 * gramtools does not currently genotype copy-number variants (CNVs) or samples with mixed ploidy
-* Building a graph from MSAs with our tool [make_prg][make_prg] is not easy to scale
-  whole-genome. We are working on this
-  ([#130](https://github.com/iqbal-lab-org/gramtools/issues/130))
 
 ## Documentation
 
@@ -177,9 +184,11 @@ If you use gramtools in your work, cite as:
 To cite the vBWT data structure: 
 > Maciuca, S., del Ojo Elias, C., McVean, G., Iqbal, Z. A Natural Encoding of Genetic Variation in a Burrows-Wheeler Transform to Enable Mapping and Genome Inference. WABI2016: Algorithms in Bioinformatics. Lecture Notes in Computer Science, vol 9838. Springer, Cham. https://doi.org/10.1007/978-3-319-43681-4_18
 
-To cite make_prg graph construction:
+To cite `make_prg` graph construction:
 > Colquhoun, R.M., Hall, M.B., Lima, L. et al. Pandora: nucleotide-resolution bacterial pan-genomics with reference graphs. *Genome Biology* 22, 267 (2021). https://doi.org/10.1186/s13059-021-02473-1
 
 
 
 [make_prg]: https://github.com/iqbal-lab-org/make_prg
+[bed]: https://en.wikipedia.org/wiki/BED_(file_format)
+[wiki_build]: https://github.com/iqbal-lab-org/gramtools/wiki/Commands%3A-build
