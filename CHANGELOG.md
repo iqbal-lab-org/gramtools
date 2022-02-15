@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* Support for building a genome graph from multiple MSAs and/or genome sub-graphs built by [make_prg][make_prg].
+  Addresses [#130][130].
+
+### Changed
+* Dependencies: added [make_prg][make_prg] and pybedtools, updated biopython version.
+
 ## [1.9.0] - 25/01/2022
 
 ### Added
@@ -49,9 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.9.0]: https://github.com/iqbal-lab-org/gramtools/releases/tag/v1.9.0
 [1.8.0]: https://github.com/iqbal-lab-org/gramtools/releases/tag/v1.8.0
 [101]: https://github.com/iqbal-lab-org/gramtools/issues/101
+[130]: https://github.com/iqbal-lab-org/gramtools/issues/130
 [158]: https://github.com/iqbal-lab-org/gramtools/issues/158
 [159]: https://github.com/iqbal-lab-org/gramtools/issues/159
 [163]: https://github.com/iqbal-lab-org/gramtools/issues/163
 [164]: https://github.com/iqbal-lab-org/gramtools/issues/164
 
 [conan]: https://conan.io/
+[make_prg]: https://github.com/iqbal-lab-org/make_prg
