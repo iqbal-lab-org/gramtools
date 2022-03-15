@@ -26,8 +26,5 @@ from the root source dir.
 ### Back-end
 
 ```sh
-mkdir cmake-build && cd cmake-build
-cmake -DCMAKE_BUILD_TYPE=REL_WITH_ASSERTS ..
-make -j 4 test_main
-ctest -V
+bash build.sh test_main
 ```

@@ -66,4 +66,6 @@ conan install .. -s compiler.libcxx=libstdc++11 --build=missing > "$STDOUT_FILE"
 CC=gcc CXX=g++ cmake "$CMAKE_OPTS" .. | tee -a "$STDOUT_FILE"
 make -j 4 "${TARGET}" | tee -a "$STDOUT_FILE"
 
+[[ "${TARGET}" == "test_main" ]] && ctest -V
+
 cd "$CUR_DIR"
