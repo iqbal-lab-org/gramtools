@@ -21,8 +21,8 @@ def setup_parser(common_parser, subparsers):
     parser.add_argument(
         "--ref",
         "--reference",
-        help="Reference genome. Used to build non-variant parts of the prg (--vcf) "
-        "or to book-keep chromosome IDs and coordinates (--prg).",
+        help="Reference genome fasta, can be gzipped. When used with --prgs_bed, the "
+        "reference sequence needs to be the first sequence in each input MSA.",
         type=str,
         dest="reference",
         required=True,
