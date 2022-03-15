@@ -47,7 +47,7 @@ singularity exec "$URI" gramtools
 We recommend installing inside a virtual environment:
 ```sh
 python -m venv venv_gramtools && source venv_gramtools/bin/activate
-VERSION="1.9.0"
+VERSION="1.10.0"
 wget -O - "https://github.com/iqbal-lab-org/gramtools/releases/download/v${VERSION}/gramtools-${VERSION}.tar.gz" | tar xfz -
 pip install ./gramtools-"${VERSION}"
 ```
