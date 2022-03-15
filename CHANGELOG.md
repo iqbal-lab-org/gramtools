@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
 * Support for building a genome graph from multiple MSAs and/or genome sub-graphs built by [make_prg][make_prg].
   Addresses [#130][130].
+* CONTRIBUTING.md document
 
 ### Changed
 * Dependencies: added [make_prg][make_prg] and pybedtools, updated biopython version.

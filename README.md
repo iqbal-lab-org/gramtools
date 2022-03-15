@@ -168,7 +168,8 @@ The documentation gets generated in doc/html/index.html and provides a useful re
 
 ## Contributing
 
-Please refer to the [developers wiki page](https://github.com/iqbal-lab-org/gramtools/wiki/Developers%3A-tips).
+Contributions are always welcome!
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md). For developer tips, head to the [wiki](https://github.com/iqbal-lab-org/gramtools/wiki/Developers%3A-tips).
 
 
 ## License
