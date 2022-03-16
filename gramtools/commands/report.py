@@ -3,6 +3,7 @@ import logging
 import collections
 import os
 import json
+import traceback
 
 from gramtools import version
 from .paths import ProjectPaths
@@ -17,20 +18,24 @@ def with_report(f):
     """
 
     def reportify(report, action: str, command_paths: ProjectPaths, *args):
-        success, error, error_message = True, None, None
+        success = True
         timer_start = time.time()
 
         try:
             original_result = f(report, action, command_paths, *args)
         except Exception as e:
             success = False
-            error = e
+            traceback_string = "".join(
+                traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+            )
         timer_end = time.time()
 
         report["success"] = success
         process_report = collections.OrderedDict(
             {"success": success, "run_time": int(timer_end) - int(timer_start)}
         )
+        if not success:
+            process_report["traceback"] = traceback_string.split("\n")
 
         # The condition below accounts for the called function reporting as well.
         if action not in report["processes"]:
@@ -42,7 +47,7 @@ def with_report(f):
             }  # Place success status at very top
 
         if not success:
-            log.error(f"{error}")
+            log.error(f"Traceback: \n{traceback_string}")
             log.error(
                 f"Unsuccessful {action}. " f"Process reported to {command_paths.report}"
             )

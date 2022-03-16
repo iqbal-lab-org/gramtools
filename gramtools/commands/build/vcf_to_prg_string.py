@@ -17,7 +17,6 @@ from pysam import VariantFile, VariantRecord
 from gramtools import ENDIANNESS, BYTES_PER_INT
 from gramtools.commands.common import load_fasta, int_to_bytes, integer_to_nucleotide
 
-sys.tracebacklimit = 0
 logger = logging.getLogger("vcf_to_prg_string")
 logger.setLevel(logging.WARNING)
 
