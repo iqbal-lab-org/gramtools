@@ -18,7 +18,7 @@ target_include_directories(encode_prg PUBLIC ${INCLUDE})
 
 add_custom_command(TARGET encode_prg POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/../bin/encode_prg
+        ${CMAKE_CURRENT_BINARY_DIR}/encode_prg
         ${SUBMOD_DIR}/encode_prg.bin)
 
 # print_fm_index
@@ -28,7 +28,7 @@ target_include_directories(print_fm_index PUBLIC ${INCLUDE})
 
 add_custom_command(TARGET print_fm_index POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/../bin/print_fm_index
+        ${CMAKE_CURRENT_BINARY_DIR}/print_fm_index
         ${SUBMOD_DIR}/print_fm_index.bin)
 
 # combine jvcfs
@@ -38,7 +38,7 @@ target_include_directories(combine_jvcfs PUBLIC ${INCLUDE})
 
 add_custom_command(TARGET combine_jvcfs POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/../bin/combine_jvcfs
+        ${CMAKE_CURRENT_BINARY_DIR}/combine_jvcfs
         ${SUBMOD_DIR}/combine_jvcfs.bin)
 
 # visualise_prg
@@ -48,5 +48,5 @@ target_include_directories(visualise_prg PUBLIC ${INCLUDE})
 
 add_custom_command(TARGET visualise_prg POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/../bin/visualise_prg
+        ${CMAKE_CURRENT_BINARY_DIR}/visualise_prg
         ${SUBMOD_DIR}/visualise_prg.bin)

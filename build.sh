@@ -54,15 +54,16 @@ if [[ "$EXIT_CODE" != 0 ]]; then
 fi
 
 
-BUILD_DIR="${BASE_DIR}/cmake-build"
+BUILD_DIR="${BASE_DIR}/build"
 STDOUT_FILE="${BUILD_DIR}/build_stdout.txt"
 echo "Building in: ${BUILD_DIR}" >&1
 echo "Writing stdout to: ${STDOUT_FILE}" >&1
-mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}" 
 
-CMAKE_OPTS="-DCMAKE_EXE_LINKER_FLAGS=${STATIC} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
+conan install . -s compiler.libcxx=libstdc++11 --build=missing --output-folder="${BUILD_DIR}" > "$STDOUT_FILE"
 
-conan install .. -s compiler.libcxx=libstdc++11 --build=missing > "$STDOUT_FILE"
+cd "${BUILD_DIR}"
+CMAKE_OPTS="-DCMAKE_EXE_LINKER_FLAGS=${STATIC} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake"
 CC=gcc CXX=g++ cmake "$CMAKE_OPTS" .. | tee -a "$STDOUT_FILE"
 make -j 4 "${TARGET}" | tee -a "$STDOUT_FILE"
 

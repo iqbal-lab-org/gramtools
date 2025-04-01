@@ -1,4 +1,5 @@
 #include "genotype/quasimap/search/BWT_search.hpp"
+#include <optional>
 
 #include <sdsl/suffix_arrays.hpp>
 

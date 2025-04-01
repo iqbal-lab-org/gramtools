@@ -1,7 +1,11 @@
 [requires]
-boost/1.69.0
+boost/1.87.0
 nlohmann_json/3.7.3
 gtest/1.10.0
 
 [generators]
-cmake
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout

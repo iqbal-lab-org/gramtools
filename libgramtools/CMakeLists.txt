@@ -18,8 +18,9 @@ set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "${CMAKE_CXX_FLAGS_REL_WITH_ASSERTS} -O3")
 ######################
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/sdsl.cmake)
 include(${PROJECT_SOURCE_DIR}/libgramtools/lib/htslib.cmake)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
+
+find_package(Boost REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Parallelisation
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -79,9 +80,9 @@ target_include_directories(gramtools PUBLIC
 target_link_libraries(gramtools LINK_PUBLIC
         ${SDSL_LIBS}
         ${CMAKE_CURRENT_BINARY_DIR}/lib/libhts.a
-        CONAN_PKG::boost
-        CONAN_PKG::nlohmann_json
-        -lstdc++fs -lpthread -lrt -lm -lz
+        boost::boost
+        nlohmann_json::nlohmann_json
+        -lstdc++fs -lpthread -lrt -lm -lz -ldeflate
         ${STATIC_FLAGS}
 		)
 target_compile_features(gramtools PUBLIC cxx_std_17)

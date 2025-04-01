@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <limits>
 
 namespace gram::genotype {
 struct segment {

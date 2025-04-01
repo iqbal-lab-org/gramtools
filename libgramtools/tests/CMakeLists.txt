@@ -4,6 +4,8 @@ set(INCLUDE
         test_resources
         )
 
+find_package(GTest REQUIRED)
+
 file(GLOB_RECURSE SOURCES *.cpp)
 
 add_executable(test_main
@@ -14,7 +16,7 @@ add_executable(test_main
 
 target_link_libraries(test_main
         gramtools
-        CONAN_PKG::gtest
+        gtest::gtest
         -lpthread
         -lm)
 target_include_directories(test_main PUBLIC
@@ -26,7 +28,7 @@ set_target_properties(test_main
         CXX_STANDARD_REQUIRED ON)
 add_custom_command(TARGET test_main POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/../bin/test_main
+        ${CMAKE_CURRENT_BINARY_DIR}/test_main
         ${PROJECT_SOURCE_DIR}/libgramtools/tests/test_main.bin)
 
 

@@ -7,6 +7,7 @@
 #define GRAMTOOLS_QUASIMAP_PARAMETERS_HPP
 
 #include "common/parameters.hpp"
+#include <optional>
 
 namespace gram {
 enum class Ploidy { Haploid, Diploid };
