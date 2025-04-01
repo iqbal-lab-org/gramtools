@@ -19,7 +19,7 @@ Given sequence data from an individual, the graph is annotated with coverage and
   - [Container](#from-container)
   - [Source](#from-source)
 - [Usage](#usage)
-- [Example uses](#example-uses)
+- [Example real-world applications](#real-world-applications)
 - [Limitations](#limitations-and-recommendations)
 - [Docs](#documentation)
 - [Contribute](#contributing)
@@ -151,7 +151,7 @@ discovers new variation against the personalised reference genome from `genotype
 of the variant bubbles the path went through.
     * `--prg`: a prg file as output by `build`
 
-## Example uses
+## Real world applications
 
 `gramtools` has been used to genotype (tens of!) thousands of samples of *M. tuberculosis*, the bacterium responsible 
 for tuberculosis disease. We have done this through a specially-designed wrapper, [minos](https://github.com/iqbal-lab-org/minos). 
