@@ -170,9 +170,9 @@ they are so genetically variable. See the results for two of these genes (DBLMSP
   with the `discover` command relies on existing tools
 * gramtools is designed to use short, low-error rate reads only (e.g.
     Illumina). If you have long reads with low error rates (e.g., PacBio HiFi), we recommend (artificially, *in silico*) fragmenting them 
-    into smaller sizes - e.g. 400bp each. You can do this with [seqkit](https://github.com/shenwei356/seqkit):
+    into smaller sizes - e.g. 200-400bp each. You can do this with [seqkit](https://github.com/shenwei356/seqkit):
     ```
-    seqkit sliding -g -s 20 -W 20 <reads.fastq>
+    seqkit sliding -g -s 200 -W 200 <reads.fastq>
     ```
     We also always recommend trimming adapters off reads (e.g. using [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)) before genotyping with gramtools.
 * gramtools currently performs exact matching of reads only, so relatively high read coverage (e.g. \>30X) is recommended
