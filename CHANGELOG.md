@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+* Dependencies: 
+    - [Back-end] Updated minimum CMake version; updated Conan to 2.0 and above
+    - [Front-end] Updated pysam and pybedtools
+
+## [1.10.0] - 16/03/2022
+
 ### Added
 * Support for building a genome graph from multiple MSAs and/or genome sub-graphs built by [make_prg][make_prg].
   Addresses [#130][130].
@@ -53,7 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Bump boost libraries to 1.69.0
 
 
-[unreleased]: https://github.com/iqbal-lab-org/gramtools/compare/1.9.0...HEAD
+[unreleased]: https://github.com/iqbal-lab-org/gramtools/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/iqbal-lab-org/gramtools/releases/tag/v1.10.0
 [1.9.0]: https://github.com/iqbal-lab-org/gramtools/releases/tag/v1.9.0
 [1.8.0]: https://github.com/iqbal-lab-org/gramtools/releases/tag/v1.8.0
 [101]: https://github.com/iqbal-lab-org/gramtools/issues/101

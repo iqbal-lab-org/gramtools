@@ -26,5 +26,5 @@ from the root source dir.
 ### Back-end
 
 ```sh
-bash build.sh test_main
+bash build.sh --target test_main
 ```

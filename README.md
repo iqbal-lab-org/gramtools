@@ -78,7 +78,7 @@ pip install ./gramtools
 
 `Python >= 3.6` and `pip >= 20.0.2`.
 
-If the backend needs to be compiled, you also need `CMake >= 3.1.2` and a C++17 
+If the backend needs to be compiled, you also need `CMake >= 3.15` and a C++17 
 compatible compiler: `g++ >=8` (tested) or `clang >=7` (untested).
 
 For `gramtools discover` to work, you additionally need to install `py-cortex-api` (it
@@ -120,6 +120,10 @@ Usage:
     To genotype complex regions (e.g. SNPs + SVs, or variants on multiple references),
     you must use this option.
 
+    **Note**: when building from VCF, symbolic variant representation is currently not supported (e.g. '<DEL>' in the 'ALT' column): 
+    please use explicit nucleotides instead (e.g., 'ATT' in 'REF' column and 'A' in 'ALT' column to represent 
+    a deletion of the two 'TT' nucleotides).
+    
     * `--prgs_bed`: builds a genome graphs of a set of regions
        with the rest of the linear reference genome in-between. The bed file 
        specifies each region to build (columns 1-3) and the name of a MSA or prg file correspoding 
