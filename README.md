@@ -19,6 +19,7 @@ Given sequence data from an individual, the graph is annotated with coverage and
   - [Container](#from-container)
   - [Source](#from-source)
 - [Usage](#usage)
+- [Example uses](#example-uses)
 - [Limitations](#limitations-and-recommendations)
 - [Docs](#documentation)
 - [Contribute](#contributing)
@@ -150,14 +151,31 @@ discovers new variation against the personalised reference genome from `genotype
 of the variant bubbles the path went through.
     * `--prg`: a prg file as output by `build`
 
+## Example uses
+
+`gramtools` has been used to genotype (tens of!) thousands of samples of *M. tuberculosis*, the bacterium responsible 
+for tuberculosis disease. We have done this through a specially-designed wrapper, [minos](https://github.com/iqbal-lab-org/minos). 
+See the results here:
+
+> Walker, T., Sarah, A. et al. The 2021 WHO catalogue of *Mycobacterium tuberculosis* complex mutations associated with drug resistance: a genotypic analysis. *Lancet Microbe*. https://doi.org/10.1016/S2666-5247(21)00301-3
+
+It was also used to genotype a number of cell-surface exposed genes of the malaria parasite *P. falciparum*, to understand how and why 
+they are so genetically variable. See the results for two of these genes (DBLMSP and DBLMSP2) here:
+
+> Letcher, B., Maciuca, S., Iqbal, Z. Role for gene conversion in the evolution of cell-surface antigens of the malaria parasite *Plasmodium falciparum*. *PLOS Biology*. https://doi.org/10.1371/journal.pbio.3002507
+
 ## Limitations and recommendations
 
 * gramtools is primarily a genotyper, not a variant caller. Variant discovery 
   with the `discover` command relies on existing tools
 * gramtools is designed to use short, low-error rate reads only (e.g.
-Illumina). We recommend trimming adapters off reads (e.g. using [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)) before genotyping with gramtools.
-* gramtools currently performs exact matching of reads only, so relatively high read coverage (e.g.
-  \>20X) is recommended
+    Illumina). If you have long reads with low error rates (e.g., PacBio HiFi), we recommend (artificially, *in silico*) fragmenting them 
+    into smaller sizes - e.g. 400bp each. You can do this with [seqkit](https://github.com/shenwei356/seqkit):
+    ```
+    seqkit sliding -g -s 20 -W 20 <reads.fastq>
+    ```
+    We also always recommend trimming adapters off reads (e.g. using [trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)) before genotyping with gramtools.
+* gramtools currently performs exact matching of reads only, so relatively high read coverage (e.g. \>30X) is recommended
 * gramtools does not currently genotype copy-number variants (CNVs) or samples with mixed ploidy
 
 ## Documentation
