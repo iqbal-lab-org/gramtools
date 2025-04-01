@@ -120,7 +120,7 @@ Usage:
     To genotype complex regions (e.g. SNPs + SVs, or variants on multiple references),
     you must use this option.
 
-    **Note**: when building from VCF, symbolic variant representation is currently not supported (e.g. '<DEL>' in the 'ALT' column): 
+    **Note**: when building from VCF, symbolic variant representation is currently not supported (e.g. '\<DEL\>' in the 'ALT' column): 
     please use explicit nucleotides instead (e.g., 'ATT' in 'REF' column and 'A' in 'ALT' column to represent 
     a deletion of the two 'TT' nucleotides).
     
